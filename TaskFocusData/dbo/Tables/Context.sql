@@ -1,0 +1,6 @@
+﻿CREATE TABLE [dbo].[Context]
+(
+	[Id] INT NOT NULL PRIMARY KEY IDENTITY, 
+    [UserId] NVARCHAR(128) NOT NULL, 
+    [Name] NVARCHAR(50) NOT NULL
+)

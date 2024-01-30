@@ -1,0 +1,9 @@
+﻿CREATE TABLE [dbo].[Project]
+(
+	[Id] INT NOT NULL PRIMARY KEY IDENTITY, 
+    [UserId] NVARCHAR(128) NOT NULL, 
+    [Name] NVARCHAR(128) NOT NULL,
+    [ContextId] INT NULL, 
+    [DueDate] DATETIME2 NULL, 
+    [Tasks] NVARCHAR(MAX) NULL
+)

@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Operations Version="1.0" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+  <Operation Name="Rename Refactor" Key="6a2ae8ec-0726-49be-9b9d-f01baf7c8fd8" ChangeDateTime="01/30/2024 19:53:41">
+    <Property Name="ElementName" Value="[dbo].[Task].[Name]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Task]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="Description" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="2a1e2424-502a-47ee-8c19-d83c291cec96" ChangeDateTime="01/30/2024 19:54:00">
+    <Property Name="ElementName" Value="[dbo].[Task].[Description]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Task]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="Title" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="a98d8d35-65b6-4e83-b4d6-571844448004" ChangeDateTime="01/30/2024 19:54:08">
+    <Property Name="ElementName" Value="[dbo].[Task].[Title]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Task]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="Description" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="f412e0c5-f6f3-4522-b10e-4bc873f12182" ChangeDateTime="01/30/2024 19:54:17">
+    <Property Name="ElementName" Value="[dbo].[Task].[Description]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Task]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="NameDescription" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="f9960010-a232-4241-a5d1-aa5868fd9871" ChangeDateTime="01/30/2024 19:54:46">
+    <Property Name="ElementName" Value="[dbo].[Task].[NameDescription]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Task]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="TextContent" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="fb0d6749-6e73-4228-8239-aef0f16d147d" ChangeDateTime="01/30/2024 20:02:44">
+    <Property Name="ElementName" Value="[dbo].[Task].[TextContent]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Task]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="Name" />
+  </Operation>
+</Operations>
