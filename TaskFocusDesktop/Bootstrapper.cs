@@ -6,6 +6,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using TaskFocusDesktop.Library.API;
+using TaskFocusDesktop.Library.Models;
 using TaskFocusDesktop.Utilities;
 using TaskFocusDesktop.ViewModels;
 
@@ -33,6 +35,7 @@ namespace TaskFocusDesktop
             _container
                 .Singleton<IWindowManager, WindowManager>()
                 .Singleton<IEventAggregator, EventAggregator>()
+                .Singleton<ILoggedInUserModel, LoggedInUserModel>()
                 .Singleton<IAPIHelper, APIHelper>();
 
             // register view models - create new instance each time one is requested

@@ -100,9 +100,6 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Bootstrapper.cs" />
-    <Compile Include="Models\AuthenticatedUser.cs" />
-    <Compile Include="Utilities\APIHelper.cs" />
-    <Compile Include="Utilities\IAPIHelper.cs" />
     <Compile Include="Utilities\PasswordBoxHelper.cs" />
     <Compile Include="ViewModels\LoginViewModel.cs" />
     <Compile Include="ViewModels\ShellViewModel.cs" />
@@ -152,6 +149,14 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\TaskFocusDesktop.Library\TaskFocusDesktop.Library.csproj">
+      <Project>{bb03e567-df4c-4bf9-99a6-b1977e6895e9}</Project>
+      <Name>TaskFocusDesktop.Library</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Models\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

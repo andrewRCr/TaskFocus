@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TaskFocusDesktop.Utilities;
+using TaskFocusDesktop.Library.API;
 
 namespace TaskFocusDesktop.ViewModels
 {
@@ -65,7 +65,7 @@ namespace TaskFocusDesktop.ViewModels
 		{
             get
             {
-				return !String.IsNullOrEmpty(Username) && !String.IsNullOrEmpty(Password);
+				return !String.IsNullOrWhiteSpace(Username) && !String.IsNullOrWhiteSpace(Password);
             }
 		}
 
@@ -75,6 +75,10 @@ namespace TaskFocusDesktop.ViewModels
             {
 				ErrorMessage = null;
                 var result = await _apiHelper.Authenticate(Username, Password);
+
+				// capture user info
+				await _apiHelper.GetLoggedInUserInfo(result.Access_Token);
+
             }
             catch (Exception ex)
             {

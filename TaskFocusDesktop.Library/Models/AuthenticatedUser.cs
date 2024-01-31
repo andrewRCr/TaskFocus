@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TaskFocusDesktop.Models
+namespace TaskFocusDesktop.Library.API
 {
     public class AuthenticatedUser
     {
