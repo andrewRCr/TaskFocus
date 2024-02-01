@@ -5,7 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TaskFocusDesktop.Views"
         mc:Ignorable="d"
-        Title="ShellView" Height="450" Width="800">
+        Title="ShellView" Height="600" Width="1000"
+        WindowStartupLocation="CenterScreen">
     <DockPanel>
         <Menu DockPanel.Dock="Top" FontSize="12">
             <MenuItem Header="_File">
@@ -23,7 +24,7 @@
             
         </Menu>
         <Grid>
-            <ContentControl x:Name="ActiveItem" Margin="5" />
+            <ContentControl x:Name="ActiveItem" Margin="20 20 20 20" />
         </Grid>
     </DockPanel>
 </Window>

@@ -51,7 +51,7 @@
             </ComboBox>
 
             <!-- due date datepicker -->
-            <DatePickerTextBox Text="Due" Margin="10 5 5 4" VerticalAlignment="Center" />
+            <DatePicker Text="Due" Margin="10 5 5 4" VerticalAlignment="Center" />
 
         </StackPanel>
 

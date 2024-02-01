@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TaskFocusDesktop.EventModels;
 using TaskFocusDesktop.Library.API;
 
 namespace TaskFocusDesktop.ViewModels
@@ -13,11 +14,13 @@ namespace TaskFocusDesktop.ViewModels
 		private string _username;
 		private string _password;
 		private IAPIHelper _apiHelper;
+		private IEventAggregator _events;
         private string _errorMessage;
 
-        public LoginViewModel(IAPIHelper aPIHelper)
+        public LoginViewModel(IAPIHelper aPIHelper, IEventAggregator events)
         {
             _apiHelper = aPIHelper;
+            _events = events;
         }
 
         public string Username
@@ -79,7 +82,8 @@ namespace TaskFocusDesktop.ViewModels
                 // capture user info
                 await _apiHelper.GetLoggedInUserInfo(result.Access_Token);
 
-            }
+				await _events.PublishOnUIThreadAsync(new LogOnEvent());
+			}
             catch (Exception ex)
             {
                 ErrorMessage = ex.Message;
