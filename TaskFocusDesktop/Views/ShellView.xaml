@@ -11,9 +11,16 @@
             <MenuItem Header="_File">
 
             </MenuItem>
+
+            <MenuItem Header="_NavTemp">
+                <MenuItem x:Name="InboxScreen" Header="_Inbox" />
+                <MenuItem x:Name="TodayScreen" Header="_Today" />
+            </MenuItem>
+            
             <MenuItem Header="_Account">
                 <MenuItem x:Name="LoginScreen" Header="_Login" />
             </MenuItem>
+            
         </Menu>
         <Grid>
             <ContentControl x:Name="ActiveItem" Margin="5" />
