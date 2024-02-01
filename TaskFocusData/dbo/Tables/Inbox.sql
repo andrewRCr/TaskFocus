@@ -2,5 +2,5 @@
 (
 	[Id] INT NOT NULL PRIMARY KEY IDENTITY, 
     [UserId] NVARCHAR(128) NOT NULL, 
-    [Tasks] NVARCHAR(MAX) NULL
+    [InboxTasks] NVARCHAR(MAX) NULL
 )

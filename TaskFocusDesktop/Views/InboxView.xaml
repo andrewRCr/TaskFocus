@@ -55,5 +55,13 @@
 
         </StackPanel>
 
+        <ListBox x:Name="Tasks" Grid.Column="0" Grid.Row="2">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding TaskName}" />
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
     </Grid>
 </UserControl>

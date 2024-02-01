@@ -42,4 +42,39 @@
     <Property Name="ParentElementType" Value="SqlTable" />
     <Property Name="NewName" Value="Name" />
   </Operation>
+  <Operation Name="Rename Refactor" Key="50a2377d-f1dd-4291-92d7-fbb3cc0d6438" ChangeDateTime="02/01/2024 21:18:15">
+    <Property Name="ElementName" Value="[dbo].[Task].[Name]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Task]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="TaskName" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="cc1e11aa-cd6c-4640-8ab6-b1f3a213cb09" ChangeDateTime="02/01/2024 21:18:32">
+    <Property Name="ElementName" Value="[dbo].[Context].[Name]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Context]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="ContextName" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="183dc6cb-410a-4319-8b73-d00a9674f6ca" ChangeDateTime="02/01/2024 21:18:44">
+    <Property Name="ElementName" Value="[dbo].[Project].[Name]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Project]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="ProjectName" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="4b6fa58f-47af-4249-8663-7e472c1d0fd7" ChangeDateTime="02/01/2024 21:19:08">
+    <Property Name="ElementName" Value="[dbo].[Inbox].[Tasks]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Inbox]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="InboxTasks" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="b10d1849-219d-4615-9e6c-0b6d1bbd4569" ChangeDateTime="02/01/2024 21:19:21">
+    <Property Name="ElementName" Value="[dbo].[Project].[Tasks]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Project]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="ProjectTasks" />
+  </Operation>
 </Operations>
