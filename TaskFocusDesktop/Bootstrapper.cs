@@ -30,7 +30,8 @@ namespace TaskFocusDesktop
         protected override void Configure()
         {
             _container.Instance(_container)
-                .PerRequest<ITaskEndpoint, TaskEndpoint>();
+                .PerRequest<ITaskEndpoint, TaskEndpoint>()
+                .PerRequest<IProjectEndpoint, ProjectEndpoint>();
 
             // use these singular instances
             _container

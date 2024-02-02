@@ -4,8 +4,9 @@ AS
 BEGIN
 	SET NOCOUNT ON;
 
-	SELECT Id, TaskName, Completed, DateCompleted, ProjectId, ContextId, DueDate
+	SELECT Task.Id, TaskName, Completed, DateCompleted, ProjectId, Task.ContextId, Task.DueDate, Project.ProjectName
 	FROM dbo.Task
-	WHERE UserId = @Id
-	ORDER BY CreatedDate;
+	LEFT JOIN dbo.Project ON dbo.Task.ProjectId = dbo.Project.Id
+	WHERE Task.UserId = @Id
+	ORDER BY CreatedDate
 END
