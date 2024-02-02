@@ -2,5 +2,6 @@
 (
 	[Id] INT NOT NULL PRIMARY KEY IDENTITY, 
     [UserId] NVARCHAR(128) NOT NULL, 
-    [InboxTasks] NVARCHAR(MAX) NULL
+    [InboxTasks] NVARCHAR(MAX) NULL, 
+    CONSTRAINT [FK_Inbox_ToUser] FOREIGN KEY (UserId) REFERENCES [User](Id)
 )

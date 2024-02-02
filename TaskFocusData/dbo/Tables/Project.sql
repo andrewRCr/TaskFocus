@@ -5,5 +5,7 @@
     [ProjectName] NVARCHAR(128) NOT NULL,
     [ContextId] INT NULL, 
     [DueDate] DATETIME2 NULL, 
-    [ProjectTasks] NVARCHAR(MAX) NULL
+    [ProjectTasks] NVARCHAR(MAX) NULL, 
+    CONSTRAINT [FK_Project_ToUser] FOREIGN KEY (UserId) REFERENCES [User](Id), 
+    CONSTRAINT [FK_Project_ToContext] FOREIGN KEY (ContextId) REFERENCES Context(Id)
 )
