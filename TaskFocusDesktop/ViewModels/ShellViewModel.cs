@@ -12,18 +12,16 @@ namespace TaskFocusDesktop.ViewModels
     public class ShellViewModel : Conductor<object>, IHandle<LogOnEvent>
     {
         private IEventAggregator _events;
-        private SimpleContainer _container;
         private InboxViewModel _inboxVM;
 
-        public ShellViewModel(IEventAggregator events, SimpleContainer container, InboxViewModel inboxVM)
+        public ShellViewModel(IEventAggregator events, InboxViewModel inboxVM)
         {
             _events = events;
-            _container = container;
             _inboxVM = inboxVM;
 
             _events.SubscribeOnUIThread(this);
 
-            ActivateItemAsync(_container.GetInstance<LoginViewModel>());
+            ActivateItemAsync(IoC.Get<LoginViewModel>());
         }
 
         public Task HandleAsync(LogOnEvent message, CancellationToken cancellationToken)
