@@ -1,4 +1,5 @@
-﻿using Caliburn.Micro;
+﻿using AutoMapper;
+using Caliburn.Micro;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,6 +9,7 @@ using System.Windows;
 using System.Windows.Controls;
 using TaskFocusDesktop.Library.API;
 using TaskFocusDesktop.Library.Models;
+using TaskFocusDesktop.Models;
 using TaskFocusDesktop.Utilities;
 using TaskFocusDesktop.ViewModels;
 
@@ -27,8 +29,25 @@ namespace TaskFocusDesktop
             "PasswordChanged");
         }
 
+        private IMapper ConfigureAutomapper()
+        {
+            var config = new MapperConfiguration(cfg =>
+            {
+                cfg.CreateMap<TaskModel, TaskDisplayModel>();
+                cfg.CreateMap<TaskDisplayModel, TaskModel>();
+            });
+
+            return config.CreateMapper();
+        }
+
         protected override void Configure()
         {
+
+            // dependency injection
+            // ====================
+
+            _container.Instance(ConfigureAutomapper());
+
             _container.Instance(_container)
                 .PerRequest<ITaskEndpoint, TaskEndpoint>()
                 .PerRequest<IProjectEndpoint, ProjectEndpoint>();

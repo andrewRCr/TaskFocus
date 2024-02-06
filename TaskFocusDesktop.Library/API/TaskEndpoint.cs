@@ -31,5 +31,31 @@ namespace TaskFocusDesktop.Library.API
                 else { throw new Exception(response.ReasonPhrase); }
             }
         }
+
+        public async Task AddTask(TaskModel task, string userId)
+        {
+            task.UserId = userId;
+
+            using (HttpResponseMessage response = await _apiHelper.APIClient.PostAsJsonAsync("/api/task", task))
+            {
+                if (response.IsSuccessStatusCode)
+                {
+                    // TODO - log successful update call ?
+                }
+                else { throw new Exception(response.ReasonPhrase); }
+            }
+        }
+
+        public async Task UpdateTask(TaskModel task)
+        {
+            using (HttpResponseMessage response = await _apiHelper.APIClient.PutAsJsonAsync("/api/task", task))
+            {
+                if (response.IsSuccessStatusCode)
+                {
+                    // TODO - log successful update call ?
+                }
+                else { throw new Exception(response.ReasonPhrase); }
+            }
+        }
     }
 }

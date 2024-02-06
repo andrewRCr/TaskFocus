@@ -42,7 +42,7 @@
         </TextBlock>
         <TextBox x:Name="Username" Grid.Row="2" Grid.Column="2" MinWidth="250"
                  Margin="10 0 0 10" Padding="2" FontSize="14" />
-        
+
         <!-- Password row -->
         <TextBlock Grid.Row="3" Grid.Column="1" Margin="0 0 0 10">
             Password:

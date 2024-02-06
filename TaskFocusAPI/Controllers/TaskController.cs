@@ -21,5 +21,20 @@ namespace TaskFocusAPI.Controllers
 
             return data.GetAllUserTasks(userId);
         }
+
+        public void Post(TaskModel newTask)
+        {
+            string userId = RequestContext.Principal.Identity.GetUserId();
+            TaskData data = new TaskData();
+
+            data.AddTask(newTask, userId);
+        }
+
+        public void Put(TaskModel updatedTask)
+        {
+            TaskData data = new TaskData();
+
+            data.UpdateTaskData(updatedTask);
+        }
     }
 }

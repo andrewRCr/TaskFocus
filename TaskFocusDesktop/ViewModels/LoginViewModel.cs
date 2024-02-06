@@ -11,8 +11,8 @@ namespace TaskFocusDesktop.ViewModels
 {
     public class LoginViewModel : Screen
     {
-		private string _username;
-		private string _password;
+		private string _username = "andrew.creekmore@me.com";
+		private string _password = "Pwd12345.";
 		private IAPIHelper _apiHelper;
 		private IEventAggregator _events;
         private string _errorMessage;

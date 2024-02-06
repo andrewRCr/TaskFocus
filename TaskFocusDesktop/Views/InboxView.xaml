@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:TaskFocusDesktop.Views"
+             xmlns:local="clr-namespace:TaskFocusDesktop.Views" xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              mc:Ignorable="d" Background="White" FontSize="14" FontFamily="Bahnschrift"
              d:DesignHeight="450" d:DesignWidth="800">
 
@@ -20,10 +20,15 @@
                          TextWrapping="Wrap" BorderThickness="0"/>
 
                 <!-- project dropdown -->
-                <ComboBox Text="{Binding ProjectName}" Margin="5 5 5 5" MinWidth="150" VerticalAlignment="Center"
+                <ComboBox Text="{Binding ProjectName}" 
+                      Margin="5 5 5 5" MinWidth="150" VerticalAlignment="Center"
                       IsEditable="True" Visibility="Visible" 
                       ItemsSource="{Binding DataContext.Projects, RelativeSource={RelativeSource AncestorType=ListBox}}"
-                      DisplayMemberPath="ProjectName" />
+                      DisplayMemberPath="ProjectName"
+                      SelectedItem="{Binding ProjectName}"
+     
+                          >
+                </ComboBox>
 
                 <!-- context dropdown -->
                 <ComboBox Text="Context" Margin="10 5 5 5" MinWidth="150" VerticalAlignment="Center"
@@ -34,6 +39,9 @@
 
                 <!-- due date datepicker -->
                 <DatePicker Text="Due" Margin="10 5 5 4" VerticalAlignment="Center" BorderThickness="0" />
+                
+                <!-- TEMP: button to manually post update of task data to API -->
+                <!--<Button x:Name="UpdateTaskData" Content="Update" />-->
 
             </StackPanel>
         </DataTemplate>
@@ -43,6 +51,8 @@
     <Grid>
 
         <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
@@ -64,6 +74,19 @@
                  Grid.Row="1" Grid.Column="0"
                  Grid.ColumnSpan="2"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled" />
+
+        <!-- TEMP: button to manually post update of task data to API -->
+        <Button Grid.Row="2" x:Name="UpdateAllPendingTaskData" Content="Update" />
+
+        <ListBox 
+                 ItemsSource="{Binding Path=NewTaskList}"
+                 ItemTemplate="{StaticResource TaskItem}"
+                 SelectedItem="{Binding NewTask}"
+                 Grid.Row="3" Grid.Column="0"
+                 Grid.ColumnSpan="2"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled" />
+
+        <Button Grid.Row="4" x:Name="AddTask" Content="Add" />
 
     </Grid>
     
