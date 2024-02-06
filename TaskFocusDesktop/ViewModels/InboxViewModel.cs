@@ -77,17 +77,6 @@ namespace TaskFocusDesktop.ViewModels
             }
         }
 
-		private string _selectedProjectNameForTask;
-		public string SelectedProjectNameForTask
-        {
-            get { return _selectedProjectNameForTask; }
-            set
-            {
-                _selectedProjectNameForTask = value;
-                NotifyOfPropertyChange(() => SelectedProjectNameForTask);
-            }
-        }
-
         private BindingList<ProjectModel> _projects;
 		public BindingList<ProjectModel> Projects
 		{
@@ -123,44 +112,78 @@ namespace TaskFocusDesktop.ViewModels
             NewTaskList = new BindingList<TaskDisplayModel>(newTaskList);
         }
 
-        public async Task AddTask()
-		{
-            if (NewTask.ProjectName != null)
+        public bool HasTaskDataChanged(TaskModel frontEndTask)
+        {
+            TaskModel taskLastFetch = TasksLastFetch.Find(x => x.Id == frontEndTask.Id);
+
+            bool IsDataEqual(TaskModel taskA, TaskModel taskB)
+            {
+                return taskA.TaskName == taskB.TaskName &&
+                    taskA.Completed == taskB.Completed &&
+                    taskA.ProjectName == taskB.ProjectName &&
+                    taskA.ContextName == taskB.ContextName &&
+                    taskA.DueDate == taskB.DueDate;
+            }
+
+            return !IsDataEqual(frontEndTask, taskLastFetch);
+        }
+
+        public bool HasTaskProjectNameChanged(TaskModel frontEndTask)
+        {
+            TaskModel taskLastFetch = TasksLastFetch.Find(x => x.Id == frontEndTask.Id);
+            return frontEndTask.ProjectName == taskLastFetch.ProjectName;
+        }
+
+        public bool HasTaskContextNameChanged(TaskModel frontEndTask)
+        {
+            TaskModel taskLastFetch = TasksLastFetch.Find(x => x.Id == frontEndTask.Id);
+            return frontEndTask.ContextName == taskLastFetch.ContextName;
+        }
+
+        public void AssignProjectIdFromProjectName(TaskModel task)
+        {
+            if (task.ProjectName != null)
             {
                 // lookup projectId by projectName and assign
                 // TODO: need to enforce uniqueness of the projectName property - casing, etc; something. ensure these will match!
                 List<ProjectModel> userProjects = Projects.ToList();
 
-                ProjectModel assignedProject = userProjects.Find(x => x.ProjectName == NewTask.ProjectName);
-                NewTask.ProjectId = assignedProject.Id;
+                ProjectModel assignedProject = userProjects.Find(x => x.ProjectName == task.ProjectName);
+                task.ProjectId = assignedProject.Id;
+            }
+        }
+
+        public async Task AddTask()
+		{
+            // map from TaskDisplayModel to TaskModel
+            TaskModel newTask = _mapper.Map<TaskModel>(NewTask);
+
+            if (newTask.ProjectName != null)
+            {
+                AssignProjectIdFromProjectName(newTask);
+                // TODO: need to enforce uniqueness of the projectName property - casing, etc; something. ensure these will match!
             }
 
-            if (NewTask.ContextName != null)
+            if (newTask.ContextName != null)
             {
                 // lookup contextId by contextName and assign
                 // TODO: need to enforce uniqueness of the contextName property - casing, etc; something. ensure these will match!
-                //List<ContextModel> userContexts = Contexts.ToList();
-
-                //ContextModel assignedContext = userContexts.Find(x => x.ContextName == NewTask.ContextName);
-                //NewTask.ContextId = assignedContext.Id;
             }
 
-            // map from TaskDisplayModel to TaskModel and add
-            TaskModel newTask = _mapper.Map<TaskModel>(NewTask);
             await _taskEndpoint.AddTask(newTask, "8f3b305e-ebc0-439e-a23b-6661901e4f7d");
 
             // refresh Tasks + clear NewTask
             await LoadTasks();
         }
 
-        // post updated task data to API
-        public async Task UpdateTaskData()
-		{
-            // map from TaskDisplayModel to TaskModel
-            TaskModel selectedTask = _mapper.Map<TaskModel>(SelectedTask);
+        // post updated task data to API for SelectedTask only
+        //public async Task UpdateTaskData()
+        //{
+        //    // map from TaskDisplayModel to TaskModel
+        //    TaskModel selectedTask = _mapper.Map<TaskModel>(SelectedTask);
 
-            await _taskEndpoint.UpdateTask(selectedTask);
-        }
+        //    await _taskEndpoint.UpdateTask(selectedTask);
+        //}
 
         public async Task UpdateAllPendingTaskData()
         {
@@ -173,6 +196,16 @@ namespace TaskFocusDesktop.ViewModels
             {
                 if (HasTaskDataChanged(task))
                 {
+                    if (HasTaskProjectNameChanged(task))
+                    {
+                        AssignProjectIdFromProjectName(task);
+                    }
+
+                    if (HasTaskContextNameChanged(task))
+                    {
+                        // TODO: same for context
+                    }
+
                     await _taskEndpoint.UpdateTask(task);
                     somethingWasUpdated = true;
                 }
@@ -183,22 +216,6 @@ namespace TaskFocusDesktop.ViewModels
                 // refresh Tasks + repopulate TasksLastFetch
                 await LoadTasks();
             }
-        }
-
-        public bool HasTaskDataChanged(TaskModel frontEndTask)
-        {
-            TaskModel taskLastFetch = TasksLastFetch.Find(x => x.Id == frontEndTask.Id);
-            
-            bool IsDataEqual(TaskModel taskA, TaskModel taskB)
-            {
-                return taskA.TaskName == taskB.TaskName &&
-                    taskA.Completed == taskB.Completed &&
-                    taskA.ProjectName == taskB.ProjectName &&
-                    taskA.ContextName == taskB.ContextName &&
-                    taskA.DueDate == taskB.DueDate;
-            }
-
-            return !IsDataEqual(frontEndTask, taskLastFetch);
         }
     }
 }
