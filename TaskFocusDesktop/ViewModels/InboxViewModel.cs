@@ -102,6 +102,11 @@ namespace TaskFocusDesktop.ViewModels
             var displayTaskList = _mapper.Map<List<TaskDisplayModel>>(taskList);
             Tasks = new BindingList<TaskDisplayModel>(displayTaskList);
 
+            foreach (TaskDisplayModel displayTask in Tasks)
+            {
+                displayTask.PropertyChanged += onDisplayTaskPropertyChanged; // subscribe to property changed event
+            }
+
             var projectList = await _projectEndpoint.GetAllForUser();
             Projects = new BindingList<ProjectModel>(projectList);
 
@@ -131,13 +136,13 @@ namespace TaskFocusDesktop.ViewModels
         public bool HasTaskProjectNameChanged(TaskModel frontEndTask)
         {
             TaskModel taskLastFetch = TasksLastFetch.Find(x => x.Id == frontEndTask.Id);
-            return frontEndTask.ProjectName == taskLastFetch.ProjectName;
+            return frontEndTask.ProjectName != taskLastFetch.ProjectName;
         }
 
         public bool HasTaskContextNameChanged(TaskModel frontEndTask)
         {
             TaskModel taskLastFetch = TasksLastFetch.Find(x => x.Id == frontEndTask.Id);
-            return frontEndTask.ContextName == taskLastFetch.ContextName;
+            return frontEndTask.ContextName != taskLastFetch.ContextName;
         }
 
         public void AssignProjectIdFromProjectName(TaskModel task)
@@ -149,7 +154,14 @@ namespace TaskFocusDesktop.ViewModels
                 List<ProjectModel> userProjects = Projects.ToList();
 
                 ProjectModel assignedProject = userProjects.Find(x => x.ProjectName == task.ProjectName);
-                task.ProjectId = assignedProject.Id;
+                if (assignedProject == null)
+                {
+                    // TODO: create new project + add to db, returning the projectId from that call, and use it here
+                }
+                else
+                {
+                    task.ProjectId = assignedProject.Id;
+                }
             }
         }
 
@@ -176,14 +188,30 @@ namespace TaskFocusDesktop.ViewModels
             await LoadTasks();
         }
 
-        // post updated task data to API for SelectedTask only
-        //public async Task UpdateTaskData()
-        //{
-        //    // map from TaskDisplayModel to TaskModel
-        //    TaskModel selectedTask = _mapper.Map<TaskModel>(SelectedTask);
+        // post updated task data to API for a single displayTask
+        public async Task UpdateTaskData(TaskDisplayModel displayTask)
+        {
+            // map from TaskDisplayModel to TaskModel
+            TaskModel task = _mapper.Map<TaskModel>(displayTask);
 
-        //    await _taskEndpoint.UpdateTask(selectedTask);
-        //}
+            if (HasTaskDataChanged(task))
+            {
+                if (HasTaskProjectNameChanged(task))
+                {
+                    AssignProjectIdFromProjectName(task);
+                }
+
+                if (HasTaskContextNameChanged(task))
+                {
+                    // TODO: same for context
+                }
+
+                await _taskEndpoint.UpdateTask(task);
+
+                // refresh Tasks + repopulate TasksLastFetch
+                await LoadTasks();
+            }
+        }
 
         public async Task UpdateAllPendingTaskData()
         {
@@ -216,6 +244,15 @@ namespace TaskFocusDesktop.ViewModels
                 // refresh Tasks + repopulate TasksLastFetch
                 await LoadTasks();
             }
+        }
+
+        // saves updated task data to server on property change
+        private async void onDisplayTaskPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            string changedProperty = e.PropertyName;
+            TaskDisplayModel senderTask = (TaskDisplayModel)sender;
+
+            await UpdateTaskData(senderTask);
         }
     }
 }
