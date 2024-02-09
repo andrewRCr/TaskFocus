@@ -110,6 +110,7 @@
     <Compile Include="ViewModels\InboxViewModel.cs" />
     <Compile Include="ViewModels\LoginViewModel.cs" />
     <Compile Include="ViewModels\ShellViewModel.cs" />
+    <Compile Include="ViewModels\TaskViewModelBase.cs" />
     <Compile Include="ViewModels\TodayViewModel.cs" />
     <Compile Include="Views\InboxView.xaml.cs">
       <DependentUpon>InboxView.xaml</DependentUpon>

@@ -20,7 +20,21 @@ namespace TaskFocusDesktop.Library.API
 
         public async Task<List<TaskModel>> GetAllForUser()
         {
-            using (HttpResponseMessage response = await _apiHelper.APIClient.GetAsync("/api/task"))
+            using (HttpResponseMessage response = await _apiHelper.APIClient.GetAsync("/api/task/GetAll"))
+            {
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsAsync<List<TaskModel>>();
+                    return result;
+
+                }
+                else { throw new Exception(response.ReasonPhrase); }
+            }
+        }
+
+        public async Task<List<TaskModel>> GetInboxTasks()
+        {
+            using (HttpResponseMessage response = await _apiHelper.APIClient.GetAsync("/api/task/GetInbox"))
             {
                 if (response.IsSuccessStatusCode)
                 {

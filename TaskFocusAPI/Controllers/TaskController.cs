@@ -13,13 +13,20 @@ namespace TaskFocusAPI.Controllers
     [Authorize]
     public class TaskController : ApiController
     {
-        //[HttpGet]
-        public List<TaskModel> Get()
+        public List<TaskModel> GetAll()
         {
             string userId = RequestContext.Principal.Identity.GetUserId();
             TaskData data = new TaskData();
 
             return data.GetAllUserTasks(userId);
+        }
+
+        public List<TaskModel> GetInbox()
+        {
+            string userId = RequestContext.Principal.Identity.GetUserId();
+            TaskData data = new TaskData();
+
+            return data.GetInboxUserTasks(userId);
         }
 
         public void Post(TaskModel newTask)

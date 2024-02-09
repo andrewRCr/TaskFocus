@@ -19,6 +19,15 @@ namespace TaskFocusAPI.Library.DataAccess
             return userTasks;
         }
 
+        public List<TaskModel> GetInboxUserTasks(string userId)
+        {
+            SqlDataAccess sql = new SqlDataAccess();
+            var p = new { Id = userId };
+            var userTasks = sql.LoadData<TaskModel, dynamic>("dbo.spTask_GetInboxForUser", p, "TaskFocusData");
+
+            return userTasks;
+        }
+
         public TaskModel GetTaskById(int taskId)
         {
             SqlDataAccess sql = new SqlDataAccess();

@@ -78,6 +78,7 @@
     <Build Include="dbo\Stored Procedures\spTask_Update.sql" />
     <Build Include="dbo\Stored Procedures\spProject_GetById.sql" />
     <Build Include="dbo\Stored Procedures\spTask_Insert.sql" />
+    <Build Include="dbo\Stored Procedures\spTask_GetInboxForUser.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="TaskFocusData.refactorlog" />

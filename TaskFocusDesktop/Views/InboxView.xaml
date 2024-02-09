@@ -3,14 +3,15 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:TaskFocusDesktop.Views" xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+             xmlns:local="clr-namespace:TaskFocusDesktop.Views" xmlns:i="http://schemas.microsoft.com/xaml/behaviors" xmlns:viewmodels="clr-namespace:TaskFocusDesktop.ViewModels" d:DataContext="{d:DesignInstance Type=viewmodels:InboxViewModel}"
              mc:Ignorable="d" Background="White" FontSize="14" FontFamily="Bahnschrift"
              d:DesignHeight="450" d:DesignWidth="800">
 
     <UserControl.Resources>
 
         <DataTemplate x:Key="TaskItem">
-            <StackPanel Orientation="Horizontal" Margin="5 5 5 5">
+            <StackPanel Orientation="Horizontal" Margin="5 5 5 5"
+                        >
 
                 <!-- completion checkbox -->
                 <CheckBox IsChecked="{Binding Completed}" Padding="3" Margin="10 0 0 3" VerticalAlignment="Center" />
@@ -22,7 +23,7 @@
                 <!-- project dropdown -->
                 <ComboBox Text="{Binding ProjectName}" 
                       Margin="5 5 5 5" MinWidth="150" VerticalAlignment="Center"
-                      IsEditable="True" Visibility="Visible" 
+                      IsEditable="True"
                       ItemsSource="{Binding DataContext.Projects, RelativeSource={RelativeSource AncestorType=ListBox}}"
                       DisplayMemberPath="ProjectName"
                       SelectedItem="{Binding DataContext.Tasks.ProjectName}"
@@ -75,7 +76,7 @@
         <ListBox 
                  ItemsSource="{Binding Path=NewTaskList}"
                  ItemTemplate="{StaticResource TaskItem}"
-                 SelectedItem="{Binding NewTask}"
+                 SelectedItem="{Binding NewTask }"
                  Grid.Row="3" Grid.Column="0"
                  Grid.ColumnSpan="2"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled" />
