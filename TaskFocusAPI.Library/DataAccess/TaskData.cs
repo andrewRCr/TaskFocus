@@ -37,14 +37,10 @@ namespace TaskFocusAPI.Library.DataAccess
             return task;
         }
 
-        public void AddTask(TaskModel newTask, string userId) 
+        public void AddTask(TaskModel newTask, string userId)
         {
             newTask.UserId = userId;
-
-            if (newTask.Completed)
-            {
-                newTask.DateCompleted = DateTime.Now;
-            }
+            if (newTask.Completed) { newTask.DateCompleted = DateTime.Now; }
 
             SqlDataAccess sql = new SqlDataAccess();
             sql.SaveData("dbo.spTask_Insert", newTask, "TaskFocusData");
@@ -65,14 +61,8 @@ namespace TaskFocusAPI.Library.DataAccess
                 throw new Exception($"The task Id of {frontEndTask.Id} could not be found in the database.");
             }
 
-            if (!dbTask.Completed && frontEndTask.Completed)
-            {
-                dbTask.DateCompleted = DateTime.Now;
-            }
-            else if (dbTask.Completed && !frontEndTask.Completed)
-            {
-                dbTask.DateCompleted = null;
-            }
+            if (!dbTask.Completed && frontEndTask.Completed) { dbTask.DateCompleted = DateTime.Now; }
+            else if (dbTask.Completed && !frontEndTask.Completed) { dbTask.DateCompleted = null; }
 
             dbTask.Completed = frontEndTask.Completed;
             dbTask.TaskName = frontEndTask.TaskName.Trim();
@@ -84,8 +74,8 @@ namespace TaskFocusAPI.Library.DataAccess
 
             try
             {
-	            SqlDataAccess sql = new SqlDataAccess();
-	            sql.SaveData("dbo.spTask_Update", dbTask, "TaskFocusData");
+                SqlDataAccess sql = new SqlDataAccess();
+                sql.SaveData("dbo.spTask_Update", dbTask, "TaskFocusData");
             }
             catch (System.Exception ex)
             {
