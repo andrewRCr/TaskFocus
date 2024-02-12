@@ -9,17 +9,19 @@
         WindowStartupLocation="CenterScreen">
     <DockPanel>
         <Menu DockPanel.Dock="Top" FontSize="12">
+            
             <MenuItem Header="_File">
-
+                <MenuItem x:Name="ExitApplication" Header="E_xit" />
             </MenuItem>
 
             <MenuItem Header="_NavTemp">
                 <MenuItem x:Name="InboxScreen" Header="_Inbox" />
                 <MenuItem x:Name="TodayScreen" Header="_Today" />
             </MenuItem>
-            
-            <MenuItem Header="_Account">
-                <MenuItem x:Name="LoginScreen" Header="_Login" />
+
+            <MenuItem Header="_Account" 
+                      Visibility="{Binding IsUserLoggedIn, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}">
+                <MenuItem x:Name="LogOut" Header="_Log Out" />
             </MenuItem>
             
         </Menu>
