@@ -6,6 +6,6 @@ namespace TaskFocusDesktop.Library.API
 {
     public interface IProjectEndpoint
     {
-        Task<List<ProjectModel>> GetAllForUser();
+        Task<List<ProjectModel>> GetAllProjectsForUser();
     }
 }

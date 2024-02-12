@@ -15,7 +15,7 @@ namespace TaskFocusAPI.Library.Internal.DataAccess
     {
         private IDbConnection _connection;
         private IDbTransaction _transaction;
-        private bool isConnectionClosed;
+        private bool isConnectionClosed = false;
 
         public string GetConnectionString(string name)
         {

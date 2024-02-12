@@ -26,7 +26,8 @@
                       IsEditable="True"
                       ItemsSource="{Binding DataContext.Projects, RelativeSource={RelativeSource AncestorType=ListBox}}"
                       DisplayMemberPath="ProjectName"
-                      SelectedItem="{Binding DataContext.Tasks.ProjectName}"
+                      SelectedItem="{Binding ProjectName}"
+                      
                           >
                 </ComboBox>
 

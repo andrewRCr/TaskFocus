@@ -17,9 +17,9 @@ namespace TaskFocusDesktop.Library.API
             _apiHelper = apiHelper;
         }
 
-        public async Task<List<ProjectModel>> GetAllForUser()
+        public async Task<List<ProjectModel>> GetAllProjectsForUser()
         {
-            using (HttpResponseMessage response = await _apiHelper.APIClient.GetAsync("/api/project"))
+            using (HttpResponseMessage response = await _apiHelper.APIClient.GetAsync("/api/project/GetAllProjectsForUser"))
             {
                 if (response.IsSuccessStatusCode)
                 {

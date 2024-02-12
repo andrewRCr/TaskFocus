@@ -10,10 +10,10 @@ namespace TaskFocusAPI.Library.DataAccess
 {
     public class ProjectData
     {
-        public List<ProjectModel> GetAllUserProjects(string id)
+        public List<ProjectModel> GetAllProjectsForUser(string userId)
         {
             SqlDataAccess sql = new SqlDataAccess();
-            var p = new { Id = id };
+            var p = new { Id = userId };
             var projects = sql.LoadData<ProjectModel, dynamic>("dbo.spProject_GetAllForUser", p, "TaskFocusData");
 
             return projects;

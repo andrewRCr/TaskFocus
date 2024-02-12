@@ -14,12 +14,12 @@ namespace TaskFocusAPI.Controllers
     public class ProjectController : ApiController
     {
         //[HttpGet]
-        public List<ProjectModel> Get()
+        public List<ProjectModel> GetAllProjectsForUser()
         {
             string userId = RequestContext.Principal.Identity.GetUserId();
             ProjectData data = new ProjectData();
 
-            return data.GetAllUserProjects(userId);
+            return data.GetAllProjectsForUser(userId);
         }
     }
 }

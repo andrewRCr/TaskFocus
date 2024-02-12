@@ -107,10 +107,10 @@ namespace TaskFocusDesktop.ViewModels
             switch (ActiveViewModel)
             {
                 case ViewModelChildren.InboxVM:
-                    loadTaskToCall = _taskEndpoint.GetInboxTasks();
+                    loadTaskToCall = _taskEndpoint.GetAllTasksForUser();
                     break;
                 default:
-                    loadTaskToCall = _taskEndpoint.GetAllForUser();
+                    loadTaskToCall = _taskEndpoint.GetInboxTasksForUser();
                     break;
             }
 
@@ -125,7 +125,7 @@ namespace TaskFocusDesktop.ViewModels
                 displayTask.PropertyChanged += onDisplayTaskPropertyChanged; // subscribe to property changed event
             }
 
-            var projectList = await _projectEndpoint.GetAllForUser();
+            var projectList = await _projectEndpoint.GetAllProjectsForUser();
             Projects = new BindingList<ProjectModel>(projectList);
 
             // new task input placeholder

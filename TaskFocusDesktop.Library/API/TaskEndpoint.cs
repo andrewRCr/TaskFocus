@@ -18,9 +18,9 @@ namespace TaskFocusDesktop.Library.API
             _apiHelper = apiHelper;
         }
 
-        public async Task<List<TaskModel>> GetAllForUser()
+        public async Task<List<TaskModel>> GetAllTasksForUser()
         {
-            using (HttpResponseMessage response = await _apiHelper.APIClient.GetAsync("/api/task/GetAll"))
+            using (HttpResponseMessage response = await _apiHelper.APIClient.GetAsync("/api/task/GetAllTasksForUser"))
             {
                 if (response.IsSuccessStatusCode)
                 {
@@ -32,9 +32,9 @@ namespace TaskFocusDesktop.Library.API
             }
         }
 
-        public async Task<List<TaskModel>> GetInboxTasks()
+        public async Task<List<TaskModel>> GetInboxTasksForUser()
         {
-            using (HttpResponseMessage response = await _apiHelper.APIClient.GetAsync("/api/task/GetInbox"))
+            using (HttpResponseMessage response = await _apiHelper.APIClient.GetAsync("/api/task/GetInboxTasksForUser"))
             {
                 if (response.IsSuccessStatusCode)
                 {

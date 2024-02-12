@@ -10,7 +10,7 @@ namespace TaskFocusAPI.Library.DataAccess
 {
     public class TaskData
     {
-        public List<TaskModel> GetAllUserTasks(string userId)
+        public List<TaskModel> GetAllTasksForUser(string userId)
         {
             SqlDataAccess sql = new SqlDataAccess();
             var p = new { Id = userId };
@@ -19,13 +19,13 @@ namespace TaskFocusAPI.Library.DataAccess
             return userTasks;
         }
 
-        public List<TaskModel> GetInboxUserTasks(string userId)
+        public List<TaskModel> GetInboxTasksForUser(string userId)
         {
             SqlDataAccess sql = new SqlDataAccess();
             var p = new { Id = userId };
-            var userTasks = sql.LoadData<TaskModel, dynamic>("dbo.spTask_GetInboxForUser", p, "TaskFocusData");
+            var userInboxTasks = sql.LoadData<TaskModel, dynamic>("dbo.spTask_GetInboxForUser", p, "TaskFocusData");
 
-            return userTasks;
+            return userInboxTasks;
         }
 
         public TaskModel GetTaskById(int taskId)
