@@ -6,20 +6,23 @@ using System.Threading;
 using System.Threading.Tasks;
 using Caliburn.Micro;
 using TaskFocusDesktop.EventModels;
+using TaskFocusDesktop.Library.API;
 using TaskFocusDesktop.Library.Models;
 
 namespace TaskFocusDesktop.ViewModels
 {
     public class ShellViewModel : Conductor<object>, IHandle<LogOnEvent>
     {
-        private IEventAggregator _events;
+        private IAPIHelper _apiHelper;
         private ILoggedInUserModel _loggedInUser;
+        private IEventAggregator _events;
         private InboxViewModel _inboxVM;
 
-        public ShellViewModel(IEventAggregator events, ILoggedInUserModel loggedInUser, InboxViewModel inboxVM)
+        public ShellViewModel(IAPIHelper apiHelper, ILoggedInUserModel loggedInUser, IEventAggregator events, InboxViewModel inboxVM)
         {
-            _events = events;
+            _apiHelper = apiHelper;
             _loggedInUser = loggedInUser;
+            _events = events;
             _inboxVM = inboxVM;
 
             _events.SubscribeOnUIThread(this);
@@ -42,10 +45,10 @@ namespace TaskFocusDesktop.ViewModels
 
         public void LogOut()
         {
-            _loggedInUser.LogOutUser();
+            _apiHelper.LogOutUser();
+            _loggedInUser.ResetUserModel();
             NotifyOfPropertyChange(() => IsUserLoggedIn);
             ActivateItemAsync(IoC.Get<LoginViewModel>());
-
         }
 
         public Task HandleAsync(LogOnEvent message, CancellationToken cancellationToken)
@@ -54,6 +57,16 @@ namespace TaskFocusDesktop.ViewModels
             ActivateItemAsync(_inboxVM);
 
             return Task.CompletedTask;
+        }
+
+        public void SwitchToInboxView()
+        {
+            ActivateItemAsync(IoC.Get<InboxViewModel>());
+        }
+
+        public void SwitchToTodayView() 
+        {
+            ActivateItemAsync(IoC.Get<TodayViewModel>());
         }
     }
 }

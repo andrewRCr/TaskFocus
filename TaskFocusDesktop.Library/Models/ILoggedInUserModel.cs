@@ -11,6 +11,6 @@ namespace TaskFocusDesktop.Library.Models
         string LastName { get; set; }
         string Token { get; set; }
 
-        void LogOutUser();
+        void ResetUserModel();
     }
 }

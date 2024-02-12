@@ -9,5 +9,6 @@ namespace TaskFocusDesktop.Library.API
         HttpClient APIClient { get; }
         Task<AuthenticatedUser> Authenticate(string username, string password);
         Task GetLoggedInUserInfo(string token);
+        void LogOutUser();
     }
 }

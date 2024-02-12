@@ -14,9 +14,10 @@
                 <MenuItem x:Name="ExitApplication" Header="E_xit" />
             </MenuItem>
 
-            <MenuItem Header="_NavTemp">
-                <MenuItem x:Name="InboxScreen" Header="_Inbox" />
-                <MenuItem x:Name="TodayScreen" Header="_Today" />
+            <MenuItem Header="_View"
+                      Visibility="{Binding IsUserLoggedIn, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}">
+                <MenuItem x:Name="SwitchToInboxView" Header="_Inbox" />
+                <MenuItem x:Name="SwitchToTodayView" Header="_Today" />
             </MenuItem>
 
             <MenuItem Header="_Account" 

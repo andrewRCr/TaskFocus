@@ -15,7 +15,7 @@ namespace TaskFocusDesktop.Library.Models
         public string EmailAddress { get; set; }
         public DateTime CreatedDate { get; set; }
 
-        public void LogOutUser()
+        public void ResetUserModel()
         {
             Token = string.Empty;
             Id = string.Empty;

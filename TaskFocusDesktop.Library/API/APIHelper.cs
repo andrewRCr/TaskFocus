@@ -78,5 +78,10 @@ namespace TaskFocusDesktop.Library.API
                 else { throw new Exception(response.ReasonPhrase);}
             }
         }
+
+        public void LogOutUser()
+        {
+            _apiClient.DefaultRequestHeaders.Clear();
+        }
     }
 }
