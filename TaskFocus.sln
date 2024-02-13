@@ -3,17 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34330.188
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskFocusAPI", "TaskFocusAPI\TaskFocusAPI.csproj", "{FE1F4E7A-06E8-4F48-ACBB-91DC5D867D5E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskFocusAPI", "API\TaskFocusAPI\TaskFocusAPI.csproj", "{FE1F4E7A-06E8-4F48-ACBB-91DC5D867D5E}"
 EndProject
 Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "TaskFocusData", "TaskFocusData\TaskFocusData.sqlproj", "{70248267-D0DD-4A3C-BD5A-56FDE4FE14A2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskFocusDesktop", "TaskFocusDesktop\TaskFocusDesktop.csproj", "{D97C5497-55B3-480A-8724-8D8649CDEAC5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskFocusAPI.Library", "TaskFocusAPI.Library\TaskFocusAPI.Library.csproj", "{3F5D1A65-1AE8-460D-89D5-D911F8B2D185}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskFocusAPI.Library", "API\TaskFocusAPI.Library\TaskFocusAPI.Library.csproj", "{3F5D1A65-1AE8-460D-89D5-D911F8B2D185}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskFocusDesktop.Library", "TaskFocusDesktop.Library\TaskFocusDesktop.Library.csproj", "{BB03E567-DF4C-4BF9-99A6-B1977E6895E9}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "API", "API", "{C0B1CF5C-CD3F-4C9F-968B-3D28567B6765}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DesktopUI", "DesktopUI", "{970BEB8C-4CD0-43CE-AB30-BF76789E7549}"
 EndProject
@@ -52,10 +50,8 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{FE1F4E7A-06E8-4F48-ACBB-91DC5D867D5E} = {C0B1CF5C-CD3F-4C9F-968B-3D28567B6765}
 		{70248267-D0DD-4A3C-BD5A-56FDE4FE14A2} = {DA64910E-5490-4963-AE50-200300C5ABD5}
 		{D97C5497-55B3-480A-8724-8D8649CDEAC5} = {970BEB8C-4CD0-43CE-AB30-BF76789E7549}
-		{3F5D1A65-1AE8-460D-89D5-D911F8B2D185} = {C0B1CF5C-CD3F-4C9F-968B-3D28567B6765}
 		{BB03E567-DF4C-4BF9-99A6-B1977E6895E9} = {970BEB8C-4CD0-43CE-AB30-BF76789E7549}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
