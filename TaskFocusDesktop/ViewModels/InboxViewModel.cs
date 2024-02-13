@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -21,8 +22,8 @@ namespace TaskFocusDesktop.ViewModels
 {
     public class InboxViewModel : TaskViewModelBase, INotifyPropertyChanged
     {
-        public InboxViewModel(ITaskEndpoint taskEndpoint, IProjectEndpoint projectEndpoint,
-            IMapper mapper) : base(taskEndpoint, projectEndpoint, mapper)
+        public InboxViewModel(IUserEndpoint userEndpoint, ITaskEndpoint taskEndpoint, IProjectEndpoint projectEndpoint,
+            IMapper mapper, IWindowManager window) : base(userEndpoint, taskEndpoint, projectEndpoint, mapper, window)
         {
         }
 
@@ -30,8 +31,23 @@ namespace TaskFocusDesktop.ViewModels
         {
             base.OnViewLoaded(view);
 
-            ActiveViewModel = ViewModelChildren.InboxVM;
-            await LoadTasks();
+            try
+            {
+	            ActiveViewModel = ViewModelChildren.InboxVM;
+	            await LoadTasks();
+            }
+            catch (Exception ex)
+            {
+                dynamic settings = new ExpandoObject();
+                settings.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+                settings.ResizeMode = ResizeMode.NoResize;
+                settings.Title = "Exception!";
+
+                var status = IoC.Get<StatusInfoViewModel>();
+                status.UpdateMessage($"{ex.Source} threw an exception:", ex.Message);
+                await _window.ShowDialogAsync(status, null, settings);
+                await TryCloseAsync();
+            }
         }
     }
 }

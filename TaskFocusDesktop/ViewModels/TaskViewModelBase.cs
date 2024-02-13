@@ -12,29 +12,23 @@ using TaskFocusDesktop.Models;
 
 namespace TaskFocusDesktop.ViewModels
 {
-    public abstract class TaskViewModelBase : Screen
+    public abstract class TaskViewModelBase : ViewModelBase
     {
+        IUserEndpoint _userEndpoint;
         ITaskEndpoint _taskEndpoint;
         IProjectEndpoint _projectEndpoint;
         IMapper _mapper;
+        protected IWindowManager _window;
      
-        public TaskViewModelBase(ITaskEndpoint taskEndpoint, IProjectEndpoint projectEndpoint,
-            IMapper mapper)
+        public TaskViewModelBase(IUserEndpoint userEndpoint, ITaskEndpoint taskEndpoint, IProjectEndpoint projectEndpoint,
+            IMapper mapper, IWindowManager windowManager)
         {
+            _userEndpoint = userEndpoint;
             _taskEndpoint = taskEndpoint;
             _projectEndpoint = projectEndpoint;
             _mapper = mapper;
+            _window = windowManager;
         }
-
-        protected enum ViewModelChildren
-        {
-            InboxVM,
-            TodayVM,
-            ProjectsVM,
-            ContextsVM
-        }
-
-        protected ViewModelChildren ActiveViewModel;
 
         public List<TaskModel> TasksLastFetch { get; set; }
 
@@ -107,10 +101,10 @@ namespace TaskFocusDesktop.ViewModels
             switch (ActiveViewModel)
             {
                 case ViewModelChildren.InboxVM:
-                    loadTaskToCall = _taskEndpoint.GetAllTasksForUser();
+                    loadTaskToCall = _taskEndpoint.GetInboxTasksForUser();
                     break;
                 default:
-                    loadTaskToCall = _taskEndpoint.GetInboxTasksForUser();
+                    loadTaskToCall = _taskEndpoint.GetAllTasksForUser();
                     break;
             }
 

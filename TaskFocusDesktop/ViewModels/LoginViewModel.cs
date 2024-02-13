@@ -1,15 +1,17 @@
 ﻿using Caliburn.Micro;
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using TaskFocusDesktop.EventModels;
 using TaskFocusDesktop.Library.API;
 
 namespace TaskFocusDesktop.ViewModels
 {
-    public class LoginViewModel : Screen
+    public class LoginViewModel : ViewModelBase
     {
 		private string _username = "andrew.creekmore@me.com";
 		private string _password = "Pwd12345.";
@@ -72,7 +74,13 @@ namespace TaskFocusDesktop.ViewModels
             }
 		}
 
-		public async Task LogIn()
+        protected override void OnViewLoaded(object view)
+        {
+            base.OnViewLoaded(view);
+            ActiveViewModel = ViewModelChildren.LoginVM;
+        }
+
+        public async Task LogIn()
 		{
             try
             {

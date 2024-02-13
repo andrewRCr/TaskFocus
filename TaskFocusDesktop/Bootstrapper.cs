@@ -49,6 +49,7 @@ namespace TaskFocusDesktop
             _container.Instance(ConfigureAutomapper());
 
             _container.Instance(_container)
+                .PerRequest<IUserEndpoint, UserEndpoint>()
                 .PerRequest<ITaskEndpoint, TaskEndpoint>()
                 .PerRequest<IProjectEndpoint, ProjectEndpoint>();
 
