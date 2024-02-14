@@ -11,7 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskFocusDesktop", "Desktop
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskFocusAPI.Library", "API\TaskFocusAPI.Library\TaskFocusAPI.Library.csproj", "{3F5D1A65-1AE8-460D-89D5-D911F8B2D185}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskFocusDesktop.Library", "DesktopUI\TaskFocusDesktop.Library\TaskFocusDesktop.Library.csproj", "{BB03E567-DF4C-4BF9-99A6-B1977E6895E9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TaskFocusDesktop.Library", "DesktopUI\TaskFocusDesktop.Library\TaskFocusDesktop.Library.csproj", "{BB03E567-DF4C-4BF9-99A6-B1977E6895E9}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DesktopUI", "DesktopUI", "{970BEB8C-4CD0-43CE-AB30-BF76789E7549}"
 EndProject
