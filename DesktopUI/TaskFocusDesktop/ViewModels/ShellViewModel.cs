@@ -16,14 +16,14 @@ namespace TaskFocusDesktop.ViewModels
         private IAPIHelper _apiHelper;
         private ILoggedInUserModel _loggedInUser;
         private IEventAggregator _events;
-        private InboxViewModel _inboxVM;
 
-        public ShellViewModel(IAPIHelper apiHelper, ILoggedInUserModel loggedInUser, IEventAggregator events, InboxViewModel inboxVM)
+        public ShellViewModel(IAPIHelper apiHelper,
+                              ILoggedInUserModel loggedInUser,
+                              IEventAggregator events)
         {
             _apiHelper = apiHelper;
             _loggedInUser = loggedInUser;
             _events = events;
-            _inboxVM = inboxVM;
 
             _events.SubscribeOnPublishedThread(this);
 
@@ -53,7 +53,7 @@ namespace TaskFocusDesktop.ViewModels
 
         public async Task HandleAsync(LogOnEvent message, CancellationToken cancellationToken)
         {
-            await ActivateItemAsync(_inboxVM, cancellationToken);
+            await ActivateItemAsync(IoC.Get<InboxViewModel>(), cancellationToken);
             NotifyOfPropertyChange(() => IsUserLoggedIn);
         }
 

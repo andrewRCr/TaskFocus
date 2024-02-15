@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Configuration;
 using System.Text;
 using TaskFocusAPI.Data;
 using TaskFocusAPI.Library.DataAccess;
@@ -39,15 +40,24 @@ namespace TaskFocusAPI
             })
                 .AddJwtBearer("JwtBearer", jwtBearerOptions =>
                 {
-                    jwtBearerOptions.TokenValidationParameters = new TokenValidationParameters
+                    string? securityKey = builder.Configuration.GetValue<string>("Secrets:SecurityKey");
+
+                    if (securityKey != null)
                     {
-                        ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("SuperSecretTempKeyButNowMuchLongerTempTempTemp")),
-                        ValidateIssuer = false,
-                        ValidateAudience = false,
-                        ValidateLifetime = true,
-                        ClockSkew = TimeSpan.FromMinutes(5)
-                    };
+                        jwtBearerOptions.TokenValidationParameters = new TokenValidationParameters
+                        {
+                            ValidateIssuerSigningKey = true,
+                            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(securityKey)),
+                            ValidateIssuer = false,
+                            ValidateAudience = false,
+                            ValidateLifetime = true,
+                            ClockSkew = TimeSpan.FromMinutes(5)
+                        };
+                    }
+                    else
+                    {
+                        throw new Exception("SecurityKey was a null value!");
+                    }
                 });
 
             builder.Services.AddSwaggerGen(setup =>

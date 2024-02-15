@@ -1,5 +1,6 @@
 ﻿using Dapper;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -17,11 +18,13 @@ namespace TaskFocusAPI.Library.Internal.DataAccess
         private IDbConnection _connection;
         private IDbTransaction _transaction;
         private IConfiguration _config;
+        private readonly ILogger<SqlDataAccess> _logger;
         private bool isConnectionClosed = false;
 
-        public SqlDataAccess(IConfiguration config)
+        public SqlDataAccess(IConfiguration config, ILogger<SqlDataAccess> logger)
         {
             _config = config;
+            _logger = logger;
         }
 
         public string GetConnectionString(string name)
@@ -95,10 +98,9 @@ namespace TaskFocusAPI.Library.Internal.DataAccess
                 {
                     CommitTransaction();
                 }
-                catch
+                catch(Exception ex)
                 {
-                    // TODO: log the problem
-                    throw;
+                    _logger.LogError(ex, "CommitTransaction() failed in the Dispose() method.");
                 }
             }
 
