@@ -9,38 +9,35 @@ using TaskFocusAPI.Library.Models;
 
 namespace TaskFocusAPI.Library.DataAccess
 {
-    public class TaskData
+    public class TaskData : ITaskData
     {
-        private readonly IConfiguration _config;
+        private readonly ISqlDataAccess _sqlDataAccess;
 
-        public TaskData(IConfiguration config)
+        public TaskData(ISqlDataAccess sqlDataAccess)
         {
-            _config = config;
+            _sqlDataAccess = sqlDataAccess;
         }
 
         public List<TaskModel> GetAllTasksForUser(string userId)
         {
-            SqlDataAccess sql = new SqlDataAccess(_config);
             var p = new { Id = userId };
-            var userTasks = sql.LoadData<TaskModel, dynamic>("dbo.spTask_GetAllForUser", p, "TaskFocusData");
+            var userTasks = _sqlDataAccess.LoadData<TaskModel, dynamic>("dbo.spTask_GetAllForUser", p, "TaskFocusData");
 
             return userTasks;
         }
 
         public List<TaskModel> GetInboxTasksForUser(string userId)
         {
-            SqlDataAccess sql = new SqlDataAccess(_config);
             var p = new { Id = userId };
-            var userInboxTasks = sql.LoadData<TaskModel, dynamic>("dbo.spTask_GetInboxForUser", p, "TaskFocusData");
+            var userInboxTasks = _sqlDataAccess.LoadData<TaskModel, dynamic>("dbo.spTask_GetInboxForUser", p, "TaskFocusData");
 
             return userInboxTasks;
         }
 
         public TaskModel GetTaskById(int taskId)
         {
-            SqlDataAccess sql = new SqlDataAccess(_config);
             var p = new { Id = taskId };
-            var task = sql.LoadData<TaskModel, dynamic>("dbo.spTask_GetById", p, "TaskFocusData").FirstOrDefault();
+            var task = _sqlDataAccess.LoadData<TaskModel, dynamic>("dbo.spTask_GetById", p, "TaskFocusData").FirstOrDefault();
 
             return task;
         }
@@ -50,8 +47,7 @@ namespace TaskFocusAPI.Library.DataAccess
             newTask.UserId = userId;
             if (newTask.Completed) { newTask.DateCompleted = DateTime.Now; }
 
-            SqlDataAccess sql = new SqlDataAccess(_config);
-            sql.SaveData("dbo.spTask_Insert", newTask, "TaskFocusData");
+            _sqlDataAccess.SaveData("dbo.spTask_Insert", newTask, "TaskFocusData");
         }
 
         public void UpdateTaskData(TaskModel frontEndTask)
@@ -81,8 +77,7 @@ namespace TaskFocusAPI.Library.DataAccess
 
             try
             {
-                SqlDataAccess sql = new SqlDataAccess(_config);
-                sql.SaveData("dbo.spTask_Update", dbTask, "TaskFocusData");
+                _sqlDataAccess.SaveData("dbo.spTask_Update", dbTask, "TaskFocusData");
             }
             catch (System.Exception ex)
             {

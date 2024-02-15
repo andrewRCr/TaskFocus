@@ -16,24 +16,24 @@ namespace TaskFocusAPI.Controllers
     [Authorize]
     public class UserController : ControllerBase
     {
-        private readonly IConfiguration _config;
         private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly IUserData _userData;
 
-        public UserController(IConfiguration config, ApplicationDbContext context, UserManager<IdentityUser> userManager) 
+        public UserController(ApplicationDbContext context,
+                              UserManager<IdentityUser> userManager,
+                              IUserData userData)
         {
-            _config = config;
             _context = context;
             _userManager = userManager;
+            _userData = userData;
         }
 
         [HttpGet]
         public UserModel GetById()
         {
             string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            UserData data = new UserData(_config);
-
-            return data.GetUserById(userId).First();
+            return _userData.GetUserById(userId).First();
         }
 
         [Authorize(Roles = "Admin")]

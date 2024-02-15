@@ -9,20 +9,19 @@ using TaskFocusAPI.Library.Models;
 
 namespace TaskFocusAPI.Library.DataAccess
 {
-    public class ProjectData
+    public class ProjectData : IProjectData
     {
-        private readonly IConfiguration _config;
+        private readonly ISqlDataAccess _sqlDataAccess;
 
-        public ProjectData(IConfiguration config)
+        public ProjectData(ISqlDataAccess sqlDataAccess)
         {
-            _config = config;
+            _sqlDataAccess = sqlDataAccess;
         }
 
         public List<ProjectModel> GetAllProjectsForUser(string userId)
         {
-            SqlDataAccess sql = new SqlDataAccess(_config);
             var p = new { Id = userId };
-            var projects = sql.LoadData<ProjectModel, dynamic>("dbo.spProject_GetAllForUser", p, "TaskFocusData");
+            var projects = _sqlDataAccess.LoadData<ProjectModel, dynamic>("dbo.spProject_GetAllForUser", p, "TaskFocusData");
 
             return projects;
         }

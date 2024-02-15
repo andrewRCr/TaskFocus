@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace TaskFocusAPI.Library.Internal.DataAccess
 {
-    internal class SqlDataAccess : IDisposable
+    public class SqlDataAccess : IDisposable, ISqlDataAccess
     {
         private IDbConnection _connection;
         private IDbTransaction _transaction;
@@ -48,7 +48,7 @@ namespace TaskFocusAPI.Library.Internal.DataAccess
             }
         }
 
-        public void StartTransaction(string connectionStringName) 
+        public void StartTransaction(string connectionStringName)
         {
             _connection = new SqlConnection(GetConnectionString(connectionStringName));
             _connection.Open();
@@ -67,7 +67,7 @@ namespace TaskFocusAPI.Library.Internal.DataAccess
 
         public void SaveDataInTransaction<T>(string storedProcedure, T parameters)
         {
-            _connection.Execute(storedProcedure, parameters, 
+            _connection.Execute(storedProcedure, parameters,
                 commandType: CommandType.StoredProcedure, transaction: _transaction);
         }
 
@@ -79,8 +79,8 @@ namespace TaskFocusAPI.Library.Internal.DataAccess
             isConnectionClosed = true;
         }
 
-        public void RollbackTransaction() 
-        { 
+        public void RollbackTransaction()
+        {
             _transaction?.Rollback();
             _connection?.Close();
 
@@ -91,15 +91,15 @@ namespace TaskFocusAPI.Library.Internal.DataAccess
         {
             if (!isConnectionClosed)
             {
-            	try
-            	{
-            		CommitTransaction();
-            	}
-            	catch
-            	{
+                try
+                {
+                    CommitTransaction();
+                }
+                catch
+                {
                     // TODO: log the problem
                     throw;
-            	}
+                }
             }
 
             _transaction = null;

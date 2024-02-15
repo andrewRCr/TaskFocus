@@ -11,20 +11,19 @@ using TaskFocusAPI.Library.Models;
 
 namespace TaskFocusAPI.Library.DataAccess
 {
-    public class UserData
+    public class UserData : IUserData
     {
-        private readonly IConfiguration _config;
+        private readonly ISqlDataAccess _sqlDataAccess;
 
-        public UserData(IConfiguration config)
+        public UserData(ISqlDataAccess sqlDataAccess)
         {
-            _config = config;
+            _sqlDataAccess = sqlDataAccess;
         }
 
         public List<UserModel> GetUserById(string id)
         {
-            SqlDataAccess sql = new SqlDataAccess(_config);
-            var p = new { Id  = id };
-            var userData = sql.LoadData<UserModel, dynamic>("dbo.spUserLookup", p, "TaskFocusData");
+            var p = new { Id = id };
+            var userData = _sqlDataAccess.LoadData<UserModel, dynamic>("dbo.spUserLookup", p, "TaskFocusData");
 
             return userData;
         }

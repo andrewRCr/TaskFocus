@@ -12,46 +12,38 @@ namespace TaskFocusAPI.Controllers
     [Authorize]
     public class TaskController : ControllerBase
     {
-        private readonly IConfiguration _config;
+        private readonly ITaskData _taskData;
 
-        public TaskController(IConfiguration config)
+        public TaskController(ITaskData taskData)
         {
-            _config = config;
+            _taskData = taskData;
         }
 
         [HttpGet]
         public List<TaskModel> GetAllTasksForUser()
         {
             string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            TaskData data = new TaskData(_config);
-
-            return data.GetAllTasksForUser(userId);
+            return _taskData.GetAllTasksForUser(userId);
         }
 
         [HttpGet]
         public List<TaskModel> GetInboxTasksForUser()
         {
             string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            TaskData data = new TaskData(_config);
-
-            return data.GetInboxTasksForUser(userId);
+            return _taskData.GetInboxTasksForUser(userId);
         }
 
         [HttpPost]
         public void Post(TaskModel newTask)
         {
             string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            TaskData data = new TaskData(_config);
-
-            data.AddTask(newTask, userId);
+            _taskData.AddTask(newTask, userId);
         }
 
         [HttpPut]
         public void Put(TaskModel updatedTask)
         {
-            TaskData data = new TaskData(_config);
-
-            data.UpdateTaskData(updatedTask);
+            _taskData.UpdateTaskData(updatedTask);
         }
     }
 }

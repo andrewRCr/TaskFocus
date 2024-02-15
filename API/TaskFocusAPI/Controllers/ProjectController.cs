@@ -12,20 +12,18 @@ namespace TaskFocusAPI.Controllers
     [Authorize]
     public class ProjectController : ControllerBase
     {
-        private readonly IConfiguration _config;
+        private readonly IProjectData _projectData;
 
-        public ProjectController(IConfiguration config)
+        public ProjectController(IProjectData projectData)
         {
-            _config = config;
+            _projectData = projectData;
         }
 
         [HttpGet]
         public List<ProjectModel> GetAllProjectsForUser()
         {
             string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            ProjectData data = new ProjectData(_config);
-
-            return data.GetAllProjectsForUser(userId);
+            return _projectData.GetAllProjectsForUser(userId);
         }
     }
 }

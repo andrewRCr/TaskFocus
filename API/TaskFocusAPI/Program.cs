@@ -4,6 +4,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using TaskFocusAPI.Data;
+using TaskFocusAPI.Library.DataAccess;
+using TaskFocusAPI.Library.Internal.DataAccess;
 
 namespace TaskFocusAPI
 {
@@ -23,6 +25,13 @@ namespace TaskFocusAPI
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
             builder.Services.AddControllersWithViews();
+
+            // internal services
+            builder.Services.AddTransient<IUserData, UserData>();
+            builder.Services.AddTransient<ITaskData, TaskData>();
+            builder.Services.AddTransient<IProjectData, ProjectData>();
+            builder.Services.AddTransient<ISqlDataAccess, SqlDataAccess>();
+
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = "JwtBearer";
