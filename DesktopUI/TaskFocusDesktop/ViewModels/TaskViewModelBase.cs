@@ -196,7 +196,7 @@ namespace TaskFocusDesktop.ViewModels
             }
 
             // TODO: remove hard-coding of userId, obviously
-            await _taskEndpoint.AddTask(newTask, "8f3b305e-ebc0-439e-a23b-6661901e4f7d");
+            await _taskEndpoint.AddTask(newTask, "1edd087f-627a-4e2b-8e1d-5ecc26a66f5c");
 
             // refresh Tasks + clear NewTask
             await LoadTasks();

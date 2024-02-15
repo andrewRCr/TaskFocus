@@ -88,7 +88,7 @@ namespace TaskFocusDesktop.ViewModels
                 var result = await _apiHelper.Authenticate(Username, Password);
 
                 // capture user info
-                await _apiHelper.GetLoggedInUserInfo(result.Access_Token);
+                await _apiHelper.GetLoggedInUserInfo(result.AccessToken);
 
 				await _events.PublishOnUIThreadAsync(new LogOnEvent());
 			}

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Configuration;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,9 +11,16 @@ namespace TaskFocusAPI.Library.DataAccess
 {
     public class ProjectData
     {
+        private readonly IConfiguration _config;
+
+        public ProjectData(IConfiguration config)
+        {
+            _config = config;
+        }
+
         public List<ProjectModel> GetAllProjectsForUser(string userId)
         {
-            SqlDataAccess sql = new SqlDataAccess();
+            SqlDataAccess sql = new SqlDataAccess(_config);
             var p = new { Id = userId };
             var projects = sql.LoadData<ProjectModel, dynamic>("dbo.spProject_GetAllForUser", p, "TaskFocusData");
 

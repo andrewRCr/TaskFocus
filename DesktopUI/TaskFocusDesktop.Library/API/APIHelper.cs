@@ -63,7 +63,7 @@ namespace TaskFocusDesktop.Library.API
             _apiClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _apiClient.DefaultRequestHeaders.Add("Authorization", $"Bearer { token }");
 
-            using (HttpResponseMessage response = await _apiClient.GetAsync("/api/user"))
+            using (HttpResponseMessage response = await _apiClient.GetAsync("/api/user/getbyid"))
             {
                 if (response.IsSuccessStatusCode)
                 {
