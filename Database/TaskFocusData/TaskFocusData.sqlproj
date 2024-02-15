@@ -69,7 +69,6 @@
     <Build Include="dbo\Tables\User.sql" />
     <Build Include="dbo\Tables\Task.sql" />
     <Build Include="dbo\Tables\Context.sql" />
-    <Build Include="dbo\Tables\Inbox.sql" />
     <Build Include="dbo\Tables\Project.sql" />
     <Build Include="dbo\Stored Procedures\spUserLookup.sql" />
     <Build Include="dbo\Stored Procedures\spTask_GetAllForUser.sql" />
