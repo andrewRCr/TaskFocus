@@ -25,9 +25,9 @@ namespace TaskFocusDesktop.ViewModels
             _events = events;
             _inboxVM = inboxVM;
 
-            _events.SubscribeOnUIThread(this);
+            _events.SubscribeOnPublishedThread(this);
 
-            ActivateItemAsync(IoC.Get<LoginViewModel>());
+            ActivateItemAsync(IoC.Get<LoginViewModel>(), new CancellationToken());
         }
 
         public bool IsUserLoggedIn
@@ -38,35 +38,33 @@ namespace TaskFocusDesktop.ViewModels
             }
         }
 
-        public void ExitApplication()
+        public async Task ExitApplication()
         {
-            TryCloseAsync();
+            await TryCloseAsync();
         }
 
-        public void LogOut()
+        public async Task LogOut()
         {
             _apiHelper.LogOutUser();
             _loggedInUser.ResetUserModel();
+            await ActivateItemAsync(IoC.Get<LoginViewModel>(), new CancellationToken());
             NotifyOfPropertyChange(() => IsUserLoggedIn);
-            ActivateItemAsync(IoC.Get<LoginViewModel>());
         }
 
-        public Task HandleAsync(LogOnEvent message, CancellationToken cancellationToken)
+        public async Task HandleAsync(LogOnEvent message, CancellationToken cancellationToken)
         {
+            await ActivateItemAsync(_inboxVM, cancellationToken);
             NotifyOfPropertyChange(() => IsUserLoggedIn);
-            ActivateItemAsync(_inboxVM);
-
-            return Task.CompletedTask;
         }
 
-        public void SwitchToInboxView()
+        public async Task SwitchToInboxView()
         {
-            ActivateItemAsync(IoC.Get<InboxViewModel>());
+            await ActivateItemAsync(IoC.Get<InboxViewModel>(), new CancellationToken());
         }
 
-        public void SwitchToTodayView() 
+        public async Task SwitchToTodayView() 
         {
-            ActivateItemAsync(IoC.Get<TodayViewModel>());
+            await ActivateItemAsync(IoC.Get<TodayViewModel>(), new CancellationToken());
         }
     }
 }
