@@ -1,0 +1,12 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace TaskFocusAPI.Library.Models
+{
+    public class ContextModel
+    {
+        public int Id { get; set; }
+        public string ContextName { get; set; }
+    }
+}

@@ -51,7 +51,8 @@ namespace TaskFocusDesktop
             _container.Instance(_container)
                 .PerRequest<IUserEndpoint, UserEndpoint>()
                 .PerRequest<ITaskEndpoint, TaskEndpoint>()
-                .PerRequest<IProjectEndpoint, ProjectEndpoint>();
+                .PerRequest<IProjectEndpoint, ProjectEndpoint>()
+                .PerRequest<IContextEndpoint, ContextEndpoint>();
 
             // use these singular instances
             _container

@@ -50,7 +50,7 @@ namespace TaskFocusDesktop.Library.API
         {
             task.UserId = userId;
 
-            using (HttpResponseMessage response = await _apiHelper.APIClient.PostAsJsonAsync("/api/task", task))
+            using (HttpResponseMessage response = await _apiHelper.APIClient.PostAsJsonAsync("/api/task/post", task))
             {
                 if (response.IsSuccessStatusCode)
                 {
@@ -62,7 +62,7 @@ namespace TaskFocusDesktop.Library.API
 
         public async Task UpdateTask(TaskModel task)
         {
-            using (HttpResponseMessage response = await _apiHelper.APIClient.PutAsJsonAsync("/api/task", task))
+            using (HttpResponseMessage response = await _apiHelper.APIClient.PutAsJsonAsync("/api/task/put", task))
             {
                 if (response.IsSuccessStatusCode)
                 {

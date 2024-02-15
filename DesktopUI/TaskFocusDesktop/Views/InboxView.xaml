@@ -27,15 +27,17 @@
                       ItemsSource="{Binding DataContext.Projects, RelativeSource={RelativeSource AncestorType=ListBox}}"
                       DisplayMemberPath="ProjectName"
                       SelectedItem="{Binding ProjectName}"
-                      
                           >
                 </ComboBox>
 
                 <!-- context dropdown -->
-                <ComboBox Text="Context" Margin="10 5 5 5" MinWidth="150" VerticalAlignment="Center"
-                      IsEditable="True" BorderThickness="0">
-                    <!-- for each context user has:-->
-                    <ComboBoxItem>ContextName</ComboBoxItem>
+                <ComboBox Text="{Binding ContextName}" 
+                      Margin="5 5 5 5" MinWidth="150" VerticalAlignment="Center"
+                      IsEditable="True"
+                      ItemsSource="{Binding DataContext.Contexts, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                      DisplayMemberPath="ContextName"
+                      SelectedItem="{Binding ContextName}"
+                          >
                 </ComboBox>
 
                 <!-- due date datepicker -->
@@ -74,6 +76,7 @@
                  Grid.ColumnSpan="2"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled" />
 
+        <!-- new task entry -->
         <ListBox 
                  ItemsSource="{Binding Path=NewTaskList}"
                  ItemTemplate="{StaticResource TaskItem}"

@@ -17,15 +17,17 @@ namespace TaskFocusDesktop.ViewModels
         IUserEndpoint _userEndpoint;
         ITaskEndpoint _taskEndpoint;
         IProjectEndpoint _projectEndpoint;
+        IContextEndpoint _contextEndpoint;
         IMapper _mapper;
         protected IWindowManager _window;
      
         public TaskViewModelBase(IUserEndpoint userEndpoint, ITaskEndpoint taskEndpoint, IProjectEndpoint projectEndpoint,
-            IMapper mapper, IWindowManager windowManager)
+            IContextEndpoint contextEndpoint, IMapper mapper, IWindowManager windowManager)
         {
             _userEndpoint = userEndpoint;
             _taskEndpoint = taskEndpoint;
             _projectEndpoint = projectEndpoint;
+            _contextEndpoint = contextEndpoint;
             _mapper = mapper;
             _window = windowManager;
         }
@@ -87,6 +89,17 @@ namespace TaskFocusDesktop.ViewModels
             }
         }
 
+        private BindingList<ContextModel> _contexts;
+        public BindingList<ContextModel> Contexts
+        {
+            get { return _contexts; }
+            set
+            {
+                _contexts = value;
+                NotifyOfPropertyChange(() => Contexts);
+            }
+        }
+
         protected override void OnViewLoaded(object view)
         {
             // nothing local, currently.
@@ -121,6 +134,9 @@ namespace TaskFocusDesktop.ViewModels
 
             var projectList = await _projectEndpoint.GetAllProjectsForUser();
             Projects = new BindingList<ProjectModel>(projectList);
+
+            var contextList = await _contextEndpoint.GetAllContextsForUser();
+            Contexts = new BindingList<ContextModel>(contextList);
 
             // new task input placeholder
             List<TaskDisplayModel> newTaskList = new List<TaskDisplayModel>();
@@ -178,6 +194,26 @@ namespace TaskFocusDesktop.ViewModels
             }
         }
 
+        public void AssignContextIdFromContextName(TaskModel task)
+        {
+            if (task.ContextName != null)
+            {
+                // lookup ContextId by contextName and assign
+                // TODO: need to enforce uniqueness of the contextName property - casing, etc; something. ensure these will match!
+                List<ContextModel> userContexts = Contexts.ToList();
+
+                ContextModel assignedContext = userContexts.Find(x => x.ContextName == task.ContextName);
+                if (assignedContext == null)
+                {
+                    // TODO: create new context + add to db, returning the contextId from that call, and use it here
+                }
+                else
+                {
+                    task.ContextId = assignedContext.Id;
+                }
+            }
+        }
+
         public async Task AddTask()
         {
             // map from TaskDisplayModel to TaskModel
@@ -191,7 +227,7 @@ namespace TaskFocusDesktop.ViewModels
 
             if (newTask.ContextName != null)
             {
-                // lookup contextId by contextName and assign
+                AssignContextIdFromContextName(newTask);
                 // TODO: need to enforce uniqueness of the contextName property - casing, etc; something. ensure these will match!
             }
 
@@ -217,7 +253,7 @@ namespace TaskFocusDesktop.ViewModels
 
                 if (HasTaskContextNameChanged(task))
                 {
-                    // TODO: same for context
+                    AssignContextIdFromContextName(task);
                 }
 
                 await _taskEndpoint.UpdateTask(task);
@@ -245,7 +281,7 @@ namespace TaskFocusDesktop.ViewModels
 
                     if (HasTaskContextNameChanged(task))
                     {
-                        // TODO: same for context
+                        AssignContextIdFromContextName(task);
                     }
 
                     await _taskEndpoint.UpdateTask(task);

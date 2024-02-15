@@ -31,6 +31,7 @@ namespace TaskFocusAPI
             builder.Services.AddTransient<IUserData, UserData>();
             builder.Services.AddTransient<ITaskData, TaskData>();
             builder.Services.AddTransient<IProjectData, ProjectData>();
+            builder.Services.AddTransient<IContextData, ContextData>();
             builder.Services.AddTransient<ISqlDataAccess, SqlDataAccess>();
 
             builder.Services.AddAuthentication(options =>

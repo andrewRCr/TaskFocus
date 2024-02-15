@@ -21,8 +21,12 @@ namespace TaskFocusDesktop.ViewModels
 {
     public class InboxViewModel : TaskViewModelBase, INotifyPropertyChanged
     {
-        public InboxViewModel(IUserEndpoint userEndpoint, ITaskEndpoint taskEndpoint, IProjectEndpoint projectEndpoint,
-            IMapper mapper, IWindowManager window) : base(userEndpoint, taskEndpoint, projectEndpoint, mapper, window)
+        public InboxViewModel(IUserEndpoint userEndpoint,
+                              ITaskEndpoint taskEndpoint,
+                              IProjectEndpoint projectEndpoint,
+                              IContextEndpoint contextEndpoint,
+                              IMapper mapper,
+                              IWindowManager window) : base(userEndpoint, taskEndpoint, projectEndpoint, contextEndpoint, mapper, window)
         {
         }
 
