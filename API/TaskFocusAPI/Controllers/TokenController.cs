@@ -11,11 +11,15 @@ namespace TaskFocusAPI.Controllers
 {
     public class TokenController : Controller
     {
+        private readonly IConfiguration _config;
         private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
 
-        public TokenController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
+        public TokenController(IConfiguration config,
+                               ApplicationDbContext context,
+                               UserManager<IdentityUser> userManager)
         {
+            _config = config;
             _context = context;
             _userManager = userManager;
         }
@@ -63,21 +67,30 @@ namespace TaskFocusAPI.Controllers
                     claims.Add(new Claim(ClaimTypes.Role, role.Name));
                 }
 
-                var token = new JwtSecurityToken(
-                    new JwtHeader(
-                        new SigningCredentials(
-                                        new SymmetricSecurityKey(Encoding.UTF8.GetBytes("SuperSecretTempKeyButNowMuchLongerTempTempTemp")),
-                                            SecurityAlgorithms.HmacSha256)),
-                   new JwtPayload(claims)
+                string? securityKey = _config.GetValue<string>("Secrets:SecurityKey");
+
+                if (securityKey != null)
+                {
+                    var token = new JwtSecurityToken(
+                        new JwtHeader(
+                            new SigningCredentials(
+                                            new SymmetricSecurityKey(Encoding.UTF8.GetBytes(securityKey)),
+                                                SecurityAlgorithms.HmacSha256)),
+                       new JwtPayload(claims)
                     );
 
-                var output = new
-                {
-                    AccessToken = new JwtSecurityTokenHandler().WriteToken(token),
-                    UserName = username,
-                };
+                    var output = new
+                    {
+                        AccessToken = new JwtSecurityTokenHandler().WriteToken(token),
+                        UserName = username,
+                    };
 
-                return output;
+                    return output;
+                }
+                else
+                {
+                    throw new Exception("SecurityKey was a null value!");
+                }
             }
 
             return Task.CompletedTask;
