@@ -1,8 +1,10 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Text;
 using System.Threading.Tasks;
 using TaskFocusDesktop.Library.Models;
@@ -54,7 +56,27 @@ namespace TaskFocusDesktop.Library.API
             {
                 if (response.IsSuccessStatusCode)
                 {
-                    // TODO - log successful update call ?
+                    // TODO - log successful insert call ?
+                }
+                else { throw new Exception(response.ReasonPhrase); }
+            }
+        }
+
+        public async Task DeleteTask(TaskModel task)
+        {
+            var p = new { Id =  task.Id };
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Delete,
+                RequestUri = new Uri("/api/task/delete", UriKind.Relative),
+                Content = new StringContent(JsonConvert.SerializeObject(p), Encoding.UTF8, "application/json")
+            };
+
+            using (HttpResponseMessage response = await _apiHelper.APIClient.SendAsync(request))
+            {
+                if (response.IsSuccessStatusCode)
+                {
+                    // TODO - log successful delete call ?
                 }
                 else { throw new Exception(response.ReasonPhrase); }
             }

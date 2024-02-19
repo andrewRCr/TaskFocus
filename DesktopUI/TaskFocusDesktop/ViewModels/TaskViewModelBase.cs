@@ -1,11 +1,10 @@
 ﻿using AutoMapper;
 using Caliburn.Micro;
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using TaskFocusDesktop.Commands;
 using TaskFocusDesktop.Library.API;
 using TaskFocusDesktop.Library.Models;
 using TaskFocusDesktop.Models;
@@ -20,7 +19,8 @@ namespace TaskFocusDesktop.ViewModels
         IContextEndpoint _contextEndpoint;
         IMapper _mapper;
         protected IWindowManager _window;
-     
+        public RelayCommand DeleteTaskCommand => new RelayCommand(async execute => await DeleteTask());
+
         public TaskViewModelBase(IUserEndpoint userEndpoint, ITaskEndpoint taskEndpoint, IProjectEndpoint projectEndpoint,
             IContextEndpoint contextEndpoint, IMapper mapper, IWindowManager windowManager)
         {
@@ -90,6 +90,7 @@ namespace TaskFocusDesktop.ViewModels
         }
 
         private BindingList<ContextModel> _contexts;
+
         public BindingList<ContextModel> Contexts
         {
             get { return _contexts; }
@@ -235,6 +236,17 @@ namespace TaskFocusDesktop.ViewModels
             await _taskEndpoint.AddTask(newTask, "1edd087f-627a-4e2b-8e1d-5ecc26a66f5c");
 
             // refresh Tasks + clear NewTask
+            await LoadTasks();
+        }
+
+        public async Task DeleteTask()
+        {
+            // map from TaskDisplayModel to TaskModel
+            TaskModel taskToDelete = _mapper.Map<TaskModel>(SelectedTask);
+
+            await _taskEndpoint.DeleteTask(taskToDelete);
+
+            // refresh Tasks + repopulate TasksLastFetch
             await LoadTasks();
         }
 

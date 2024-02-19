@@ -5,10 +5,11 @@ namespace TaskFocusAPI.Library.DataAccess
 {
     public interface ITaskData
     {
-        void AddTask(TaskModel newTask, string userId);
+        TaskModel GetTaskById(int taskId);
         List<TaskModel> GetAllTasksForUser(string userId);
         List<TaskModel> GetInboxTasksForUser(string userId);
-        TaskModel GetTaskById(int taskId);
+        void AddTask(TaskModel newTask, string userId);
+        void DeleteTask(TaskModel taskToDelete);
         void UpdateTaskData(TaskModel frontEndTask);
     }
 }

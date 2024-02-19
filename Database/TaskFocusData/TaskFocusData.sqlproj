@@ -80,6 +80,7 @@
     <Build Include="dbo\Stored Procedures\spTask_GetInboxForUser.sql" />
     <Build Include="dbo\Stored Procedures\spContext_GetAllForUser.sql" />
     <Build Include="dbo\Stored Procedures\spContext_GetById.sql" />
+    <Build Include="dbo\Stored Procedures\spTask_Delete.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="TaskFocusData.refactorlog" />

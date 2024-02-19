@@ -18,6 +18,14 @@ namespace TaskFocusAPI.Library.DataAccess
             _sqlDataAccess = sqlDataAccess;
         }
 
+        public TaskModel GetTaskById(int taskId)
+        {
+            var p = new { Id = taskId };
+            var task = _sqlDataAccess.LoadData<TaskModel, dynamic>("dbo.spTask_GetById", p, "TaskFocusData").FirstOrDefault();
+
+            return task;
+        }
+
         public List<TaskModel> GetAllTasksForUser(string userId)
         {
             var p = new { Id = userId };
@@ -34,20 +42,18 @@ namespace TaskFocusAPI.Library.DataAccess
             return userInboxTasks;
         }
 
-        public TaskModel GetTaskById(int taskId)
-        {
-            var p = new { Id = taskId };
-            var task = _sqlDataAccess.LoadData<TaskModel, dynamic>("dbo.spTask_GetById", p, "TaskFocusData").FirstOrDefault();
-
-            return task;
-        }
-
         public void AddTask(TaskModel newTask, string userId)
         {
             newTask.UserId = userId;
             if (newTask.Completed) { newTask.DateCompleted = DateTime.Now; }
 
             _sqlDataAccess.SaveData("dbo.spTask_Insert", newTask, "TaskFocusData");
+        }
+
+        public void DeleteTask(TaskModel taskToDelete)
+        {
+            var p = new { Id = taskToDelete.Id };
+            _sqlDataAccess.SaveData("dbo.spTask_Delete", p, "TaskFocusData");
         }
 
         public void UpdateTaskData(TaskModel frontEndTask)

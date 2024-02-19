@@ -13,6 +13,8 @@ namespace TaskFocusDesktop.Library.API
 
         Task AddTask(TaskModel task, string userId);
 
+        Task DeleteTask(TaskModel task);
+
         Task UpdateTask(TaskModel task);
     }
 }

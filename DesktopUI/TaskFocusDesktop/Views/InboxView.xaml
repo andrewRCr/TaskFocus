@@ -43,14 +43,18 @@
                 <!-- due date datepicker -->
                 <DatePicker Text="Due" Margin="10 5 5 4" VerticalAlignment="Center" BorderThickness="0" />
 
+                <!-- delete task button-->
+                <Button Content="Delete" Command="{Binding RelativeSource={RelativeSource AncestorType=ListBox}, Path=DataContext.DeleteTaskCommand}" />
+
             </StackPanel>
         </DataTemplate>
 
     </UserControl.Resources>
-    
+
     <Grid>
 
         <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
@@ -74,7 +78,20 @@
                  SelectedItem="{Binding SelectedTask}"
                  Grid.Row="1" Grid.Column="0"
                  Grid.ColumnSpan="2"
-                 ScrollViewer.HorizontalScrollBarVisibility="Disabled" />
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled" >
+            
+            <ListBox.Resources>
+                <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsMouseOver,RelativeSource={RelativeSource Self}}" 
+                             Value="True">
+                            <Setter Property="IsSelected" Value="True" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </ListBox.Resources>
+            
+        </ListBox>
 
         <!-- new task entry -->
         <ListBox 

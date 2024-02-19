@@ -45,5 +45,12 @@ namespace TaskFocusAPI.Controllers
         {
             _taskData.UpdateTaskData(updatedTask);
         }
+
+        [HttpDelete]
+        public void Delete(TaskModel taskToDelete) 
+        {
+            string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            _taskData.DeleteTask(taskToDelete);
+        }
     }
 }
