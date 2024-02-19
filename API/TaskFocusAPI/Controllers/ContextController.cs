@@ -25,5 +25,12 @@ namespace TaskFocusAPI.Controllers
             string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             return _contextData.GetAllContextsForUser(userId);
         }
+
+        [HttpPost]
+        public void Post(ContextModel newContext)
+        {
+            string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            _contextData.AddContext(newContext, userId);
+        }
     }
 }

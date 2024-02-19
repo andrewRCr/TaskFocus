@@ -22,5 +22,22 @@ namespace TaskFocusAPI.Library.DataAccess
 
             return contexts;
         }
+
+        public void AddContext(ContextModel newContext, string userId)
+        {
+            newContext.UserId = userId;
+
+            _sqlDataAccess.SaveData("dbo.spContext_Insert", newContext, "TaskFocusData");
+        }
+
+        public void DeleteContext(ContextModel contextToDelete)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void UpdateContextData(ContextModel frontEndContext)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

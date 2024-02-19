@@ -175,43 +175,58 @@ namespace TaskFocusDesktop.ViewModels
             return frontEndTask.ContextName != taskLastFetch.ContextName;
         }
 
-        public void AssignProjectIdFromProjectName(TaskModel task)
+        public async Task AssignProjectIdFromProjectName(TaskModel task)
         {
             if (task.ProjectName != null)
             {
                 // lookup projectId by projectName and assign
                 // TODO: need to enforce uniqueness of the projectName property - casing, etc; something. ensure these will match!
-                List<ProjectModel> userProjects = Projects.ToList();
 
-                ProjectModel assignedProject = userProjects.Find(x => x.ProjectName == task.ProjectName);
+                ProjectModel FindAssignedProject()
+                {
+                    List<ProjectModel> userProjects = Projects.ToList();
+                    return userProjects.Find(x => x.ProjectName == task.ProjectName);
+                }
+
+                ProjectModel assignedProject = FindAssignedProject();
                 if (assignedProject == null)
                 {
                     // TODO: create new project + add to db, returning the projectId from that call, and use it here
+                    ProjectModel newProject = new ProjectModel { ProjectName = task.ProjectName };
+                    await AddProject(newProject);
+
+                    assignedProject = FindAssignedProject();
                 }
-                else
-                {
-                    task.ProjectId = assignedProject.Id;
-                }
+
+                task.ProjectId = assignedProject.Id;
             }
         }
 
-        public void AssignContextIdFromContextName(TaskModel task)
+        public async Task AssignContextIdFromContextName(TaskModel task)
         {
             if (task.ContextName != null)
             {
                 // lookup ContextId by contextName and assign
                 // TODO: need to enforce uniqueness of the contextName property - casing, etc; something. ensure these will match!
-                List<ContextModel> userContexts = Contexts.ToList();
 
-                ContextModel assignedContext = userContexts.Find(x => x.ContextName == task.ContextName);
+                ContextModel FindAssignedContext()
+                {
+                    List<ContextModel> userContexts = Contexts.ToList();
+                    return userContexts.Find(x => x.ContextName == task.ContextName);
+                }
+
+                ContextModel assignedContext = FindAssignedContext();
+
                 if (assignedContext == null)
                 {
                     // TODO: create new context + add to db, returning the contextId from that call, and use it here
+                    ContextModel newContext = new ContextModel { ContextName = task.ContextName };
+                    await AddContext(newContext);
+
+                    assignedContext = FindAssignedContext();
                 }
-                else
-                {
-                    task.ContextId = assignedContext.Id;
-                }
+
+                task.ContextId = assignedContext.Id;
             }
         }
 
@@ -222,13 +237,13 @@ namespace TaskFocusDesktop.ViewModels
 
             if (newTask.ProjectName != null)
             {
-                AssignProjectIdFromProjectName(newTask);
+                await AssignProjectIdFromProjectName(newTask);
                 // TODO: need to enforce uniqueness of the projectName property - casing, etc; something. ensure these will match!
             }
 
             if (newTask.ContextName != null)
             {
-                AssignContextIdFromContextName(newTask);
+                await AssignContextIdFromContextName(newTask);
                 // TODO: need to enforce uniqueness of the contextName property - casing, etc; something. ensure these will match!
             }
 
@@ -260,12 +275,12 @@ namespace TaskFocusDesktop.ViewModels
             {
                 if (HasTaskProjectNameChanged(task))
                 {
-                    AssignProjectIdFromProjectName(task);
+                    await AssignProjectIdFromProjectName(task);
                 }
 
                 if (HasTaskContextNameChanged(task))
                 {
-                    AssignContextIdFromContextName(task);
+                    await AssignContextIdFromContextName(task);
                 }
 
                 await _taskEndpoint.UpdateTask(task);
@@ -288,12 +303,12 @@ namespace TaskFocusDesktop.ViewModels
                 {
                     if (HasTaskProjectNameChanged(task))
                     {
-                        AssignProjectIdFromProjectName(task);
+                        await AssignProjectIdFromProjectName(task);
                     }
 
                     if (HasTaskContextNameChanged(task))
                     {
-                        AssignContextIdFromContextName(task);
+                        await AssignContextIdFromContextName(task);
                     }
 
                     await _taskEndpoint.UpdateTask(task);
@@ -315,6 +330,24 @@ namespace TaskFocusDesktop.ViewModels
             TaskDisplayModel senderTask = (TaskDisplayModel)sender;
 
             await UpdateTaskData(senderTask);
+        }
+
+        public async Task AddProject(ProjectModel newProject)
+        {
+            // TODO: remove hard-coding of userId, obviously
+            await _projectEndpoint.AddProject(newProject, "1edd087f-627a-4e2b-8e1d-5ecc26a66f5c");
+
+            // refresh Tasks, Projects, Contexts + clear NewTask
+            await LoadTasks();
+        }
+
+        public async Task AddContext(ContextModel newContext)
+        {
+            // TODO: remove hard-coding of userId, obviously
+            await _contextEndpoint.AddContext(newContext, "1edd087f-627a-4e2b-8e1d-5ecc26a66f5c");
+
+            // refresh Tasks, Projects, Contexts + clear NewTask
+            await LoadTasks();
         }
     }
 }

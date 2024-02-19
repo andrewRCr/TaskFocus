@@ -29,5 +29,29 @@ namespace TaskFocusDesktop.Library.API
                 else { throw new Exception(response.ReasonPhrase); }
             }
         }
+
+        public async Task AddContext(ContextModel newContext, string userId)
+        {
+            newContext.UserId = userId;
+
+            using (HttpResponseMessage response = await _apiHelper.APIClient.PostAsJsonAsync("/api/context/post", newContext))
+            {
+                if (response.IsSuccessStatusCode)
+                {
+                    // TODO - log successful insert call ?
+                }
+                else { throw new Exception(response.ReasonPhrase); }
+            }
+        }
+
+        public Task DeleteContext(ContextModel contextToDelete)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task UpdateContext(ContextModel contextToUpdate)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

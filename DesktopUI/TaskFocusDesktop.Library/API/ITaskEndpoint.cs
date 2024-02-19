@@ -8,13 +8,9 @@ namespace TaskFocusDesktop.Library.API
     public interface ITaskEndpoint
     {
         Task<List<TaskModel>> GetAllTasksForUser();
-
         Task<List<TaskModel>> GetInboxTasksForUser();
-
         Task AddTask(TaskModel task, string userId);
-
         Task DeleteTask(TaskModel task);
-
         Task UpdateTask(TaskModel task);
     }
 }

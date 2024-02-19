@@ -25,5 +25,12 @@ namespace TaskFocusAPI.Controllers
             string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             return _projectData.GetAllProjectsForUser(userId);
         }
+
+        [HttpPost]
+        public void Post(ProjectModel newProject)
+        {
+            string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            _projectData.AddProject(newProject, userId);
+        }
     }
 }

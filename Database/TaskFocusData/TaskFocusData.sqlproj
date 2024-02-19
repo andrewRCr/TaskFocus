@@ -81,6 +81,8 @@
     <Build Include="dbo\Stored Procedures\spContext_GetAllForUser.sql" />
     <Build Include="dbo\Stored Procedures\spContext_GetById.sql" />
     <Build Include="dbo\Stored Procedures\spTask_Delete.sql" />
+    <Build Include="dbo\Stored Procedures\spProject_Insert.sql" />
+    <Build Include="dbo\Stored Procedures\spContext_Insert.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="TaskFocusData.refactorlog" />

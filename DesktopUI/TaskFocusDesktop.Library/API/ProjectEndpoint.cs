@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -29,6 +30,30 @@ namespace TaskFocusDesktop.Library.API
                 }
                 else { throw new Exception(response.ReasonPhrase); }
             }
+        }
+
+        public async Task AddProject(ProjectModel newProject, string userId)
+        {
+            newProject.UserId = userId;
+
+            using (HttpResponseMessage response = await _apiHelper.APIClient.PostAsJsonAsync("/api/project/post", newProject))
+            {
+                if (response.IsSuccessStatusCode)
+                {
+                    // TODO - log successful insert call ?
+                }
+                else { throw new Exception(response.ReasonPhrase); }
+            }
+        }
+
+        public Task DeleteProject(ProjectModel projectToDelete)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task UpdateProject(ProjectModel projectToUpdate)
+        {
+            throw new NotImplementedException();
         }
     }
 }
