@@ -106,7 +106,7 @@ stages:
         deploy:
           steps:
           - download: current
-            artifact: drop
+            artifact: API_drop
 
           - task: AzureWebApp@1
             inputs:
