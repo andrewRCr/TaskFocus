@@ -43,6 +43,13 @@ stages:
         PathtoPublish: '$(Build.ArtifactStagingDirectory)'
         ArtifactName: 'API_drop'
         publishLocation: 'Container'
+    - task: CmdLine@2
+      displayName: 'Directory listing - Build.ArtifactStagingDirectory'
+      inputs:
+        script: |
+          D:
+          cd $(Build.ArtifactStagingDirectory)
+          dir /b /s
 
     # - task: DeleteFiles@1
     #   displayName: 'Delete API build artifact files'
@@ -113,4 +120,4 @@ stages:
               azureSubscription: 'Azure subscription 1(0af9f1a9-e361-440d-926a-b29173434193)'
               appType: 'webAppLinux'
               appName: 'TaskFocusAPI'
-              package: '$(System.DefaultWorkingDirectory)/**/API_drop/TaskFocusAPI.zip'
+              package: '$(System.DefaultWorkingDirectory)/**/*/TaskFocusAPI.zip'
