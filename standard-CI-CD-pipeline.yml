@@ -65,39 +65,39 @@ stages:
     #     platform: '$(buildPlatform)'
     #     configuration: '$(buildConfiguration)'
 
-    # - task: PublishBuildArtifacts@1
-    #   displayName: 'Publish SQL Database'
-    #   inputs:
-    #     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-    #     ArtifactName: 'SQLdb_drop'
-    #     publishLocation: 'Container'
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish SQL Database'
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        ArtifactName: 'SQLdb_drop'
+        publishLocation: 'Container'
 
-    # - task: DeleteFiles@1
-    #   displayName: 'Delete SQL DB build artifact files'
-    #   inputs:
-    #     SourceFolder: '$(build.artifactStagingDirectory)'
-    #     Contents: '**'
+    - task: DeleteFiles@1
+      displayName: 'Delete SQL DB build artifact files'
+      inputs:
+        SourceFolder: '$(build.artifactStagingDirectory)'
+        Contents: '**'
 
-    # - task: VSBuild@1
-    #   displayName: 'Build DesktopUI project'
-    #   inputs:
-    #     solution: 'DesktopUI/TaskFocusDesktop/TaskFocusDesktop.csproj'
-    #     msbuildArgs: '/p:OutDir="$(build.artifactStagingDirectory)"'
-    #     platform: '$(buildPlatform)'
-    #     configuration: '$(buildConfiguration)'
+    - task: VSBuild@1
+      displayName: 'Build DesktopUI project'
+      inputs:
+        solution: 'DesktopUI/TaskFocusDesktop/TaskFocusDesktop.csproj'
+        msbuildArgs: '/p:OutDir="$(build.artifactStagingDirectory)"'
+        platform: '$(buildPlatform)'
+        configuration: '$(buildConfiguration)'
 
-    # - task: PublishBuildArtifacts@1
-    #   displayName: 'Publish DesktopUI'
-    #   inputs:
-    #     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-    #     ArtifactName: 'DesktopUI_drop'
-    #     publishLocation: 'Container'
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish DesktopUI'
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        ArtifactName: 'DesktopUI_drop'
+        publishLocation: 'Container'
 
-    # - task: DeleteFiles@1
-    #   displayName: 'Delete DesktopUI build artifact files'
-    #   inputs:
-    #     SourceFolder: '$(build.artifactStagingDirectory)'
-    #     Contents: '**'
+    - task: DeleteFiles@1
+      displayName: 'Delete DesktopUI build artifact files'
+      inputs:
+        SourceFolder: '$(build.artifactStagingDirectory)'
+        Contents: '**'
   
 - stage: 'Dev'
   displayName: 'Deploy to the dev environment'
@@ -113,9 +113,11 @@ stages:
         deploy:
           steps:
           - download: current
+            displayName: 'Download API artifact'
             artifact: API_drop
 
           - task: AzureWebApp@1
+            displayName: 'Deploy API'
             inputs:
               azureSubscription: 'Azure subscription 1(0af9f1a9-e361-440d-926a-b29173434193)'
               appType: 'webAppLinux'
