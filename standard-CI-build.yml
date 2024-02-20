@@ -1,10 +1,6 @@
-# ASP.NET
-# Build and test ASP.NET projects.
-# Add steps that publish symbols, save build artifacts, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/apps/aspnet/build-aspnet-4
 
 trigger:
-- main
+- '*'
 
 pool:
   vmImage: 'windows-latest'
@@ -14,75 +10,109 @@ variables:
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
 
-steps:
-- task: NuGetToolInstaller@1
-  inputs:
-    versionSpec: 
-    checkLatest: true
+stages:
+- stage: 'Build'
+  displayName: 'Build all'
+  jobs:
+  - job: 'Build'
+    displayName: 'Build job'
+    pool:
+      vmImage: 'windows-latest'
 
-- task: NuGetCommand@2
-  inputs:
-    restoreSolution: '$(solution)'
+    steps:
+    - task: NuGetToolInstaller@1
+      inputs:
+        versionSpec: 
+        checkLatest: true
 
-- task: VSBuild@1
-  displayName: 'Build API project'
-  inputs:
-    solution: 'API/TaskFocusAPI/TaskFocusAPI.csproj'
-    msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:PackageLocation="$(build.artifactStagingDirectory)"'
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
+    - task: NuGetCommand@2
+      inputs:
+        restoreSolution: '$(solution)'
 
-- task: PublishBuildArtifacts@1
-  displayName: 'Publish API'
-  inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-    ArtifactName: 'API_drop'
-    publishLocation: 'Container'
+    - task: VSBuild@1
+      displayName: 'Build API project'
+      inputs:
+        solution: 'API/TaskFocusAPI/TaskFocusAPI.csproj'
+        msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:PackageLocation="$(build.artifactStagingDirectory)"'
+        platform: '$(buildPlatform)'
+        configuration: '$(buildConfiguration)'
 
-- task: DeleteFiles@1
-  displayName: 'Delete API build artifact files'
-  inputs:
-    SourceFolder: '$(build.artifactStagingDirectory)'
-    Contents: '**'
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish API'
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        ArtifactName: 'API_drop'
+        publishLocation: 'Container'
 
-- task: VSBuild@1
-  displayName: 'Build SQL DB project'
-  inputs:
-    solution: 'Database/TaskFocusData/TaskFocusData.sqlproj'
-    msbuildArgs: '/p:OutDir="$(build.artifactStagingDirectory)" /property:DSP="Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider"'
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
+    - task: DeleteFiles@1
+      displayName: 'Delete API build artifact files'
+      inputs:
+        SourceFolder: '$(build.artifactStagingDirectory)'
+        Contents: '**'
 
-- task: PublishBuildArtifacts@1
-  displayName: 'Publish SQL Database'
-  inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-    ArtifactName: 'SQLdb_drop'
-    publishLocation: 'Container'
+    - task: VSBuild@1
+      displayName: 'Build SQL DB project'
+      inputs:
+        solution: 'Database/TaskFocusData/TaskFocusData.sqlproj'
+        msbuildArgs: '/p:OutDir="$(build.artifactStagingDirectory)" /property:DSP="Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider"'
+        platform: '$(buildPlatform)'
+        configuration: '$(buildConfiguration)'
 
-- task: DeleteFiles@1
-  displayName: 'Delete SQL DB build artifact files'
-  inputs:
-    SourceFolder: '$(build.artifactStagingDirectory)'
-    Contents: '**'
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish SQL Database'
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        ArtifactName: 'SQLdb_drop'
+        publishLocation: 'Container'
 
-- task: VSBuild@1
-  displayName: 'Build DesktopUI project'
-  inputs:
-    solution: 'DesktopUI/TaskFocusDesktop/TaskFocusDesktop.csproj'
-    msbuildArgs: '/p:OutDir="$(build.artifactStagingDirectory)"'
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
+    - task: DeleteFiles@1
+      displayName: 'Delete SQL DB build artifact files'
+      inputs:
+        SourceFolder: '$(build.artifactStagingDirectory)'
+        Contents: '**'
 
-- task: PublishBuildArtifacts@1
-  displayName: 'Publish DesktopUI'
-  inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-    ArtifactName: 'DesktopUI_drop'
-    publishLocation: 'Container'
+    - task: VSBuild@1
+      displayName: 'Build DesktopUI project'
+      inputs:
+        solution: 'DesktopUI/TaskFocusDesktop/TaskFocusDesktop.csproj'
+        msbuildArgs: '/p:OutDir="$(build.artifactStagingDirectory)"'
+        platform: '$(buildPlatform)'
+        configuration: '$(buildConfiguration)'
 
-- task: DeleteFiles@1
-  displayName: 'Delete DesktopUI build artifact files'
-  inputs:
-    SourceFolder: '$(build.artifactStagingDirectory)'
-    Contents: '**'
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish DesktopUI'
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        ArtifactName: 'DesktopUI_drop'
+        publishLocation: 'Container'
+
+    - task: DeleteFiles@1
+      displayName: 'Delete DesktopUI build artifact files'
+      inputs:
+        SourceFolder: '$(build.artifactStagingDirectory)'
+        Contents: '**'
+  
+- stage: 'Dev'
+  displayName: 'Deploy to the dev environment'
+  dependsOn: Build
+  condition:  succeeded()
+  jobs:
+  - deployment: Deploy
+    pool:
+      vmImage: 'ubuntu-20.04'
+    environment: dev
+    variables:
+    - group: Release
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: current
+            artifact: drop
+
+          - task: AzureWebApp@1
+            inputs:
+              azureSubscription: 'Azure subscription 1(0af9f1a9-e361-440d-926a-b29173434193)'
+              appType: 'webAppLinux'
+              appName: 'TaskFocusAPI'
+              package: '$(System.DefaultWorkingDirectory)/_Standard CI Build/API_drop/TaskFocusAPI.zip'
