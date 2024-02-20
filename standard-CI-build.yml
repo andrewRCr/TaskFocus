@@ -49,7 +49,7 @@ steps:
   displayName: 'Build SQL DB project'
   inputs:
     solution: 'Database/TaskFocusData/TaskFocusData.sqlproj'
-    msbuildArgs: '/p:PackageLocation="$(build.artifactStagingDirectory)" /property:DSP="Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider"'
+    msbuildArgs: '/p:OutDir="$(build.artifactStagingDirectory)" /property:DSP="Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider"'
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
 
@@ -70,7 +70,7 @@ steps:
   displayName: 'Build DesktopUI project'
   inputs:
     solution: 'DesktopUI/TaskFocusDesktop/TaskFocusDesktop.csproj'
-    msbuildArgs: '/p:PackageLocation="$(build.artifactStagingDirectory)"'
+    msbuildArgs: '/p:OutDir="$(build.artifactStagingDirectory)"'
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
 
