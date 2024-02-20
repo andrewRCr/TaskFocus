@@ -113,4 +113,4 @@ stages:
               azureSubscription: 'Azure subscription 1(0af9f1a9-e361-440d-926a-b29173434193)'
               appType: 'webAppLinux'
               appName: 'TaskFocusAPI'
-              package: '$(System.DefaultWorkingDirectory)/_Standard CI Build/API_drop/TaskFocusAPI.zip'
+              package: '$(System.DefaultWorkingDirectory)/**/API_drop/TaskFocusAPI.zip'
