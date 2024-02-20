@@ -51,11 +51,11 @@ stages:
         ArtifactName: 'API_drop'
         publishLocation: 'Container'
 
-    # - task: DeleteFiles@1
-    #   displayName: 'Delete API build artifact files'
-    #   inputs:
-    #     SourceFolder: '$(build.artifactStagingDirectory)'
-    #     Contents: '**'
+    - task: DeleteFiles@1
+      displayName: 'Delete API build artifact files'
+      inputs:
+        SourceFolder: '$(build.artifactStagingDirectory)'
+        Contents: '**'
 
     # - task: VSBuild@1
     #   displayName: 'Build SQL DB project'
