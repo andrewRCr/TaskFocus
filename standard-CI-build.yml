@@ -25,14 +25,64 @@ steps:
     restoreSolution: '$(solution)'
 
 - task: VSBuild@1
+  displayName: 'Build API project'
   inputs:
-    solution: '$(solution)'
+    solution: 'API/TaskFocusAPI/TaskFocusAPI.csproj'
     msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:PackageLocation="$(build.artifactStagingDirectory)"'
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
 
 - task: PublishBuildArtifacts@1
+  displayName: 'Publish API'
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-    ArtifactName: 'drop'
+    ArtifactName: 'API_drop'
     publishLocation: 'Container'
+
+- task: DeleteFiles@1
+  displayName: 'Delete API build artifact files'
+  inputs:
+    SourceFolder: '$(build.artifactStagingDirectory)'
+    Contents: '**'
+
+- task: VSBuild@1
+  displayName: 'Build SQL DB project'
+  inputs:
+    solution: 'Database/TaskFocusData/TaskFocusData.sqlproj'
+    msbuildArgs: '/p:PackageLocation="$(build.artifactStagingDirectory)" /property:DSP="Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider"'
+    platform: '$(buildPlatform)'
+    configuration: '$(buildConfiguration)'
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish SQL Database'
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'SQLdb_drop'
+    publishLocation: 'Container'
+
+- task: DeleteFiles@1
+  displayName: 'Delete SQL DB build artifact files'
+  inputs:
+    SourceFolder: '$(build.artifactStagingDirectory)'
+    Contents: '**'
+
+- task: VSBuild@1
+  displayName: 'Build DesktopUI project'
+  inputs:
+    solution: 'DesktopUI/TaskFocusDesktop/TaskFocusDesktop.csproj'
+    msbuildArgs: '/p:PackageLocation="$(build.artifactStagingDirectory)"'
+    platform: '$(buildPlatform)'
+    configuration: '$(buildConfiguration)'
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish DesktopUI'
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'DesktopUI_drop'
+    publishLocation: 'Container'
+
+- task: DeleteFiles@1
+  displayName: 'Delete DesktopUI build artifact files'
+  inputs:
+    SourceFolder: '$(build.artifactStagingDirectory)'
+    Contents: '**'
