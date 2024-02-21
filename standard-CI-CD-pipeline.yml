@@ -111,13 +111,14 @@ stages:
   condition:  succeeded()
   jobs:
   - deployment: Deploy
-    displayName: 'Deploy job'
+    displayName: 'Deploy code job'
     pool:
       vmImage: 'ubuntu-20.04'
     environment: dev
     strategy:
       runOnce:
         deploy:
+
           steps:
           - download: current
             displayName: 'Download API artifact'
@@ -131,6 +132,16 @@ stages:
               appName: 'TaskFocusAPI'
               package: '$(Pipeline.Workspace)/API_drop/TaskFocusAPI.zip'
 
+  - deployment: Deploy
+    displayName: 'Deploy SQL job'
+    pool:
+      vmImage: 'windows-latest'
+    environment: dev
+    strategy:
+      runOnce:
+        deploy:
+
+          steps:
           - task: SqlAzureDacpacDeployment@1
             displayName: 'Deploy AuthDB'
             inputs:
