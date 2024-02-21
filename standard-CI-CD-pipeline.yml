@@ -131,3 +131,29 @@ stages:
               appName: 'TaskFocusAPI'
               package: '$(Pipeline.Workspace)/API_drop/TaskFocusAPI.zip'
 
+          - task: SqlAzureDacpacDeployment@1
+            displayName: 'Deploy AuthDB'
+            inputs:
+              azureSubscription: 'Azure subscription 1(0af9f1a9-e361-440d-926a-b29173434193)'
+              AuthenticationType: 'server'
+              ServerName: '$(SQLServer)'
+              DatabaseName: '$(AuthDBName)'
+              SqlUsername: '$(SQLUserName)'
+              SqlPassword: '$(SQLPassword)'
+              deployType: 'SqlTask'
+              SqlFile: '$(Pipeline.Workspace)/AuthDB_drop/migrate.sql'
+              IpDetectionMethod: 'AutoDetect'
+
+          - task: SqlAzureDacpacDeployment@1
+            displayName: 'Deploy DataDB'
+            inputs:
+              azureSubscription: 'Azure subscription 1(0af9f1a9-e361-440d-926a-b29173434193)'
+              AuthenticationType: 'server'
+              ServerName: '$(SQLServer)'
+              DatabaseName: '$(DataDBName)'
+              SqlUsername: '$(SQLUserName)'
+              SqlPassword: '$(SQLPassword)'
+              deployType: 'DacpacTask'
+              DeploymentAction: 'Publish'
+              DacpacFile: '$(Pipeline.Workspace)/SQLdb_drop/TaskFocusData.dacpac'
+              IpDetectionMethod: 'AutoDetect'
