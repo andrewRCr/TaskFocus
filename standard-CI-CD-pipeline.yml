@@ -96,7 +96,7 @@ stages:
       inputs:
         script: |
           dotnet tool install --global dotnet-ef
-          dotnet ef migrations script -i -o $(build.artifactStagingDirectory)\migrate.sql -p TaskFocusAPI\TaskFocusAPI.csproj
+          dotnet ef migrations script -i -o $(build.artifactStagingDirectory)\migrate.sql -p API\TaskFocusAPI\TaskFocusAPI.csproj
 
     - task: PublishBuildArtifacts@1
       displayName: 'Publish EF ApiAuth DB'
