@@ -105,12 +105,12 @@ stages:
         ArtifactName: 'AuthDB_drop'
         publishLocation: 'Container'
   
-- stage: 'Dev'
-  displayName: 'Deploy to the dev environment'
+- stage: 'Deploy code'
+  displayName: 'Deploy code'
   dependsOn: Build
   condition:  succeeded()
   jobs:
-  - deployment: Deploy code
+  - deployment: Deploy
     displayName: 'Deploy code job'
     pool:
       vmImage: 'ubuntu-20.04'
@@ -132,7 +132,12 @@ stages:
               appName: 'TaskFocusAPI'
               package: '$(Pipeline.Workspace)/API_drop/TaskFocusAPI.zip'
 
-  - deployment: Deploy SQL
+- stage: 'Deploy SQL'
+  displayName: 'Deploy SQL'
+  dependsOn: Build
+  condition:  succeeded()
+  jobs:
+  - deployment: Deploy
     displayName: 'Deploy SQL job'
     pool:
       vmImage: 'windows-latest'
