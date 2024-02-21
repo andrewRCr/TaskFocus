@@ -21,6 +21,7 @@ namespace TaskFocusDesktop.Models
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
+
         // user-editable properties
         // ====================
         private string _taskName;

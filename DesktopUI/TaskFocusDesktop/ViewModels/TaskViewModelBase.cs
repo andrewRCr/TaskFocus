@@ -90,7 +90,6 @@ namespace TaskFocusDesktop.ViewModels
         }
 
         private BindingList<ContextModel> _contexts;
-
         public BindingList<ContextModel> Contexts
         {
             get { return _contexts; }
@@ -98,6 +97,14 @@ namespace TaskFocusDesktop.ViewModels
             {
                 _contexts = value;
                 NotifyOfPropertyChange(() => Contexts);
+            }
+        }
+
+        public bool CanAddTask
+        {
+            get
+            {
+                return NewTask != null ? !string.IsNullOrWhiteSpace(NewTask.TaskName) : false;
             }
         }
 
@@ -130,7 +137,7 @@ namespace TaskFocusDesktop.ViewModels
 
             foreach (TaskDisplayModel displayTask in Tasks)
             {
-                displayTask.PropertyChanged += onDisplayTaskPropertyChanged; // subscribe to property changed event
+                displayTask.PropertyChanged += onExistingTaskPropertyChanged; // subscribe to property changed event
             }
 
             var projectList = await _projectEndpoint.GetAllProjectsForUser();
@@ -143,6 +150,7 @@ namespace TaskFocusDesktop.ViewModels
             List<TaskDisplayModel> newTaskList = new List<TaskDisplayModel>();
             TaskDisplayModel newTaskPlaceholder = new TaskDisplayModel();
             NewTask = newTaskPlaceholder;
+            NewTask.PropertyChanged += onNewTaskPropertyChanged; // subscribe to property changed event
             newTaskList.Add(newTaskPlaceholder);
             NewTaskList = new BindingList<TaskDisplayModel>(newTaskList);
         }
@@ -232,6 +240,8 @@ namespace TaskFocusDesktop.ViewModels
 
         public async Task AddTask()
         {
+            if (string.IsNullOrWhiteSpace(NewTask.TaskName)) { return; }
+
             // map from TaskDisplayModel to TaskModel
             TaskModel newTask = _mapper.Map<TaskModel>(NewTask);
 
@@ -256,6 +266,8 @@ namespace TaskFocusDesktop.ViewModels
 
         public async Task DeleteTask()
         {
+            if (SelectedTask == null) { return; }
+
             // map from TaskDisplayModel to TaskModel
             TaskModel taskToDelete = _mapper.Map<TaskModel>(SelectedTask);
 
@@ -324,7 +336,7 @@ namespace TaskFocusDesktop.ViewModels
         }
 
         // saves updated task data to server on property change
-        private async void onDisplayTaskPropertyChanged(object sender, PropertyChangedEventArgs e)
+        private async void onExistingTaskPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             string changedProperty = e.PropertyName;
             TaskDisplayModel senderTask = (TaskDisplayModel)sender;
@@ -332,8 +344,20 @@ namespace TaskFocusDesktop.ViewModels
             await UpdateTaskData(senderTask);
         }
 
+        private void onNewTaskPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            string changedProperty = e.PropertyName;
+
+            if (changedProperty == "TaskName")
+            {
+                NotifyOfPropertyChange(() => CanAddTask);
+            }
+        }
+
         public async Task AddProject(ProjectModel newProject)
         {
+            if (string.IsNullOrWhiteSpace(newProject.ProjectName)) { return; }
+
             // TODO: remove hard-coding of userId, obviously
             await _projectEndpoint.AddProject(newProject, "1edd087f-627a-4e2b-8e1d-5ecc26a66f5c");
 
@@ -343,6 +367,8 @@ namespace TaskFocusDesktop.ViewModels
 
         public async Task AddContext(ContextModel newContext)
         {
+            if (string.IsNullOrWhiteSpace(newContext.ContextName)) { return; }
+
             // TODO: remove hard-coding of userId, obviously
             await _contextEndpoint.AddContext(newContext, "1edd087f-627a-4e2b-8e1d-5ecc26a66f5c");
 
