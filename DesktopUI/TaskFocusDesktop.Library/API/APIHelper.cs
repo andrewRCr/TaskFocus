@@ -56,6 +56,13 @@ namespace TaskFocusDesktop.Library.API
             }
         }
 
+        public string GetLoggedInUserId()
+        {
+            if (_loggedInUser == null) { return null; }
+
+            return _loggedInUser.Id;
+        }
+
         public async Task GetLoggedInUserInfo(string token)
         {
             _apiClient.DefaultRequestHeaders.Clear();

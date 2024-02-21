@@ -13,6 +13,7 @@ namespace TaskFocusDesktop.ViewModels
 {
     public abstract class TaskViewModelBase : ViewModelBase
     {
+        IAPIHelper _apiHelper;
         IUserEndpoint _userEndpoint;
         ITaskEndpoint _taskEndpoint;
         IProjectEndpoint _projectEndpoint;
@@ -21,9 +22,10 @@ namespace TaskFocusDesktop.ViewModels
         protected IWindowManager _window;
         public RelayCommand DeleteTaskCommand => new RelayCommand(async execute => await DeleteTask());
 
-        public TaskViewModelBase(IUserEndpoint userEndpoint, ITaskEndpoint taskEndpoint, IProjectEndpoint projectEndpoint,
+        public TaskViewModelBase(IAPIHelper apiHelper, IUserEndpoint userEndpoint, ITaskEndpoint taskEndpoint, IProjectEndpoint projectEndpoint,
             IContextEndpoint contextEndpoint, IMapper mapper, IWindowManager windowManager)
         {
+            _apiHelper = apiHelper;
             _userEndpoint = userEndpoint;
             _taskEndpoint = taskEndpoint;
             _projectEndpoint = projectEndpoint;
@@ -257,8 +259,7 @@ namespace TaskFocusDesktop.ViewModels
                 // TODO: need to enforce uniqueness of the contextName property - casing, etc; something. ensure these will match!
             }
 
-            // TODO: remove hard-coding of userId, obviously
-            await _taskEndpoint.AddTask(newTask, "1edd087f-627a-4e2b-8e1d-5ecc26a66f5c");
+            await _taskEndpoint.AddTask(newTask, _apiHelper.GetLoggedInUserId());
 
             // refresh Tasks + clear NewTask
             await LoadTasks();
@@ -358,8 +359,7 @@ namespace TaskFocusDesktop.ViewModels
         {
             if (string.IsNullOrWhiteSpace(newProject.ProjectName)) { return; }
 
-            // TODO: remove hard-coding of userId, obviously
-            await _projectEndpoint.AddProject(newProject, "1edd087f-627a-4e2b-8e1d-5ecc26a66f5c");
+            await _projectEndpoint.AddProject(newProject, _apiHelper.GetLoggedInUserId());
 
             // refresh Tasks, Projects, Contexts + clear NewTask
             await LoadTasks();
@@ -369,8 +369,7 @@ namespace TaskFocusDesktop.ViewModels
         {
             if (string.IsNullOrWhiteSpace(newContext.ContextName)) { return; }
 
-            // TODO: remove hard-coding of userId, obviously
-            await _contextEndpoint.AddContext(newContext, "1edd087f-627a-4e2b-8e1d-5ecc26a66f5c");
+            await _contextEndpoint.AddContext(newContext, _apiHelper.GetLoggedInUserId());
 
             // refresh Tasks, Projects, Contexts + clear NewTask
             await LoadTasks();
