@@ -110,7 +110,7 @@ stages:
   dependsOn: Build
   condition:  succeeded()
   jobs:
-  - deployment: Deploy
+  - deployment: Deploy code
     displayName: 'Deploy code job'
     pool:
       vmImage: 'ubuntu-20.04'
@@ -132,7 +132,7 @@ stages:
               appName: 'TaskFocusAPI'
               package: '$(Pipeline.Workspace)/API_drop/TaskFocusAPI.zip'
 
-  - deployment: Deploy
+  - deployment: Deploy SQL
     displayName: 'Deploy SQL job'
     pool:
       vmImage: 'windows-latest'
