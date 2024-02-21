@@ -90,6 +90,20 @@ stages:
       inputs:
         SourceFolder: '$(build.artifactStagingDirectory)'
         Contents: '**'
+        
+    - task: CmdLine@2
+      displayName: 'Build EF ApiAuth DB'
+      inputs:
+        script: |
+          dotnet tool install --global dotnet-ef
+          dotnet ef migrations script -i -o $(build.artifactStagingDirectory)\migrate.sql -p TaskFocusAPI\TaskFocusAPI.csproj
+
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish EF ApiAuth DB'
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        ArtifactName: 'AuthDB_drop'
+        publishLocation: 'Container'
   
 - stage: 'Dev'
   displayName: 'Deploy to the dev environment'
@@ -116,3 +130,4 @@ stages:
               appType: 'webAppLinux'
               appName: 'TaskFocusAPI'
               package: '$(Pipeline.Workspace)/API_drop/TaskFocusAPI.zip'
+
