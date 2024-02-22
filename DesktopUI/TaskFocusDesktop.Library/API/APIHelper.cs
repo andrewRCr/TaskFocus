@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Configuration;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
@@ -14,21 +15,23 @@ namespace TaskFocusDesktop.Library.API
     {
         private HttpClient _apiClient;
         private ILoggedInUserModel _loggedInUser;
+        private readonly IConfiguration _config;
 
         public HttpClient APIClient
         {
             get { return _apiClient; } 
         }
 
-        public APIHelper(ILoggedInUserModel loggedInUser)
+        public APIHelper(ILoggedInUserModel loggedInUser, IConfiguration config)
         {
-            InitializeClient();
             _loggedInUser = loggedInUser;
+            _config = config;
+            InitializeClient();
         }
 
         private void InitializeClient()
         {
-            string api = ConfigurationManager.AppSettings["api"];
+            string api = _config.GetValue<string>("api");
 
             _apiClient = new HttpClient();
             _apiClient.BaseAddress = new Uri(api);

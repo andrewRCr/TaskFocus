@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
 using Caliburn.Micro;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -40,6 +42,19 @@ namespace TaskFocusDesktop
             return config.CreateMapper();
         }
 
+        private IConfiguration AddConfiguration()
+        {
+            IConfigurationBuilder builder = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json");
+
+            string envJsonPath = System.Diagnostics.Debugger.IsAttached ? 
+                "appsettings.Development.json" : "appsettings.Production.json";
+
+            builder.AddJsonFile(envJsonPath, optional: true, reloadOnChange: true);
+            return builder.Build();
+        }
+
         protected override void Configure()
         {
 
@@ -47,6 +62,8 @@ namespace TaskFocusDesktop
             // ====================
 
             _container.Instance(ConfigureAutomapper());
+
+            _container.RegisterInstance(typeof(IConfiguration), "IConfiguration", AddConfiguration());
 
             _container.Instance(_container)
                 .PerRequest<IUserEndpoint, UserEndpoint>()
