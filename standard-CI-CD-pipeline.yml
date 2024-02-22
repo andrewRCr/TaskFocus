@@ -29,6 +29,11 @@ stages:
       inputs:
         restoreSolution: '$(solution)'
 
+    - task: UseDotNet@2
+      inputs:
+        packageType: 'sdk'
+        version: '8.x'
+
     - task: DotNetCoreCLI@2
       displayName: 'Build API project'
       inputs:
