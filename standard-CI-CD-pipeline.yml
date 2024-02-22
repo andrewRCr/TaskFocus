@@ -70,18 +70,13 @@ stages:
         SourceFolder: '$(build.artifactStagingDirectory)'
         Contents: '**'
 
-    - task: UseDotNet@2
-      inputs:
-        packageType: 'sdk'
-        version: '8.x'
-
     - task: DotNetCoreCLI@2
       displayName: 'Build DesktopUI project'
       inputs:
         command: 'publish'
         publishWebProjects: false
         projects: 'DesktopUI/TaskFocusDesktop/TaskFocusDesktop.csproj'
-        arguments: '-p:PublishSingleFile=true --runtime win-x64 --self-contained true -p:PublishTrimmed=true --output $(build.artifactStagingDirectory)'
+        arguments: '-p:PublishSingleFile=true --runtime win-x64 --self-contained true --output $(build.artifactStagingDirectory)'
         zipAfterPublish: false
 
     - task: PublishBuildArtifacts@1
@@ -116,8 +111,8 @@ stages:
   dependsOn: Build
   condition:  succeeded()
   jobs:
-  - deployment: Deploy_code
-    displayName: 'Deploy code job'
+  - deployment: Deploy_Linux
+    displayName: 'Deploy (Linux) job'
     pool:
       vmImage: 'ubuntu-20.04'
     environment: dev
@@ -138,16 +133,8 @@ stages:
               appName: 'TaskFocusAPI'
               package: '$(Pipeline.Workspace)/API_drop/TaskFocusAPI.zip'
 
-          - task: AzureFileCopy@5
-            inputs:
-              SourcePath: '$(Pipeline.Workspace)/DesktopUI_drop/TaskFocusDesktop/TaskFocusDesktop.exe'
-              azureSubscription: 'Azure subscription 1(0af9f1a9-e361-440d-926a-b29173434193)'
-              Destination: 'AzureBlob'
-              storage: 'taskfocusblobstorage'
-              ContainerName: 'applications'
-
-  - deployment: Deploy_SQL
-    displayName: 'Deploy SQL job'
+  - deployment: Deploy_Win
+    displayName: 'Deploy (Windows) job'
     pool:
       vmImage: 'windows-latest'
     environment: dev
@@ -182,3 +169,11 @@ stages:
               DeploymentAction: 'Publish'
               DacpacFile: '$(Pipeline.Workspace)/SQLdb_drop/TaskFocusData.dacpac'
               IpDetectionMethod: 'AutoDetect'
+
+          - task: AzureFileCopy@5
+            inputs:
+              SourcePath: '$(Pipeline.Workspace)/DesktopUI_drop/TaskFocusDesktop/TaskFocusDesktop.exe'
+              azureSubscription: 'Azure subscription 1(0af9f1a9-e361-440d-926a-b29173434193)'
+              Destination: 'AzureBlob'
+              storage: 'taskfocusblobstorage'
+              ContainerName: 'applications'
