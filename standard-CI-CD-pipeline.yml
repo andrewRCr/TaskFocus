@@ -171,6 +171,7 @@ stages:
               IpDetectionMethod: 'AutoDetect'
 
           - task: AzureFileCopy@5
+            displayName: 'AzureBlob DesktopUI exe File Copy'
             inputs:
               SourcePath: '$(Pipeline.Workspace)/DesktopUI_drop/TaskFocusDesktop/TaskFocusDesktop.exe'
               azureSubscription: 'Azure subscription 1(0af9f1a9-e361-440d-926a-b29173434193)'
