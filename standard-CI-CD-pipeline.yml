@@ -29,11 +29,6 @@ stages:
       inputs:
         restoreSolution: '$(solution)'
 
-    - task: UseDotNet@2
-      inputs:
-        packageType: 'sdk'
-        version: '8.x'
-
     - task: DotNetCoreCLI@2
       displayName: 'Build API project'
       inputs:
@@ -89,7 +84,7 @@ stages:
         command: 'publish'
         publishWebProjects: false
         projects: 'DesktopUI/TaskFocusDesktop/TaskFocusDesktop.csproj'
-        arguments: '-p:PublishSingleFile=true -p:PublishTrimmed=true --runtime win-x64 --self-contained true --output $(build.artifactStagingDirectory)'
+        arguments: '-p:PublishSingleFile=true --runtime win-x64 --self-contained true --output $(build.artifactStagingDirectory)'
         zipAfterPublish: false
 
     - task: PublishBuildArtifacts@1
