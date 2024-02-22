@@ -76,7 +76,7 @@ stages:
         command: 'publish'
         publishWebProjects: false
         projects: 'DesktopUI/TaskFocusDesktop/TaskFocusDesktop.csproj'
-        arguments: '-p:PublishSingleFile=true --runtime win-x64 -p:IncludeAllContentForSelfExtract=true --self-contained true --output $(build.artifactStagingDirectory)'
+        arguments: '-p:PublishSingleFile=true --runtime win-x64 -p:IncludeNativeLibrariesForSelfExtract=true --self-contained true --output $(build.artifactStagingDirectory)'
         zipAfterPublish: false
 
     - task: PublishBuildArtifacts@1
