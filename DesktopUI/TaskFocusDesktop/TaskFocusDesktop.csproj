@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Exe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
     <PublishSingleFile>true</PublishSingleFile>
@@ -18,10 +18,10 @@
     <ProjectReference Include="..\TaskFocusDesktop.Library\TaskFocusDesktop.Library.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="appsettings.json">
+        <None Update="appsettings.Development.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="appsettings.Development.json">
+    </None>    
+    <None Update="appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="appsettings.Production.json">
