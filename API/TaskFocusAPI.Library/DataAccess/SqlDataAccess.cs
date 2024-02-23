@@ -11,7 +11,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TaskFocusAPI.Library.Internal.DataAccess
+namespace TaskFocusAPI.Library.DataAccess
 {
     public class SqlDataAccess : IDisposable, ISqlDataAccess
     {
@@ -98,7 +98,7 @@ namespace TaskFocusAPI.Library.Internal.DataAccess
                 {
                     CommitTransaction();
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     _logger.LogError(ex, "CommitTransaction() failed in the Dispose() method.");
                 }

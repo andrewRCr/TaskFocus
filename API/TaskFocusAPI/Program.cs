@@ -6,7 +6,6 @@ using System.Configuration;
 using System.Text;
 using TaskFocusAPI.Data;
 using TaskFocusAPI.Library.DataAccess;
-using TaskFocusAPI.Library.Internal.DataAccess;
 
 namespace TaskFocusAPI
 {

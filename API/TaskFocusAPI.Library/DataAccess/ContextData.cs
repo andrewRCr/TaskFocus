@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using TaskFocusAPI.Library.Internal.DataAccess;
 using TaskFocusAPI.Library.Models;
 
 namespace TaskFocusAPI.Library.DataAccess

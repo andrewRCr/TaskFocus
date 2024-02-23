@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TaskFocusAPI.Library.Internal.DataAccess;
 using TaskFocusAPI.Library.Models;
 
 namespace TaskFocusAPI.Library.DataAccess

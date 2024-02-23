@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace TaskFocusAPI.Library.Internal.DataAccess
+namespace TaskFocusAPI.Library.DataAccess
 {
     public interface ISqlDataAccess
     {
