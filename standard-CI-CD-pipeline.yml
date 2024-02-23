@@ -70,6 +70,21 @@ stages:
         SourceFolder: '$(build.artifactStagingDirectory)'
         Contents: '**'
 
+    - task: replacetokens@5
+      displayName: 'Replace appsettings.json tokens'
+      inputs:
+        targetFiles: '**/*.json'
+        encoding: 'auto'
+        tokenPattern: 'default'
+        writeBOM: true
+        actionOnMissing: 'warn'
+        keepToken: false
+        actionOnNoFiles: 'continue'
+        enableTransforms: false
+        enableRecursion: false
+        useLegacyPattern: false
+        enableTelemetry: true
+
     - task: DotNetCoreCLI@2
       displayName: 'Build DesktopUI project'
       inputs:
