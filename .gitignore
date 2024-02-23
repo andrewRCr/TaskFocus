@@ -5,6 +5,7 @@
 
 # Development environment appsettings
 appsettings.Development.json
+API/TaskFocusAPI/appsettings.Development.json
 
 # User-specific files
 *.rsuser
