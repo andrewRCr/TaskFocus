@@ -26,6 +26,15 @@ namespace TaskFocusAPI
                 .AddEntityFrameworkStores<ApplicationDbContext>();
             builder.Services.AddControllersWithViews();
 
+            builder.Services.AddCors(policy =>
+            {
+                policy.AddPolicy("OpenCorsPolicy", opt =>
+                    opt.AllowAnyOrigin()
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                );
+            });
+
             // internal services
             builder.Services.AddTransient<IUserData, UserData>();
             builder.Services.AddTransient<ITaskData, TaskData>();
@@ -86,6 +95,7 @@ namespace TaskFocusAPI
             }
 
             app.UseHttpsRedirection();
+            app.UseCors("OpenCorsPolicy");
             app.UseStaticFiles();
 
             app.UseRouting();
