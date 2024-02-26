@@ -9,30 +9,40 @@ namespace TaskFocusWeb.Authentication
     {
         private readonly HttpClient _httpClient;
         private readonly ILocalStorageService _localStorage;
+        private readonly IConfiguration _config;
         private readonly AuthenticationState _anonymous;
 
-        public AuthStateProvider(HttpClient httpClient, ILocalStorageService localStorage)
+        public AuthStateProvider(HttpClient httpClient,
+                                 ILocalStorageService localStorage,
+                                 IConfiguration config)
         {
             _httpClient = httpClient;
             _localStorage = localStorage;
+            _config = config;
             _anonymous = new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(new ClaimsIdentity())));
         }
 
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {
-            var token = await _localStorage.GetItemAsync<string>("authToken");
-
-            if (string.IsNullOrWhiteSpace(token))
+            string authTokenStorageKey = _config["authTokenStorageKey"];
+            if (authTokenStorageKey != null)
             {
-                return _anonymous;
-            }
-        
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", token);
+                var token = await _localStorage.GetItemAsync<string>(authTokenStorageKey);
 
-            return new AuthenticationState(
-                new ClaimsPrincipal(
-                    new ClaimsIdentity(JwtParser.ParseClaimsFromJwt(token), 
-                    "jwtAuthType")));
+                if (string.IsNullOrWhiteSpace(token))
+                {
+                    return _anonymous;
+                }
+
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", token);
+
+                return new AuthenticationState(
+                    new ClaimsPrincipal(
+                        new ClaimsIdentity(JwtParser.ParseClaimsFromJwt(token),
+                        "jwtAuthType")));
+            }
+
+            return _anonymous; ;
         }
 
         public void NotifyUserAuthentication(string token)

@@ -1,39 +1,23 @@
-﻿@page "/login"
-@inject IAuthenticationService AuthService
+﻿@inject IAuthenticationService AuthService
 @inject NavigationManager NavManager
 
-<h3>Login</h3>
-
-@if (showAuthenticationError)
-{
-    <div class="alert alert-danger" role="alert">
-        <p>@authenticationErrorText</p>
-    </div>
-}
-
-<EditForm Model="userModel" OnValidSubmit="ExecuteLogin" class="card card-body bg-light mt-5">
+<EditForm Model="userModel" OnValidSubmit="ExecuteLogin">
     <DataAnnotationsValidator />
-    <ValidationSummary />
 
-    <div class="form-group row">
-        <label for="email" class="col-md-2 col-form-label">Email:</label>
-        <div class="col-md-10">
-            <InputText id="email" class="form-control" @bind-Value="userModel.Email" />
+    @* TODO: improve spacing/layout, especially when validation messages display, and at smaller width breakpoints *@
+    <div class="row">
+        <div class="col-auto">
+            <label for="email" class="visually-hidden">Email</label>
+            <InputText id="email" class="form-control" @bind-Value="userModel.Email" placeholder="Email Address" />
             <ValidationMessage For="@(() => userModel.Email)" />
         </div>
-    </div>
-
-    <div class="form-group row">
-        <label for="password" class="col-md-2 col-form-label">Password:</label>
-        <div class="col-md-10">
-            <InputText type="password" id="password" class="form-control" @bind-Value="userModel.Password" />
+        <div class="col-auto">
+            <label for="password" class="visually-hidden">Password</label>
+            <InputText type="password" id="password" class="form-control" @bind-Value="userModel.Password" placeholder="Password" />
             <ValidationMessage For="@(() => userModel.Password)" />
         </div>
-    </div>
-
-    <div class="row">
-        <div class="col-md-12 text-right">
-            <button type="submit" class="btn btn-success">Log In</button>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-success">Login</button>
         </div>
     </div>
 
