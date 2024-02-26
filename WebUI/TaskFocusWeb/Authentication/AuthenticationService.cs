@@ -30,7 +30,7 @@ namespace TaskFocusWeb.Authentication
                 new KeyValuePair<string, string>("password", userToAuthenticate.Password)
             });
 
-            var authResult = await _httpClient.PostAsync("https://localhost:5001/token", data); // temp/dev
+            var authResult = await _httpClient.PostAsync("https://localhost:7039/token", data); // temp/dev
             var authContent = await authResult.Content.ReadAsStringAsync();
 
             if (!authResult.IsSuccessStatusCode)
