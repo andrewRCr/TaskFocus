@@ -26,5 +26,11 @@ namespace TaskFocusAPI.Library.DataAccess
 
             return userData;
         }
+
+        public void CreateUser(UserModel user)
+        {
+            var p = new { Id = user.Id, user.FirstName, user.LastName, user.EmailAddress };
+            _sqlDataAccess.SaveData("dbo.spUser_Insert", p, "TaskFocusData");
+        }
     }
 }

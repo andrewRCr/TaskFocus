@@ -201,7 +201,6 @@ namespace TaskFocusDesktop.ViewModels
                 ProjectModel assignedProject = FindAssignedProject();
                 if (assignedProject == null)
                 {
-                    // TODO: create new project + add to db, returning the projectId from that call, and use it here
                     ProjectModel newProject = new ProjectModel { ProjectName = task.ProjectName };
                     await AddProject(newProject);
 
@@ -229,7 +228,6 @@ namespace TaskFocusDesktop.ViewModels
 
                 if (assignedContext == null)
                 {
-                    // TODO: create new context + add to db, returning the contextId from that call, and use it here
                     ContextModel newContext = new ContextModel { ContextName = task.ContextName };
                     await AddContext(newContext);
 

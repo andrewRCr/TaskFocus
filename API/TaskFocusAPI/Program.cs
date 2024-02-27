@@ -106,6 +106,7 @@ namespace TaskFocusAPI
             app.UseSwagger();
             app.UseSwaggerUI(x =>
             {
+                x.RoutePrefix = ""; // launch directly into swagger
                 x.SwaggerEndpoint("/swagger/v1/swagger.json", "TaskFocus API v1");
             });
 
