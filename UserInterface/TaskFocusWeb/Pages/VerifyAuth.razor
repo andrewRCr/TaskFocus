@@ -1,4 +1,5 @@
 ﻿@page "/verifyauth"
+@using TaskFocusUI.Library.Models
 
 <h3>VerifyAuth</h3>
 
@@ -19,7 +20,7 @@ else
     public Task<AuthenticationState> AuthState { get; set; }
 
     private bool isAuthenticated = false;
-    private string userName;
+    private string? userName;
     private bool isAdmin = false;
 
     protected override async Task OnInitializedAsync()

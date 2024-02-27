@@ -11,7 +11,7 @@ namespace TaskFocusUI.Library.API
 {
     public class ProjectEndpoint : IProjectEndpoint
     {
-        private IAPIHelper _apiHelper;
+        private readonly IAPIHelper _apiHelper;
 
         public ProjectEndpoint(IAPIHelper apiHelper)
         {

@@ -14,7 +14,7 @@ namespace TaskFocusUI.Library.API
     public class APIHelper : IAPIHelper
     {
         private HttpClient _apiClient;
-        private ILoggedInUserModel _loggedInUser;
+        private readonly ILoggedInUserModel _loggedInUser;
         private readonly IConfiguration _config;
 
         public HttpClient APIClient
@@ -39,7 +39,7 @@ namespace TaskFocusUI.Library.API
             _apiClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
-        public async Task<AuthenticatedUser> Authenticate(string username, string password)
+        public async Task<AuthenticatedUser> AuthenticateAsync(string username, string password)
         {
             var data = new FormUrlEncodedContent(new[]
             {
@@ -66,7 +66,7 @@ namespace TaskFocusUI.Library.API
             return _loggedInUser.Id;
         }
 
-        public async Task GetLoggedInUserInfo(string token)
+        public async Task GetLoggedInUserInfoAsync(string token)
         {
             _apiClient.DefaultRequestHeaders.Clear();
             _apiClient.DefaultRequestHeaders.Accept.Clear();

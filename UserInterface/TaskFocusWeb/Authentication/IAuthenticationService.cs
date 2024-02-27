@@ -4,7 +4,7 @@ namespace TaskFocusWeb.Authentication
 {
     public interface IAuthenticationService
     {
-        Task<AuthenticatedUserModel?> Login(AuthenticationUserModel userToAuthenticate);
-        Task Logout();
+        Task<AuthenticatedUserModel?> LoginAsync(AuthenticationUserModel userToAuthenticate);
+        Task LogoutAsync();
     }
 }

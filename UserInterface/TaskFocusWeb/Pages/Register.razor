@@ -72,7 +72,7 @@
         try
         {
             await UserEndpoint.CreateUser(userModel);
-            var result = await AuthService.Login(new() { Email = userModel.EmailAddress, Password = userModel.Password });
+            var result = await AuthService.LoginAsync(new() { Email = userModel.EmailAddress, Password = userModel.Password });
 
             if (result != null)
             {

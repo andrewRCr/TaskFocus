@@ -13,7 +13,7 @@ namespace TaskFocusUI.Library.API
 {
     public class TaskEndpoint : ITaskEndpoint
     {
-        private IAPIHelper _apiHelper;
+        private readonly IAPIHelper _apiHelper;
 
         public TaskEndpoint(IAPIHelper apiHelper)
         {

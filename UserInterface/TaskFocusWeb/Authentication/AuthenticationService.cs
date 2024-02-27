@@ -12,7 +12,7 @@ namespace TaskFocusWeb.Authentication
         private readonly AuthenticationStateProvider _authStateProvider;
         private readonly ILocalStorageService _localStorage;
         private readonly IConfiguration _config;
-        private string? authTokenStorageKey;
+        private readonly string? authTokenStorageKey;
 
         public AuthenticationService(HttpClient httpClient,
                                      AuthenticationStateProvider authStateProvider,
@@ -26,7 +26,7 @@ namespace TaskFocusWeb.Authentication
             authTokenStorageKey = _config["authTokenStorageKey"];
         }
 
-        public async Task<AuthenticatedUserModel?> Login(AuthenticationUserModel userToAuthenticate)
+        public async Task<AuthenticatedUserModel?> LoginAsync(AuthenticationUserModel userToAuthenticate)
         {
             var data = new FormUrlEncodedContent(new[]
             {
@@ -51,21 +51,16 @@ namespace TaskFocusWeb.Authentication
             if (result != null && authTokenStorageKey != null)
             {
                 await _localStorage.SetItemAsync(authTokenStorageKey, result.AccessToken);
-                ((AuthStateProvider)_authStateProvider).NotifyUserAuthentication(result.AccessToken);
+                await ((AuthStateProvider)_authStateProvider).NotifyUserAuthenticationAsync(result.AccessToken);
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", result.AccessToken);
             }
 
             return result;
         }
 
-        public async Task Logout()
+        public async Task LogoutAsync()
         {
-            if (authTokenStorageKey != null)
-            {
-                await _localStorage.RemoveItemAsync(authTokenStorageKey);
-                ((AuthStateProvider)_authStateProvider).NotifyUserLogout();
-                _httpClient.DefaultRequestHeaders.Authorization = null;
-            }
+            await ((AuthStateProvider)_authStateProvider).NotifyUserLogoutAsync();
         }
     }
 }

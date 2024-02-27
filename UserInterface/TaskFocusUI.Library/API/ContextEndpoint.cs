@@ -9,7 +9,7 @@ namespace TaskFocusUI.Library.API
 {
     public class ContextEndpoint : IContextEndpoint
     {
-        private IAPIHelper _apiHelper;
+        private readonly IAPIHelper _apiHelper;
 
         public ContextEndpoint(IAPIHelper apiHelper)
         {

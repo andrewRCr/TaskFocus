@@ -8,9 +8,9 @@ namespace TaskFocusUI.Library.API
     public interface IAPIHelper
     {
         HttpClient APIClient { get; }
-        Task<AuthenticatedUser> Authenticate(string username, string password);
+        Task<AuthenticatedUser> AuthenticateAsync(string username, string password);
         string GetLoggedInUserId();
-        Task GetLoggedInUserInfo(string token);
+        Task GetLoggedInUserInfoAsync(string token);
         void LogOutUser();
     }
 }
