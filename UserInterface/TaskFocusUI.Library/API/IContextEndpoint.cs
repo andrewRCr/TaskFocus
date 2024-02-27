@@ -1,0 +1,14 @@
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using TaskFocusUI.Library.Models;
+
+namespace TaskFocusUI.Library.API
+{
+    public interface IContextEndpoint
+    {
+        Task<List<ContextModel>> GetAllContextsForUser();
+        Task AddContext(ContextModel newContext, string userId);
+        Task DeleteContext(ContextModel contextToDelete);
+        Task UpdateContext(ContextModel contextToUpdate);
+    }
+}
