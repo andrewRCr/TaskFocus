@@ -6,6 +6,7 @@ namespace TaskFocusUI.Library.API
 {
     public interface IUserEndpoint
     {
+        Task CreateUser(CreateUserModel userModel);
         Task<List<UserModel>> GetAllUsers();
     }
 }

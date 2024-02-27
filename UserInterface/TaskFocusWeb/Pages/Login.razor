@@ -4,30 +4,51 @@
 <EditForm Model="userModel" OnValidSubmit="ExecuteLogin">
     <DataAnnotationsValidator />
 
-    @* TODO: improve spacing/layout, especially when validation messages display, and at smaller width breakpoints *@
+    @* TODO: improve spacing/layout, especially when error/validation messages display & at smaller width breakpoints *@
     <div class="row">
+
         <div class="col-auto">
             <label for="email" class="visually-hidden">Email</label>
             <InputText id="email" class="form-control" @bind-Value="userModel.Email" placeholder="Email Address" />
             <ValidationMessage For="@(() => userModel.Email)" />
         </div>
+
         <div class="col-auto">
             <label for="password" class="visually-hidden">Password</label>
             <InputText type="password" id="password" class="form-control" @bind-Value="userModel.Password" placeholder="Password" />
             <ValidationMessage For="@(() => userModel.Password)" />
         </div>
+
         <div class="col-auto">
             <button type="submit" class="btn btn-success">Login</button>
         </div>
+
+        <div class="col-auto">
+            <button type="button" class="btn btn-primary" @onclick="RegisterUser">Register</button>
+        </div>
+
+    </div>
+
+    <div class="row">
+        @if (showAuthenticationError)
+        {
+            <div class="text-danger">
+                @authenticationErrorText
+            </div>
+        }
     </div>
 
 </EditForm>
 
 @code {
-
     private AuthenticationUserModel userModel = new();
     private bool showAuthenticationError = false;
-    private string authenticationErrorText = "";
+    private string authenticationErrorText = string.Empty;
+
+    private void RegisterUser()
+    {
+        NavManager.NavigateTo("/register");
+    }
 
     private async Task ExecuteLogin()
     {

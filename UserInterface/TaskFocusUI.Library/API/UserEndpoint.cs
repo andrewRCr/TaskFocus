@@ -29,5 +29,23 @@ namespace TaskFocusUI.Library.API
                 else { throw new Exception(response.ReasonPhrase); }
             }
         }
+
+        public async Task CreateUser(CreateUserModel userModel)
+        {
+            var data = new { 
+                userModel.FirstName, 
+                userModel.LastName,
+                userModel.EmailAddress,
+                userModel.Password,
+            };
+
+            using (HttpResponseMessage response = await _apiHelper.APIClient.PostAsJsonAsync("/api/User/Register", data))
+            {
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new Exception(response.ReasonPhrase);
+                }
+            }
+        }
     }
 }
