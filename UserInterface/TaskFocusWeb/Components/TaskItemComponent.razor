@@ -1,0 +1,60 @@
+﻿
+
+<div class="col-8 mb-3">
+    <div class="container">
+        <div class="row">
+
+            <EditForm Model="@TaskParam">
+                <div class="form-group row">
+                    <div class="col-1" style="display:flex; align-items:center;">
+                        <InputCheckbox id="completed" class="form-check-inline" @bind-Value="TaskParam.Completed" />
+                    </div>
+                    <div class="col-3">
+                        <InputText id="task-name" class="form-control border-0" @bind-Value="TaskParam.TaskName" placeholder="TaskName" />
+                    </div>
+                    <div class="col-2">
+                        <InputSelect id="assigned-project" class="form-select border-0" @bind-Value="TaskParam.ProjectId" placeholder="Project">
+                            <option disabled selected value="">...</option>
+                            @foreach (ProjectModel project in ProjectsParam)
+                            {
+                                <option value="@project.Id">@project.ProjectName</option>
+                            }
+                        </InputSelect>
+                    </div>
+                    <div class="col-2">
+                        <InputSelect id="assigned-context" class="form-select border-0" @bind-Value="TaskParam.ContextId" placeholder="Context">
+                            <option disabled selected value="">...</option>
+                            @foreach (ContextModel context in ContextsParam)
+                            {
+                                <option value="@context.Id">@context.ContextName</option>
+                            }
+                        </InputSelect>
+                    </div>
+                    <div class="col-2">
+                        
+                        <InputDate hidden="@ShouldHideDueDate()"
+                            id="due-date" class="form-control border-0" @bind-Value="TaskParam.DueDate" />
+                    </div>
+                </div>
+            </EditForm>    
+        </div>
+    </div>
+</div>
+
+
+@code {
+    [Parameter]
+    public TaskModel TaskParam { get; set; }
+
+    [Parameter]
+    public List<ProjectModel> ProjectsParam { get; set; }
+
+    [Parameter]
+    public List<ContextModel> ContextsParam { get; set; }
+
+    private bool ShouldHideDueDate()
+    {
+        return TaskParam.DueDate == null;
+    }
+
+}

@@ -1,0 +1,23 @@
+﻿@page "/inbox"
+@inherits _TaskViewPageBase
+
+<PageTitle>TaskFocus: Inbox</PageTitle>
+<h3>Inbox</h3>
+
+<div class="container-fluid">
+    <div class="row">
+
+        @if (Tasks != null)
+        {
+            @foreach (TaskModel task in Tasks)
+            {
+                <TaskItemComponent TaskParam="@task" ProjectsParam="@Projects" ContextsParam="@Contexts" />
+            }
+        }
+
+    </div>
+</div>
+
+@code {
+
+}

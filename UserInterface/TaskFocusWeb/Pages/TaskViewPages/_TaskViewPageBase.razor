@@ -1,0 +1,55 @@
+﻿@inject IAPIHelper ApiHelper
+@inject IUserEndpoint UserEndpoint
+@inject ITaskEndpoint TaskEndpoint
+@inject IProjectEndpoint ProjectEndpoint
+@inject IContextEndpoint ContextEndpoint
+
+@code {
+    public List<TaskModel>? Tasks { get; set; }
+    public List<TaskModel>? TasksLastFetch { get; set; }
+
+    private TaskModel _newInboxTask;
+    public TaskModel NewInboxTask
+    {
+        get { return _newInboxTask; }
+        set { _newInboxTask = value; }
+    }
+
+    private List<ProjectModel> _projects;
+    public List<ProjectModel> Projects
+    {
+        get { return _projects; }
+        set { _projects = value; }
+    }
+
+    private List<ContextModel> _contexts;
+    public List<ContextModel> Contexts
+    {
+        get { return _contexts; }
+        set { _contexts = value; }
+    }
+
+    public _TaskViewPageBase()
+    {
+        _newInboxTask = new();
+        _projects = new();
+        _contexts = new();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTasks();
+    }
+
+    protected async Task LoadTasks()
+    {
+        Tasks = await TaskEndpoint.GetAllTasksForUser();
+        TasksLastFetch = Tasks; // store for comparison
+
+        Projects = await ProjectEndpoint.GetAllProjectsForUser();
+        Contexts = await ContextEndpoint.GetAllContextsForUser();
+
+        // new inbox task input placeholder
+        NewInboxTask = new();
+    }
+}
