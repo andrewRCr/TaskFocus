@@ -11,13 +11,39 @@
         {
             @foreach (TaskModel task in Tasks)
             {
-                <TaskItemComponent TaskParam="@task" ProjectsParam="@Projects" ContextsParam="@Contexts" />
+                @if (task.ProjectId == null || task.ContextId == null)
+                {
+                    <TaskItemComponent TaskParam="@task" ProjectsParam="@Projects" ContextsParam="@Contexts" />
+                }
             }
         }
 
     </div>
+
+    <div class="row">
+        <p>Add new:</p>
+        <TaskItemComponent TaskParam="@NewInboxTask" ProjectsParam="@Projects" ContextsParam="@Contexts" />
+    </div>
 </div>
 
 @code {
+    private TaskModel _newInboxTask;
+    public TaskModel NewInboxTask
+    {
+        get { return _newInboxTask; }
+        set { _newInboxTask = value; }
+    }
 
+    public InboxTaskViewPage()
+    {
+        _newInboxTask = new();
+    }
+
+    protected override async Task LoadTasks()
+    {
+        await base.LoadTasks();
+
+        // new inbox task input placeholder
+        NewInboxTask = new();
+    }
 }

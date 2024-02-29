@@ -1,0 +1,23 @@
+﻿@page "/all"
+@inherits _TaskViewPageBase
+
+<PageTitle>TaskFocus: All Tasks</PageTitle>
+<h3>TEMP/DEV: all tasks unfiltered</h3>
+
+<div class="container-fluid">
+    <div class="row">
+
+        @if (Tasks != null)
+        {
+            @foreach (TaskModel task in Tasks)
+            {
+                <TaskItemComponent TaskParam="@task" ProjectsParam="@Projects" ContextsParam="@Contexts" />
+            }
+        }
+
+    </div>
+</div>
+
+@code {
+
+}

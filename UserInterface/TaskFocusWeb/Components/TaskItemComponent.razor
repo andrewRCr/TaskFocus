@@ -1,5 +1,4 @@
 ﻿
-
 <div class="col-8 mb-3">
     <div class="container">
         <div class="row">
@@ -13,8 +12,9 @@
                         <InputText id="task-name" class="form-control border-0" @bind-Value="TaskParam.TaskName" placeholder="TaskName" />
                     </div>
                     <div class="col-2">
-                        <InputSelect id="assigned-project" class="form-select border-0" @bind-Value="TaskParam.ProjectId" placeholder="Project">
-                            <option disabled selected value="">...</option>
+                        <InputSelect id="assigned-project" @onfocusin="BlackProjectDropdownTextColor" @onfocusout="GrayProjectDropdownTextColor" style="@GetColor("ProjectId")"
+                                     class="form-select border-0" @bind-Value="TaskParam.ProjectId" placeholder="Project">
+                            <option disabled selected value="">Project</option>
                             @foreach (ProjectModel project in ProjectsParam)
                             {
                                 <option value="@project.Id">@project.ProjectName</option>
@@ -22,8 +22,9 @@
                         </InputSelect>
                     </div>
                     <div class="col-2">
-                        <InputSelect id="assigned-context" class="form-select border-0" @bind-Value="TaskParam.ContextId" placeholder="Context">
-                            <option disabled selected value="">...</option>
+                        <InputSelect id="assigned-context" @onfocusin="BlackProjectDropdownTextColor" @onfocusout="GrayProjectDropdownTextColor" style="@GetColor("ContextId")" 
+                                     class="form-select border-0" @bind-Value="TaskParam.ContextId" placeholder="Context">
+                            <option disabled selected value="">Context</option>
                             @foreach (ContextModel context in ContextsParam)
                             {
                                 <option value="@context.Id">@context.ContextName</option>
@@ -32,15 +33,13 @@
                     </div>
                     <div class="col-2">
                         
-                        <InputDate hidden="@ShouldHideDueDate()"
-                            id="due-date" class="form-control border-0" @bind-Value="TaskParam.DueDate" />
+                        <InputDate style="@GetColor("DueDate")" id="due-date" class="form-control border-0" @bind-Value="TaskParam.DueDate" />
                     </div>
                 </div>
             </EditForm>    
         </div>
     </div>
 </div>
-
 
 @code {
     [Parameter]
@@ -52,9 +51,46 @@
     [Parameter]
     public List<ContextModel> ContextsParam { get; set; }
 
-    private bool ShouldHideDueDate()
+    private bool shouldBeBlack = false;
+
+    public string GetColor(string taskProperty)
     {
-        return TaskParam.DueDate == null;
+        if (shouldBeBlack)
+        {
+            return "color:black;";
+        }
+
+        switch (taskProperty)
+        {
+            case "ProjectId":
+                if (TaskParam.ProjectId == null) { return "color:gray;"; }
+                break;
+
+            case "ContextId":
+                if (TaskParam.ContextId == null) { return "color:gray;"; }
+                break;
+
+            case "DueDate":
+                if (TaskParam.DueDate == null) { return "color:gray;"; }
+                break;
+
+            default:
+                break;
+        }
+
+        return "color:black;";
     }
 
+    private void BlackProjectDropdownTextColor()
+    {
+        shouldBeBlack = true;
+    }
+
+    private void GrayProjectDropdownTextColor()
+    {
+        if (TaskParam.ProjectId == null)
+        {
+            shouldBeBlack = false;
+        }
+    }
 }
