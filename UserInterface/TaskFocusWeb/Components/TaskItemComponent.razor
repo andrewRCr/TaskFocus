@@ -1,4 +1,5 @@
 ﻿
+
 <div class="col-8 mb-3">
     <div class="container">
         <div class="row">
@@ -12,9 +13,10 @@
                         <InputText id="task-name" class="form-control border-0" @bind-Value="TaskParam.TaskName" placeholder="TaskName" />
                     </div>
                     <div class="col-2">
-                        <InputSelect id="assigned-project" @onfocusin="BlackProjectDropdownTextColor" @onfocusout="GrayProjectDropdownTextColor" style="@GetColor("ProjectId")"
-                                     class="form-select border-0" @bind-Value="TaskParam.ProjectId" placeholder="Project">
-                            <option disabled selected value="">Project</option>
+                        <InputSelect id="assigned-project" style="@GetColor("ProjectId")"
+                                     @onfocusin="() => OnProjectInputSelected(true)" @onfocusout="() => OnProjectInputSelected(false)"
+                                     class="form-select border-0" @bind-Value="TaskParam.ProjectId" >
+                            <option hidden disabled selected value="">Project</option>
                             @foreach (ProjectModel project in ProjectsParam)
                             {
                                 <option value="@project.Id">@project.ProjectName</option>
@@ -22,9 +24,10 @@
                         </InputSelect>
                     </div>
                     <div class="col-2">
-                        <InputSelect id="assigned-context" @onfocusin="BlackProjectDropdownTextColor" @onfocusout="GrayProjectDropdownTextColor" style="@GetColor("ContextId")" 
+                        <InputSelect id="assigned-context" style="@GetColor("ContextId")"
+                                     @onfocusin="() => OnContextInputSelected(true)" @onfocusout="() => OnContextInputSelected(false)"
                                      class="form-select border-0" @bind-Value="TaskParam.ContextId" placeholder="Context">
-                            <option disabled selected value="">Context</option>
+                            <option hidden disabled selected value="">Context</option>
                             @foreach (ContextModel context in ContextsParam)
                             {
                                 <option value="@context.Id">@context.ContextName</option>
@@ -33,7 +36,9 @@
                     </div>
                     <div class="col-2">
                         
-                        <InputDate style="@GetColor("DueDate")" id="due-date" class="form-control border-0" @bind-Value="TaskParam.DueDate" />
+                        <InputDate id="due-date" style="@GetColor("DueDate")"
+                                   @onfocusin="() => OnDueDateInputSelected(true)" @onfocusout="() => OnDueDateInputSelected(false)"
+                                   class="form-control border-0" @bind-Value="TaskParam.DueDate" />
                     </div>
                 </div>
             </EditForm>    
@@ -51,26 +56,33 @@
     [Parameter]
     public List<ContextModel> ContextsParam { get; set; }
 
-    private bool shouldBeBlack = false;
+    private bool projectSelectIsFocused = false;
+    private bool contextSelectIsFocused = false;
+    private bool dueDateSelectIsFocused = false;
+
+    public TaskItemComponent()
+    {
+        TaskParam = new();
+        ProjectsParam = new();
+        ContextsParam = new();
+    }
 
     public string GetColor(string taskProperty)
     {
-        if (shouldBeBlack)
-        {
-            return "color:black;";
-        }
-
         switch (taskProperty)
         {
             case "ProjectId":
-                if (TaskParam.ProjectId == null) { return "color:gray;"; }
+                if (projectSelectIsFocused) { return "color:black;"; }
+                else if (TaskParam.ProjectId == null) { return "color:gray;"; }
                 break;
 
             case "ContextId":
+                if (contextSelectIsFocused) { return "color:black;"; }
                 if (TaskParam.ContextId == null) { return "color:gray;"; }
                 break;
 
             case "DueDate":
+                if (dueDateSelectIsFocused) { return "color:black;"; }
                 if (TaskParam.DueDate == null) { return "color:gray;"; }
                 break;
 
@@ -81,16 +93,39 @@
         return "color:black;";
     }
 
-    private void BlackProjectDropdownTextColor()
+    private void OnProjectInputSelected(bool isFocused)
     {
-        shouldBeBlack = true;
+        SetInputIsFocused("ProjectId", isFocused);
     }
 
-    private void GrayProjectDropdownTextColor()
+    private void OnContextInputSelected(bool isFocused)
     {
-        if (TaskParam.ProjectId == null)
+        SetInputIsFocused("ContextId", isFocused);
+    }
+
+    private void OnDueDateInputSelected(bool isFocused)
+    {
+        SetInputIsFocused("DueDate", isFocused);
+    }
+
+    private void SetInputIsFocused(string taskProperty, bool isFocused)
+    {
+        switch (taskProperty)
         {
-            shouldBeBlack = false;
+            case "ProjectId":
+                projectSelectIsFocused = isFocused;
+                break;
+
+            case "ContextId":
+                contextSelectIsFocused = isFocused;
+                break;
+
+            case "DueDate":
+                dueDateSelectIsFocused = isFocused;
+                break;
+
+            default:
+                break;
         }
     }
 }
