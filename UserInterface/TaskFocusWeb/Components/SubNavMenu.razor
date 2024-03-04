@@ -1,0 +1,18 @@
+﻿<MudNavMenu>
+    <AuthorizeView>
+        <Authorized>
+            @if (ProjectsParam != null)
+            {
+                @foreach (ProjectModel project in ProjectsParam)
+                {
+                    <MudNavLink Href="#" Match="NavLinkMatch.Prefix">@project.ProjectName</MudNavLink>
+                }
+            }
+        </Authorized>
+    </AuthorizeView>
+</MudNavMenu>
+
+@code {
+    [Parameter]
+    public List<ProjectModel> ProjectsParam { get; set; } = default!;
+}

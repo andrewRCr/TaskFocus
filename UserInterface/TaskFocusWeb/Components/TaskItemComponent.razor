@@ -6,15 +6,18 @@
 
             <EditForm Model="@TaskParam">
                 <div class="form-group row">
+                    <!-- completed input -->
                     <div class="col-1" style="display:flex; align-items:center;">
                         <InputCheckbox id="completed" class="form-check-inline" @bind-Value="TaskParam.Completed" />
                     </div>
+                    <!-- taskName input -->
                     <div class="col-3">
                         <InputText id="task-name" class="form-control border-0" @bind-Value="TaskParam.TaskName" placeholder="TaskName" />
                     </div>
+                    <!-- projectId input -->
                     <div class="col-2">
-                        <InputSelect id="assigned-project" style="@GetColor("ProjectId")"
-                                     @onfocusin="() => OnProjectInputSelected(true)" @onfocusout="() => OnProjectInputSelected(false)"
+                        <InputSelect id="assigned-project" style="@GetOptionTextColor("ProjectId")"
+                                     @onfocusin="() => OnProjectInputFocusChange(true)" @onfocusout="() => OnProjectInputFocusChange(false)"
                                      class="form-select border-0" @bind-Value="TaskParam.ProjectId" >
                             <option hidden disabled selected value="">Project</option>
                             @foreach (ProjectModel project in ProjectsParam)
@@ -23,9 +26,10 @@
                             }
                         </InputSelect>
                     </div>
+                    <!-- contextId input -->
                     <div class="col-2">
-                        <InputSelect id="assigned-context" style="@GetColor("ContextId")"
-                                     @onfocusin="() => OnContextInputSelected(true)" @onfocusout="() => OnContextInputSelected(false)"
+                        <InputSelect id="assigned-context" style="@GetOptionTextColor("ContextId")"
+                                     @onfocusin="() => OnContextInputFocusChange(true)" @onfocusout="() => OnContextInputFocusChange(false)"
                                      class="form-select border-0" @bind-Value="TaskParam.ContextId" placeholder="Context">
                             <option hidden disabled selected value="">Context</option>
                             @foreach (ContextModel context in ContextsParam)
@@ -34,10 +38,10 @@
                             }
                         </InputSelect>
                     </div>
+                    <!-- due date input -->
                     <div class="col-2">
-                        
-                        <InputDate id="due-date" style="@GetColor("DueDate")"
-                                   @onfocusin="() => OnDueDateInputSelected(true)" @onfocusout="() => OnDueDateInputSelected(false)"
+                        <InputDate id="due-date" style="@GetOptionTextColor("DueDate")"
+                                   @onfocusin="() => OnDueDateInputFocusChange(true)" @onfocusout="() => OnDueDateInputFocusChange(false)"
                                    class="form-control border-0" @bind-Value="TaskParam.DueDate" />
                     </div>
                 </div>
@@ -67,7 +71,7 @@
         ContextsParam = new();
     }
 
-    public string GetColor(string taskProperty)
+    public string GetOptionTextColor(string taskProperty)
     {
         switch (taskProperty)
         {
@@ -93,39 +97,18 @@
         return "color:black;";
     }
 
-    private void OnProjectInputSelected(bool isFocused)
+    private void OnProjectInputFocusChange(bool isFocused)
     {
-        SetInputIsFocused("ProjectId", isFocused);
+        projectSelectIsFocused = isFocused;
     }
 
-    private void OnContextInputSelected(bool isFocused)
+    private void OnContextInputFocusChange(bool isFocused)
     {
-        SetInputIsFocused("ContextId", isFocused);
+        contextSelectIsFocused = isFocused;
     }
 
-    private void OnDueDateInputSelected(bool isFocused)
+    private void OnDueDateInputFocusChange(bool isFocused)
     {
-        SetInputIsFocused("DueDate", isFocused);
-    }
-
-    private void SetInputIsFocused(string taskProperty, bool isFocused)
-    {
-        switch (taskProperty)
-        {
-            case "ProjectId":
-                projectSelectIsFocused = isFocused;
-                break;
-
-            case "ContextId":
-                contextSelectIsFocused = isFocused;
-                break;
-
-            case "DueDate":
-                dueDateSelectIsFocused = isFocused;
-                break;
-
-            default:
-                break;
-        }
+        dueDateSelectIsFocused = isFocused;
     }
 }
