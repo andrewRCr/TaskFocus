@@ -2,29 +2,22 @@
 @inherits _TaskViewPageBase
 
 <PageTitle>TaskFocus: Inbox</PageTitle>
-<h3>Inbox</h3>
 
-<div class="container-fluid">
-    <div class="row">
-
-        @if (Tasks != null)
-        {
-            @foreach (TaskModel task in Tasks)
-            {
-                @if (task.ProjectId == null || task.ContextId == null)
-                {
-                    <TaskItemComponent TaskParam="@task" ProjectsParam="@Projects" ContextsParam="@Contexts" />
-                }
-            }
-        }
-
-    </div>
-
-    <div class="row">
-        <p>Add new:</p>
-        <TaskItemComponent TaskParam="@NewInboxTask" ProjectsParam="@Projects" ContextsParam="@Contexts" />
-    </div>
-</div>
+@if (Tasks != null)
+{
+    <MudDropContainer T="TaskModel" Items="@Tasks" ItemsSelector="@((item, dropzone) => true)" Class="d-flex flex-wrap flex-grow-1">
+        <ChildContent>
+            <MudDropZone T="TaskModel" Identifier="Inbox" AllowReorder="true" Class="rounded mud-background-gray pa-6 ma-8 flex-grow-1">
+                <MudText Typo="Typo.h6" Class="mb-4">Inbox</MudText>
+            </MudDropZone>
+        </ChildContent>
+        <ItemRenderer>
+            <MudPaper Elevation="25" Class="pa-4 my-4">
+                <TaskItemComponent TaskParam="@context" ProjectsParam="@Projects" ContextsParam="@Contexts" />
+            </MudPaper>
+        </ItemRenderer>
+    </MudDropContainer>
+}
 
 @code {
     private TaskModel _newInboxTask;
@@ -39,9 +32,9 @@
         _newInboxTask = new();
     }
 
-    protected override async Task LoadTasks()
+    protected override async Task LoadTasks(bool inboxOnly)
     {
-        await base.LoadTasks();
+        await base.LoadTasks(inboxOnly = true);
 
         // new inbox task input placeholder
         NewInboxTask = new();

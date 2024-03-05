@@ -8,6 +8,10 @@
     public List<TaskModel>? Tasks { get; set; }
     public List<TaskModel>? TasksLastFetch { get; set; }
 
+    protected List<int> InboxOrderedTasks;
+    protected List<int> OrderedProjects;
+    protected List<int> OrderedContexts;
+
     private List<ProjectModel> _projects;
     public List<ProjectModel> Projects
     {
@@ -33,9 +37,17 @@
         await LoadTasks();
     }
 
-    protected virtual async Task LoadTasks()
+    protected virtual async Task LoadTasks(bool inboxOnly = false)
     {
-        Tasks = await TaskEndpoint.GetAllTasksForUser();
+        if (inboxOnly)
+        {
+            Tasks = await TaskEndpoint.GetInboxTasksForUser();
+        }
+        else
+        {
+            Tasks = await TaskEndpoint.GetAllTasksForUser();
+        }
+
         TasksLastFetch = Tasks; // store for comparison
 
         Projects = await ProjectEndpoint.GetAllProjectsForUser();

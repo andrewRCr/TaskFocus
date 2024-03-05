@@ -7,22 +7,24 @@
         <MudNavLink Href="all" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">All Tasks</MudNavLink>
         <MudNavLink Href="inbox" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Inbox">Inbox</MudNavLink>
 
-        <MudNavGroup Title="Projects" Icon="@Icons.Material.Filled.List" Expanded="false">
+        <MudNavGroup Title="Projects" Icon="@Icons.Material.Filled.List" @bind-Expanded="@_isProjectsExpanded">
             @if (Projects != null)
             {
                 @foreach (ProjectModel project in Projects)
                 {
-                    <MudNavLink href="#" Icon="@Icons.Material.Filled.List">@project.ProjectName</MudNavLink>
+                        string link = "/projects/" + @project.Id;
+                        <MudNavLink href="@link" Icon="@Icons.Material.Filled.List">@project.ProjectName</MudNavLink>
                 }
             }
         </MudNavGroup>
 
-        <MudNavGroup Title="Contexts" Icon="@Icons.Material.Filled.List" Expanded="false">
+            <MudNavGroup Title="Contexts" Icon="@Icons.Material.Filled.List" @bind-Expanded="@_isContextsExpanded">
             @if (Contexts != null)
             {
                 @foreach (ContextModel context in Contexts)
                 {
-                    <MudNavLink href="#" Icon="@Icons.Material.Filled.List">@context.ContextName</MudNavLink>
+                        string link = "/contexts/" + @context.Id;
+                    <MudNavLink href="@link" Icon="@Icons.Material.Filled.List">@context.ContextName</MudNavLink>
                 }
             }
         </MudNavGroup>
@@ -49,6 +51,9 @@
         get { return _contexts; }
         set { _contexts = value; }
     }
+
+    bool _isProjectsExpanded = false;
+    bool _isContextsExpanded = false;
 
     protected override async Task OnInitializedAsync()
     {

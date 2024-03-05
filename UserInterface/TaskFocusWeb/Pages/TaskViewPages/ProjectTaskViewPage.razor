@@ -1,0 +1,51 @@
+﻿@page "/projects/{ProjectId}"
+@inherits _TaskViewPageBase
+@inject IProjectEndpoint ProjectEndpoint
+
+<PageTitle>TaskFocus: Projects</PageTitle>
+
+@if (Project != null && Tasks != null)
+{
+    <MudDropContainer T="TaskModel" Items="@Tasks" ItemsSelector="@((item, dropzone) => item.ProjectName == dropzone)" Class="d-flex flex-wrap flex-grow-1">
+        <ChildContent>
+            <MudDropZone T="TaskModel" Identifier="@Project.ProjectName" AllowReorder="true" Class="rounded mud-background-gray pa-6 ma-8 flex-grow-1">
+                <MudText Typo="Typo.h6" Class="mb-4">@Project.ProjectName</MudText>
+            </MudDropZone>
+        </ChildContent>
+        <ItemRenderer>
+            <MudPaper Elevation="25" Class="pa-4 my-4">
+                <TaskItemComponent TaskParam="@context" ProjectsParam="@Projects" ContextsParam="@Contexts" />
+            </MudPaper>
+        </ItemRenderer>
+    </MudDropContainer>
+  }
+
+@code {
+    [Parameter]
+    public string ProjectId { get; set; } = default!;
+
+    public ProjectModel Project { get; set; } = default!;
+
+    bool isValid = false;
+    int integerProjectId;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await GetProjectFromId();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        StateHasChanged();
+    }
+
+    protected async Task GetProjectFromId()
+    {
+        isValid = int.TryParse(ProjectId, out integerProjectId);
+        if (isValid)
+        {
+            Project = await ProjectEndpoint.GetProjectById(integerProjectId);
+        }  
+    }
+}

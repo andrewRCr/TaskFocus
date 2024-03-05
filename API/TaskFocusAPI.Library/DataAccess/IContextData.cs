@@ -5,6 +5,7 @@ namespace TaskFocusAPI.Library.DataAccess
 {
     public interface IContextData
     {
+        ContextModel GetContextById(int contextId);
         List<ContextModel> GetAllContextsForUser(string userId);
         void AddContext(ContextModel newContext, string userId);
         void DeleteContext(ContextModel contextToDelete);

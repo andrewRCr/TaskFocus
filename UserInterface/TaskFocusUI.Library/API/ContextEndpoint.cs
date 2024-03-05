@@ -16,6 +16,22 @@ namespace TaskFocusUI.Library.API
             _apiHelper = apiHelper;
         }
 
+        public async Task<ContextModel> GetContextById(int contextId)
+        {
+            string contextIdStr = contextId.ToString();
+            string requestUri = "/api/context/GetContextById/" + contextIdStr;
+            using (HttpResponseMessage response = await _apiHelper.APIClient.GetAsync(requestUri))
+            {
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsAsync<ContextModel>();
+                    return result;
+
+                }
+                else { throw new Exception(response.ReasonPhrase); }
+            }
+        }
+
         public async Task<List<ContextModel>> GetAllContextsForUser()
         {
             using (HttpResponseMessage response = await _apiHelper.APIClient.GetAsync("/api/context/GetAllContextsForUser"))

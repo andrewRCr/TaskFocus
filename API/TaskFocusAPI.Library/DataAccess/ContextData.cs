@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using TaskFocusAPI.Library.Models;
 
@@ -12,6 +13,14 @@ namespace TaskFocusAPI.Library.DataAccess
         public ContextData(ISqlDataAccess sqlDataAccess)
         {
             _sqlDataAccess = sqlDataAccess;
+        }
+
+        public ContextModel GetContextById(int contextId)
+        {
+            var p = new { Id = contextId };
+            var context = _sqlDataAccess.LoadData<ContextModel, dynamic>("dbo.spContext_GetById", p, "TaskFocusData").FirstOrDefault();
+
+            return context;
         }
 
         public List<ContextModel> GetAllContextsForUser(string userId)

@@ -2,22 +2,26 @@
 @inherits _TaskViewPageBase
 
 <PageTitle>TaskFocus: All Tasks</PageTitle>
-<h3>TEMP/DEV: all tasks unfiltered</h3>
 
-<div class="container-fluid">
-    <div class="row">
-
-        @if (Tasks != null)
-        {
-            @foreach (TaskModel task in Tasks)
-            {
-                <TaskItemComponent TaskParam="@task" ProjectsParam="@Projects" ContextsParam="@Contexts" />
-            }
-        }
-
-    </div>
-</div>
+@if (Tasks != null)
+{
+    <MudDropContainer T="TaskModel" Items="@Tasks" ItemsSelector="@((item,dropzone) => true)" Class="d-flex flex-wrap flex-grow-1">
+        <ChildContent>
+                <MudDropZone T="TaskModel" Identifier="Drop Zone 1" AllowReorder="true" Class="rounded mud-background-gray pa-6 ma-8 flex-grow-1">
+                <MudText Typo="Typo.h6" Class="mb-4">All Tasks</MudText>
+            </MudDropZone>
+        </ChildContent>
+        <ItemRenderer>
+                <MudPaper Elevation="25" Class="pa-4 my-4">
+                    <TaskItemComponent TaskParam="@context" ProjectsParam="@Projects" ContextsParam="@Contexts" />
+                </MudPaper>
+        </ItemRenderer>
+    </MudDropContainer>
+}
 
 @code {
-
+    // private void ItemUpdated(MudItemDropInfo<TaskModel> task)
+    // {
+    //     task.Item.Identifier = dropItem.DropzoneIdentifier;
+    // }
 }

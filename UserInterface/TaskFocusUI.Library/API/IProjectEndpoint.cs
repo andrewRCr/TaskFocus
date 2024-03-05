@@ -6,6 +6,7 @@ namespace TaskFocusUI.Library.API
 {
     public interface IProjectEndpoint
     {
+        Task<ProjectModel> GetProjectById(int projectId);
         Task<List<ProjectModel>> GetAllProjectsForUser();
         Task AddProject(ProjectModel newProject, string userId);
         Task DeleteProject(ProjectModel projectToDelete);

@@ -19,6 +19,12 @@ namespace TaskFocusAPI.Controllers
             _contextData = contextData;
         }
 
+        [HttpGet("{contextId}")]
+        public ContextModel GetContextById(int contextId)
+        {
+            return _contextData.GetContextById(contextId);
+        }
+
         [HttpGet]
         public List<ContextModel> GetAllContextsForUser()
         {

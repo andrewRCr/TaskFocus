@@ -8,6 +8,6 @@ BEGIN
 	FROM dbo.Task
 	LEFT JOIN dbo.Project ON dbo.Task.ProjectId = dbo.Project.Id
 	LEFT JOIN dbo.Context ON dbo.Task.ContextId = dbo.Context.Id
-	WHERE Task.UserId = @Id AND Task.ProjectId IS NULL
+	WHERE Task.UserId = @Id AND (Task.ProjectId IS NULL OR Task.ContextId IS NULL)
 	ORDER BY CreatedDate
 END

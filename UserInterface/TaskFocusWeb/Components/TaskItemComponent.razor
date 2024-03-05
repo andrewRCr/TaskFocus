@@ -1,114 +1,55 @@
 ﻿
+<MudForm Model="@TaskParam">
 
-<div class="col-8 mb-3">
-    <div class="container">
-        <div class="row">
+    <MudStack Row="true" Justify="Justify.FlexStart" AlignItems="AlignItems.Center">
+        
+        <!-- completed input -->
+        <MudCheckBox @bind-Value="TaskParam.Completed"></MudCheckBox>
 
-            <EditForm Model="@TaskParam">
-                <div class="form-group row">
-                    <!-- completed input -->
-                    <div class="col-1" style="display:flex; align-items:center;">
-                        <InputCheckbox id="completed" class="form-check-inline" @bind-Value="TaskParam.Completed" />
-                    </div>
-                    <!-- taskName input -->
-                    <div class="col-3">
-                        <InputText id="task-name" class="form-control border-0" @bind-Value="TaskParam.TaskName" placeholder="TaskName" />
-                    </div>
-                    <!-- projectId input -->
-                    <div class="col-2">
-                        <InputSelect id="assigned-project" style="@GetOptionTextColor("ProjectId")"
-                                     @onfocusin="() => OnProjectInputFocusChange(true)" @onfocusout="() => OnProjectInputFocusChange(false)"
-                                     class="form-select border-0" @bind-Value="TaskParam.ProjectId" >
-                            <option hidden disabled selected value="">Project</option>
-                            @foreach (ProjectModel project in ProjectsParam)
-                            {
-                                <option value="@project.Id">@project.ProjectName</option>
-                            }
-                        </InputSelect>
-                    </div>
-                    <!-- contextId input -->
-                    <div class="col-2">
-                        <InputSelect id="assigned-context" style="@GetOptionTextColor("ContextId")"
-                                     @onfocusin="() => OnContextInputFocusChange(true)" @onfocusout="() => OnContextInputFocusChange(false)"
-                                     class="form-select border-0" @bind-Value="TaskParam.ContextId" placeholder="Context">
-                            <option hidden disabled selected value="">Context</option>
-                            @foreach (ContextModel context in ContextsParam)
-                            {
-                                <option value="@context.Id">@context.ContextName</option>
-                            }
-                        </InputSelect>
-                    </div>
-                    <!-- due date input -->
-                    <div class="col-2">
-                        <InputDate id="due-date" style="@GetOptionTextColor("DueDate")"
-                                   @onfocusin="() => OnDueDateInputFocusChange(true)" @onfocusout="() => OnDueDateInputFocusChange(false)"
-                                   class="form-control border-0" @bind-Value="TaskParam.DueDate" />
-                    </div>
-                </div>
-            </EditForm>    
-        </div>
-    </div>
-</div>
+        <MudGrid>
+            <!-- taskName input -->
+            <MudItem xs="3">
+                <MudTextField @bind-Value="TaskParam.TaskName" Label="Task" Variant="Variant.Text"></MudTextField>
+            </MudItem>
+
+            <!-- projectId input -->
+            <MudItem xs="2">
+            <MudSelect T="int?" Label="Project" AnchorOrigin="Origin.BottomCenter" @bind-Value="TaskParam.ProjectId">
+                @foreach (ProjectModel project in ProjectsParam)
+                {
+                    <MudSelectItem Value="@(project.Id)">@project.ProjectName</MudSelectItem>
+                }
+            </MudSelect>
+                </MudItem>
+
+            <!-- contextId input -->
+            <MudItem xs="2">
+            <MudSelect T="int?" Label="Context" AnchorOrigin="Origin.BottomCenter" @bind-Value="TaskParam.ContextId">
+                @foreach (ContextModel context in ContextsParam)
+                {
+                    <MudSelectItem Value="@(context.Id)">@context.ContextName</MudSelectItem>
+                }
+            </MudSelect>
+            </MudItem>
+
+            <!-- due date input -->
+            <MudItem xs="2">
+            <MudDatePicker Label="Due" @bind-Date="TaskParam.DueDate" />
+            </MudItem>
+
+        </MudGrid>
+
+    </MudStack>
+
+</MudForm>
 
 @code {
     [Parameter]
-    public TaskModel TaskParam { get; set; }
+    public TaskModel TaskParam { get; set; } = default!;
 
     [Parameter]
-    public List<ProjectModel> ProjectsParam { get; set; }
+    public List<ProjectModel> ProjectsParam { get; set; } = default!;
 
     [Parameter]
-    public List<ContextModel> ContextsParam { get; set; }
-
-    private bool projectSelectIsFocused = false;
-    private bool contextSelectIsFocused = false;
-    private bool dueDateSelectIsFocused = false;
-
-    public TaskItemComponent()
-    {
-        TaskParam = new();
-        ProjectsParam = new();
-        ContextsParam = new();
-    }
-
-    public string GetOptionTextColor(string taskProperty)
-    {
-        switch (taskProperty)
-        {
-            case "ProjectId":
-                if (projectSelectIsFocused) { return "color:black;"; }
-                else if (TaskParam.ProjectId == null) { return "color:gray;"; }
-                break;
-
-            case "ContextId":
-                if (contextSelectIsFocused) { return "color:black;"; }
-                if (TaskParam.ContextId == null) { return "color:gray;"; }
-                break;
-
-            case "DueDate":
-                if (dueDateSelectIsFocused) { return "color:black;"; }
-                if (TaskParam.DueDate == null) { return "color:gray;"; }
-                break;
-
-            default:
-                break;
-        }
-
-        return "color:black;";
-    }
-
-    private void OnProjectInputFocusChange(bool isFocused)
-    {
-        projectSelectIsFocused = isFocused;
-    }
-
-    private void OnContextInputFocusChange(bool isFocused)
-    {
-        contextSelectIsFocused = isFocused;
-    }
-
-    private void OnDueDateInputFocusChange(bool isFocused)
-    {
-        dueDateSelectIsFocused = isFocused;
-    }
+    public List<ContextModel> ContextsParam { get; set; } = default!;
 }

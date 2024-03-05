@@ -1,0 +1,51 @@
+﻿@page "/contexts/{ContextId}"
+@inherits _TaskViewPageBase
+@inject IContextEndpoint ContextEndpoint
+
+<PageTitle>TaskFocus: Contexts</PageTitle>
+
+@if (Context != null && Tasks != null)
+{
+    <MudDropContainer T="TaskModel" Items="@Tasks" ItemsSelector="@((item, dropzone) => item.ContextName == dropzone)" Class="d-flex flex-wrap flex-grow-1">
+        <ChildContent>
+            <MudDropZone T="TaskModel" Identifier="@Context.ContextName" AllowReorder="true" Class="rounded mud-background-gray pa-6 ma-8 flex-grow-1">
+                <MudText Typo="Typo.h6" Class="mb-4">@Context.ContextName</MudText>
+            </MudDropZone>
+        </ChildContent>
+        <ItemRenderer>
+            <MudPaper Elevation="25" Class="pa-4 my-4">
+                <TaskItemComponent TaskParam="@context" ProjectsParam="@Projects" ContextsParam="@Contexts" />
+            </MudPaper>
+        </ItemRenderer>
+    </MudDropContainer>
+}
+
+@code {
+    [Parameter]
+    public string ContextId { get; set; } = default!;
+
+    public ContextModel Context { get; set; } = default!;
+
+    bool isValid = false;
+    int integerContextId;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await GetContextFromId();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        StateHasChanged();
+    }
+
+    protected async Task GetContextFromId()
+    {
+        isValid = int.TryParse(ContextId, out integerContextId);
+        if (isValid)
+        {
+            Context = await ContextEndpoint.GetContextById(integerContextId);
+        }
+    }
+}

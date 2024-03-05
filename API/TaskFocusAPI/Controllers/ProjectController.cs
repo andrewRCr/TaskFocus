@@ -19,6 +19,12 @@ namespace TaskFocusAPI.Controllers
             _projectData = projectData;
         }
 
+        [HttpGet("{projectId}")]
+        public ProjectModel GetProjectById(int projectId)
+        {
+            return _projectData.GetProjectById(projectId);
+        }
+
         [HttpGet]
         public List<ProjectModel> GetAllProjectsForUser()
         {

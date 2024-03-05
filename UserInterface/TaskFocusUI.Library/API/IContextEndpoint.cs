@@ -6,6 +6,7 @@ namespace TaskFocusUI.Library.API
 {
     public interface IContextEndpoint
     {
+        Task<ContextModel> GetContextById(int contextId);
         Task<List<ContextModel>> GetAllContextsForUser();
         Task AddContext(ContextModel newContext, string userId);
         Task DeleteContext(ContextModel contextToDelete);

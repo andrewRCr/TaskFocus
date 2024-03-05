@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
 using TaskFocusUI.Library.Models;
@@ -16,6 +17,22 @@ namespace TaskFocusUI.Library.API
         public ProjectEndpoint(IAPIHelper apiHelper)
         {
             _apiHelper = apiHelper;
+        }
+
+        public async Task<ProjectModel> GetProjectById(int projectId)
+        {
+            string projectIdStr = projectId.ToString();
+            string requestUri = "/api/project/GetProjectById/" + projectIdStr;
+            using (HttpResponseMessage response = await _apiHelper.APIClient.GetAsync(requestUri))
+            {
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsAsync<ProjectModel>();
+                    return result;
+
+                }
+                else { throw new Exception(response.ReasonPhrase); }
+            }
         }
 
         public async Task<List<ProjectModel>> GetAllProjectsForUser()
