@@ -7,6 +7,8 @@
         <MudNavLink Href="all" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">All Tasks</MudNavLink>
         <MudNavLink Href="inbox" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Inbox">Inbox</MudNavLink>
 
+        <MudNavLink Href="projects" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">All Projects</MudNavLink>
+
         <MudNavGroup Title="Projects" Icon="@Icons.Material.Filled.List" @bind-Expanded="@_isProjectsExpanded">
             @if (Projects != null)
             {
@@ -18,7 +20,7 @@
             }
         </MudNavGroup>
 
-            <MudNavGroup Title="Contexts" Icon="@Icons.Material.Filled.List" @bind-Expanded="@_isContextsExpanded">
+        <MudNavGroup  Title="Contexts" Icon="@Icons.Material.Filled.List" @bind-Expanded="@_isContextsExpanded">
             @if (Contexts != null)
             {
                 @foreach (ContextModel context in Contexts)
