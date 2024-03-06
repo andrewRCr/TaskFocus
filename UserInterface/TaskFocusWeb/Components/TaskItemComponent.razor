@@ -1,20 +1,34 @@
 ﻿
-<MudForm Model="@TaskParam">
+<MudForm Model="@TaskParam" >
 
-    <MudStack Row="true" Justify="Justify.FlexStart" AlignItems="AlignItems.Center">
+    <MudStack Row="true" Justify="Justify.FlexStart" AlignItems="AlignItems.Center" 
+              @onmouseover="()=> SetElementsActive(true)" @onmouseleave="()=> SetElementsActive(false)">
+
+        <div class="d-flex align-center ml-1">
+            <!-- drag indicator icon -->
+            <MudIcon Icon="@Icons.Material.Filled.DragIndicator" />
+            <div class="ml-n1">
+                <!-- starred/today input -->
+                <MudCheckBox Class="@starredClassStr" @bind-Value="TaskParam.Completed" Size="Size.Medium" Color="Color.Default"
+                             CheckedIcon="@Icons.Material.Filled.Star" UncheckedIcon="@Icons.Material.Filled.StarOutline" />
+            </div>
+            <div class="ml-n3">
+                <!-- completed input -->
+                <MudCheckBox @bind-Value="TaskParam.Completed" Size="Size.Small"></MudCheckBox>
+            </div>
+        </div>
         
-        <!-- completed input -->
-        <MudCheckBox @bind-Value="TaskParam.Completed"></MudCheckBox>
-
-        <MudGrid>
+        <MudGrid Class="pb-4">
+   
             <!-- taskName input -->
             <MudItem xs="3">
-                <MudTextField @bind-Value="TaskParam.TaskName" Label="Task" Variant="Variant.Text"></MudTextField>
+                <MudTextField @bind-Value="TaskParam.TaskName" Placeholder="Task" Variant="Variant.Text" Margin="Margin.Dense" 
+                              Clearable=@isTaskNameClearable @onmouseenter="()=> SetIsTaskNameClearable(true)" />
             </MudItem>
 
             <!-- projectId input -->
             <MudItem xs="2">
-            <MudSelect T="int?" Label="Project" AnchorOrigin="Origin.BottomCenter" @bind-Value="TaskParam.ProjectId">
+                <MudSelect T="int?" Placeholder="Project" AnchorOrigin="Origin.BottomCenter" @bind-Value="TaskParam.ProjectId" Margin="Margin.Dense">
                 @foreach (ProjectModel project in ProjectsParam)
                 {
                     <MudSelectItem Value="@(project.Id)">@project.ProjectName</MudSelectItem>
@@ -24,7 +38,7 @@
 
             <!-- contextId input -->
             <MudItem xs="2">
-            <MudSelect T="int?" Label="Context" AnchorOrigin="Origin.BottomCenter" @bind-Value="TaskParam.ContextId">
+                <MudSelect T="int?" Placeholder="Context" AnchorOrigin="Origin.BottomCenter" @bind-Value="TaskParam.ContextId" Margin="Margin.Dense">
                 @foreach (ContextModel context in ContextsParam)
                 {
                     <MudSelectItem Value="@(context.Id)">@context.ContextName</MudSelectItem>
@@ -34,7 +48,7 @@
 
             <!-- due date input -->
             <MudItem xs="2">
-            <MudDatePicker Label="Due" @bind-Date="TaskParam.DueDate" />
+                <MudDatePicker Placeholder="Due" @bind-Date="TaskParam.DueDate" Margin="Margin.Dense" />
             </MudItem>
 
         </MudGrid>
@@ -52,4 +66,26 @@
 
     [Parameter]
     public List<ContextModel> ContextsParam { get; set; } = default!;
+
+    bool isTaskNameClearable = false;
+    bool showStarIcon = false;
+    string starredClassStr = "invisible";
+
+    void SetIsTaskNameClearable(bool newClearable)
+    {
+        isTaskNameClearable = newClearable;
+    }
+
+    void SetElementsActive(bool newActive)
+    {
+        showStarIcon = newActive;
+
+        if (newActive) { starredClassStr = string.Empty; }
+        else
+        {
+            // TODO: once Starred is its own TaskModel property, swap over from Completed (just placeholder prop for Starred)
+            if (!TaskParam.Completed) { starredClassStr = "invisible"; }
+            SetIsTaskNameClearable(false);
+        }
+    }
 }
