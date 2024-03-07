@@ -1,15 +1,20 @@
-﻿@inject IProjectEndpoint ProjectEndpoint
+﻿
+@inject IProjectEndpoint ProjectEndpoint
 @inject IContextEndpoint ContextEndpoint﻿
 
-<MudNavMenu>
+
+
+
+<MudNavMenu Bordered="true" Style="display: flex; flex-flow: column; height: inherit;">
     <AuthorizeView>
         <Authorized>
-        <MudNavLink Href="all" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">All Tasks</MudNavLink>
+@*         <MudNavLink Href="all" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">All Tasks</MudNavLink> *@
         <MudNavLink Href="inbox" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Inbox">Inbox</MudNavLink>
         <MudNavLink Href="today" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Today">Today</MudNavLink>
-        <MudNavLink Href="projects" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">All Projects</MudNavLink>
+        <MudNavLink Href="projects" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Projects</MudNavLink>
+        <MudNavLink Href="contexts" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Contexts</MudNavLink>
 
-        <MudNavGroup Title="Projects" Icon="@Icons.Material.Filled.List" @bind-Expanded="@_isProjectsExpanded">
+@*         <MudNavGroup Title="Projects" Icon="@Icons.Material.Filled.List" @bind-Expanded="@_isProjectsExpanded">
             @if (Projects != null)
             {
                 @foreach (ProjectModel project in Projects)
@@ -29,9 +34,10 @@
                     <MudNavLink href="@link" Icon="@Icons.Material.Filled.List">@context.ContextName</MudNavLink>
                 }
             }
-        </MudNavGroup>
+        </MudNavGroup> *@
 
-        <MudNavLink Href="verifyauth" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.ManageAccounts">Verify Auth</MudNavLink>
+            <MudDivider  />
+            <MudNavLink Href="verifyauth" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.ManageAccounts">Verify Auth</MudNavLink>
         </Authorized>
     </AuthorizeView>
 </MudNavMenu>

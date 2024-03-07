@@ -2,8 +2,39 @@
 @inherits _TaskViewPageBase
 
 <PageTitle>TaskFocus: Today</PageTitle>
-<h3>Today</h3>
+
+<MudButton Color="Color.Inherit" Class="mx-2">Today</MudButton>
+
+@if (Tasks != null)
+{
+    if (todayItemCount > 0)
+    {
+        <TaskContainerComponent ContainerTaskItemsParam="@Tasks" ContainerIdentifierParam="Today" ContainerItemsSelectorParam="@ItemsSelector"
+        ContainerProjectsParam="@Projects" ContainerContextsParam="@Contexts" />
+    }
+    else
+    {
+        <MudContainer>
+            <MudPaper>
+                <MudText Class="pa-4">
+                    Tasks that have been Starred or whose assigned Due Date is today will appear here.
+                </MudText>
+            </MudPaper>
+        </MudContainer>
+    }
+}
 
 @code {
+    private int todayItemCount = 0;
 
+    public override bool ItemsSelector(TaskModel item, string dropzone)
+    {
+        // TODO: swap Completed prop check to Starred once that prop is implemented!
+        if (item.DueDate == DateTime.Today || item.Completed)
+        {
+            todayItemCount += 1;
+            return true;
+        }
+        return false;
+    }
 }

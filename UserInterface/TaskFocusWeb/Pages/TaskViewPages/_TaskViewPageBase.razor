@@ -53,4 +53,9 @@
         Projects = await ProjectEndpoint.GetAllProjectsForUser();
         Contexts = await ContextEndpoint.GetAllContextsForUser();
     }
+
+    public virtual bool ItemsSelector(TaskModel item, string dropzone)
+    {
+        return true;
+    }
 }

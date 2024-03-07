@@ -22,11 +22,14 @@
         </AuthorizeView>
     </MudAppBar>
 
+
     <MudDrawer @bind-Open="@_drawerOpen" Elevation="1">
         <MudDrawerHeader>
             <MudText Typo="Typo.h6">TaskFocus</MudText>
         </MudDrawerHeader>
+
         <NavMenu />
+
     </MudDrawer>
 
     <MudMainContent>
@@ -36,11 +39,11 @@
 </MudLayout>
 
 @code {
-    bool _drawerOpen = true;
+    protected bool _drawerOpen = true;
     private MudTheme _theme = new();
     private bool _isDarkMode = true;
 
-    void DrawerToggle()
+    protected void DrawerToggle()
     {
         _drawerOpen = !_drawerOpen;
     }

@@ -1,18 +1,47 @@
-﻿<MudNavMenu>
+﻿@inherits NavMenu
+
+@* <MudNavMenu>
     <AuthorizeView>
         <Authorized>
-            @if (ProjectsParam != null)
+            @if (Projects != null)
             {
-                @foreach (ProjectModel project in ProjectsParam)
+                @foreach (ProjectModel project in Projects)
                 {
-                    <MudNavLink Href="#" Match="NavLinkMatch.Prefix">@project.ProjectName</MudNavLink>
+                    string link = "/projects/" + @project.Id;
+                    <MudNavLink Href="@link" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">@project.ProjectName</MudNavLink>
                 }
             }
         </Authorized>
     </AuthorizeView>
-</MudNavMenu>
+</MudNavMenu> *@
+
+<MudDrawer @bind-Open="@_isSubmenuExpanded" Fixed="false" Elevation="0" Variant="@DrawerVariant.Persistent">
+
+    <MudNavMenu>
+
+        <MudButton Color="Color.Inherit" OnClick="@ToggleSubMenu" StartIcon="@Icons.Material.Filled.West" Class="mx-2">Projects</MudButton>
+
+        @if (Projects != null)
+        {
+            @foreach (ProjectModel project in Projects)
+            {
+                string link = "/projects/" + @project.Id;
+                <MudNavLink Href="@link" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">@project.ProjectName</MudNavLink>
+            }
+        }
+
+    </MudNavMenu>
+</MudDrawer>
 
 @code {
-    [Parameter]
-    public List<ProjectModel> ProjectsParam { get; set; } = default!;
+    // [Parameter]
+    // public List<ProjectModel> ProjectsParam { get; set; } = default!;
+
+    private bool _isSubmenuExpanded = true;
+
+    void ToggleSubMenu()
+    {
+        _isSubmenuExpanded = !_isSubmenuExpanded;
+    }
+}
 }

@@ -1,0 +1,25 @@
+﻿@inherits NavMenu
+@inject NavigationManager NavManager
+
+<MudNavMenu Bordered="true" Style="width: 250px;">
+
+    <MudButton OnClick="NavigateToAllContextsView" Color="Color.Inherit" Class="mx-2">Contexts</MudButton>
+
+    @if (Contexts != null)
+    {
+        @foreach (ContextModel context in Contexts)
+        {
+            string link = "/contexts/" + @context.Id;
+            <MudNavLink Href="@link" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">@context.ContextName</MudNavLink>
+        }
+    }
+
+</MudNavMenu>
+
+@code {
+
+    void NavigateToAllContextsView()
+    {
+        NavManager.NavigateTo("/contexts");
+    }
+}

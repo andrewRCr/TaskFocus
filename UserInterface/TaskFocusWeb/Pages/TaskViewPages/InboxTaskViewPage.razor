@@ -3,20 +3,12 @@
 
 <PageTitle>TaskFocus: Inbox</PageTitle>
 
+<MudButton Color="Color.Inherit" Class="mx-2">Inbox</MudButton>
+
 @if (Tasks != null)
 {
-    <MudDropContainer T="TaskModel" Items="@Tasks" ItemsSelector="@((item, dropzone) => true)" Class="d-flex flex-wrap flex-grow-1">
-        <ChildContent>
-            <MudDropZone T="TaskModel" Identifier="Inbox" AllowReorder="true" Class="rounded mud-background-gray pa-6 ma-8 flex-grow-1">
-                <MudText Typo="Typo.h6" Class="mb-4">Inbox</MudText>
-            </MudDropZone>
-        </ChildContent>
-        <ItemRenderer>
-            <MudPaper Elevation="25" Class="pa-0 my-2">
-                <TaskItemComponent TaskParam="@context" ProjectsParam="@Projects" ContextsParam="@Contexts" />
-            </MudPaper>
-        </ItemRenderer>
-    </MudDropContainer>
+    <TaskContainerComponent ContainerTaskItemsParam="@Tasks" ContainerIdentifierParam="Inbox" ContainerItemsSelectorParam="@ItemsSelector"
+        ContainerProjectsParam="@Projects" ContainerContextsParam="@Contexts" />
 }
 
 @code {
@@ -38,5 +30,10 @@
 
         // new inbox task input placeholder
         NewInboxTask = new();
+    }
+
+    public override bool ItemsSelector(TaskModel item, string dropzone)
+    {
+        return true;
     }
 }
