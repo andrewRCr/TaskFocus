@@ -2,37 +2,57 @@
 @inherits _TaskViewPageBase
 @inject IProjectEndpoint ProjectEndpoint
 
+<PageTitle>TaskFocus: Projects</PageTitle>
+
 <MudStack Row="true">
 
-    <ProjectSubMenu />
+    <SubNavMenu IsProjectsSubMenu="true" OnProjectFocused="@SetFocusedProjectIdStr" />
 
     @if (Projects != null && Tasks != null)
     {
-        <MudDropContainer T="TaskModel" Items="Tasks" ItemsSelector="@((item, dropzone) => item.ProjectName == dropzone)" Class="flex-grow-1">
-            <ChildContent>
-                <ProjectContainerComponent ContainerProjectItemsParam="@Projects" ContainerItemsSelectorParam="@ProjectItemsSelector" IsExpanded=@_isProjectExpanded />
-            </ChildContent>
-            <ItemRenderer>
-                <MudPaper Class="pa-0 my-2">
-                    <TaskItemComponent TaskParam="@context" ProjectsParam="@Projects" ContextsParam="@Contexts" />
-                </MudPaper>
-            </ItemRenderer>
-        </MudDropContainer>
+        @if (_focusedProjectIdStr != null)
+        {
+            <ProjectTaskViewPage ProjectId="@_focusedProjectIdStr" />
+        }
+        else // all projects view
+        {
+            <MudDropContainer T="TaskModel" Items="Tasks" ItemsSelector="@((item, dropzone) => item.ProjectName == dropzone)" Class="flex-grow-1">
+                <ChildContent>
+                    <ProjectContainerComponent ContainerProjectItemsParam="@Projects" ContainerItemsSelectorParam="@ProjectItemsSelector" IsExpanded=@_isProjectExpanded />
+                </ChildContent>
+                <ItemRenderer>
+                    <MudPaper Class="pa-0 my-2">
+                        <TaskItemComponent TaskParam="@context" ProjectsParam="@Projects" ContextsParam="@Contexts" />
+                    </MudPaper>
+                </ItemRenderer>
+            </MudDropContainer>
+        }
     }
 
 </MudStack>
 
 @code {
     private bool _isProjectExpanded = true;
-
-    protected override async Task OnInitializedAsync()
-    {
-        await base.OnInitializedAsync();
-        //StateHasChanged();
-    }
+    private string? _focusedProjectIdStr = null;
 
     public bool ProjectItemsSelector(ProjectModel item, string dropzone)
     {
         return true;
+    }
+
+    protected override Boolean HandleAppStateChanged(String propertyName, AppState state)
+    {
+        if (propertyName != nameof(AppState.FocusedProjectIdStr))
+        {
+            return false;
+        }
+
+        _focusedProjectIdStr = state.FocusedProjectIdStr;
+        return true;
+    }
+
+    private void SetFocusedProjectIdStr(string val)
+    {
+        AppState.FocusedProjectIdStr = val;
     }
 }

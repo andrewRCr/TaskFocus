@@ -29,6 +29,7 @@ namespace TaskFocusWeb
             builder.Services.AddTransient<ITaskEndpoint, TaskEndpoint>();
             builder.Services.AddTransient<IProjectEndpoint, ProjectEndpoint>();
             builder.Services.AddTransient<IContextEndpoint, ContextEndpoint>();
+            builder.Services.AddSingleton(new AppState());
 
             builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
             builder.Services.AddMudServices();

@@ -1,0 +1,90 @@
+﻿@inherits ComponentBase
+@implements IDisposable
+@inject IAPIHelper ApiHelper
+@inject IUserEndpoint UserEndpoint
+@inject ITaskEndpoint TaskEndpoint
+@inject IProjectEndpoint ProjectEndpoint
+@inject IContextEndpoint ContextEndpoint
+
+@code {
+    [Inject]
+    protected AppState AppState { get; private set; } = default!;
+
+    [CascadingParameter]
+    public Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    public List<TaskModel>? Tasks { get; set; }
+    public List<TaskModel>? TasksLastFetch { get; set; }
+
+    // protected List<int> inboxOrderedTasks;
+    // protected List<int> orderedProjects;
+    // protected List<int> orderedContexts;
+
+    private List<ProjectModel>? _projects;
+    public List<ProjectModel>? Projects
+    {
+        get { return _projects; }
+        set { _projects = value; }
+    }
+
+    private List<ContextModel>? _contexts;
+    public List<ContextModel>? Contexts
+    {
+        get { return _contexts; }
+        set { _contexts = value; }
+    }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        AppState.AppStateChanged += AppStateChanged;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthState;
+
+        if (authState.User.Identity!.IsAuthenticated)
+        {
+            await LoadTasks();
+        }
+    }
+
+    // to be defined in child components as needed
+    protected virtual bool HandleAppStateChanged(String propertyName, AppState state)
+    {
+        return false;
+    }
+
+    private async void AppStateChanged(String propertyName, AppState state)
+    {
+        bool changesOccured = HandleAppStateChanged(propertyName, state);
+        if (changesOccured == true)
+        {
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    public void Dispose()
+    {
+        AppState.AppStateChanged -= AppStateChanged;
+    }
+
+    protected virtual async Task LoadTasks(bool inboxOnly = false)
+    {
+        if (inboxOnly)
+        {
+            Tasks = await TaskEndpoint.GetInboxTasksForUser();
+        }
+        else
+        {
+            Tasks = await TaskEndpoint.GetAllTasksForUser();
+        }
+
+        TasksLastFetch = Tasks; // store for comparison
+
+        Projects = await ProjectEndpoint.GetAllProjectsForUser();
+        Contexts = await ContextEndpoint.GetAllContextsForUser();
+    }
+}

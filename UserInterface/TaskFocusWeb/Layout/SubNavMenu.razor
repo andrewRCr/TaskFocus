@@ -1,47 +1,74 @@
 ﻿@inherits NavMenu
 
-@* <MudNavMenu>
-    <AuthorizeView>
-        <Authorized>
-            @if (Projects != null)
-            {
-                @foreach (ProjectModel project in Projects)
-                {
-                    string link = "/projects/" + @project.Id;
-                    <MudNavLink Href="@link" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">@project.ProjectName</MudNavLink>
-                }
-            }
-        </Authorized>
-    </AuthorizeView>
-</MudNavMenu> *@
+<MudNavMenu Bordered="true" Style="width: 250px;">
 
-<MudDrawer @bind-Open="@_isSubmenuExpanded" Fixed="false" Elevation="0" Variant="@DrawerVariant.Persistent">
+    <MudButton OnClick="ResetToAllItemsView" Color="Color.Inherit" Class="mx-2">@CollectionName</MudButton>
+    <MudDivider />
 
-    <MudNavMenu>
-
-        <MudButton Color="Color.Inherit" OnClick="@ToggleSubMenu" StartIcon="@Icons.Material.Filled.West" Class="mx-2">Projects</MudButton>
-
+    @if (IsProjectsSubMenu)
+    {
         @if (Projects != null)
         {
             @foreach (ProjectModel project in Projects)
             {
-                string link = "/projects/" + @project.Id;
-                <MudNavLink Href="@link" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">@project.ProjectName</MudNavLink>
+                <MudNavLink Class="subNavLink" OnClick="@(()=>SetFocusedItemIdStr((int)project.Id!))" 
+                    Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">
+                    @project.ProjectName
+                </MudNavLink>
             }
         }
+    }
+    else
+    {
+        @if (Contexts != null)
+        {
+            @foreach (ContextModel context in Contexts)
+            {
+                <MudNavLink Class="subNavLink" OnClick="@(()=>SetFocusedItemIdStr((int)context.Id!))" 
+                    Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">
+                    @context.ContextName
+                </MudNavLink>
+            }
+        }
+    }
 
-    </MudNavMenu>
-</MudDrawer>
+</MudNavMenu>
+
+<style>
+    .subNavLink .mud-nav-link {
+        font-size: 1.0rem;
+        align-items: center;
+    }
+</style>
 
 @code {
-    // [Parameter]
-    // public List<ProjectModel> ProjectsParam { get; set; } = default!;
+    [Parameter]
+    public bool IsProjectsSubMenu { get; set; } = default!;
 
-    private bool _isSubmenuExpanded = true;
+    [Parameter]
+    public EventCallback<string> OnProjectFocused { get; set; }
 
-    void ToggleSubMenu()
+    [Parameter]
+    public EventCallback<string> OnContextFocused { get; set; }
+
+    private string CollectionName
     {
-        _isSubmenuExpanded = !_isSubmenuExpanded;
+        get { return IsProjectsSubMenu ? "Projects" : "Contexts"; }
     }
-}
+
+    private void ResetToAllItemsView()
+    {
+        if (IsProjectsSubMenu)
+        { AppState.FocusedProjectIdStr = null; }
+        else
+        { AppState.FocusedContextIdStr = null; }
+    }
+
+    private void SetFocusedItemIdStr(int itemId)
+    {
+        if (IsProjectsSubMenu)
+        { AppState.FocusedProjectIdStr = itemId.ToString(); }
+        else
+        { AppState.FocusedContextIdStr = itemId.ToString(); ; }
+    }
 }

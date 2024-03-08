@@ -1,59 +1,6 @@
-﻿@inject IAPIHelper ApiHelper
-@inject IUserEndpoint UserEndpoint
-@inject ITaskEndpoint TaskEndpoint
-@inject IProjectEndpoint ProjectEndpoint
-@inject IContextEndpoint ContextEndpoint
+﻿@inherits _ComponentBase
 
 @code {
-    public List<TaskModel>? Tasks { get; set; }
-    public List<TaskModel>? TasksLastFetch { get; set; }
-
-    protected List<int> InboxOrderedTasks;
-    protected List<int> OrderedProjects;
-    protected List<int> OrderedContexts;
-
-    private List<ProjectModel> _projects;
-    public List<ProjectModel> Projects
-    {
-        get { return _projects; }
-        set { _projects = value; }
-    }
-
-    private List<ContextModel> _contexts;
-    public List<ContextModel> Contexts
-    {
-        get { return _contexts; }
-        set { _contexts = value; }
-    }
-
-    public _TaskViewPageBase()
-    {
-        _projects = new();
-        _contexts = new();
-    }
-
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadTasks();
-    }
-
-    protected virtual async Task LoadTasks(bool inboxOnly = false)
-    {
-        if (inboxOnly)
-        {
-            Tasks = await TaskEndpoint.GetInboxTasksForUser();
-        }
-        else
-        {
-            Tasks = await TaskEndpoint.GetAllTasksForUser();
-        }
-
-        TasksLastFetch = Tasks; // store for comparison
-
-        Projects = await ProjectEndpoint.GetAllProjectsForUser();
-        Contexts = await ContextEndpoint.GetAllContextsForUser();
-    }
-
     public virtual bool ItemsSelector(TaskModel item, string dropzone)
     {
         return true;

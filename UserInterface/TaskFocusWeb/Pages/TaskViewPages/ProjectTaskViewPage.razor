@@ -1,20 +1,11 @@
-﻿@page "/projects/{ProjectId}"
-@inherits _TaskViewPageBase
+﻿@inherits AllProjectsTaskViewPage
 @inject IProjectEndpoint ProjectEndpoint
 
-<PageTitle>TaskFocus: Projects</PageTitle>
-
-<MudStack Row="true">
-
-    <ProjectSubMenu />
-
-    @if (Project != null && Tasks != null)
-    {
-        <TaskContainerComponent ContainerTaskItemsParam="@Tasks" ContainerIdentifierParam="@Project.ProjectName" ContainerItemsSelectorParam="@ItemsSelector"
-                                ContainerProjectsParam="@Projects" ContainerContextsParam="@Contexts" />
-    }
-
-</MudStack>
+@if (Project != null && Tasks != null)
+{
+    <TaskContainerComponent ContainerTaskItemsParam="@Tasks" ContainerIdentifierParam="@Project.ProjectName" ContainerItemsSelectorParam="@ItemsSelector"
+                            ContainerProjectsParam="@Projects" ContainerContextsParam="@Contexts" />
+}
 
 @code {
     [Parameter]
@@ -28,12 +19,6 @@
     protected override async Task OnParametersSetAsync()
     {
         await GetProjectFromId();
-    }
-
-    protected override async Task OnInitializedAsync()
-    {
-        await base.OnInitializedAsync();
-        //StateHasChanged();
     }
 
     protected async Task GetProjectFromId()

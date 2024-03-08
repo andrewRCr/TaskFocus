@@ -1,20 +1,11 @@
-﻿@page "/contexts/{ContextId}"
-@inherits _TaskViewPageBase
+﻿@inherits AllContextsTaskViewPage
 @inject IContextEndpoint ContextEndpoint
 
-<PageTitle>TaskFocus: Contexts</PageTitle>
-
-<MudStack Row="true">
-
-    <ContextSubMenu />
-
-    @if (Context != null && Tasks != null)
-    {
-        <TaskContainerComponent ContainerTaskItemsParam="@Tasks" ContainerIdentifierParam="@Context.ContextName" ContainerItemsSelectorParam="@ItemsSelector"
-                                ContainerProjectsParam="@Projects" ContainerContextsParam="@Contexts" />
-    }
-
-</MudStack>
+@if (Context != null && Tasks != null)
+{
+    <TaskContainerComponent ContainerTaskItemsParam="@Tasks" ContainerIdentifierParam="@Context.ContextName" ContainerItemsSelectorParam="@ItemsSelector"
+                            ContainerProjectsParam="@Projects" ContainerContextsParam="@Contexts" />
+}
 
 @code {
     [Parameter]
@@ -30,18 +21,13 @@
         await GetContextFromId();
     }
 
-    protected override async Task OnInitializedAsync()
-    {
-        await base.OnInitializedAsync();
-        //StateHasChanged();
-    }
-
     protected async Task GetContextFromId()
     {
         isValid = int.TryParse(ContextId, out integerContextId);
         if (isValid)
         {
             Context = await ContextEndpoint.GetContextById(integerContextId);
+            Console.WriteLine(Context.ContextName);
         }
     }
 

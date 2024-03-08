@@ -2,37 +2,57 @@
 @inherits _TaskViewPageBase
 @inject IContextEndpoint ContextEndpoint
 
+<PageTitle>TaskFocus: Contexts</PageTitle>
+
 <MudStack Row="true">
 
-    <ContextSubMenu />
+    <SubNavMenu IsProjectsSubMenu="false" OnContextFocused="@SetFocusedContextIdStr" />
 
-    @if (Projects != null && Tasks != null)
+    @if (Contexts != null && Tasks != null)
     {
-        <MudDropContainer T="TaskModel" Items="Tasks" ItemsSelector="@((item, dropzone) => item.ContextName == dropzone)" Class="flex-grow-1">
-            <ChildContent>
-                <ContextContainerComponent ContainerContextItemsParam="@Contexts" ContainerItemsSelectorParam="@ContextItemsSelector" IsExpanded=@_isContextExpanded />
-            </ChildContent>
-            <ItemRenderer>
-                <MudPaper Class="pa-0 my-2">
-                    <TaskItemComponent TaskParam="@context" ProjectsParam="@Projects" ContextsParam="@Contexts" />
-                </MudPaper>
-            </ItemRenderer>
-        </MudDropContainer>
+        @if (_focusedContextIdStr != null)
+        {
+            <ContextTaskViewPage ContextId="@_focusedContextIdStr" />
+        }
+        else // all contexts view
+        {
+            <MudDropContainer T="TaskModel" Items="Tasks" ItemsSelector="@((item, dropzone) => item.ContextName == dropzone)" Class="flex-grow-1">
+                <ChildContent>
+                    <ContextContainerComponent ContainerContextItemsParam="@Contexts" ContainerItemsSelectorParam="@ContextItemsSelector" IsExpanded=@_isContextExpanded />
+                </ChildContent>
+                <ItemRenderer>
+                    <MudPaper Class="pa-0 my-2">
+                        <TaskItemComponent TaskParam="@context" ProjectsParam="@Projects" ContextsParam="@Contexts" />
+                    </MudPaper>
+                </ItemRenderer>
+            </MudDropContainer>
+        }
     }
 
 </MudStack>
 
 @code {
     private bool _isContextExpanded = true;
-
-    protected override async Task OnInitializedAsync()
-    {
-        await base.OnInitializedAsync();
-        //StateHasChanged();
-    }
+    private string? _focusedContextIdStr = null;
 
     public bool ContextItemsSelector(ContextModel item, string dropzone)
     {
         return true;
+    }
+
+    protected override Boolean HandleAppStateChanged(String propertyName, AppState state)
+    {
+        if (propertyName != nameof(AppState.FocusedContextIdStr))
+        {
+            return false;
+        }
+
+        _focusedContextIdStr = state.FocusedContextIdStr;
+        return true;
+    }
+
+    private void SetFocusedContextIdStr(string val)
+    {
+        AppState.FocusedContextIdStr = val;
     }
 }

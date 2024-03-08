@@ -1,81 +1,64 @@
-﻿
+﻿@inherits _ComponentBase
+
 @inject IProjectEndpoint ProjectEndpoint
 @inject IContextEndpoint ContextEndpoint﻿
 
-
-
-
-<MudNavMenu Bordered="true" Style="display: flex; flex-flow: column; height: inherit;">
+<MudNavMenu Bordered="true" Style="display: flex; flex-flow: column; height: inherit;" >
     <AuthorizeView>
         <Authorized>
 @*         <MudNavLink Href="all" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">All Tasks</MudNavLink> *@
-        <MudNavLink Href="inbox" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Inbox">Inbox</MudNavLink>
-        <MudNavLink Href="today" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Today">Today</MudNavLink>
-        <MudNavLink Href="projects" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Projects</MudNavLink>
-        <MudNavLink Href="contexts" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Contexts</MudNavLink>
+            <MudNavLink Class="mainNavLink" Href="inbox" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Inbox">
+                Inbox
+            </MudNavLink>
+            <MudNavLink Class="mainNavLink" Href="today" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Today">
+                Today
+            </MudNavLink>
 
-@*         <MudNavGroup Title="Projects" Icon="@Icons.Material.Filled.List" @bind-Expanded="@_isProjectsExpanded">
-            @if (Projects != null)
-            {
-                @foreach (ProjectModel project in Projects)
-                {
-                        string link = "/projects/" + @project.Id;
-                        <MudNavLink href="@link" Icon="@Icons.Material.Filled.List">@project.ProjectName</MudNavLink>
-                }
-            }
-        </MudNavGroup>
+            <div @onclick=@ResetFocusedProjectIdStr>
+            <MudNavLink Class="mainNavLink" Href="projects" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">
+                Projects
+            </MudNavLink>
+            </div>
 
-        <MudNavGroup  Title="Contexts" Icon="@Icons.Material.Filled.List" @bind-Expanded="@_isContextsExpanded">
-            @if (Contexts != null)
-            {
-                @foreach (ContextModel context in Contexts)
-                {
-                        string link = "/contexts/" + @context.Id;
-                    <MudNavLink href="@link" Icon="@Icons.Material.Filled.List">@context.ContextName</MudNavLink>
-                }
-            }
-        </MudNavGroup> *@
+            <div @onclick=@ResetFocusedContextIdStr>
+            <MudNavLink Class="mainNavLink" Href="contexts" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">
+                Contexts
+            </MudNavLink>
+            </div>
+
+            <MudNavLink Disabled></MudNavLink> @* just for spacing *@
+
+            <MudNavGroup Class="mainNavLink" Title="Pinned" Icon="@Icons.Material.Filled.PushPin" @bind-Expanded="@_isQuickAccessExpanded">
+
+                <MudNavLink  href="#" Icon="@Icons.Material.Filled.List">Placeholder</MudNavLink>
+        
+            </MudNavGroup>
+
 
             <MudDivider  />
-            <MudNavLink Href="verifyauth" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.ManageAccounts">Verify Auth</MudNavLink>
+            <MudNavLink Class="mainNavLink" Href="verifyauth" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.ManageAccounts">Verify Auth</MudNavLink>
         </Authorized>
     </AuthorizeView>
 </MudNavMenu>
 
+<style>
+    .mainNavLink .mud-nav-link {
+        height: 3rem;
+        font-size: 1.0rem;
+        align-items: center;
+    }
+</style>
+
 @code {
-    [CascadingParameter]
-    public Task<AuthenticationState> AuthState { get; set; } = default!;
+    private bool _isQuickAccessExpanded = false;
 
-    private List<ProjectModel> _projects = default!;
-    public List<ProjectModel> Projects
+    private void ResetFocusedProjectIdStr()
     {
-        get { return _projects; }
-        set { _projects = value; }
+        AppState.FocusedProjectIdStr = null;
     }
 
-    private List<ContextModel> _contexts = default!;
-    public List<ContextModel> Contexts
+    private void ResetFocusedContextIdStr()
     {
-        get { return _contexts; }
-        set { _contexts = value; }
-    }
-
-    bool _isProjectsExpanded = false;
-    bool _isContextsExpanded = false;
-
-    protected override async Task OnInitializedAsync()
-    {
-        var authState = await AuthState;
-
-        if (authState.User.Identity!.IsAuthenticated)
-        {
-            await LoadSubMenuData();
-        }
-    }
-
-    protected virtual async Task LoadSubMenuData()
-    {
-        Projects = await ProjectEndpoint.GetAllProjectsForUser();
-        Contexts = await ContextEndpoint.GetAllContextsForUser();
+        AppState.FocusedContextIdStr = null;
     }
 }
