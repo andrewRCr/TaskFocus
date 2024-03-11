@@ -14,7 +14,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using TaskFocusUI.Library.API;
 using TaskFocusUI.Library.Models;
-using TaskFocusDesktop.Models;
+using TaskFocusUI.Library.Utilities;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace TaskFocusDesktop.ViewModels
@@ -27,7 +27,8 @@ namespace TaskFocusDesktop.ViewModels
                               IProjectEndpoint projectEndpoint,
                               IContextEndpoint contextEndpoint,
                               IMapper mapper,
-                              IWindowManager window) : base(apiHelper, userEndpoint, taskEndpoint, projectEndpoint, contextEndpoint, mapper, window)
+                              IDataHelper dataHelper,
+                              IWindowManager window) : base(apiHelper, userEndpoint, taskEndpoint, projectEndpoint, contextEndpoint, mapper, dataHelper, window)
         {
         }
 

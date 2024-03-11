@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using TaskFocusDesktop.Commands;
 using TaskFocusUI.Library.API;
 using TaskFocusUI.Library.Models;
-using TaskFocusDesktop.Models;
+using TaskFocusUI.Library.Utilities;
 
 namespace TaskFocusDesktop.ViewModels
 {
@@ -19,11 +19,12 @@ namespace TaskFocusDesktop.ViewModels
         IProjectEndpoint _projectEndpoint;
         IContextEndpoint _contextEndpoint;
         IMapper _mapper;
+        IDataHelper _dataHelper;
         protected IWindowManager _window;
         public RelayCommand DeleteTaskCommand => new RelayCommand(async execute => await DeleteTask());
 
         public TaskViewModelBase(IAPIHelper apiHelper, IUserEndpoint userEndpoint, ITaskEndpoint taskEndpoint, IProjectEndpoint projectEndpoint,
-            IContextEndpoint contextEndpoint, IMapper mapper, IWindowManager windowManager)
+            IContextEndpoint contextEndpoint, IMapper mapper, IDataHelper dataHelper, IWindowManager windowManager)
         {
             _apiHelper = apiHelper;
             _userEndpoint = userEndpoint;
@@ -31,6 +32,7 @@ namespace TaskFocusDesktop.ViewModels
             _projectEndpoint = projectEndpoint;
             _contextEndpoint = contextEndpoint;
             _mapper = mapper;
+            _dataHelper = dataHelper;
             _window = windowManager;
         }
 
@@ -139,7 +141,7 @@ namespace TaskFocusDesktop.ViewModels
 
             foreach (TaskDisplayModel displayTask in Tasks)
             {
-                displayTask.PropertyChanged += onExistingTaskPropertyChanged; // subscribe to property changed event
+                displayTask.PropertyChanged += OnExistingTaskPropertyChanged; // subscribe to property changed event
             }
 
             var projectList = await _projectEndpoint.GetAllProjectsForUser();
@@ -152,37 +154,9 @@ namespace TaskFocusDesktop.ViewModels
             List<TaskDisplayModel> newTaskList = new List<TaskDisplayModel>();
             TaskDisplayModel newTaskPlaceholder = new TaskDisplayModel();
             NewTask = newTaskPlaceholder;
-            NewTask.PropertyChanged += onNewTaskPropertyChanged; // subscribe to property changed event
+            NewTask.PropertyChanged += OnNewTaskPropertyChanged; // subscribe to property changed event
             newTaskList.Add(newTaskPlaceholder);
             NewTaskList = new BindingList<TaskDisplayModel>(newTaskList);
-        }
-
-        public bool HasTaskDataChanged(TaskModel frontEndTask)
-        {
-            TaskModel taskLastFetch = TasksLastFetch.Find(x => x.Id == frontEndTask.Id);
-
-            bool IsDataEqual(TaskModel taskA, TaskModel taskB)
-            {
-                return taskA.TaskName == taskB.TaskName &&
-                    taskA.Completed == taskB.Completed &&
-                    taskA.ProjectName == taskB.ProjectName &&
-                    taskA.ContextName == taskB.ContextName &&
-                    taskA.DueDate == taskB.DueDate;
-            }
-
-            return !IsDataEqual(frontEndTask, taskLastFetch);
-        }
-
-        public bool HasTaskProjectNameChanged(TaskModel frontEndTask)
-        {
-            TaskModel taskLastFetch = TasksLastFetch.Find(x => x.Id == frontEndTask.Id);
-            return frontEndTask.ProjectName != taskLastFetch.ProjectName;
-        }
-
-        public bool HasTaskContextNameChanged(TaskModel frontEndTask)
-        {
-            TaskModel taskLastFetch = TasksLastFetch.Find(x => x.Id == frontEndTask.Id);
-            return frontEndTask.ContextName != taskLastFetch.ContextName;
         }
 
         public async Task AssignProjectIdFromProjectName(TaskModel task)
@@ -282,14 +256,14 @@ namespace TaskFocusDesktop.ViewModels
             // map from TaskDisplayModel to TaskModel
             TaskModel task = _mapper.Map<TaskModel>(displayTask);
 
-            if (HasTaskDataChanged(task))
+            if (_dataHelper.HasTaskDataChanged(task))
             {
-                if (HasTaskProjectNameChanged(task))
+                if (_dataHelper.HasTaskProjectNameChanged(task))
                 {
                     await AssignProjectIdFromProjectName(task);
                 }
 
-                if (HasTaskContextNameChanged(task))
+                if (_dataHelper.HasTaskContextNameChanged(task))
                 {
                     await AssignContextIdFromContextName(task);
                 }
@@ -301,49 +275,18 @@ namespace TaskFocusDesktop.ViewModels
             }
         }
 
-        public async Task UpdateAllPendingTaskData()
-        {
-            // map from TaskDisplayModel to TaskModel
-            List<TaskModel> allTasks = _mapper.Map<List<TaskModel>>(Tasks);
-
-            bool somethingWasUpdated = false;
-
-            foreach (var task in allTasks)
-            {
-                if (HasTaskDataChanged(task))
-                {
-                    if (HasTaskProjectNameChanged(task))
-                    {
-                        await AssignProjectIdFromProjectName(task);
-                    }
-
-                    if (HasTaskContextNameChanged(task))
-                    {
-                        await AssignContextIdFromContextName(task);
-                    }
-
-                    await _taskEndpoint.UpdateTask(task);
-                    somethingWasUpdated = true;
-                }
-            }
-
-            if (somethingWasUpdated)
-            {
-                // refresh Tasks + repopulate TasksLastFetch
-                await LoadTasks();
-            }
-        }
-
         // saves updated task data to server on property change
-        private async void onExistingTaskPropertyChanged(object sender, PropertyChangedEventArgs e)
+        private async void OnExistingTaskPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             string changedProperty = e.PropertyName;
             TaskDisplayModel senderTask = (TaskDisplayModel)sender;
+            // map from TaskDisplayModel to TaskModel
+            //TaskModel task = _mapper.Map<TaskModel>(senderTask);
 
             await UpdateTaskData(senderTask);
         }
 
-        private void onNewTaskPropertyChanged(object sender, PropertyChangedEventArgs e)
+        private void OnNewTaskPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             string changedProperty = e.PropertyName;
 

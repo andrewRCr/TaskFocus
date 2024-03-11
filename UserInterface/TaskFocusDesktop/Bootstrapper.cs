@@ -11,9 +11,9 @@ using System.Windows;
 using System.Windows.Controls;
 using TaskFocusUI.Library.API;
 using TaskFocusUI.Library.Models;
-using TaskFocusDesktop.Models;
 using TaskFocusDesktop.Utilities;
 using TaskFocusDesktop.ViewModels;
+using TaskFocusUI.Library.Utilities;
 
 namespace TaskFocusDesktop
 {
@@ -76,7 +76,8 @@ namespace TaskFocusDesktop
                 .Singleton<IWindowManager, WindowManager>()
                 .Singleton<IEventAggregator, EventAggregator>()
                 .Singleton<ILoggedInUserModel, LoggedInUserModel>()
-                .Singleton<IAPIHelper, APIHelper>();
+                .Singleton<IAPIHelper, APIHelper>()
+                .Singleton<IDataHelper, DataHelper>();
 
             // register view models - create new instance each time one is requested
             GetType().Assembly.GetTypes()

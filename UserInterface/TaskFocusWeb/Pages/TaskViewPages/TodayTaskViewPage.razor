@@ -27,7 +27,7 @@
 @code {
     private int todayItemCount = 0;
 
-    public override bool ItemsSelector(TaskModel item, string dropzone)
+    public override bool ItemsSelector(TaskDisplayModel item, string dropzone)
     {
         // TODO: swap Completed prop check to Starred once that prop is implemented!
         if (item.DueDate == DateTime.Today || item.Completed)

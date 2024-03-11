@@ -16,7 +16,7 @@
         }
         else // all projects view
         {
-            <MudDropContainer T="TaskModel" Items="Tasks" ItemsSelector="@((item, dropzone) => item.ProjectName == dropzone)" Class="flex-grow-1">
+            <MudDropContainer T="TaskDisplayModel" Items="Tasks" ItemsSelector="@((item, dropzone) => item.ProjectName == dropzone)" Class="flex-grow-1">
                 <ChildContent>
                     <ProjectContainerComponent ContainerProjectItemsParam="@Projects" ContainerItemsSelectorParam="@ProjectItemsSelector" IsExpanded=@_isProjectExpanded />
                 </ChildContent>

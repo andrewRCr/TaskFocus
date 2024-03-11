@@ -1,11 +1,15 @@
+using AutoMapper;
 using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor.Services;
+using MudExtensions.Services;
 using TaskFocusUI.Library.API;
 using TaskFocusUI.Library.Models;
+using TaskFocusUI.Library.Utilities;
 using TaskFocusWeb.Authentication;
+using TaskFocusWeb.Models;
 
 namespace TaskFocusWeb
 {
@@ -18,6 +22,7 @@ namespace TaskFocusWeb
             builder.RootComponents.Add<HeadOutlet>("head::after");
 
             // dependency injection
+
             builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
             builder.Services.AddBlazoredLocalStorage();
             builder.Services.AddAuthorizationCore();
@@ -30,9 +35,24 @@ namespace TaskFocusWeb
             builder.Services.AddTransient<IProjectEndpoint, ProjectEndpoint>();
             builder.Services.AddTransient<IContextEndpoint, ContextEndpoint>();
             builder.Services.AddSingleton(new AppState());
+            builder.Services.AddSingleton<IDataHelper, DataHelper>();
+
+            IMapper ConfigureAutomapper()
+            {
+                var config = new MapperConfiguration(cfg =>
+                {
+                    cfg.CreateMap<TaskModel, TaskDisplayModel>();
+                    cfg.CreateMap<TaskDisplayModel, TaskModel>();
+                });
+
+                return config.CreateMapper();
+            }
+
+            builder.Services.AddSingleton(ConfigureAutomapper());
 
             builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
             builder.Services.AddMudServices();
+            builder.Services.AddMudExtensions();
 
             await builder.Build().RunAsync();
         }

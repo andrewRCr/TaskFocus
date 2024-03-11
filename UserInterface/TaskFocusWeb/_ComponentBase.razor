@@ -5,6 +5,8 @@
 @inject ITaskEndpoint TaskEndpoint
 @inject IProjectEndpoint ProjectEndpoint
 @inject IContextEndpoint ContextEndpoint
+@inject IMapper Mapper
+@inject IDataHelper DataHelper
 
 @code {
     [Inject]
@@ -13,12 +15,19 @@
     [CascadingParameter]
     public Task<AuthenticationState> AuthState { get; set; } = default!;
 
-    public List<TaskModel>? Tasks { get; set; }
-    public List<TaskModel>? TasksLastFetch { get; set; }
-
     // protected List<int> inboxOrderedTasks;
     // protected List<int> orderedProjects;
     // protected List<int> orderedContexts;
+
+    private List<TaskDisplayModel>? _tasks;
+    public List<TaskDisplayModel>? Tasks
+    {
+        get { return _tasks; }
+        set
+        {
+            _tasks = value;
+        }
+    }
 
     private List<ProjectModel>? _projects;
     public List<ProjectModel>? Projects
@@ -73,18 +82,140 @@
 
     protected virtual async Task LoadTasks(bool inboxOnly = false)
     {
+        Task<List<TaskModel>> loadTaskToCall = null;
+
         if (inboxOnly)
         {
-            Tasks = await TaskEndpoint.GetInboxTasksForUser();
+            loadTaskToCall = TaskEndpoint.GetInboxTasksForUser();
         }
         else
         {
-            Tasks = await TaskEndpoint.GetAllTasksForUser();
+            loadTaskToCall = TaskEndpoint.GetAllTasksForUser();
         }
 
-        TasksLastFetch = Tasks; // store for comparison
+        var taskList = await loadTaskToCall;
+        DataHelper.TasksLastFetch = taskList; // store for comparison
+
+        var displayTaskList = Mapper.Map<List<TaskDisplayModel>>(taskList);
+        Tasks = new List<TaskDisplayModel>(displayTaskList);
+
+        foreach (TaskDisplayModel task in Tasks)
+        {
+            task.PropertyChanged += OnExistingTaskPropertyChanged!; // subscribe to property changed event
+        }
 
         Projects = await ProjectEndpoint.GetAllProjectsForUser();
         Contexts = await ContextEndpoint.GetAllContextsForUser();
+    }
+
+    // saves updated task data to server on property change
+    protected async void OnExistingTaskPropertyChanged(object sender, PropertyChangedEventArgs e)
+    {
+        string? changedProperty = e.PropertyName;
+        TaskDisplayModel senderTask = (TaskDisplayModel)sender;
+        Console.WriteLine($"{senderTask.TaskName}'s property {changedProperty} was changed.");
+
+        await UpdateTaskData(senderTask);
+    }
+
+    // post updated task data to API for a single task
+    public async Task UpdateTaskData(TaskDisplayModel displayTask)
+    {
+        Console.WriteLine("UpdateTaskData called!");
+
+        // map from TaskDisplayModel to TaskModel
+        TaskModel task = Mapper.Map<TaskModel>(displayTask);
+
+        if (DataHelper.HasTaskDataChanged(task))
+        {
+            if (DataHelper.HasTaskProjectNameChanged(task))
+            {
+                await AssignProjectIdFromProjectName(task);
+            }
+
+            if (DataHelper.HasTaskContextNameChanged(task))
+            {
+                await AssignContextIdFromContextName(task);
+            }
+
+            await TaskEndpoint.UpdateTask(task);
+
+            // refresh Tasks + repopulate TasksLastFetch
+            await LoadTasks();
+        }
+    }
+
+    public async Task AssignProjectIdFromProjectName(TaskModel task)
+    {
+        if (task.ProjectName == null) { task.ProjectId = null; }
+        else
+        {
+            // lookup projectId by projectName and assign
+            // TODO: need to enforce uniqueness of the projectName property - casing, etc; something. ensure these will match!
+
+            ProjectModel? FindAssignedProject()
+            {
+                List<ProjectModel> userProjects = Projects!.ToList();
+                return userProjects.Find(x => x.ProjectName == task.ProjectName);
+            }
+
+            ProjectModel? assignedProject = FindAssignedProject();
+            if (assignedProject == null)
+            {
+                ProjectModel newProject = new ProjectModel { ProjectName = task.ProjectName };
+                await AddProject(newProject);
+
+                assignedProject = FindAssignedProject();
+            }
+
+            task.ProjectId = assignedProject!.Id;
+        }
+    }
+
+    public async Task AssignContextIdFromContextName(TaskModel task)
+    {
+        if (task.ContextName != null)
+        {
+            // lookup ContextId by contextName and assign
+            // TODO: need to enforce uniqueness of the contextName property - casing, etc; something. ensure these will match!
+
+            ContextModel? FindAssignedContext()
+            {
+                List<ContextModel> userContexts = Contexts!.ToList();
+                return userContexts.Find(x => x.ContextName == task.ContextName);
+            }
+
+            ContextModel? assignedContext = FindAssignedContext();
+
+            if (assignedContext == null)
+            {
+                ContextModel newContext = new ContextModel { ContextName = task.ContextName };
+                await AddContext(newContext);
+
+                assignedContext = FindAssignedContext();
+            }
+
+            task.ContextId = assignedContext!.Id;
+        }
+    }
+
+    public async Task AddProject(ProjectModel newProject)
+    {
+        if (string.IsNullOrWhiteSpace(newProject.ProjectName)) { return; }
+
+        await ProjectEndpoint.AddProject(newProject, ApiHelper.GetLoggedInUserId());
+
+        // refresh Tasks, Projects, Contexts + clear NewTask
+        await LoadTasks();
+    }
+
+    public async Task AddContext(ContextModel newContext)
+    {
+        if (string.IsNullOrWhiteSpace(newContext.ContextName)) { return; }
+
+        await ContextEndpoint.AddContext(newContext, ApiHelper.GetLoggedInUserId());
+
+        // refresh Tasks, Projects, Contexts + clear NewTask
+        await LoadTasks();
     }
 }

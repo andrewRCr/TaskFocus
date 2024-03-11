@@ -26,29 +26,31 @@
                               Clearable=@isTaskNameClearable @onmouseenter="()=> SetIsTaskNameClearable(true)" AutoGrow />
             </MudItem>
 
-            <!-- projectId input -->
-            <MudItem xs="2">
-                <MudSelect T="int?" Placeholder="Project" AnchorOrigin="Origin.BottomCenter" @bind-Value="TaskParam.ProjectId" Margin="Margin.Dense">
-                @foreach (ProjectModel project in ProjectsParam)
-                {
-                    <MudSelectItem Value="@(project.Id)">@project.ProjectName</MudSelectItem>
-                }
-            </MudSelect>
-                </MudItem>
+            <!-- projectName input -->
+            <MudItem xs="2" @onmouseenter="()=> SetIsProjectNameClearable(true)" @onmouseleave="()=> SetIsProjectNameClearable(false)">
+                <MudSelect T="string" Placeholder="Project" AnchorOrigin="Origin.BottomCenter" @bind-Value="TaskParam.ProjectName" Margin="Margin.Dense"
+                           Clearable=@isProjectNameClearable >
+                    @foreach (ProjectModel project in ProjectsParam)
+                    {
+                        <MudSelectItem Value="@(project.ProjectName)">@project.ProjectName</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
 
-            <!-- contextId input -->
-            <MudItem xs="2">
-                <MudSelect T="int?" Placeholder="Context" AnchorOrigin="Origin.BottomCenter" @bind-Value="TaskParam.ContextId" Margin="Margin.Dense">
-                @foreach (ContextModel context in ContextsParam)
-                {
-                    <MudSelectItem Value="@(context.Id)">@context.ContextName</MudSelectItem>
-                }
-            </MudSelect>
+            <!-- contextName input -->
+            <MudItem xs="2" @onmouseenter="()=> SetIsContextNameClearable(true)" @onmouseleave="()=> SetIsContextNameClearable(false)">
+                <MudSelect T="string" Placeholder="Context" AnchorOrigin="Origin.BottomCenter" @bind-Value="TaskParam.ContextName" Margin="Margin.Dense"
+                           Clearable=@isContextNameClearable>
+                    @foreach (ContextModel context in ContextsParam)
+                    {
+                        <MudSelectItem Value="@(context.ContextName)">@context.ContextName</MudSelectItem>
+                    }
+                </MudSelect>
             </MudItem>
 
             <!-- due date input -->
             <MudItem xs="2">
-                <MudDatePicker Placeholder="Due" @bind-Date="TaskParam.DueDate" Margin="Margin.Dense" />
+                <MudDatePicker Placeholder="Due" @bind-Date="TaskParam.DueDate" Margin="Margin.Dense" Clearable />
             </MudItem>
 
         </MudGrid>
@@ -59,7 +61,7 @@
 
 @code {
     [Parameter]
-    public TaskModel TaskParam { get; set; } = default!;
+    public TaskDisplayModel TaskParam { get; set; } = default!;
 
     [Parameter]
     public List<ProjectModel> ProjectsParam { get; set; } = default!;
@@ -68,12 +70,24 @@
     public List<ContextModel> ContextsParam { get; set; } = default!;
 
     bool isTaskNameClearable = false;
+    bool isProjectNameClearable = false;
+    bool isContextNameClearable = false;
     bool showStarIcon = false;
     string starredClassStr = "invisible";
 
     void SetIsTaskNameClearable(bool newClearable)
     {
         isTaskNameClearable = newClearable;
+    }
+
+    void SetIsProjectNameClearable(bool newClearable)
+    {
+        isProjectNameClearable = newClearable;
+    }
+
+    void SetIsContextNameClearable(bool newClearable)
+    {
+        isContextNameClearable = newClearable;
     }
 
     void SetElementsActive(bool newActive)

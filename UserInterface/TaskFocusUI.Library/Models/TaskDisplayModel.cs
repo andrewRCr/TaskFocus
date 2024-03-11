@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
-namespace TaskFocusDesktop.Models
+namespace TaskFocusUI.Library.Models
 {
     public class TaskDisplayModel : INotifyPropertyChanged
     {
@@ -20,7 +18,6 @@ namespace TaskFocusDesktop.Models
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-
 
         // user-editable properties
         // ====================
@@ -38,7 +35,7 @@ namespace TaskFocusDesktop.Models
         private bool _completed = false;
         public bool Completed
         {
-            get {  return _completed; }
+            get { return _completed; }
             set
             {
                 _completed = value;
@@ -50,9 +47,9 @@ namespace TaskFocusDesktop.Models
         public string ProjectName
         {
             get { return _projectName; }
-            set 
-            { 
-                _projectName = value; 
+            set
+            {
+                _projectName = value;
                 CallPropertyChanged(nameof(ProjectName));
             }
         }
