@@ -174,7 +174,8 @@
 
     public async Task AssignContextIdFromContextName(TaskModel task)
     {
-        if (task.ContextName != null)
+        if (task.ContextName == null) { task.ContextId = null; }
+        else
         {
             // lookup ContextId by contextName and assign
             // TODO: need to enforce uniqueness of the contextName property - casing, etc; something. ensure these will match!
