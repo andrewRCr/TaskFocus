@@ -121,8 +121,6 @@
     // post updated task data to API for a single task
     public async Task UpdateTaskData(TaskDisplayModel displayTask)
     {
-        Console.WriteLine("UpdateTaskData called!");
-
         // map from TaskDisplayModel to TaskModel
         TaskModel task = Mapper.Map<TaskModel>(displayTask);
 

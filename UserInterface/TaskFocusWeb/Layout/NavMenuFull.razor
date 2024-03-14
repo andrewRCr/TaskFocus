@@ -1,0 +1,44 @@
+﻿@inherits _ComponentBase
+
+<MudNavMenu Bordered="true" Style="display: flex; flex-flow: column; height: inherit; width:250px;">
+    <AuthorizeView>
+        <Authorized>
+
+            <MudNavLink Class="mainNavLink" Href="inbox" Match="NavLinkMatch.Prefix">
+                 Inbox
+            </MudNavLink>
+            <MudNavLink Class="mainNavLink" Href="today" Match="NavLinkMatch.Prefix">
+                 Today
+            </MudNavLink>
+
+            <div @onclick=@ResetFocusedProjectIdStr>
+                <MudNavLink Class="mainNavLink" Href="projects" Match="NavLinkMatch.Prefix">
+                     Projects
+                </MudNavLink>
+            </div>
+
+            <div @onclick=@ResetFocusedContextIdStr>
+                <MudNavLink Class="mainNavLink" Href="contexts" Match="NavLinkMatch.Prefix">
+                       Contexts
+                </MudNavLink>
+            </div>
+
+            <MudDivider />
+            <MudNavLink Class="mainNavLink" Href="verifyauth" Match="NavLinkMatch.Prefix">Verify Auth</MudNavLink>
+        </Authorized>
+    </AuthorizeView>
+</MudNavMenu>
+
+@code {
+    private void ResetFocusedProjectIdStr()
+    {
+        AppState.FocusedProjectIdStr = null;
+        AppState.ShowProjectSubMenu = true;
+    }
+
+    private void ResetFocusedContextIdStr()
+    {
+        AppState.FocusedContextIdStr = null;
+        AppState.ShowContextSubMenu = true;
+    }
+}

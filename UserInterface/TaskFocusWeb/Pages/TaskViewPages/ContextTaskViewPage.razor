@@ -3,9 +3,27 @@
 
 @if (Context != null && Tasks != null)
 {
+    <MudStack Style="width:100%;">
+
+        <MudPaper Square Class="mud-background-gray" Elevation="25">
+            <MudButton Disabled Class="mx-2">@Context.ContextName</MudButton>
+        </MudPaper>
+
     <TaskContainerComponent ContainerTaskItemsParam="@Tasks" ContainerIdentifierParam="@Context.ContextName" ContainerItemsSelectorParam="@ItemsSelector"
                             ContainerProjectsParam="@Projects" ContainerContextsParam="@Contexts" />
+    </MudStack>
 }
+
+<style>
+    .mud-button {
+        &:disabled
+        {
+            color: #7e6fff !important;
+            cursor: default;
+            pointer-events: none;
+        }
+    }
+</style>
 
 @code {
     [Parameter]

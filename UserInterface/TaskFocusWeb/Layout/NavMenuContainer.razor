@@ -1,0 +1,36 @@
+﻿@inherits _ComponentBase
+
+<MudStack Spacing="0" Row="true" Style="height:100%">
+
+    <NavMenuMini ShowBorderHighlight="ShouldShowBorderHighlight()" />
+    <MudDivider Vertical />
+
+    @if (_showProjectSubMenu || _showContextSubMenu)
+    {
+        <SubNavMenu IsProjectsSubMenu="@_showProjectSubMenu" />
+    }
+    else { <NavMenuFull /> }
+
+</MudStack>
+
+@code {
+    private bool _showProjectSubMenu = false;
+    private bool _showContextSubMenu = false;
+
+    protected override Boolean HandleAppStateChanged(String propertyName, AppState state)
+    {
+        if (propertyName != nameof(AppState.ShowProjectSubMenu) && propertyName != nameof(AppState.ShowContextSubMenu))
+        {
+            return false;
+        }
+
+        _showProjectSubMenu = state.ShowProjectSubMenu;
+        _showContextSubMenu = state.ShowContextSubMenu;
+        return true;
+    }
+
+    private bool ShouldShowBorderHighlight()
+    {
+        return _showProjectSubMenu || _showContextSubMenu;
+    }
+}

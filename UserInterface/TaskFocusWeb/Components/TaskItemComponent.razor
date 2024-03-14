@@ -3,7 +3,7 @@
 @implements IBrowserViewportObserver
 @implements IAsyncDisposable
 
-<MudForm Model="@TaskParam">
+@* <MudForm Model="@TaskParam"> *@
 
     <MudStack Row="true"
               @onmouseover="()=> SetElementsActive(true)" @onmouseleave="()=> SetElementsActive(false)">
@@ -18,7 +18,7 @@
             </div>
             <div class="ml-n3">
                 <!-- completed input -->
-                <MudCheckBox @bind-Value="TaskParam.Completed" Size="Size.Small"></MudCheckBox>
+                <MudCheckBox @bind-Value="TaskParam.Completed" Size="Size.Small" />
             </div>
         </div>
 
@@ -96,18 +96,15 @@
             </MudItem>
                 
             <!-- delete task button  -->
-@*          <MudItem xs="1" sm="1" md="1" lg="1" Class="d-flex align-content-center">
-                <MudIconButton Variant="Variant.Text" Icon="@Icons.Material.Filled.DeleteForever" Color="Color.Error" />
-            </MudItem> *@
+         <MudItem xs="1" sm="1" md="1" lg="1" Class="d-flex align-content-center">
+            <MudIconButton Class=@_deleteClassStr Variant="Variant.Text" Icon="@Icons.Material.Filled.DeleteForever" Color="Color.Error" />
+            </MudItem>
 
         </MudGrid>
 
-        <!-- delete task button  -->
-        <MudIconButton Variant="Variant.Text" Icon="@Icons.Material.Filled.DeleteForever" Color="Color.Error" />
-
     </MudStack>
 
-</MudForm>
+@* </MudForm> *@
 
 @code {
     [Inject]
@@ -137,6 +134,9 @@
 
     private bool _showStarIcon = false;
     private string _starredClassStr = "invisible";
+    private string _deleteClassStr = "invisible ";
+    private string _deleteClassStrBase = "invisible ";
+    private string _deleteClassStrSpacing = "mb-n4 ml-n3";
 
     private void SetIsTaskNameClearable(bool newClearable) { _isTaskNameClearable = newClearable; }
     private void SetIsProjectNameClearable(bool newClearable) { _isProjectNameClearable = newClearable; }
@@ -146,11 +146,16 @@
     {
         _showStarIcon = newActive;
 
-        if (newActive) { _starredClassStr = string.Empty; }
+        if (newActive) 
+        { 
+            _starredClassStr = string.Empty;
+            _deleteClassStr = _deleteClassStrSpacing;
+        }
         else
         {
             // TODO: once Starred is its own TaskModel property, swap over from Completed (just placeholder prop for Starred)
             if (!TaskParam.Completed) { _starredClassStr = "invisible"; }
+            _deleteClassStr = _deleteClassStrBase + _deleteClassStrSpacing;
             SetIsTaskNameClearable(false);
         }
     }
@@ -202,7 +207,7 @@
         return itemCollection.Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase));
     }
 
-    // adjusting MudGrid spacing (_gridSpacing) on viewport size change at xs-breakpoint
+    // adjusting element spacing (_gridSpacing, _deleteClassStrSpacing) on viewport size changes
     //=================================
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -228,22 +233,52 @@
         if (width < 600)
         {
             _gridSpacing = 0;
+            _deleteClassStrSpacing = "mt-n10 ml-5";
         }
         else if (width < 960 && width >= 600)
         {
             _gridSpacing = 1;
+            _deleteClassStrSpacing = "mt-n8";
         }
         else if (width < 1280 && width >= 960)
         {
             _gridSpacing = 2;
+            _deleteClassStrSpacing = "mb-n4 ml-n3";
         }
         else if (width >= 1280)
         {
             _gridSpacing = 3;
+            _deleteClassStrSpacing = "mb-n4 ml-n3";
         }
 
-        Console.WriteLine(_gridSpacing);
+        //Console.WriteLine(_gridSpacing);
+
+        _deleteClassStr = _deleteClassStrBase + _deleteClassStrSpacing;
 
         return InvokeAsync(StateHasChanged);
     }
+
+    // private void SetDeleteButtonSpacing(int width)
+    // {
+    //     if (width < 600)
+    //     {
+    //         _deleteClassStrSpacing = "mt-n10 ml-5";
+    //     }
+    //     else if (width < 960 && width >= 600)
+    //     {
+    //         _deleteClassStrSpacing = "mt-n8";
+    //     }
+    //     else if (width < 1280 && width >= 960)
+    //     {
+    //         _deleteClassStrSpacing = "mb-n4 ml-n3";
+    //     }
+    //     else if (width >= 1280)
+    //     {
+    //         _deleteClassStrSpacing = "mb-n4 ml-n3";
+    //     }
+
+    //     _deleteClassStr = _deleteClassStrBase + _deleteClassStrSpacing;
+
+    //     //Console.WriteLine(_deleteClassStrSpacing);
+    // }
 }

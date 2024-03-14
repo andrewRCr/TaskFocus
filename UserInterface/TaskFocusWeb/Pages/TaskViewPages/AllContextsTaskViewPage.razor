@@ -5,9 +5,6 @@
 <PageTitle>TaskFocus: Contexts</PageTitle>
 
 <MudStack Row="true">
-
-    <SubNavMenu IsProjectsSubMenu="false" OnContextFocused="@SetFocusedContextIdStr" />
-
     @if (Contexts != null && Tasks != null)
     {
         @if (_focusedContextIdStr != null)
@@ -28,12 +25,17 @@
             </MudDropContainer>
         }
     }
-
 </MudStack>
 
 @code {
     private bool _isContextExpanded = true;
     private string? _focusedContextIdStr = null;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        AppState.ShowContextSubMenu = true;
+    }
 
     public bool ContextItemsSelector(ContextModel item, string dropzone)
     {
@@ -49,10 +51,5 @@
 
         _focusedContextIdStr = state.FocusedContextIdStr;
         return true;
-    }
-
-    private void SetFocusedContextIdStr(string val)
-    {
-        AppState.FocusedContextIdStr = val;
     }
 }

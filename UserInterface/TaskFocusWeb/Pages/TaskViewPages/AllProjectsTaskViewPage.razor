@@ -5,9 +5,6 @@
 <PageTitle>TaskFocus: Projects</PageTitle>
 
 <MudStack Row="true">
-
-    <SubNavMenu IsProjectsSubMenu="true" OnProjectFocused="@SetFocusedProjectIdStr" />
-
     @if (Projects != null && Tasks != null)
     {
         @if (_focusedProjectIdStr != null)
@@ -28,12 +25,17 @@
             </MudDropContainer>
         }
     }
-
 </MudStack>
 
 @code {
     private bool _isProjectExpanded = true;
     private string? _focusedProjectIdStr = null;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        AppState.ShowProjectSubMenu = true;
+    }
 
     public bool ProjectItemsSelector(ProjectModel item, string dropzone)
     {
@@ -49,10 +51,5 @@
 
         _focusedProjectIdStr = state.FocusedProjectIdStr;
         return true;
-    }
-
-    private void SetFocusedProjectIdStr(string val)
-    {
-        AppState.FocusedProjectIdStr = val;
     }
 }

@@ -1,42 +1,30 @@
 ﻿@inherits _ComponentBase
 
-@inject IProjectEndpoint ProjectEndpoint
-@inject IContextEndpoint ContextEndpoint﻿
-
-<MudNavMenu Bordered="true" Style="display: flex; flex-flow: column; height: inherit;" >
+<MudNavMenu Bordered="@ShowBorderHighlight" Style="display: flex; flex-flow: column; height: inherit; width:60px;" >
     <AuthorizeView>
         <Authorized>
 @*         <MudNavLink Href="all" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">All Tasks</MudNavLink> *@
             <MudNavLink Class="mainNavLink" Href="inbox" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Inbox">
-                Inbox
+               @*  Inbox *@
             </MudNavLink>
             <MudNavLink Class="mainNavLink" Href="today" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Today">
-                Today
+               @*  Today *@
             </MudNavLink>
 
             <div @onclick=@ResetFocusedProjectIdStr>
-            <MudNavLink Class="mainNavLink" Href="projects" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">
-                Projects
+            <MudNavLink Class="mainNavLink" Href="projects" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.AssignmentTurnedIn">
+               @*  Projects *@
             </MudNavLink>
             </div>
 
             <div @onclick=@ResetFocusedContextIdStr>
-            <MudNavLink Class="mainNavLink" Href="contexts" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">
-                Contexts
+            <MudNavLink Class="mainNavLink" Href="contexts" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.AutoAwesomeMotion">
+             @*    Contexts *@
             </MudNavLink>
             </div>
 
-            <MudNavLink Disabled></MudNavLink> @* just for spacing *@
-
-            <MudNavGroup Class="mainNavLink" Title="Pinned" Icon="@Icons.Material.Filled.PushPin" @bind-Expanded="@_isQuickAccessExpanded">
-
-                <MudNavLink  href="#" Icon="@Icons.Material.Filled.List">Placeholder</MudNavLink>
-        
-            </MudNavGroup>
-
-
             <MudDivider  />
-            <MudNavLink Class="mainNavLink" Href="verifyauth" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.ManageAccounts">Verify Auth</MudNavLink>
+            <MudNavLink Class="mainNavLink" Href="verifyauth" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.ManageAccounts">@* Verify Auth *@</MudNavLink>
         </Authorized>
     </AuthorizeView>
 </MudNavMenu>
@@ -50,15 +38,18 @@
 </style>
 
 @code {
-    private bool _isQuickAccessExpanded = false;
+    [Parameter]
+    public bool ShowBorderHighlight { get; set; } = false;
 
     private void ResetFocusedProjectIdStr()
     {
         AppState.FocusedProjectIdStr = null;
+        AppState.ShowProjectSubMenu = true;
     }
 
     private void ResetFocusedContextIdStr()
     {
         AppState.FocusedContextIdStr = null;
+        AppState.ShowContextSubMenu = true;
     }
 }

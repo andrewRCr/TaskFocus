@@ -1,7 +1,7 @@
-﻿@inherits NavMenu
+﻿@inherits _ComponentBase
 
 <MudNavMenu Bordered="true" Style="width: 250px;">
-
+    <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.ArrowBackIosNew" OnClick="HideSubMenu"/>
     <MudButton OnClick="ResetToAllItemsView" Color="Color.Inherit" Class="mx-2">@CollectionName</MudButton>
     <MudDivider />
 
@@ -62,6 +62,12 @@
         { AppState.FocusedProjectIdStr = null; }
         else
         { AppState.FocusedContextIdStr = null; }
+    }
+
+    private void HideSubMenu()
+    {
+        AppState.ShowProjectSubMenu = false;
+        AppState.ShowContextSubMenu = false;
     }
 
     private void SetFocusedItemIdStr(int itemId)

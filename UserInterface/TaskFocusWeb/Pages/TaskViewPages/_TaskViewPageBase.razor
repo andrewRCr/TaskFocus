@@ -1,6 +1,14 @@
 ﻿@inherits _ComponentBase
 
 @code {
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        AppState.ShowProjectSubMenu = false;
+        AppState.ShowContextSubMenu = false;
+    }
+
     public virtual bool ItemsSelector(TaskDisplayModel item, string dropzone)
     {
         return true;
