@@ -4,6 +4,7 @@
 <MudDialogProvider />
 <MudSnackbarProvider />
 
+
 <MudLayout>
     <MudAppBar Elevation="0">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
@@ -20,7 +21,7 @@
         </AuthorizeView>
     </MudAppBar>
 
-    <MudDrawer @bind-Open="@_drawerOpen" Elevation="1" Width="300px">
+    <MudDrawer @bind-Open="@_drawerOpen" Elevation="1" Width="300px" Variant="@DrawerVariant.Responsive" Breakpoint="Breakpoint.Md" PreserveOpenState="true">
             <MudDrawerHeader Class="d-flex align-center">
                 <MudIcon Icon="@Icons.Material.Filled.OfflinePin" Color="Color.Primary" Class="mr-3" />
                 <MudText Color="Color.Primary" Typo="Typo.h6" Style="font-family:Bahnschrift; font-weight:700; font-size:x-large;">TaskFocus</MudText>
@@ -29,7 +30,9 @@
     </MudDrawer>
 
     <MudMainContent>
-        @Body
+        <div class="col-12  col-xxl-10">
+            @Body
+        </div>
     </MudMainContent>
 </MudLayout>
 

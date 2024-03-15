@@ -3,108 +3,131 @@
 @implements IBrowserViewportObserver
 @implements IAsyncDisposable
 
-@* <MudForm Model="@TaskParam"> *@
+<MudStack Row="true" 
+            @onmouseover="()=> SetElementsActive(true)" @onmouseleave="()=> SetElementsActive(false)">
 
-    <MudStack Row="true"
-              @onmouseover="()=> SetElementsActive(true)" @onmouseleave="()=> SetElementsActive(false)">
-
-        <div class="d-flex align-center ml-1">
-            <!-- drag indicator icon -->
-            <MudIcon Icon="@Icons.Material.Filled.DragIndicator" />
-            <div class="ml-n1">
-                <!-- starred/today input -->
-                <MudCheckBox Class="@_starredClassStr" @bind-Value="TaskParam.Completed" Size="Size.Medium" Color="Color.Default"
-                             CheckedIcon="@Icons.Material.Filled.Star" UncheckedIcon="@Icons.Material.Filled.StarOutline" />
-            </div>
-            <div class="ml-n3">
-                <!-- completed input -->
-                <MudCheckBox @bind-Value="TaskParam.Completed" Size="Size.Small" />
-            </div>
+    <div class="d-flex align-center ml-1">
+        <!-- drag indicator icon -->
+        <MudIcon Icon="@Icons.Material.Filled.DragIndicator" />
+        <div class="ml-n1">
+            <!-- starred/today input -->
+            <MudCheckBox Class="@_starredClassStr" @bind-Value="TaskParam.Completed" Size="Size.Medium" Color="Color.Default"
+                            CheckedIcon="@Icons.Material.Filled.Star" UncheckedIcon="@Icons.Material.Filled.StarOutline" />
         </div>
+        <div class="ml-n3">
+            <!-- completed input -->
+            <MudCheckBox @bind-Value="TaskParam.Completed" Size="Size.Small" />
+        </div>
+    </div>
 
-        <MudGrid Class="pb-3" Spacing="@(_gridSpacing)">
+    <MudGrid Class="pb-3" Spacing="@(_gridSpacing)">
    
-            <!-- taskName input -->
-            <MudItem xs="8" sm="5" md="3" lg="2">
-                <MudTextField @bind-Value="TaskParam.TaskName" Placeholder="Task" Variant="Variant.Text" Margin="Margin.Dense" 
-                              Clearable=@_isTaskNameClearable @onmouseenter="()=> SetIsTaskNameClearable(true)" AutoGrow />
-            </MudItem>
+        <!-- taskName input -->
+        <MudItem xs="8" sm="5" md="3" lg="3" xl="3" @onmouseenter="()=> SetIsTaskNameClearable(true)"
+                @onmouseleave="()=> SetIsTaskNameClearable(false)">
+            <MudTextField @bind-Value="TaskParam.TaskName" Placeholder="Task" Variant="Variant.Text" Margin="Margin.Dense" 
+                            Clearable=@_isTaskNameClearable @onmouseenter="()=> SetIsTaskNameClearable(true)" AutoGrow />
+        </MudItem>
 
-            <!-- projectName input-->
-            <MudItem xs="8" sm="5" md="3" lg="2" @onmouseenter="()=> SetIsProjectNameClearable(true)" 
-                            @onmouseleave="()=> SetIsProjectNameClearable(false)" 
-                            @onfocusout="()=> CloseSelectInputMenu(_projectSelectInput)">
-                <MudAutocomplete @ref="_projectSelectInput"
-                                 T="string" 
-                                 @bind-Value="TaskParam.ProjectName"
-                                 SearchFunc="@((x)=> ItemCollectionSearch(_projectNames, x))" 
-                                 Margin="Margin.Dense"
-                                 Dense="true"
-                                 Clearable="@_isProjectNameClearable"
-                                 Placeholder="Project"
-                                 AnchorOrigin="Origin.BottomCenter"
-                                 ResetValueOnEmptyText="true"
-                                 Strict="false"
-                                 CoerceText="true"
-                                 SelectOnClick="true"
-                                 SelectValueOnTab="true"
-                                 OnClearButtonClick="()=>FocusSelectInputAfterClear(_projectSelectInput)">
-                    <ItemTemplate Context="e">
-                        <!-- capturing _itemClicked in dropdown list content -->
-                        <div @onmousedown="OnItemMouseDown"> 
-                            <MudText>
-                                @($"{e}")
-                            </MudText>
-                         </div>
-                    </ItemTemplate>
-                </MudAutocomplete>
-            </MudItem>
-
-            <!-- contextName input-->
-            <MudItem xs="8" sm="5" md="3" lg="2" @onmouseenter="()=> SetIsContextNameClearable(true)"
-                     @onmouseleave="()=> SetIsContextNameClearable(false)"
-                     @onfocusout="()=> CloseSelectInputMenu(_contextSelectInput)">
-                <MudAutocomplete @ref="_contextSelectInput"
-                                 T="string"
-                                 @bind-Value="TaskParam.ContextName"
-                                 SearchFunc="@((x) => ItemCollectionSearch(_contextNames, x))"
-                                 Margin="Margin.Dense"
-                                 Dense="true"
-                                 Clearable="@_isContextNameClearable"
-                                 Placeholder="Context"
-                                 AnchorOrigin="Origin.BottomCenter"
-                                 ResetValueOnEmptyText="true"
-                                 Strict="false"
-                                 CoerceText="true"
-                                 SelectOnClick="true"
-                                 SelectValueOnTab="true"
-                                 OnClearButtonClick="()=>FocusSelectInputAfterClear(_contextSelectInput!)">
-                    <ItemTemplate Context="e">
-                        <!-- capturing _itemClicked in dropdown list content -->
-                        <div @onmousedown="OnItemMouseDown">
-                            <MudText>
-                                @($"{e}")
-                            </MudText>
+        <!-- projectName input-->
+    <MudItem xs="8" sm="5" md="3" lg="3" xl="3" @onmouseenter="()=> SetIsProjectNameClearable(true)"
+                @onmouseleave="()=> SetIsProjectNameClearable(false)" 
+                        @onfocusout="()=> CloseSelectInputMenu(_projectSelectInput)">
+            <MudAutocomplete @ref="_projectSelectInput"
+                                T="string" 
+                                @bind-Value="TaskParam.ProjectName"
+                                SearchFunc="@((x)=> ItemCollectionSearch(_projectNames, x))" 
+                                Margin="Margin.Dense"
+                                Dense="true"
+                                Clearable="@_isProjectNameClearable"
+                                Placeholder="Project"
+                                AnchorOrigin="Origin.BottomCenter"
+                                ResetValueOnEmptyText="true"
+                                Strict="false"
+                                CoerceText="true"
+                                SelectOnClick="true"
+                                SelectValueOnTab="true"
+                                OnClearButtonClick="()=>FocusSelectInputAfterClear(_projectSelectInput)">
+                <ItemTemplate Context="e">
+                    <!-- capturing _itemClicked in dropdown list content -->
+                    <div @onmousedown="OnItemMouseDown"> 
+                        <MudText>
+                            @($"{e}")
+                        </MudText>
                         </div>
-                    </ItemTemplate>
-                </MudAutocomplete>
-            </MudItem>
+                </ItemTemplate>
+            </MudAutocomplete>
+        </MudItem>
 
-            <!-- due date input -->
-            <MudItem xs="8" sm="5" md="2" lg="2">
-                <MudDatePicker Placeholder="Due" @bind-Date="TaskParam.DueDate" Margin="Margin.Dense" Clearable />
-            </MudItem>
+        <!-- contextName input-->
+        <MudItem xs="8" sm="5" md="3" lg="3" xl="3" @onmouseenter="()=> SetIsContextNameClearable(true)"
+                    @onmouseleave="()=> SetIsContextNameClearable(false)"
+                    @onfocusout="()=> CloseSelectInputMenu(_contextSelectInput)">
+            <MudAutocomplete @ref="_contextSelectInput"
+                                T="string"
+                                @bind-Value="TaskParam.ContextName"
+                                SearchFunc="@((x) => ItemCollectionSearch(_contextNames, x))"
+                                Margin="Margin.Dense"
+                                Dense="true"
+                                Clearable="@_isContextNameClearable"
+                                Placeholder="Context"
+                                AnchorOrigin="Origin.BottomCenter"
+                                ResetValueOnEmptyText="true"
+                                Strict="false"
+                                CoerceText="true"
+                                SelectOnClick="true"
+                                SelectValueOnTab="true"
+                                OnClearButtonClick="()=>FocusSelectInputAfterClear(_contextSelectInput!)">
+                <ItemTemplate Context="e">
+                    <!-- capturing _itemClicked in dropdown list content -->
+                    <div @onmousedown="OnItemMouseDown">
+                        <MudText>
+                            @($"{e}")
+                        </MudText>
+                    </div>
+                </ItemTemplate>
+            </MudAutocomplete>
+        </MudItem>
+
+        <!-- due date input -->
+        <MudItem xs="8" sm="5" md="2" lg="2" xl="2">
+
+        <MudDatePicker @ref="_datePicker"
+                        @bind-Date="TaskParam.DueDate"
+                        OnClick="()=> _datePicker.SelectAsync()"
+                        Placeholder="Due" 
+                        Margin="Margin.Dense" 
+                        DisableToolbar="true"
+                        Editable="true"
+                        AutoClose="false"
+                        @onmousedown="OnItemMouseDown"
+                        @onfocusout="DatePickerClose" >
+                <PickerActions>
+                        
+                    <MudButton Class="mr-auto align-self-start" OnClick="@(() => _datePicker.Clear())">Clear</MudButton>
+                    <MudButton OnClick="@(() => _datePicker.Close(false))">Cancel</MudButton>
+                    <MudButton Color="Color.Primary" OnClick="@(() => _datePicker.Close())">Ok</MudButton>
+                        
+                </PickerActions>
+               
+            </MudDatePicker>
+        </MudItem>
                 
-            <!-- delete task button  -->
-         <MudItem xs="1" sm="1" md="1" lg="1" Class="d-flex align-content-center">
-            <MudIconButton Class=@_deleteClassStr Variant="Variant.Text" Icon="@Icons.Material.Filled.DeleteForever" Color="Color.Error" />
-            </MudItem>
+        <!-- delete task button  -->
+        <MudItem xs="1" sm="1" md="1" lg="1" Class="@_deleteGridItemClassStr">
+        <MudIconButton Class=@_deleteClassStr Variant="Variant.Text" Icon="@Icons.Material.Filled.DeleteForever" Color="Color.Error" />
+        </MudItem>
 
-        </MudGrid>
+    </MudGrid>
 
-    </MudStack>
+</MudStack>
 
-@* </MudForm> *@
+<style>
+    .mud-icon-button {
+        height: fit-content;
+        align-self: center;  
+    }
+</style>
 
 @code {
     [Inject]
@@ -124,6 +147,7 @@
 
     private MudAutocomplete<string> _projectSelectInput = default!;
     private MudAutocomplete<string> _contextSelectInput = default!;
+    private MudDatePicker _datePicker = default!;
 
     private string[] _projectNames = { };
     private string[] _contextNames = { };
@@ -131,16 +155,20 @@
     private bool _isTaskNameClearable = false;
     private bool _isProjectNameClearable = false;
     private bool _isContextNameClearable = false;
+    private bool _isDueDateClearable = false;
+    private bool _datePickerIsOpen = false;
 
     private bool _showStarIcon = false;
     private string _starredClassStr = "invisible";
     private string _deleteClassStr = "invisible ";
     private string _deleteClassStrBase = "invisible ";
     private string _deleteClassStrSpacing = "mb-n4 ml-n3";
+    private string _deleteGridItemClassStr = "d-flex align-content-center pl-6";
 
     private void SetIsTaskNameClearable(bool newClearable) { _isTaskNameClearable = newClearable; }
     private void SetIsProjectNameClearable(bool newClearable) { _isProjectNameClearable = newClearable; }
     private void SetIsContextNameClearable(bool newClearable) { _isContextNameClearable = newClearable; }
+    private void SetIsDueDateClearable(bool newClearable) { _isDueDateClearable = newClearable; }
 
     private void SetElementsActive(bool newActive)
     {
@@ -149,6 +177,7 @@
         if (newActive) 
         { 
             _starredClassStr = string.Empty;
+            _deleteClassStr = string.Empty;
             _deleteClassStr = _deleteClassStrSpacing;
         }
         else
@@ -156,7 +185,6 @@
             // TODO: once Starred is its own TaskModel property, swap over from Completed (just placeholder prop for Starred)
             if (!TaskParam.Completed) { _starredClassStr = "invisible"; }
             _deleteClassStr = _deleteClassStrBase + _deleteClassStrSpacing;
-            SetIsTaskNameClearable(false);
         }
     }
 
@@ -196,15 +224,28 @@
 
     private void OnItemMouseDown()
     {
+        //Console.WriteLine("item clicked!");
         _itemClicked = true;
     }
 
-    private async Task<IEnumerable<string>> ItemCollectionSearch(string[] itemCollection, string value)
+    private void DatePickerClose()
     {
-        // if text is null or empty, show complete list
-        if (string.IsNullOrEmpty(value)) { return itemCollection; }
+        if (!_itemClicked) { _datePicker.Close(); }
+        _itemClicked = false;
+    }
 
-        return itemCollection.Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    private Task<IEnumerable<string>> ItemCollectionSearch(string[] itemCollection, string value)
+    {
+        IEnumerable<string> items = itemCollection;
+
+        // if text is null or empty, show complete list
+        if (string.IsNullOrEmpty(value)) { return Task.FromResult(items); }
+
+        var result = items
+            .Where(item => item.Contains(value, StringComparison.InvariantCultureIgnoreCase))
+            ?? itemCollection;
+
+        return Task.FromResult(result);
     }
 
     // adjusting element spacing (_gridSpacing, _deleteClassStrSpacing) on viewport size changes
@@ -233,22 +274,30 @@
         if (width < 600)
         {
             _gridSpacing = 0;
-            _deleteClassStrSpacing = "mt-n10 ml-5";
+            _deleteClassStrSpacing = "mt-n16 ml-5";
+            _deleteGridItemClassStr = "d-flex align-content-center pr-3 mt-n16";
+            //Console.WriteLine("xs");
         }
         else if (width < 960 && width >= 600)
         {
             _gridSpacing = 1;
             _deleteClassStrSpacing = "mt-n8";
+            _deleteGridItemClassStr = "d-flex align-content-center pl-6";
+            //Console.WriteLine("s");
         }
         else if (width < 1280 && width >= 960)
         {
             _gridSpacing = 2;
-            _deleteClassStrSpacing = "mb-n4 ml-n3";
+            _deleteClassStrSpacing = "mb-n4 ml-n6";
+            _deleteGridItemClassStr = "d-flex align-content-center pl-6";
+            //Console.WriteLine("md");
         }
         else if (width >= 1280)
         {
             _gridSpacing = 3;
             _deleteClassStrSpacing = "mb-n4 ml-n3";
+            _deleteGridItemClassStr = "d-flex align-content-center pl-6";
+            //Console.WriteLine("lg and up");
         }
 
         //Console.WriteLine(_gridSpacing);
@@ -257,28 +306,4 @@
 
         return InvokeAsync(StateHasChanged);
     }
-
-    // private void SetDeleteButtonSpacing(int width)
-    // {
-    //     if (width < 600)
-    //     {
-    //         _deleteClassStrSpacing = "mt-n10 ml-5";
-    //     }
-    //     else if (width < 960 && width >= 600)
-    //     {
-    //         _deleteClassStrSpacing = "mt-n8";
-    //     }
-    //     else if (width < 1280 && width >= 960)
-    //     {
-    //         _deleteClassStrSpacing = "mb-n4 ml-n3";
-    //     }
-    //     else if (width >= 1280)
-    //     {
-    //         _deleteClassStrSpacing = "mb-n4 ml-n3";
-    //     }
-
-    //     _deleteClassStr = _deleteClassStrBase + _deleteClassStrSpacing;
-
-    //     //Console.WriteLine(_deleteClassStrSpacing);
-    // }
 }
