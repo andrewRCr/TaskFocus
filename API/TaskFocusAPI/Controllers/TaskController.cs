@@ -19,6 +19,12 @@ namespace TaskFocusAPI.Controllers
             _taskData = taskData;
         }
 
+        [HttpGet("{taskId}")]
+        public TaskModel GetTaskById(int taskId)
+        {
+            return _taskData.GetTaskById(taskId);
+        }
+
         [HttpGet]
         public List<TaskModel> GetAllTasksForUser()
         {

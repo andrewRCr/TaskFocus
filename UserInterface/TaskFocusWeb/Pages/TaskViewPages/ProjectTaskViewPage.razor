@@ -1,16 +1,16 @@
 ﻿@inherits AllProjectsTaskViewPage
 @inject IProjectEndpoint ProjectEndpoint
 
-@if (Project != null && Tasks != null)
+@if (ProjectParam != null && IsLocalDataLoaded())
 {
     <MudStack Style="width:100%;">
 
         <MudPaper Square Class="mud-background-gray" Elevation="25">
-            <MudButton Disabled Class="mx-2">@Project.ProjectName</MudButton>
+            <MudButton Disabled Class="mx-2">@ProjectParam.ProjectName</MudButton>
         </MudPaper>
 
-        <TaskContainerComponent ContainerTaskItemsParam="@Tasks" ContainerIdentifierParam="@Project.ProjectName" ContainerItemsSelectorParam="@ItemsSelector"
-                                ContainerProjectsParam="@Projects" ContainerContextsParam="@Contexts" />
+        <TaskContainerComponent ContainerTaskItemsParam="@LocalTasks" ContainerIdentifierParam="@ProjectParam.ProjectName" ContainerItemsSelectorParam="@ItemsSelector"
+                                ContainerProjectsParam="@LocalProjects" ContainerContextsParam="@LocalContexts" />
     </MudStack>
 
 
@@ -31,27 +31,44 @@
     [Parameter]
     public string ProjectId { get; set; } = default!;
 
-    public ProjectModel Project { get; set; } = default!;
+    public ProjectDisplayModel ProjectParam { get; set; } = default!;
 
     bool isValid = false;
     int integerProjectId;
 
-    protected override async Task OnParametersSetAsync()
+    protected override void OnParametersSet()
     {
-        await GetProjectFromId();
+        GetProjectFromId();
     }
 
-    protected async Task GetProjectFromId()
+    protected void GetProjectFromId()
     {
         isValid = int.TryParse(ProjectId, out integerProjectId);
         if (isValid)
         {
-            Project = await ProjectEndpoint.GetProjectById(integerProjectId);
+            ProjectParam = DataState.Projects!.Find(x => x.Id == integerProjectId)!;
         }  
     }
 
     public override bool ItemsSelector(TaskDisplayModel item, string dropzone)
     {
         return item.ProjectName == dropzone;
+    }
+
+    protected override bool HandleDataStateChanged(string propertyName, DataState dataState)
+    {
+        if (propertyName != nameof(DataState.Projects))
+        {
+            return false;
+        }
+
+        if (AppState.CanRefresh)
+        {
+            LoadAllLocalData();
+            GetProjectFromId();
+            //Console.WriteLine("ProjectTaskViewPage: returned true on HandleDataStateChanged!");
+        }
+
+        return AppState.CanRefresh;
     }
 }

@@ -1,7 +1,7 @@
 ﻿<MudExpansionPanels DisableBorders="true" Elevation="0" MultiExpansion="true">
-    <MudDropContainer T="ContextModel" Items="@ContainerContextItemsParam" ItemsSelector="@ContainerItemsSelectorParam" Class="5">
+    <MudDropContainer T="ContextDisplayModel" Items="@ContainerContextItemsParam" ItemsSelector="@ContainerItemsSelectorParam" Class="5">
         <ChildContent>
-            <MudDropZone T="ContextModel" AllowReorder Class="6 rounded mud-background-gray px-2 py-1 ma-2" />
+            <MudDropZone T="ContextDisplayModel" AllowReorder Class="6 rounded mud-background-gray px-2 py-1 ma-2" />
         </ChildContent>
         <ItemRenderer>
             <MudPaper Elevation=25 Class="pa-0 my-2">
@@ -24,10 +24,10 @@
 
 @code {
     [Parameter]
-    public List<ContextModel> ContainerContextItemsParam { get; set; } = default!;
+    public List<ContextDisplayModel> ContainerContextItemsParam { get; set; } = default!;
 
     [Parameter]
-    public Func<ContextModel, string, bool> ContainerItemsSelectorParam { get; set; } = default!;
+    public Func<ContextDisplayModel, string, bool> ContainerItemsSelectorParam { get; set; } = default!;
 
     [Parameter]
     public bool IsExpanded { get; set; } = false;

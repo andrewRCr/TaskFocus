@@ -8,9 +8,14 @@
 @inject IMapper Mapper
 @inject IDataHelper DataHelper
 
+@inject IDataService DataService
+
 @code {
     [Inject]
     protected AppState AppState { get; private set; } = default!;
+
+    [Inject]
+    protected DataState DataState { get; private set; } = default!;
 
     [CascadingParameter]
     public Task<AuthenticationState> AuthState { get; set; } = default!;
@@ -19,28 +24,28 @@
     // protected List<int> orderedProjects;
     // protected List<int> orderedContexts;
 
-    private List<TaskDisplayModel>? _tasks;
-    public List<TaskDisplayModel>? Tasks
+    protected List<string> dataRefreshTriggers = new List<string> { 
+        nameof(DataState.Tasks), nameof(DataState.Projects), nameof(DataState.Contexts) };
+
+    private List<TaskDisplayModel>? _localTasks;
+    public List<TaskDisplayModel>? LocalTasks
     {
-        get { return _tasks; }
-        set
-        {
-            _tasks = value;
-        }
+        get { return _localTasks; }
+        set { _localTasks = value; }
     }
 
-    private List<ProjectModel>? _projects;
-    public List<ProjectModel>? Projects
+    private List<ProjectDisplayModel>? _localProjects;
+    public List<ProjectDisplayModel>? LocalProjects
     {
-        get { return _projects; }
-        set { _projects = value; }
+        get { return _localProjects; }
+        set { _localProjects = value; }
     }
 
-    private List<ContextModel>? _contexts;
-    public List<ContextModel>? Contexts
+    private List<ContextDisplayModel>? _localContexts;
+    public List<ContextDisplayModel>? LocalContexts
     {
-        get { return _contexts; }
-        set { _contexts = value; }
+        get { return _localContexts; }
+        set { _localContexts = value; }
     }
 
     protected override void OnInitialized()
@@ -48,6 +53,7 @@
         base.OnInitialized();
 
         AppState.AppStateChanged += AppStateChanged;
+        DataState.DataStateChanged += DataStateChanged;
     }
 
     protected override async Task OnInitializedAsync()
@@ -56,20 +62,43 @@
 
         if (authState.User.Identity!.IsAuthenticated)
         {
-            await LoadTasks();
+
+
+            // do any child-specific loading/filtering of that data
+            CustomAuthenticatedOnInit();
         }
     }
 
+    // to be defined in children as needed
+    protected virtual void CustomAuthenticatedOnInit()
+    {
+    }
+
     // to be defined in child components as needed
-    protected virtual bool HandleAppStateChanged(String propertyName, AppState state)
+    protected virtual bool HandleAppStateChanged(String propertyName, AppState appState)
     {
         return false;
     }
 
-    private async void AppStateChanged(String propertyName, AppState state)
+    private async void AppStateChanged(String propertyName, AppState appState)
     {
-        bool changesOccured = HandleAppStateChanged(propertyName, state);
-        if (changesOccured == true)
+        bool changesOccured = HandleAppStateChanged(propertyName, appState);
+        if (changesOccured)
+        {
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    // to be defined in child components as needed
+    protected virtual bool HandleDataStateChanged(String propertyName, DataState dataState)
+    {
+        return false;
+    }
+
+    private async void DataStateChanged(String propertyName, DataState dataState)
+    {
+        bool changesOccured = HandleDataStateChanged(propertyName, dataState);
+        if (changesOccured)
         {
             await InvokeAsync(StateHasChanged);
         }
@@ -78,34 +107,56 @@
     public void Dispose()
     {
         AppState.AppStateChanged -= AppStateChanged;
+        DataState.DataStateChanged -= DataStateChanged;
     }
 
-    protected virtual async Task LoadTasks(bool inboxOnly = false)
+    protected void SetCanRefresh(bool newCanRefresh)
     {
-        Task<List<TaskModel>> loadTaskToCall = null;
+        AppState.CanRefresh = newCanRefresh;
+    }
 
-        if (inboxOnly)
+    public bool IsLocalDataLoaded()
+    {
+        return LocalTasks != null && LocalProjects != null && LocalContexts != null;
+    }
+
+    protected void LoadAllLocalData()
+    {
+        LoadLocalTaskData();
+        LoadLocalProjectData();
+        LoadLocalContextData();
+    }
+
+    protected virtual void LoadLocalTaskData()
+    {
+        if (DataState.IsDataLoaded())
         {
-            loadTaskToCall = TaskEndpoint.GetInboxTasksForUser();
+            LocalTasks = DataState.Tasks;
+            foreach (TaskDisplayModel task in LocalTasks!)
+            {
+                task.PropertyChanged += OnExistingTaskPropertyChanged!; // subscribe to property changed event
+            }
         }
-        else
+    }
+
+    protected virtual void LoadLocalProjectData()
+    {
+        if (DataState.IsDataLoaded())
         {
-            loadTaskToCall = TaskEndpoint.GetAllTasksForUser();
+            LocalProjects = DataState.Projects;
+            foreach (ProjectDisplayModel project in LocalProjects!)
+            {
+                project.PropertyChanged += OnExistingProjectPropertyChanged!; // subscribe to property changed event
+            }
         }
+    }
 
-        var taskList = await loadTaskToCall;
-        DataHelper.TasksLastFetch = taskList; // store for comparison
-
-        var displayTaskList = Mapper.Map<List<TaskDisplayModel>>(taskList);
-        Tasks = new List<TaskDisplayModel>(displayTaskList);
-
-        foreach (TaskDisplayModel task in Tasks)
+    protected virtual void LoadLocalContextData()
+    {
+        if (DataState.IsDataLoaded())
         {
-            task.PropertyChanged += OnExistingTaskPropertyChanged!; // subscribe to property changed event
+            LocalContexts = DataState.Contexts;
         }
-
-        Projects = await ProjectEndpoint.GetAllProjectsForUser();
-        Contexts = await ContextEndpoint.GetAllContextsForUser();
     }
 
     // saves updated task data to server on property change
@@ -115,106 +166,26 @@
         TaskDisplayModel senderTask = (TaskDisplayModel)sender;
         Console.WriteLine($"{senderTask.TaskName}'s property {changedProperty} was changed.");
 
-        await UpdateTaskData(senderTask);
+        await DataService.UpdateTaskData(senderTask);
     }
 
-    // post updated task data to API for a single task
-    public async Task UpdateTaskData(TaskDisplayModel displayTask)
+    // saves updated project data to server on property change
+    protected async void OnExistingProjectPropertyChanged(object sender, PropertyChangedEventArgs e)
     {
-        // map from TaskDisplayModel to TaskModel
-        TaskModel task = Mapper.Map<TaskModel>(displayTask);
+        string? changedProperty = e.PropertyName;
+        ProjectDisplayModel senderProject = (ProjectDisplayModel)sender;
+        Console.WriteLine($"{senderProject.ProjectName}'s property {changedProperty} was changed.");
 
-        if (DataHelper.HasTaskDataChanged(task))
-        {
-            if (DataHelper.HasTaskProjectNameChanged(task))
-            {
-                await AssignProjectIdFromProjectName(task);
-            }
-
-            if (DataHelper.HasTaskContextNameChanged(task))
-            {
-                await AssignContextIdFromContextName(task);
-            }
-
-            await TaskEndpoint.UpdateTask(task);
-
-            // refresh Tasks + repopulate TasksLastFetch
-            await LoadTasks();
-        }
+        await DataService.UpdateProjectData(senderProject);
     }
 
-    public async Task AssignProjectIdFromProjectName(TaskModel task)
+    // saves updated context data to server on property change
+    protected async void OnExistingContextPropertyChanged(object sender, PropertyChangedEventArgs e)
     {
-        if (task.ProjectName == null) { task.ProjectId = null; }
-        else
-        {
-            // lookup projectId by projectName and assign
-            // TODO: need to enforce uniqueness of the projectName property - casing, etc; something. ensure these will match!
+        string? changedProperty = e.PropertyName;
+        ContextDisplayModel senderContext = (ContextDisplayModel)sender;
+        Console.WriteLine($"{senderContext.ContextName}'s property {changedProperty} was changed.");
 
-            ProjectModel? FindAssignedProject()
-            {
-                List<ProjectModel> userProjects = Projects!.ToList();
-                return userProjects.Find(x => x.ProjectName == task.ProjectName);
-            }
-
-            ProjectModel? assignedProject = FindAssignedProject();
-            if (assignedProject == null)
-            {
-                ProjectModel newProject = new ProjectModel { ProjectName = task.ProjectName };
-                await AddProject(newProject);
-
-                assignedProject = FindAssignedProject();
-            }
-
-            task.ProjectId = assignedProject!.Id;
-        }
-    }
-
-    public async Task AssignContextIdFromContextName(TaskModel task)
-    {
-        if (task.ContextName == null) { task.ContextId = null; }
-        else
-        {
-            // lookup ContextId by contextName and assign
-            // TODO: need to enforce uniqueness of the contextName property - casing, etc; something. ensure these will match!
-
-            ContextModel? FindAssignedContext()
-            {
-                List<ContextModel> userContexts = Contexts!.ToList();
-                return userContexts.Find(x => x.ContextName == task.ContextName);
-            }
-
-            ContextModel? assignedContext = FindAssignedContext();
-
-            if (assignedContext == null)
-            {
-                ContextModel newContext = new ContextModel { ContextName = task.ContextName };
-                await AddContext(newContext);
-
-                assignedContext = FindAssignedContext();
-            }
-
-            task.ContextId = assignedContext!.Id;
-        }
-    }
-
-    public async Task AddProject(ProjectModel newProject)
-    {
-        if (string.IsNullOrWhiteSpace(newProject.ProjectName)) { return; }
-
-        await ProjectEndpoint.AddProject(newProject, ApiHelper.GetLoggedInUserId());
-
-        // refresh Tasks, Projects, Contexts + clear NewTask
-        await LoadTasks();
-    }
-
-    public async Task AddContext(ContextModel newContext)
-    {
-        if (string.IsNullOrWhiteSpace(newContext.ContextName)) { return; }
-
-        await ContextEndpoint.AddContext(newContext, ApiHelper.GetLoggedInUserId());
-
-        // refresh Tasks, Projects, Contexts + clear NewTask
-        await LoadTasks();
+        await DataService.UpdateContextData(senderContext);
     }
 }

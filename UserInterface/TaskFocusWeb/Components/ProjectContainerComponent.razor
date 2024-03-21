@@ -1,11 +1,33 @@
-﻿<MudExpansionPanels DisableBorders="true" Elevation="0" MultiExpansion="true">
-    <MudDropContainer T="ProjectModel" Items="@ContainerProjectItemsParam" ItemsSelector="@ContainerItemsSelectorParam" Class="">
+﻿@inherits _ComponentBase
+
+
+<MudExpansionPanels DisableBorders="true" Elevation="0" MultiExpansion="true">
+        <MudDropContainer T="ProjectDisplayModel" 
+                          Items="@ContainerProjectItemsParam" 
+                          ItemsSelector="@ContainerItemsSelectorParam"
+                          ItemPicked="()=>SetCanRefresh(false)"
+                          ItemDropped="OnItemDropped">
+            @foreach (ProjectDisplayModel project in ContainerProjectItemsParam)
+            {
+                <MudTreeView T="string">
+                    <MudTreeViewItem Value="@project.ProjectName">
+                        <MudPaper Elevation=25 Class="pa-0 my-2">
+                            <MudDropZone T="TaskDisplayModel" Identifier="@project.ProjectName" AllowReorder="true" Class="mud-background-gray px-3 py-2 ma-0" />
+                        </MudPaper>
+                    </MudTreeViewItem>
+                </MudTreeView>
+            }
+        </MudDropContainer>
+</MudExpansionPanels>
+
+
+@* <MudExpansionPanels DisableBorders="true" Elevation="0" MultiExpansion="true">
+    <MudDropContainer T="ProjectDisplayModel" Items="@ContainerProjectItemsParam" ItemsSelector="@ContainerItemsSelectorParam">
         <ChildContent>
-            <MudDropZone T="ProjectModel" AllowReorder Class="6 rounded mud-background-gray px-2 py-1 ma-2" />
+            <MudDropZone T="ProjectDisplayModel" AllowReorder Class="6 rounded mud-background-gray px-2 py-1 ma-2" />
         </ChildContent>
         <ItemRenderer>
-            <MudPaper Elevation=25 Class="pa-0 my-2">
-
+            <MudPaper Elevation=25 Class="pa-0 my-2">      
                 <MudExpansionPanel IsExpanded="@IsExpanded" DisableGutters="true" Dense="true" Class="pa-0 my-2">
                     <TitleContent>
                         <div class="d-flex">
@@ -20,15 +42,49 @@
             </MudPaper>
         </ItemRenderer>
     </MudDropContainer>
-</MudExpansionPanels>
+</MudExpansionPanels> *@
 
 @code {
     [Parameter]
-    public List<ProjectModel> ContainerProjectItemsParam { get; set; } = default!;
+    public List<ProjectDisplayModel> ContainerProjectItemsParam { get; set; } = default!;
 
     [Parameter]
-    public Func<ProjectModel, string, bool> ContainerItemsSelectorParam { get; set; } = default!;
+    public Func<ProjectDisplayModel, string, bool> ContainerItemsSelectorParam { get; set; } = default!;
 
     [Parameter]
     public bool IsExpanded { get; set; } = false;
+
+    private bool _canRefresh = true;
+
+    private void OnItemDropped()
+    {
+        Console.WriteLine("item dropped!");
+        SetCanRefresh(true);
+        UpdateParametersFromDataState();
+    }
+
+    private void UpdateParametersFromDataState()
+    {
+        if (DataState.IsDataLoaded())
+        {
+            ContainerProjectItemsParam = DataState.Projects!;
+            StateHasChanged();
+        }
+    }
+
+    protected override bool HandleDataStateChanged(string propertyName, DataState dataState)
+    {
+        if (propertyName != nameof(DataState.Projects))
+        {
+            return false;
+        }
+
+        if (AppState.CanRefresh)
+        {
+            UpdateParametersFromDataState();
+            Console.WriteLine("ProjectContainerComp: returned true on HandleDataStateChanged!");
+        }
+
+        return AppState.CanRefresh;
+    }
 }

@@ -5,12 +5,12 @@
 
 <MudButton Color="Color.Inherit" Class="mx-2">Today</MudButton>
 
-@if (Tasks != null)
+@if (IsLocalDataLoaded())
 {
     if (todayItemCount > 0)
     {
-        <TaskContainerComponent ContainerTaskItemsParam="@Tasks" ContainerIdentifierParam="Today" ContainerItemsSelectorParam="@ItemsSelector"
-        ContainerProjectsParam="@Projects" ContainerContextsParam="@Contexts" />
+        <TaskContainerComponent ContainerTaskItemsParam="@LocalTasks" ContainerIdentifierParam="Today" ContainerItemsSelectorParam="@ItemsSelector"
+                                ContainerProjectsParam="@LocalProjects" ContainerContextsParam="@LocalContexts" />
     }
     else
     {

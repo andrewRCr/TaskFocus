@@ -7,27 +7,47 @@
 
     @if (IsProjectsSubMenu)
     {
-        @if (Projects != null)
+        @if (LocalProjects != null)
         {
-            @foreach (ProjectModel project in Projects)
+            @foreach (ProjectDisplayModel project in LocalProjects)
             {
+                <SubNavMenuItem IsProjectsSubMenu="true" ProjectParam="project" />
+
+@*                 <MudStack Row="true" @onmouseover="()=> ShowHideItemEditMenu(true)" 
+                    @onmouseout="()=> ShowHideItemEditMenu(false)">
+
                 <MudNavLink Class="subNavLink" OnClick="@(()=>SetFocusedItemIdStr((int)project.Id!))" 
                     Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">
                     @project.ProjectName
                 </MudNavLink>
+
+                    <MudMenu Icon="@Icons.Material.Filled.MoreVert"
+                             Class="@_editMenuClassStr"
+                             Dense="true" 
+                             Size="Size.Small"
+
+                             >
+
+                        <MudMenuItem>Rename</MudMenuItem>
+                        <MudMenuItem>Delete</MudMenuItem>
+                    </MudMenu>
+
+                </MudStack> *@
             }
         }
     }
     else
     {
-        @if (Contexts != null)
+        @if (LocalContexts != null)
         {
-            @foreach (ContextModel context in Contexts)
+            @foreach (ContextDisplayModel context in LocalContexts)
             {
-                <MudNavLink Class="subNavLink" OnClick="@(()=>SetFocusedItemIdStr((int)context.Id!))" 
+                <SubNavMenuItem IsProjectsSubMenu="false" ContextParam="context" />
+
+@*                 <MudNavLink Class="subNavLink" OnClick="@(()=>SetFocusedItemIdStr((int)context.Id!))" 
                     Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">
                     @context.ContextName
-                </MudNavLink>
+                </MudNavLink> *@
             }
         }
     }
@@ -51,9 +71,22 @@
     [Parameter]
     public EventCallback<string> OnContextFocused { get; set; }
 
+    private string _editMenuClassStr = "invisible";
+
+    private void ShowHideItemEditMenu(bool newShow)
+    {
+        _editMenuClassStr = newShow ? "" : "invisible";
+    }
+
     private string CollectionName
     {
         get { return IsProjectsSubMenu ? "Projects" : "Contexts"; }
+    }
+
+    protected override void CustomAuthenticatedOnInit()
+    {
+        LoadLocalProjectData();
+        LoadLocalContextData();
     }
 
     private void ResetToAllItemsView()

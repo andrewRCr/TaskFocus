@@ -1,0 +1,116 @@
+﻿@inherits _ComponentBase
+@inject ISnackbar Snackbar
+@inject NavigationManager NavManager
+
+<MudStack Row="true" @onmouseover="()=> ShowHideItemEditMenuButton(true)"
+          @onmouseout="()=> ShowHideItemEditMenuButton(false)"
+          @onfocusout="CloseItemEditMenu">
+
+    <MudNavLink Class="subNavLink" OnClick="@SetFocusedItemIdStr"
+                Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">
+        @if (IsProjectsSubMenu) { @ProjectParam.ProjectName }
+        else { @ContextParam.ContextName }
+    </MudNavLink>
+
+    <MudMenu @ref="_itemEditMenu"
+             Icon="@Icons.Material.Filled.MoreVert"
+             Class="@_editMenuClassStr"
+             Dense="true"
+             Size="Size.Small">
+        <div @onmousedown=OnItemMouseDown>
+            <MudMenuItem OnClick="RenameItem" OnTouch="RenameItemTouch">Rename</MudMenuItem>
+            <MudMenuItem>Delete</MudMenuItem>
+        </div>
+    </MudMenu>
+
+</MudStack>
+
+<!-- rename dialog -->
+<MudDialog @bind-IsVisible="_renameDialogVisible" Options="dialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Edit" Class="mr-3" /> Edit item name
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudTextField @bind-Value="_itemName" Variant="Variant.Text" Margin="Margin.Dense"/>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SubmitRename" Class="px-10">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter]
+    public bool IsProjectsSubMenu { get; set; } = default!;
+
+    [Parameter]
+    public ProjectDisplayModel ProjectParam { get; set; } = default!;
+
+    [Parameter]
+    public ContextDisplayModel ContextParam { get; set; } = default!;
+
+    private string _itemName = string.Empty;
+    private MudMenu _itemEditMenu = default!;
+    private string _editMenuClassStr = "invisible";
+    private bool _itemClicked = false;
+    private bool _renameDialogVisible = false;
+    private void OpenRenameDialog() => _renameDialogVisible = true;
+
+    private void SubmitRename()
+    {
+        if (IsProjectsSubMenu)
+        {
+            ProjectParam.ProjectName = _itemName;
+        }
+        else
+        {
+            ContextParam.ContextName = _itemName;
+        }
+
+        _renameDialogVisible = false;
+    }
+
+    private DialogOptions dialogOptions = new() { FullWidth = true };
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        _itemName = IsProjectsSubMenu ? 
+            ProjectParam.ProjectName : ContextParam.ContextName;
+    }
+
+    private void CloseItemEditMenu()
+    {
+        if (!_itemClicked && _itemEditMenu.IsOpen)
+        {
+            _itemEditMenu.CloseMenu();
+            ShowHideItemEditMenuButton(false);
+        }
+        // reset for future clicks
+        _itemClicked = false;
+    }
+
+    private void OnItemMouseDown()
+    {
+        _itemClicked = true;
+    }
+
+    private void ShowHideItemEditMenuButton(bool newShow)
+    {
+        _editMenuClassStr = newShow ? "" : "invisible";
+    }
+
+    private void SetFocusedItemIdStr()
+    {
+        if (IsProjectsSubMenu && ProjectParam != null)
+        { AppState.FocusedProjectIdStr = ProjectParam.Id.ToString(); }
+        else if (ContextParam != null)
+        { AppState.FocusedContextIdStr = ContextParam.Id.ToString(); ; }
+    }
+
+    private void RenameItem(MouseEventArgs args) => OpenRenameDialog();
+    private void RenameItemTouch(TouchEventArgs args) => Snackbar.Add("Rename Invoked");
+    private void DeleteItem(TouchEventArgs args) => Snackbar.Add("Delete Invoked");
+}

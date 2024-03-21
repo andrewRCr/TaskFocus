@@ -35,7 +35,9 @@ namespace TaskFocusWeb
             builder.Services.AddTransient<IProjectEndpoint, ProjectEndpoint>();
             builder.Services.AddTransient<IContextEndpoint, ContextEndpoint>();
             builder.Services.AddSingleton(new AppState());
+            builder.Services.AddSingleton(new DataState());
             builder.Services.AddSingleton<IDataHelper, DataHelper>();
+            builder.Services.AddScoped<IDataService, DataService>();
 
             IMapper ConfigureAutomapper()
             {
@@ -43,6 +45,10 @@ namespace TaskFocusWeb
                 {
                     cfg.CreateMap<TaskModel, TaskDisplayModel>();
                     cfg.CreateMap<TaskDisplayModel, TaskModel>();
+                    cfg.CreateMap<ProjectModel, ProjectDisplayModel>();
+                    cfg.CreateMap<ProjectDisplayModel, ProjectModel>();
+                    cfg.CreateMap<ContextModel, ContextDisplayModel>();
+                    cfg.CreateMap<ContextDisplayModel, ContextModel>();
                 });
 
                 return config.CreateMapper();

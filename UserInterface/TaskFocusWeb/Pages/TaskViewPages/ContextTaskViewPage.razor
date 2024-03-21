@@ -1,16 +1,16 @@
 ﻿@inherits AllContextsTaskViewPage
 @inject IContextEndpoint ContextEndpoint
 
-@if (Context != null && Tasks != null)
+@if (ContextParam != null && IsLocalDataLoaded())
 {
     <MudStack Style="width:100%;">
 
         <MudPaper Square Class="mud-background-gray" Elevation="25">
-            <MudButton Disabled Class="mx-2">@Context.ContextName</MudButton>
+            <MudButton Disabled Class="mx-2">@ContextParam.ContextName</MudButton>
         </MudPaper>
 
-    <TaskContainerComponent ContainerTaskItemsParam="@Tasks" ContainerIdentifierParam="@Context.ContextName" ContainerItemsSelectorParam="@ItemsSelector"
-                            ContainerProjectsParam="@Projects" ContainerContextsParam="@Contexts" />
+        <TaskContainerComponent ContainerTaskItemsParam="@LocalTasks" ContainerIdentifierParam="@ContextParam.ContextName" ContainerItemsSelectorParam="@ItemsSelector"
+                                ContainerProjectsParam="@LocalProjects" ContainerContextsParam="@LocalContexts" />
     </MudStack>
 }
 
@@ -29,28 +29,44 @@
     [Parameter]
     public string ContextId { get; set; } = default!;
 
-    public ContextModel Context { get; set; } = default!;
+    public ContextDisplayModel ContextParam { get; set; } = default!;
 
     bool isValid = false;
     int integerContextId;
 
-    protected override async Task OnParametersSetAsync()
+    protected override void OnParametersSet()
     {
-        await GetContextFromId();
+       GetContextFromId();
     }
 
-    protected async Task GetContextFromId()
+    protected void GetContextFromId()
     {
         isValid = int.TryParse(ContextId, out integerContextId);
         if (isValid)
         {
-            Context = await ContextEndpoint.GetContextById(integerContextId);
-            Console.WriteLine(Context.ContextName);
+            ContextParam = DataState.Contexts!.Find(x => x.Id == integerContextId)!;
         }
     }
 
     public override bool ItemsSelector(TaskDisplayModel item, string dropzone)
     {
         return item.ContextName == dropzone;
+    }
+
+    protected override bool HandleDataStateChanged(string propertyName, DataState dataState)
+    {
+        if (propertyName != nameof(DataState.Contexts))
+        {
+            return false;
+        }
+
+        if (AppState.CanRefresh)
+        {
+            LoadAllLocalData();
+            GetContextFromId();
+            //Console.WriteLine("ProjectTaskViewPage: returned true on HandleDataStateChanged!");
+        }
+
+        return AppState.CanRefresh;
     }
 }

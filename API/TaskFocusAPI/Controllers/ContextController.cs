@@ -38,5 +38,18 @@ namespace TaskFocusAPI.Controllers
             string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             _contextData.AddContext(newContext, userId);
         }
+
+        [HttpPut]
+        public void Put(ContextModel updatedContext)
+        {
+            _contextData.UpdateContextData(updatedContext);
+        }
+
+        [HttpDelete]
+        public void Delete(ContextModel contextToDelete)
+        {
+            string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            _contextData.DeleteContext(contextToDelete);
+        }
     }
 }

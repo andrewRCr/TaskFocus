@@ -1,9 +1,9 @@
 ﻿@inherits LayoutComponentBase
+@inject IDataService DataService
 
 <MudThemeProvider @bind-IsDarkMode="@_isDarkMode" Theme="_theme" />
 <MudDialogProvider />
 <MudSnackbarProvider />
-
 
 <MudLayout>
     <MudAppBar Elevation="0">
@@ -37,6 +37,12 @@
 </MudLayout>
 
 @code {
+    [CascadingParameter]
+    public Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    [Inject]
+    protected DataState DataState { get; private set; } = default!;
+
     protected bool _drawerOpen = true;
     private MudTheme _theme = new();
     private bool _isDarkMode = true;
@@ -44,5 +50,20 @@
     protected void DrawerToggle()
     {
         _drawerOpen = !_drawerOpen;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthState;
+
+        if (authState.User.Identity!.IsAuthenticated)
+        {
+            // ensure DataState has remote data loaded
+            if (!DataState.IsDataLoaded())
+            {
+                await DataService.FetchAllRemoteData();
+                //Console.WriteLine("MainLayout: onInit fetched all remote data!");
+            }
+        }
     }
 }

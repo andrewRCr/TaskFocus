@@ -63,14 +63,36 @@ namespace TaskFocusUI.Library.API
             }
         }
 
-        public Task DeleteProject(ProjectModel projectToDelete)
+        public async Task UpdateProject(ProjectModel updatedProject)
         {
-            throw new NotImplementedException();
+            using (HttpResponseMessage response = await _apiHelper.APIClient.PutAsJsonAsync("/api/project/put", updatedProject))
+            {
+                if (response.IsSuccessStatusCode)
+                {
+                    // TODO - log successful update call ?
+                }
+                else { throw new Exception(response.ReasonPhrase); }
+            }
         }
 
-        public Task UpdateProject(ProjectModel projectToUpdate)
+        public async Task DeleteProject(ProjectModel projectToDelete)
         {
-            throw new NotImplementedException();
+            var p = new { Id = projectToDelete.Id };
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Delete,
+                RequestUri = new Uri("/api/project/delete", UriKind.Relative),
+                Content = new StringContent(JsonConvert.SerializeObject(p), Encoding.UTF8, "application/json")
+            };
+
+            using (HttpResponseMessage response = await _apiHelper.APIClient.SendAsync(request))
+            {
+                if (response.IsSuccessStatusCode)
+                {
+                    // TODO - log successful delete call ?
+                }
+                else { throw new Exception(response.ReasonPhrase); }
+            }
         }
     }
 }

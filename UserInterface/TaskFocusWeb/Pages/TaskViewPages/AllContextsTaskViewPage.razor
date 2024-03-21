@@ -5,7 +5,7 @@
 <PageTitle>TaskFocus: Contexts</PageTitle>
 
 <MudStack Row="true">
-    @if (Contexts != null && Tasks != null)
+    @if (IsLocalDataLoaded())
     {
         @if (_focusedContextIdStr != null)
         {
@@ -13,13 +13,13 @@
         }
         else // all contexts view
         {
-            <MudDropContainer T="TaskDisplayModel" Items="Tasks" ItemsSelector="@((item, dropzone) => item.ContextName == dropzone)" Class="flex-grow-1">
+            <MudDropContainer T="TaskDisplayModel" Items="LocalTasks" ItemsSelector="@((item, dropzone) => item.ContextName == dropzone)" Class="flex-grow-1">
                 <ChildContent>
-                    <ContextContainerComponent ContainerContextItemsParam="@Contexts" ContainerItemsSelectorParam="@ContextItemsSelector" IsExpanded=@_isContextExpanded />
+                    <ContextContainerComponent ContainerContextItemsParam="@LocalContexts" ContainerItemsSelectorParam="@ContextItemsSelector" IsExpanded=@_isContextExpanded />
                 </ChildContent>
                 <ItemRenderer>
                     <MudPaper Class="pa-0 my-2">
-                        <TaskItemComponent TaskParam="@context" ProjectsParam="@Projects" ContextsParam="@Contexts" />
+                        <TaskItemComponent TaskParam=@context ProjectsParam="@LocalProjects" ContextsParam="@LocalContexts" />
                     </MudPaper>
                 </ItemRenderer>
             </MudDropContainer>
@@ -34,22 +34,49 @@
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        AppState.ShowContextSubMenu = true;
+        if (!AppState.ShowContextSubMenu) { AppState.ShowContextSubMenu = true; }
     }
 
-    public bool ContextItemsSelector(ContextModel item, string dropzone)
+    protected override void CustomAuthenticatedOnInit()
+    {
+        LoadAllLocalData();
+        _focusedContextIdStr = AppState.FocusedContextIdStr;
+    }
+
+    public bool ContextItemsSelector(ContextDisplayModel item, string dropzone)
     {
         return true;
     }
 
-    protected override Boolean HandleAppStateChanged(String propertyName, AppState state)
+    protected override bool HandleAppStateChanged(String propertyName, AppState appState)
     {
         if (propertyName != nameof(AppState.FocusedContextIdStr))
         {
             return false;
         }
 
-        _focusedContextIdStr = state.FocusedContextIdStr;
-        return true;
+        if (AppState.CanRefresh)
+        {
+            //Console.WriteLine("AllProjectsPage: returned true on HandleAppStateChanged!");
+            _focusedContextIdStr = appState.FocusedContextIdStr;
+        }
+
+        return AppState.CanRefresh;
+    }
+
+    protected override bool HandleDataStateChanged(String propertyName, DataState dataState)
+    {
+        if (!dataRefreshTriggers.Contains(propertyName))
+        {
+            return false;
+        }
+
+        if (AppState.CanRefresh)
+        {
+            //Console.WriteLine("AllContextsPage: returned true on HandleDataStateChanged!");
+            LoadAllLocalData();
+        }
+
+        return AppState.CanRefresh;
     }
 }

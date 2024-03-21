@@ -38,5 +38,18 @@ namespace TaskFocusAPI.Controllers
             string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             _projectData.AddProject(newProject, userId);
         }
+
+        [HttpPut]
+        public void Put(ProjectModel updatedProject)
+        {
+            _projectData.UpdateProjectData(updatedProject);
+        }
+
+        [HttpDelete]
+        public void Delete(ProjectModel projectToDelete)
+        {
+            string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            _projectData.DeleteProject(projectToDelete);
+        }
     }
 }

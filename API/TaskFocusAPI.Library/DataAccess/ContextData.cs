@@ -38,12 +38,33 @@ namespace TaskFocusAPI.Library.DataAccess
             _sqlDataAccess.SaveData("dbo.spContext_Insert", newContext, "TaskFocusData");
         }
 
-        public void DeleteContext(ContextModel contextToDelete)
+        public void UpdateContextData(ContextModel frontEndContext)
         {
-            throw new NotImplementedException();
+            if (frontEndContext.Id == null)
+            {
+                throw new Exception($"The provided project's Id was a null value.");
+            }
+
+            var dbContext = GetContextById((int)frontEndContext.Id);
+
+            if (dbContext == null)
+            {
+                throw new Exception($"The context Id of {frontEndContext.Id} could not be found in the database.");
+            }
+
+            dbContext.ContextName = frontEndContext.ContextName.Trim();
+
+            try
+            {
+                _sqlDataAccess.SaveData("dbo.spContext_Update", dbContext, "TaskFocusData");
+            }
+            catch (System.Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
 
-        public void UpdateContextData(ContextModel frontEndContext)
+        public void DeleteContext(ContextModel contextToDelete)
         {
             throw new NotImplementedException();
         }

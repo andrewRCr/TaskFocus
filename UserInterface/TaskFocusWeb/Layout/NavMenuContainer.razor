@@ -17,7 +17,17 @@
     private bool _showProjectSubMenu = false;
     private bool _showContextSubMenu = false;
 
-    protected override Boolean HandleAppStateChanged(String propertyName, AppState state)
+    protected override bool HandleDataStateChanged(string propertyName, DataState dataState)
+    {
+        if (propertyName != nameof(DataState.Projects))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    protected override bool HandleAppStateChanged(String propertyName, AppState state)
     {
         if (propertyName != nameof(AppState.ShowProjectSubMenu) && propertyName != nameof(AppState.ShowContextSubMenu))
         {

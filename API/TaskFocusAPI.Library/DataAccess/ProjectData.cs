@@ -40,15 +40,44 @@ namespace TaskFocusAPI.Library.DataAccess
 
             _sqlDataAccess.SaveData("dbo.spProject_Insert", newProject, "TaskFocusData");
         }
+        public void UpdateProjectData(ProjectModel frontEndProject)
+        {
+            if (frontEndProject.Id == null)
+            {
+                throw new Exception($"The provided project's Id was a null value.");
+            }
+
+            var dbProject = GetProjectById((int)frontEndProject.Id);
+
+            if (dbProject == null)
+            {
+                throw new Exception($"The project Id of {frontEndProject.Id} could not be found in the database.");
+            }
+
+            if (!dbProject.Completed && frontEndProject.Completed) { dbProject.DateCompleted = DateTime.Now; }
+            else if (dbProject.Completed && !frontEndProject.Completed) { dbProject.DateCompleted = null; }
+
+            dbProject.Completed = frontEndProject.Completed;
+            dbProject.ProjectName = frontEndProject.ProjectName.Trim();
+            dbProject.DueDate = frontEndProject.DueDate;
+
+            // these will have been updated by the front-end prior to call
+            dbProject.ContextId = frontEndProject.ContextId;
+
+            try
+            {
+                _sqlDataAccess.SaveData("dbo.spProject_Update", dbProject, "TaskFocusData");
+            }
+            catch (System.Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
 
         public void DeleteProject(ProjectModel projectToDelete)
         {
             throw new NotImplementedException();
         }
 
-        public void UpdateProjectData(ProjectModel frontEndProject)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

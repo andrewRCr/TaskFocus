@@ -5,7 +5,7 @@
 <PageTitle>TaskFocus: Projects</PageTitle>
 
 <MudStack Row="true">
-    @if (Projects != null && Tasks != null)
+    @if (IsLocalDataLoaded())
     {
         @if (_focusedProjectIdStr != null)
         {
@@ -13,16 +13,68 @@
         }
         else // all projects view
         {
-            <MudDropContainer T="TaskDisplayModel" Items="Tasks" ItemsSelector="@((item, dropzone) => item.ProjectName == dropzone)" Class="flex-grow-1">
+            <MudDropContainer
+                T="TaskDisplayModel"
+                              Items="@LocalTasks"
+                              ItemsSelector="@((item, dropzone) => item.ProjectName == dropzone)" 
+                Class="flex-grow-1"
+                ItemPicked="()=>SetCanRefresh(false)"
+                ItemDropped="OnItemDropped"
+            >
                 <ChildContent>
-                    <ProjectContainerComponent ContainerProjectItemsParam="@Projects" ContainerItemsSelectorParam="@ProjectItemsSelector" IsExpanded=@_isProjectExpanded />
+                    <ProjectContainerComponent ContainerProjectItemsParam="@LocalProjects" ContainerItemsSelectorParam="@ProjectItemsSelector" IsExpanded=@_isProjectExpanded />
                 </ChildContent>
                 <ItemRenderer>
                     <MudPaper Class="pa-0 my-2">
-                        <TaskItemComponent TaskParam="@context" ProjectsParam="@Projects" ContextsParam="@Contexts" />
+                        <TaskItemComponent TaskParam=@context ProjectsParam="@LocalProjects" ContextsParam="@LocalContexts" />
                     </MudPaper>
                 </ItemRenderer>
             </MudDropContainer>
+
+@*             <MudDropContainer T="TaskDisplayModel" Items="Tasks" ItemsSelector="@((item, dropzone) => item.ProjectName == dropzone)" Class="flex-grow-1">
+                <ChildContent>
+                    <MudDropZone T="ProjectDisplayModel" AllowReorder Class="6 rounded mud-background-gray px-2 py-1 ma-2" >
+
+                        <MudExpansionPanels DisableBorders="true" Elevation="0" MultiExpansion="true">
+
+                            @foreach (ProjectDisplayModel project in AppState.Projects)
+                            {
+                                <MudPaper Elevation=25 Class="pa-0 my-2">
+
+                                    <MudExpansionPanel IsExpanded="_isProjectExpanded" DisableGutters="true" Dense="true" Class="pa-0 my-2">
+                                        <TitleContent>
+                                            <div class="d-flex">
+                                                <MudText><strong>@project.ProjectName</strong></MudText>
+                                            </div>
+                                        </TitleContent>
+                                        <ChildContent>
+                                            <MudDropZone T="TaskDisplayModel" Identifier="@project.ProjectName" AllowReorder Class="mud-background-gray px-3 py-2 ma-0">
+                                                @foreach (TaskDisplayModel task in Tasks)
+                                                {
+                                                    if (task.ProjectId == project.Id)
+                                                    {
+                                                        <MudPaper Class="pa-0 my-2">
+                                                            <TaskItemComponent TaskParam="task" ProjectsParam="@AppState.Projects" ContextsParam="@Contexts" />
+                                                        </MudPaper>
+                                                    }
+                                                }
+                                            </MudDropZone>
+                                        </ChildContent>
+                                    </MudExpansionPanel>
+
+                                </MudPaper>
+                            }
+
+                        </MudExpansionPanels>
+
+                    </MudDropZone>
+
+
+                </ChildContent>
+
+
+
+             </MudDropContainer> *@
         }
     }
 </MudStack>
@@ -31,25 +83,59 @@
     private bool _isProjectExpanded = true;
     private string? _focusedProjectIdStr = null;
 
+    private void OnItemDropped()
+    {
+        Console.WriteLine("item dropped!");
+        SetCanRefresh(true);
+        StateHasChanged();
+    }
+
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        AppState.ShowProjectSubMenu = true;
+        if (!AppState.ShowProjectSubMenu) { AppState.ShowProjectSubMenu = true; }
     }
 
-    public bool ProjectItemsSelector(ProjectModel item, string dropzone)
+    protected override void CustomAuthenticatedOnInit()
+    {
+        LoadAllLocalData();
+        _focusedProjectIdStr = AppState.FocusedProjectIdStr;
+    }
+
+    public bool ProjectItemsSelector(ProjectDisplayModel item, string dropzone)
     {
         return true;
     }
 
-    protected override Boolean HandleAppStateChanged(String propertyName, AppState state)
+    protected override bool HandleAppStateChanged(string propertyName, AppState appState)
     {
         if (propertyName != nameof(AppState.FocusedProjectIdStr))
         {
             return false;
         }
 
-        _focusedProjectIdStr = state.FocusedProjectIdStr;
-        return true;
+        if (AppState.CanRefresh)
+        {
+            //Console.WriteLine("AllProjectsPage: returned true on HandleAppStateChanged!");
+            _focusedProjectIdStr = AppState.FocusedProjectIdStr;
+        }
+
+        return AppState.CanRefresh;
+    }
+
+    protected override bool HandleDataStateChanged(String propertyName, DataState dataState)
+    {
+        if (!dataRefreshTriggers.Contains(propertyName))
+        {
+            return false;
+        }
+
+        if (AppState.CanRefresh)
+        {
+            //Console.WriteLine("AllProjectsPage: returned true on HandleDataStateChanged!");
+            LoadAllLocalData();
+        }
+
+        return AppState.CanRefresh;
     }
 }

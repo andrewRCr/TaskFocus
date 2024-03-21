@@ -1,4 +1,9 @@
-﻿<MudDropContainer T="TaskDisplayModel" Items="@ContainerTaskItemsParam" ItemsSelector="@ContainerItemsSelectorParam" Class="">
+﻿@inherits _ComponentBase
+
+<MudDropContainer T="TaskDisplayModel" Items="@ContainerTaskItemsParam" ItemsSelector="@ContainerItemsSelectorParam"
+                  ItemPicked="()=>SetCanRefresh(false)"
+                  ItemDropped="OnItemDropped"
+                    >
     <ChildContent>
         <MudDropZone T="TaskDisplayModel" Identifier="@ContainerIdentifierParam" AllowReorder="true" Class="rounded mud-background-gray px-2 py-1 ma-2">
 @*             <MudText Typo="Typo.h6" Class="mb-2">@ContainerIdentifierParam</MudText> *@
@@ -21,11 +26,33 @@
     public string ContainerIdentifierParam { get; set; } = default!;
 
     [Parameter]
-    public List<ProjectModel> ContainerProjectsParam { get; set; } = default!;
+    public List<ProjectDisplayModel> ContainerProjectsParam { get; set; } = default!;
 
     [Parameter]
-    public List<ContextModel> ContainerContextsParam { get; set; } = default!;
+    public List<ContextDisplayModel> ContainerContextsParam { get; set; } = default!;
 
     [Parameter]
     public Func<TaskDisplayModel, string, bool> ContainerItemsSelectorParam { get; set; } = default!;
+
+    private void OnItemDropped()
+    {
+        Console.WriteLine("item dropped!");
+        SetCanRefresh(true);
+        StateHasChanged();
+    }
+
+    protected override bool HandleDataStateChanged(String propertyName, DataState dataState)
+    {
+        if (!dataRefreshTriggers.Contains(propertyName))
+        {
+            return false;
+        }
+
+        if (AppState.CanRefresh)
+        {
+            Console.WriteLine("TaskContainerComp: returned true on HandleDataStateChanged!");
+        }
+
+        return AppState.CanRefresh;
+    }
 } 

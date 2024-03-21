@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
@@ -60,14 +61,36 @@ namespace TaskFocusUI.Library.API
             }
         }
 
-        public Task DeleteContext(ContextModel contextToDelete)
+        public async Task UpdateContext(ContextModel updatedContext)
         {
-            throw new NotImplementedException();
+            using (HttpResponseMessage response = await _apiHelper.APIClient.PutAsJsonAsync("/api/context/put", updatedContext))
+            {
+                if (response.IsSuccessStatusCode)
+                {
+                    // TODO - log successful update call ?
+                }
+                else { throw new Exception(response.ReasonPhrase); }
+            }
         }
 
-        public Task UpdateContext(ContextModel contextToUpdate)
+        public async Task DeleteContext(ContextModel contextToDelete)
         {
-            throw new NotImplementedException();
+            var p = new { Id = contextToDelete.Id };
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Delete,
+                RequestUri = new Uri("/api/context/delete", UriKind.Relative),
+                Content = new StringContent(JsonConvert.SerializeObject(p), Encoding.UTF8, "application/json")
+            };
+
+            using (HttpResponseMessage response = await _apiHelper.APIClient.SendAsync(request))
+            {
+                if (response.IsSuccessStatusCode)
+                {
+                    // TODO - log successful delete call ?
+                }
+                else { throw new Exception(response.ReasonPhrase); }
+            }
         }
     }
 }

@@ -3,11 +3,11 @@
 
 <PageTitle>TaskFocus: All Tasks</PageTitle>
 
-@if (Tasks != null)
+@if (IsLocalDataLoaded())
 {
 
-    <TaskContainerComponent ContainerTaskItemsParam="@Tasks" ContainerIdentifierParam="All Tasks" ContainerItemsSelectorParam="@ItemsSelector"
-                            ContainerProjectsParam="@Projects" ContainerContextsParam="@Contexts" />
+    <TaskContainerComponent ContainerTaskItemsParam="@LocalTasks" ContainerIdentifierParam="All Tasks" ContainerItemsSelectorParam="@ItemsSelector"
+                            ContainerProjectsParam="@LocalProjects" ContainerContextsParam="@LocalContexts" />
 }
 
 

@@ -20,6 +20,22 @@ namespace TaskFocusUI.Library.API
             _apiHelper = apiHelper;
         }
 
+        public async Task<TaskModel> GetTaskById(int taskId)
+        {
+            string taskIdStr = taskId.ToString();
+            string requestUri = "/api/task/GetTaskById/" + taskIdStr;
+            using (HttpResponseMessage response = await _apiHelper.APIClient.GetAsync(requestUri))
+            {
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsAsync<TaskModel>();
+                    return result;
+
+                }
+                else { throw new Exception(response.ReasonPhrase); }
+            }
+        }
+
         public async Task<List<TaskModel>> GetAllTasksForUser()
         {
             using (HttpResponseMessage response = await _apiHelper.APIClient.GetAsync("/api/task/GetAllTasksForUser"))
@@ -62,9 +78,21 @@ namespace TaskFocusUI.Library.API
             }
         }
 
+        public async Task UpdateTask(TaskModel task)
+        {
+            using (HttpResponseMessage response = await _apiHelper.APIClient.PutAsJsonAsync("/api/task/put", task))
+            {
+                if (response.IsSuccessStatusCode)
+                {
+                    // TODO - log successful update call ?
+                }
+                else { throw new Exception(response.ReasonPhrase); }
+            }
+        }
+
         public async Task DeleteTask(TaskModel task)
         {
-            var p = new { Id =  task.Id };
+            var p = new { Id = task.Id };
             var request = new HttpRequestMessage
             {
                 Method = HttpMethod.Delete,
@@ -77,18 +105,6 @@ namespace TaskFocusUI.Library.API
                 if (response.IsSuccessStatusCode)
                 {
                     // TODO - log successful delete call ?
-                }
-                else { throw new Exception(response.ReasonPhrase); }
-            }
-        }
-
-        public async Task UpdateTask(TaskModel task)
-        {
-            using (HttpResponseMessage response = await _apiHelper.APIClient.PutAsJsonAsync("/api/task/put", task))
-            {
-                if (response.IsSuccessStatusCode)
-                {
-                    // TODO - log successful update call ?
                 }
                 else { throw new Exception(response.ReasonPhrase); }
             }
