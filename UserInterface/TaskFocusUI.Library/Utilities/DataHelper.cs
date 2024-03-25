@@ -21,7 +21,10 @@ namespace TaskFocusUI.Library.Utilities
                     taskA.Completed == taskB.Completed &&
                     taskA.ProjectName == taskB.ProjectName &&
                     taskA.ContextName == taskB.ContextName &&
-                    taskA.DueDate == taskB.DueDate;
+                    taskA.DueDate == taskB.DueDate &&
+                    taskA.InboxIndex == taskB.InboxIndex &&
+                    taskA.ProjectIndex == taskB.ProjectIndex &&
+                    taskA.ContextIndex == taskB.ContextIndex;
             }
 
             return !IsDataEqual(frontEndTask, taskLastFetch);

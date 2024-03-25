@@ -9,6 +9,9 @@
     [ProjectId] INT NULL, 
     [DueDate] DATETIME2 NULL, 
     [CreatedDate] DATETIME2 NOT NULL DEFAULT getutcdate(), 
+    [InboxIndex] INT NULL, 
+    [ProjectIndex] INT NULL, 
+    [ContextIndex] INT NULL, 
     CONSTRAINT [FK_Task_ToUser] FOREIGN KEY (UserId) REFERENCES [User](Id),
     CONSTRAINT [FK_Task_ToProject] FOREIGN KEY (ProjectId) REFERENCES Project(Id), 
     CONSTRAINT [FK_Task_ToContext] FOREIGN KEY (ContextId) REFERENCES Context(Id)

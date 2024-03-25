@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Reflection;
 using System.Text;
 
 namespace TaskFocusUI.Library.Models
@@ -12,6 +13,31 @@ namespace TaskFocusUI.Library.Models
         public DateTime? DateCompleted { get; set; }
         public int? ProjectId { get; set; }
         public int? ContextId { get; set; }
+
+        // indexer
+        public object this[string propertyName]
+        {
+            get
+            {
+                var properties = typeof(TaskDisplayModel)
+                        .GetProperties(BindingFlags.Public | BindingFlags.Instance);
+
+                foreach (var property in properties)
+                {
+                    if (property.Name == propertyName && property.CanRead)
+                        return property.GetValue(this, null);
+                }
+
+                throw new ArgumentException($"Can't find property {propertyName}!");
+
+            }
+            set 
+            {
+                Type myType = typeof(TaskDisplayModel);
+                PropertyInfo myPropInfo = myType.GetProperty(propertyName);
+                myPropInfo.SetValue(this, value, null);
+            }
+        }
 
         public event PropertyChangedEventHandler PropertyChanged;
         public void CallPropertyChanged(string propertyName)
@@ -73,6 +99,39 @@ namespace TaskFocusUI.Library.Models
             {
                 _dueDate = value;
                 CallPropertyChanged(nameof(DueDate));
+            }
+        }
+
+        private int? _inboxIndex;
+        public int? InboxIndex
+        {
+            get { return _inboxIndex; }
+            set
+            {
+                _inboxIndex = value;
+                CallPropertyChanged(nameof(InboxIndex));
+            }
+        }
+
+        private int? _projectIndex;
+        public int? ProjectIndex
+        {
+            get { return _projectIndex; }
+            set
+            {
+                _projectIndex = value;
+                CallPropertyChanged(nameof(ProjectIndex));
+            }
+        }
+
+        private int? _contextIndex;
+        public int? ContextIndex
+        {
+            get { return _contextIndex; }
+            set
+            {
+                _contextIndex = value;
+                CallPropertyChanged(nameof(ContextIndex));
             }
         }
     }

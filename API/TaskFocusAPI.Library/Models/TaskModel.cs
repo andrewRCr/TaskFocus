@@ -18,5 +18,8 @@ namespace TaskFocusAPI.Library.Models
         public int? ContextId { get; set; }
         public string ContextName { get; set; }
         public DateTime? DueDate { get; set; }
+        public int? InboxIndex { get; set; }
+        public int? ProjectIndex { get; set; }
+        public int? ContextIndex { get; set; }
     }
 }

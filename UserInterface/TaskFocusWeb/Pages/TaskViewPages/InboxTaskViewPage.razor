@@ -11,8 +11,12 @@
 
 @if (IsLocalDataLoaded())
 {
-    <TaskContainerComponent ContainerTaskItemsParam="@LocalTasks" ContainerIdentifierParam="Inbox" ContainerItemsSelectorParam="@ItemsSelector"
-                            ContainerProjectsParam="@LocalProjects" ContainerContextsParam="@LocalContexts" />
+    <TaskContainerComponent ContainerTaskItemsParam="@LocalTasks" 
+                            ContainerIdentifierParam="Inbox"
+                            ContainerOrderingTypeParam="Inbox"
+                            ContainerItemsSelectorParam="@ItemsSelector"
+                            ContainerProjectsParam="@LocalProjects" 
+                            ContainerContextsParam="@LocalContexts" />
 }
 
 @code {
@@ -30,30 +34,21 @@
 
     protected override void CustomAuthenticatedOnInit()
     {
-        LoadLocalInboxTaskData();
-        LoadLocalProjectData();
-        LoadLocalContextData();
-
-        // debug
-        // if (DataState.IsDataLoaded() && IsLocalDataLoaded())
-        // {
-        //     Console.WriteLine($"DataState TaskCount: {DataState.Tasks!.Count}");
-        //     Console.WriteLine($"Local TaskCount: {LocalTasks!.Count}");
-        //     Console.WriteLine($"AppState ProjectCount: {DataState.Projects!.Count}");
-        //     Console.WriteLine($"Local ProjectCount: {LocalProjects!.Count}");
-        //     Console.WriteLine($"AppState ContextCount: {DataState.Contexts!.Count}");
-        //     Console.WriteLine($"Local ContextCount: {LocalContexts!.Count}");
-        // }
+        LoadAllLocalData();
     }
 
-    private void LoadLocalInboxTaskData()
+    protected override void LoadLocalTaskData()
     {
         if (DataState.IsDataLoaded())
         {
             List<TaskDisplayModel> inboxTasks = DataState.Tasks!.Where(x => x.ProjectId == null || x.ContextId == null).ToList();
+            inboxTasks.OrderBy(x => x.InboxIndex);
             LocalTasks = inboxTasks;
+
+
             foreach (TaskDisplayModel task in LocalTasks!)
             {
+                //Console.WriteLine($"{task.TaskName}: {task.InboxIndex.ToString()}");
                 task.PropertyChanged += OnExistingTaskPropertyChanged!; // subscribe to property changed event
             }
         }
@@ -72,21 +67,6 @@
         return true;
     }
 
-    // protected bool ShouldRefreshDueToPropertyChange(string propertyName, string[] propertiesOfConcern)
-    // {
-
-    //     foreach (string property in propertiesOfConcern)
-    //     {
-    //         if (propertyName == property)
-    //         {
-    //             return true;
-    //         }
-    //     }
-
-    //     return false;
-    // }
-
-
     protected override bool HandleDataStateChanged(string propertyName, DataState dataState)
     {
         if (!dataRefreshTriggers.Contains(propertyName))
@@ -97,9 +77,7 @@
         if (AppState.CanRefresh)
         {
             //Console.WriteLine("InboxTaskPage: returned true on HandleDataStateChanged!");
-            LoadLocalInboxTaskData();
-            LoadLocalProjectData();
-            LoadLocalContextData();
+            LoadAllLocalData();
         }
 
         return AppState.CanRefresh;

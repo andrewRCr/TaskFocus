@@ -1,6 +1,5 @@
 ﻿@inherits _ComponentBase
 
-
 <MudExpansionPanels DisableBorders="true" Elevation="0" MultiExpansion="true">
         <MudDropContainer T="ProjectDisplayModel" 
                           Items="@ContainerProjectItemsParam" 
@@ -54,7 +53,6 @@
     [Parameter]
     public bool IsExpanded { get; set; } = false;
 
-    private bool _canRefresh = true;
 
     private void OnItemDropped()
     {

@@ -130,7 +130,11 @@ namespace TaskFocusWeb
 
         public async Task AssignProjectIdFromProjectName(TaskModel task)
         {
-            if (task.ProjectName == null) { task.ProjectId = null; }
+            if (task.ProjectName == null) 
+            { 
+                task.ProjectId = null;
+                task.ProjectIndex = null;
+            }
             else
             {
                 // lookup projectId by projectName and assign
@@ -149,6 +153,17 @@ namespace TaskFocusWeb
                     await AddProject(newProject);
 
                     assignedProject = FindAssignedProject();
+                    task.ProjectIndex = 0;
+                }
+                else
+                {
+                    // determine project index for task
+                    List<TaskDisplayModel> projectTasks = _dataState.Tasks!.Where(x => x.ProjectId == assignedProject.Id).ToList();
+                    if (projectTasks.Count > 0)
+                    {
+                        task.ProjectIndex = projectTasks.Count + 1;
+                    }
+                    else { task.ProjectIndex = 0; }
                 }
 
                 task.ProjectId = assignedProject!.Id;

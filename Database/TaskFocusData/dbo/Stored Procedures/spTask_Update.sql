@@ -8,7 +8,10 @@
 	@ContextName nvarchar(128),
 	@ProjectId int,
 	@ProjectName nvarchar(128),
-	@DueDate datetime2
+	@DueDate datetime2,
+	@InboxIndex int,
+	@ProjectIndex int,
+	@ContextIndex int
 AS
 BEGIN
 	SET NOCOUNT ON;
@@ -19,6 +22,9 @@ BEGIN
 		DateCompleted = @DateCompleted, 
 		ContextId = @ContextId, 
 		ProjectId = @ProjectId, 
-		DueDate = @DueDate
+		DueDate = @DueDate,
+		InboxIndex = @InboxIndex,
+		ProjectIndex = @ProjectIndex,
+		ContextIndex = @ContextIndex
 	WHERE Id = @Id;
 END
