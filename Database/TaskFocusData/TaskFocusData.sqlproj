@@ -86,8 +86,6 @@
     <Build Include="dbo\Stored Procedures\spUser_Insert.sql" />
     <Build Include="dbo\Stored Procedures\spProject_Update.sql" />
     <Build Include="dbo\Stored Procedures\spContext_Update.sql" />
-    <Build Include="dbo\Tables\Inbox.sql" />
-    <Build Include="dbo\Stored Procedures\spInbox_GetByUser.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="TaskFocusData.refactorlog" />

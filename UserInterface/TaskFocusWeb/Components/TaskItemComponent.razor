@@ -4,6 +4,8 @@
 @implements IBrowserViewportObserver
 @implements IAsyncDisposable
 
+@inject IDataService DataService
+
 @if (TaskParam != null)
 {
     <MudStack Row="true"
@@ -118,7 +120,11 @@
 
             <!-- delete task button  -->
             <MudItem xs="1" sm="1" md="1" lg="1" Class="@_deleteGridItemClassStr">
-                <MudIconButton Class=@_deleteClassStr Variant="Variant.Text" Icon="@Icons.Material.Filled.DeleteForever" Color="Color.Error" />
+                <MudIconButton Class=@_deleteClassStr
+                               OnClick=OpenDeleteDialog
+                               Variant="Variant.Text" 
+                               Icon="@Icons.Material.Filled.DeleteForever" 
+                               Color="Color.Error" />
             </MudItem>
 
         </MudGrid>
@@ -126,7 +132,21 @@
     </MudStack>
 }
 
-
+<!-- delete task dialog -->
+<MudDialog @bind-IsVisible="_deleteDialogVisible" Options="dialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Edit" Class="mr-3" /> Delete task?
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudText>Are you sure?</MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="SubmitDelete" Class="px-10">Yes</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="()=>_deleteDialogVisible = false" Class="px-10">No</MudButton>
+    </DialogActions>
+</MudDialog>
 
 <style>
     .mud-icon-button {
@@ -174,6 +194,17 @@
     private void SetIsProjectNameClearable(bool newClearable) { _isProjectNameClearable = newClearable; }
     private void SetIsContextNameClearable(bool newClearable) { _isContextNameClearable = newClearable; }
     private void SetIsDueDateClearable(bool newClearable) { _isDueDateClearable = newClearable; }
+
+    private bool _deleteDialogVisible = false;
+    private void OpenDeleteDialog() => _deleteDialogVisible = true;
+
+    private DialogOptions dialogOptions = new() { FullWidth = true };
+
+    private async Task SubmitDelete()
+    {
+        _deleteDialogVisible = false;
+        await DataService.DeleteTask(TaskParam);
+    }
 
     private void SetElementsActive(bool newActive)
     {

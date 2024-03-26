@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using System.Threading.Tasks;
 using TaskFocusUI.Library.API;
 using TaskFocusUI.Library.Models;
 using TaskFocusUI.Library.Utilities;
@@ -68,12 +69,20 @@ namespace TaskFocusWeb
             {
                 if (_dataHelper.HasTaskProjectNameChanged(task))
                 {
-                    await AssignProjectIdFromProjectName(task);
+                    await HandleTaskProjectChanged(task);
                 }
 
                 if (_dataHelper.HasTaskContextNameChanged(task))
                 {
-                    await AssignContextIdFromContextName(task);
+                    await HandleTaskContextChanged(task);
+                }
+
+                // if has both project and context, task is no longer in inbox
+                if (task.ProjectId != null && task.ContextId != null) 
+                {
+                    //ShiftInboxSourceIndices(task);
+                    ShiftCollectionSourceIndices(task, "InboxIndex");
+                    task.InboxIndex = null; 
                 }
 
                 await _taskEndpoint.UpdateTask(task);
@@ -128,16 +137,152 @@ namespace TaskFocusWeb
             }
         }
 
-        public async Task AssignProjectIdFromProjectName(TaskModel task)
+        public void ShiftCollectionSourceIndices(TaskModel task, string indexType)
         {
-            if (task.ProjectName == null) 
+            int? previouslyAssignedCollectionIndex = null;
+            int? previouslyAssignedCollectionId = null;
+            List<TaskDisplayModel>? previousCollectionTasks = null;
+
+            switch (indexType)
+            {
+                case "InboxIndex": // task is being moved out of the inbox
+                    previouslyAssignedCollectionIndex = task.InboxIndex;
+                    previousCollectionTasks = _dataState.Tasks!
+                        .Where(x => x.ProjectId == null || x.ContextId == null).ToList();
+                    foreach (TaskDisplayModel previousCollectionTask in previousCollectionTasks)
+                    {
+                        bool shiftNeeded = previousCollectionTask.InboxIndex > previouslyAssignedCollectionIndex;
+                        if (shiftNeeded) { previousCollectionTask.InboxIndex--; }
+                    }
+                    break;
+
+                case "ProjectIndex": // task is being moved out of an existing project
+                    if (task.ProjectId != null || task.ContextId != null) 
+                    {
+                        previouslyAssignedCollectionIndex = task.ProjectIndex;
+                        previouslyAssignedCollectionId = task.ProjectId;
+                        previousCollectionTasks = _dataState.Tasks!
+                            .Where(x => x.ProjectId == previouslyAssignedCollectionId).ToList();
+                        foreach (TaskDisplayModel previousCollectionTask in previousCollectionTasks)
+                        {
+                            bool shiftNeeded = previousCollectionTask.ProjectIndex > previouslyAssignedCollectionIndex;
+                            if (shiftNeeded) { previousCollectionTask.ProjectIndex--; }
+                        }
+                    }
+                    break;
+
+                case "ContextIndex": // task is being moved out of an existing context
+                    if (task.ContextId != null || task.ProjectId != null)
+                    {
+                        previouslyAssignedCollectionIndex = task.ContextIndex;
+                        previouslyAssignedCollectionId = task.ContextId;
+                        previousCollectionTasks = _dataState.Tasks!
+                            .Where(x => x.ContextId == previouslyAssignedCollectionId).ToList();
+                        foreach (TaskDisplayModel previousCollectionTask in previousCollectionTasks)
+                        {
+                            bool shiftNeeded = previousCollectionTask.ContextIndex > previouslyAssignedCollectionIndex;
+                            if (shiftNeeded) { previousCollectionTask.ContextIndex--; }
+                        }
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        //// task is being moved out of the inbox
+        //public void ShiftInboxSourceIndices(TaskModel task)
+        //{
+        //    int? previouslyAssignedInboxIndex = task.InboxIndex;
+
+        //    if (previouslyAssignedInboxIndex != null)
+        //    {
+        //        List<TaskDisplayModel> inboxTasks = _dataState.Tasks!
+        //            .Where(x => x.ProjectId == null || x.ContextId == null).ToList();
+
+        //        foreach (TaskDisplayModel inboxTask in inboxTasks)
+        //        {
+        //            // shift downwards
+        //            if (inboxTask.InboxIndex > previouslyAssignedInboxIndex)
+        //            {
+        //                inboxTask.InboxIndex--;
+        //            }
+        //        }
+        //    }
+        //}
+
+        //// task is being moved out of another existing project
+        //public void ShiftProjectSourceIndices(TaskModel task)
+        //{
+        //    int? previouslyAssignedProjectId = null;
+        //    int? previouslyAssignedProjectIndex = null;
+
+        //    // if no contextId, task is still in inbox - so do nothing yet
+        //    if (task.ProjectId != null && task.ContextId != null)
+        //    {
+        //        previouslyAssignedProjectId = task.ProjectId;
+        //        previouslyAssignedProjectIndex = task.ProjectIndex;
+
+        //        List<TaskDisplayModel> previousProjectTasks = _dataState.Tasks!
+        //            .Where(x => x.ProjectId == previouslyAssignedProjectId).ToList();
+
+        //        foreach (TaskDisplayModel previousNeighborTask in previousProjectTasks)
+        //        {
+        //            // shift downwards
+        //            if (previousNeighborTask.ProjectIndex > previouslyAssignedProjectIndex)
+        //            {
+        //                previousNeighborTask.ProjectIndex--;
+        //            }
+        //        }
+        //    }
+        //}
+
+        //// task is being moved out of another existing context
+        //public void ShiftContextSourceIndices(TaskModel task)
+        //{
+        //    int? previouslyAssignedContextId = null;
+        //    int? previouslyAssignedContextIndex = null;
+
+        //    // if no projectId, task is still in inbox - so do nothing yet
+        //    if (task.ContextId != null && task.ProjectId != null)
+        //    {
+        //        previouslyAssignedContextId = task.ContextId;
+        //        previouslyAssignedContextIndex = task.ContextIndex;
+
+        //        List<TaskDisplayModel> previousContextTasks = _dataState.Tasks!
+        //            .Where(x => x.ContextId == previouslyAssignedContextId).ToList();
+
+        //        foreach (TaskDisplayModel previousNeighborTask in previousContextTasks)
+        //        {
+        //            // shift downwards
+        //            if (previousNeighborTask.ContextIndex > previouslyAssignedContextIndex)
+        //            {
+        //                previousNeighborTask.ContextIndex--;
+        //            }
+        //        }
+        //    }
+        //}
+
+        public async Task HandleTaskProjectChanged(TaskModel task)
+        {
+            //ShiftProjectSourceIndices(task);
+            ShiftCollectionSourceIndices(task, "ProjectIndex");
+
+            if (task.ProjectName == null) // project was unassigned
             { 
                 task.ProjectId = null;
                 task.ProjectIndex = null;
+
+                List<TaskDisplayModel> inboxTasks = _dataState.Tasks!
+                    .Where(x => x.ProjectId == null || x.ContextId == null).ToList();
+
+                task.InboxIndex = inboxTasks.Count > 0 ? inboxTasks.Count : 0;
+                Console.WriteLine($"{task.TaskName}: new InboxIndex is {task.InboxIndex}");
+
             }
-            else
+            else // has new assigned project
             {
-                // lookup projectId by projectName and assign
                 // TODO: need to enforce uniqueness of the projectName property - casing, etc; something. ensure these will match!
 
                 ProjectDisplayModel? FindAssignedProject()
@@ -158,22 +303,34 @@ namespace TaskFocusWeb
                 else
                 {
                     // determine project index for task
-                    List<TaskDisplayModel> projectTasks = _dataState.Tasks!.Where(x => x.ProjectId == assignedProject.Id).ToList();
-                    if (projectTasks.Count > 0)
-                    {
-                        task.ProjectIndex = projectTasks.Count + 1;
-                    }
-                    else { task.ProjectIndex = 0; }
+                    List<TaskDisplayModel> projectTasks = _dataState.Tasks!
+                        .Where(x => x.ProjectId == assignedProject.Id).ToList();
+
+                    task.ProjectIndex = projectTasks.Count > 0 ? projectTasks.Count : 0;
+                    Console.WriteLine($"{task.TaskName}: new ProjectIndex is {task.ProjectIndex}");
                 }
 
                 task.ProjectId = assignedProject!.Id;
             }
         }
 
-        public async Task AssignContextIdFromContextName(TaskModel task)
+        public async Task HandleTaskContextChanged(TaskModel task)
         {
-            if (task.ContextName == null) { task.ContextId = null; }
-            else
+            //ShiftContextSourceIndices(task);
+            ShiftCollectionSourceIndices(task, "ContextIndex");
+
+            if (task.ContextName == null)  // context was unassigned
+            { 
+                task.ContextId = null;
+                task.ContextIndex = null;
+
+                List<TaskDisplayModel> inboxTasks = _dataState.Tasks!
+                    .Where(x => x.ProjectId == null || x.ContextId == null).ToList();
+
+                task.InboxIndex = inboxTasks.Count > 0 ? inboxTasks.Count : 0;
+                Console.WriteLine($"{task.TaskName}: new InboxIndex is {task.InboxIndex}");
+            }
+            else // has new assigned context
             {
                 // lookup ContextId by contextName and assign
                 // TODO: need to enforce uniqueness of the contextName property - casing, etc; something. ensure these will match!
@@ -185,13 +342,22 @@ namespace TaskFocusWeb
                 }
 
                 ContextDisplayModel? assignedContext = FindAssignedContext();
-
                 if (assignedContext == null)
                 {
                     ContextModel newContext = new ContextModel { ContextName = task.ContextName };
                     await AddContext(newContext);
 
                     assignedContext = FindAssignedContext();
+                    task.ContextIndex = 0;
+                }
+                else
+                {
+                    // determine context index for task
+                    List<TaskDisplayModel> contextTasks = _dataState.Tasks!
+                        .Where(x => x.ContextId == assignedContext.Id).ToList();
+
+                    task.ContextIndex = contextTasks.Count > 0 ? contextTasks.Count : 0;
+                    Console.WriteLine($"{task.TaskName}: new ContextIndex is {task.ContextIndex}");
                 }
 
                 task.ContextId = assignedContext!.Id;
@@ -217,6 +383,68 @@ namespace TaskFocusWeb
             await _contextEndpoint.AddContext(newContext, _apiHelper.GetLoggedInUserId());
 
             // refresh Tasks, Projects, Contexts + clear NewTask
+            await FetchRemoteTaskData();
+            await FetchRemoteProjectData();
+            await FetchRemoteContextData();
+        }
+
+        public async Task AddTask(TaskDisplayModel displayTask)
+        {
+            // map from TaskDisplayModel to TaskModel
+            TaskModel task = _mapper.Map<TaskModel>(displayTask);
+
+            if (string.IsNullOrWhiteSpace(task.TaskName)) { return; }
+
+            if (task.ProjectName == null || task.ContextName == null)
+            {
+                List<TaskDisplayModel> inboxTasks = _dataState.Tasks!
+                    .Where(x => x.ProjectId == null || x.ContextId == null).ToList();
+
+                task.InboxIndex = inboxTasks.Count > 0 ? inboxTasks.Count : 0;
+                Console.WriteLine($"{task.TaskName}: new InboxIndex is {task.InboxIndex}");
+            }
+
+            if (task.ProjectName != null)
+            {
+                await HandleTaskProjectChanged(task);
+            }
+            if (task.ContextName != null)
+            {
+                await HandleTaskContextChanged(task);
+            }
+
+            await _taskEndpoint.AddTask(task, _apiHelper.GetLoggedInUserId());
+
+            // refresh all data
+            await FetchRemoteTaskData();
+            await FetchRemoteProjectData();
+            await FetchRemoteContextData();
+        }
+
+        public async Task DeleteTask(TaskDisplayModel displayTask)
+        {
+            // map from TaskDisplayModel to TaskModel
+            TaskModel task = _mapper.Map<TaskModel>(displayTask);
+
+            if (task.ProjectId == null || task.ContextId == null) 
+            { 
+                //ShiftInboxSourceIndices(task);
+                ShiftCollectionSourceIndices(task, "InboxIndex");
+            }
+            if (task.ProjectId != null) 
+            {
+                //ShiftProjectSourceIndices(task);
+                ShiftCollectionSourceIndices(task, "ProjectIndex");
+            }
+            if (task.ContextId != null) 
+            {
+                //ShiftContextSourceIndices(task);
+                ShiftCollectionSourceIndices(task, "ContextIndex");
+            }
+
+            await _taskEndpoint.DeleteTask(task);
+
+            // refresh all data
             await FetchRemoteTaskData();
             await FetchRemoteProjectData();
             await FetchRemoteContextData();

@@ -6,8 +6,8 @@ namespace TaskFocusWeb
     {
         Task AddContext(ContextModel newContext);
         Task AddProject(ProjectModel newProject);
-        Task AssignContextIdFromContextName(TaskModel task);
-        Task AssignProjectIdFromProjectName(TaskModel task);
+        Task HandleTaskContextChanged(TaskModel task);
+        Task HandleTaskProjectChanged(TaskModel task);
         Task FetchAllRemoteData();
         Task FetchRemoteContextData();
         Task FetchRemoteProjectData();
@@ -15,5 +15,7 @@ namespace TaskFocusWeb
         Task UpdateContextData(ContextDisplayModel displayContext);
         Task UpdateProjectData(ProjectDisplayModel displayProject);
         Task UpdateTaskData(TaskDisplayModel displayTask);
+        Task DeleteTask(TaskDisplayModel displayTask);
+        Task AddTask(TaskDisplayModel displayTask);
     }
 }

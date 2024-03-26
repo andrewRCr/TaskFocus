@@ -1,0 +1,216 @@
+﻿@inherits _ComponentBase
+@inject IDataService DataService
+
+<MudAppBar Bottom="true" 
+           Fixed="true" 
+           Color="Color.Transparent" 
+           Elevation="0" >
+
+        <MudIconButton Class="rounded-circle"
+                       Icon="@Icons.Material.Filled.Add"
+                       Color="Color.Primary"
+                       Variant="Variant.Filled"
+                       Size="Size.Large"
+                       Edge="Edge.Start"
+                       OnClick="ShowNewTaskInput" />
+
+</MudAppBar>
+
+<MudDialog @bind-IsVisible=_newTaskInputsVisible 
+           Options="dialogOptions"
+           Style="background-color: #27272f" >
+
+    <TitleContent>
+        <MudStack Row="true">
+            <MudButton Disabled StartIcon="@Icons.Material.Filled.Add">Add new task</MudButton>
+        </MudStack>
+    </TitleContent>
+
+    <DialogContent>
+
+        <MudPaper Outlined Style="background-color: #373740;" Class="pa-4 ma-0" Elevation="3">
+
+            <MudStack Row="true">
+                <MudGrid Justify="Justify.SpaceAround" Spacing="@(_gridSpacing)">
+
+                    @if (_newTaskInputsVisible)
+                    {
+                        <!-- taskName input -->
+                        <MudItem xs="8" sm="5" md="3" lg="3" xl="3">
+                            <MudTextField @bind-Value="_newTask.TaskName" Placeholder="Task" Variant="Variant.Text" Margin="Margin.Dense"
+                                          AutoGrow AutoFocus />
+                        </MudItem>
+
+                        <!-- projectName input-->
+                        <MudItem xs="8" sm="5" md="3" lg="3" xl="3">
+
+                            <MudAutocomplete @ref="_projectSelectInput"
+                                             T="string"
+                                             @bind-Value="_newTask.ProjectName"
+                                             SearchFunc="@((x)=> ItemCollectionSearch(_projectNames, x))"
+                                             Margin="Margin.Dense"
+                                             Dense="true"
+                                             Placeholder="Project"
+                                             AnchorOrigin="Origin.BottomCenter"
+                                             ResetValueOnEmptyText="true"
+                                             Strict="false"
+                                             CoerceText="true"
+                                             SelectOnClick="true"
+                                             SelectValueOnTab="true">
+                                <ItemTemplate Context="e">
+
+                                    <MudText>
+                                        @($"{e}")
+                                    </MudText>
+
+                                </ItemTemplate>
+                            </MudAutocomplete>
+                        </MudItem>
+
+                        <!-- contextName input-->
+                        <MudItem xs="8" sm="5" md="3" lg="3" xl="3">
+                            <MudAutocomplete @ref="_contextSelectInput"
+                                             T="string"
+                                             @bind-Value="_newTask.ContextName"
+                                             SearchFunc="@((x) => ItemCollectionSearch(_contextNames, x))"
+                                             Margin="Margin.Dense"
+                                             Dense="true"
+                                             Placeholder="Context"
+                                             AnchorOrigin="Origin.BottomCenter"
+                                             ResetValueOnEmptyText="true"
+                                             Strict="false"
+                                             CoerceText="true"
+                                             SelectOnClick="true"
+                                             SelectValueOnTab="true">
+                                <ItemTemplate Context="e">
+
+                                    <MudText>
+                                        @($"{e}")
+                                    </MudText>
+
+                                </ItemTemplate>
+                            </MudAutocomplete>
+                        </MudItem>
+
+                        <!-- due date input -->
+                        <MudItem xs="8" sm="5" md="2" lg="2" xl="2">
+
+                            <MudDatePicker @ref="_datePicker"
+                                           @bind-Date="_newTask.DueDate"
+                                           OnClick="()=> _datePicker.SelectAsync()"
+                                           Placeholder="Due"
+                                           Margin="Margin.Dense"
+                                           DisableToolbar="true"
+                                           Editable="true"
+                                           AutoClose="false">
+                                <PickerActions>
+
+                                    <MudButton Class="mr-auto align-self-start" OnClick="@(() => _datePicker.Clear())">Clear</MudButton>
+                                    <MudButton OnClick="@(() => _datePicker.Close(false))">Cancel</MudButton>
+                                    <MudButton Color="Color.Primary" OnClick="@(() => _datePicker.Close())">Ok</MudButton>
+
+                                </PickerActions>
+
+                            </MudDatePicker>
+                        </MudItem>
+
+                    }
+
+                </MudGrid>
+       
+            </MudStack>
+
+        </MudPaper>
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton OnClick="()=>_newTaskInputsVisible = false" Class="px-0">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="SubmitAddNewTask" Class="px-0">Add</MudButton>
+    </DialogActions>
+
+</MudDialog>
+
+<style>
+    .mud-button {
+        &:disabled
+        {
+        color: #adadb1 !important;
+            cursor: default;
+            pointer-events: none;
+        }
+    }
+</style>
+
+
+@code {
+    private bool _newTaskInputsVisible = false;
+    private int _gridSpacing = 3;
+
+    private TaskDisplayModel _newTask = default!;
+    private string[] _projectNames = { };
+    private string[] _contextNames = { };
+
+    private MudAutocomplete<string> _projectSelectInput = default!;
+    private MudAutocomplete<string> _contextSelectInput = default!;
+    private MudDatePicker _datePicker = default!;
+
+    private DialogOptions dialogOptions = new() {
+            FullWidth = true,
+            MaxWidth = MaxWidth.Medium,
+            NoHeader = false,
+            CloseOnEscapeKey = true
+    };
+
+    protected override void CustomAuthenticatedOnInit()
+    {
+        _newTask = new();
+        LoadLocalProjectData();
+        LoadLocalContextData();
+        UpdateProjectContextSelectionLists();
+    }
+
+    private void ShowNewTaskInput()
+    {
+        _newTaskInputsVisible = true;
+    }
+
+    private void UpdateProjectContextSelectionLists()
+    {
+        List<string> projectParamNamesOnly = new();
+        List<string> contextParamNamesOnly = new();
+
+        foreach (ProjectDisplayModel project in LocalProjects!)
+        {
+            projectParamNamesOnly.Add(project.ProjectName);
+        }
+
+        foreach (ContextDisplayModel context in LocalContexts!)
+        {
+            contextParamNamesOnly.Add(context.ContextName);
+        }
+
+        _projectNames = projectParamNamesOnly.ToArray();
+        _contextNames = contextParamNamesOnly.ToArray();
+    }
+
+    private Task<IEnumerable<string>> ItemCollectionSearch(string[] itemCollection, string value)
+    {
+        IEnumerable<string> items = itemCollection;
+
+        // if text is null or empty, show complete list
+        if (string.IsNullOrEmpty(value)) { return Task.FromResult(items); }
+
+        var result = items
+            .Where(item => item.Contains(value, StringComparison.InvariantCultureIgnoreCase))
+            ?? itemCollection;
+
+        return Task.FromResult(result);
+    }
+
+    private async Task SubmitAddNewTask()
+    {
+        _newTaskInputsVisible = false;
+        await DataService.AddTask(_newTask);
+        _newTask = new();
+    }
+}
