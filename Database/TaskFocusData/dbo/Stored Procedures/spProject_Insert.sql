@@ -6,11 +6,12 @@
 	@ContextName nvarchar(128) = NULL,
 	@DueDate datetime2 = NULL,
 	@Completed bit = 0,
-	@DateCompleted datetime2 = NULL
+	@DateCompleted datetime2 = NULL,
+	@OrderIndex int = NULL
 AS
 BEGIN
 	SET NOCOUNT ON;
 
-	INSERT INTO dbo.Project(UserId, ProjectName, ContextId, DueDate, Completed, DateCompleted)
-	VALUES(@UserId, @ProjectName, @ContextId, @DueDate, cast(@Completed as bit), @DateCompleted);
+	INSERT INTO dbo.Project(UserId, ProjectName, ContextId, DueDate, Completed, DateCompleted, OrderIndex)
+	VALUES(@UserId, @ProjectName, @ContextId, @DueDate, cast(@Completed as bit), @DateCompleted, @OrderIndex);
 END

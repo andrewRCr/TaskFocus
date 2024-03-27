@@ -4,7 +4,7 @@ AS
 BEGIN
 	SET NOCOUNT ON;
 
-	SELECT Id, UserId, ProjectName, ContextId, DueDate, ProjectTasks
+	SELECT Id, UserId, ProjectName, ContextId, DueDate, OrderIndex
 	FROM dbo.Project
 	WHERE Id = @Id
 END

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace TaskFocusUI.Library.Models
 {
-    public class ProjectDisplayModel : INotifyPropertyChanged
+    public class ProjectDisplayModel : INotifyPropertyChanged, ICollectionDisplayModel
     {
         public int? Id { get; set; }
         public string UserId { get; set; }
@@ -31,6 +31,17 @@ namespace TaskFocusUI.Library.Models
             {
                 _projectName = value;
                 CallPropertyChanged(nameof(ProjectName));
+            }
+        }
+
+        private int? _orderIndex;
+        public int? OrderIndex
+        {
+            get { return _orderIndex; }
+            set
+            {
+                _orderIndex = value;
+                CallPropertyChanged(nameof(OrderIndex));
             }
         }
     }

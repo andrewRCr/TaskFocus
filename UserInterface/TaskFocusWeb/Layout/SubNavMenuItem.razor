@@ -1,6 +1,7 @@
 ﻿@inherits _ComponentBase
 @inject ISnackbar Snackbar
 @inject NavigationManager NavManager
+@inject IDataService DataService
 
 <MudStack Row="true" @onmouseover="()=> ShowHideItemEditMenuButton(true)"
           @onmouseout="()=> ShowHideItemEditMenuButton(false)"
@@ -19,7 +20,7 @@
              Size="Size.Small">
         <div @onmousedown=OnItemMouseDown>
             <MudMenuItem OnClick="RenameItem" OnTouch="RenameItemTouch">Rename</MudMenuItem>
-            <MudMenuItem>Delete</MudMenuItem>
+            <MudMenuItem OnClick="DeleteItem" OnTouch="DeleteItemTouch">Delete</MudMenuItem>
         </div>
     </MudMenu>
 
@@ -29,14 +30,32 @@
 <MudDialog @bind-IsVisible="_renameDialogVisible" Options="dialogOptions">
     <TitleContent>
         <MudText Typo="Typo.h6">
-            <MudIcon Icon="@Icons.Material.Filled.Edit" Class="mr-3" /> Edit item name
+            <MudIcon Icon="@Icons.Material.Filled.Edit" Class="mr-3" /> Rename @_collectionTypeName?
         </MudText>
     </TitleContent>
     <DialogContent>
         <MudTextField @bind-Value="_itemName" Variant="Variant.Text" Margin="Margin.Dense"/>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SubmitRename" Class="px-10">Close</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SubmitRename" Class="px-10">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
+<!-- delete dialog -->
+<MudDialog @bind-IsVisible="_deleteDialogVisible" Options="dialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.DeleteForever" Class="mr-3" /> Delete "@_itemName"?
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudText>
+            Any tasks with this @_collectionTypeName assigned will be moved to your Inbox.
+        </MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="()=>_deleteDialogVisible= false" Class="px-0">Cancel</MudButton>
+        <MudButton Color="Color.Error" OnClick="SubmitDelete" Class="px-10">Delete</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -51,27 +70,35 @@
     public ContextDisplayModel ContextParam { get; set; } = default!;
 
     private string _itemName = string.Empty;
+    private string _collectionTypeName = string.Empty;
     private MudMenu _itemEditMenu = default!;
     private string _editMenuClassStr = "invisible";
+
     private bool _itemClicked = false;
     private bool _renameDialogVisible = false;
+    private bool _deleteDialogVisible = false;
+    private DialogOptions dialogOptions = new() { FullWidth = true };
+
     private void OpenRenameDialog() => _renameDialogVisible = true;
+    private void OpenDeleteDialog() => _deleteDialogVisible = true;
 
     private void SubmitRename()
     {
-        if (IsProjectsSubMenu)
-        {
-            ProjectParam.ProjectName = _itemName;
-        }
-        else
-        {
-            ContextParam.ContextName = _itemName;
-        }
+        if (IsProjectsSubMenu) { ProjectParam.ProjectName = _itemName; }
+        else { ContextParam.ContextName = _itemName; }
 
         _renameDialogVisible = false;
     }
 
-    private DialogOptions dialogOptions = new() { FullWidth = true };
+    private async Task SubmitDelete()
+    {
+        _deleteDialogVisible = false;
+
+        if (IsProjectsSubMenu)
+        { await DataService.DeleteProject(ProjectParam); }
+        else
+        { await DataService.DeleteContext(ContextParam); }
+    }
 
     protected override void OnParametersSet()
     {
@@ -79,6 +106,9 @@
 
         _itemName = IsProjectsSubMenu ? 
             ProjectParam.ProjectName : ContextParam.ContextName;
+
+        _collectionTypeName = IsProjectsSubMenu ?
+            "Project" : "Context";
     }
 
     private void CloseItemEditMenu()
@@ -112,5 +142,6 @@
 
     private void RenameItem(MouseEventArgs args) => OpenRenameDialog();
     private void RenameItemTouch(TouchEventArgs args) => Snackbar.Add("Rename Invoked");
-    private void DeleteItem(TouchEventArgs args) => Snackbar.Add("Delete Invoked");
+    private void DeleteItem(MouseEventArgs args) => OpenDeleteDialog();
+    private void DeleteItemTouch(TouchEventArgs args) => OpenDeleteDialog();
 }

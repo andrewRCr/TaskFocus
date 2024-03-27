@@ -9,48 +9,29 @@
     {
         @if (LocalProjects != null)
         {
-            @foreach (ProjectDisplayModel project in LocalProjects)
-            {
-                <SubNavMenuItem IsProjectsSubMenu="true" ProjectParam="project" />
-
-@*                 <MudStack Row="true" @onmouseover="()=> ShowHideItemEditMenu(true)" 
-                    @onmouseout="()=> ShowHideItemEditMenu(false)">
-
-                <MudNavLink Class="subNavLink" OnClick="@(()=>SetFocusedItemIdStr((int)project.Id!))" 
-                    Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">
-                    @project.ProjectName
-                </MudNavLink>
-
-                    <MudMenu Icon="@Icons.Material.Filled.MoreVert"
-                             Class="@_editMenuClassStr"
-                             Dense="true" 
-                             Size="Size.Small"
-
-                             >
-
-                        <MudMenuItem>Rename</MudMenuItem>
-                        <MudMenuItem>Delete</MudMenuItem>
-                    </MudMenu>
-
-                </MudStack> *@
-            }
+            <SubNavMenuItemContainer IsProjectsSubMenu="true" ContainerProjectsParam="@LocalProjects" ContainerIdentifierParam="ProjectsSubNavMenu" />
         }
     }
     else
     {
         @if (LocalContexts != null)
         {
-            @foreach (ContextDisplayModel context in LocalContexts)
-            {
-                <SubNavMenuItem IsProjectsSubMenu="false" ContextParam="context" />
-
-@*                 <MudNavLink Class="subNavLink" OnClick="@(()=>SetFocusedItemIdStr((int)context.Id!))" 
-                    Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">
-                    @context.ContextName
-                </MudNavLink> *@
-            }
+            <SubNavMenuItemContainer IsProjectsSubMenu="false" ContainerContextsParam="@LocalContexts" ContainerIdentifierParam="ContextsSubNavMenu" />
         }
     }
+
+    @*
+    <MudNavLink Disabled DisableRipple />
+
+    <MudButton OnClick="()=>_newCollectionDialogVisible = true" 
+               @onmouseover="()=>SetAddNewCollectionButtonActive(true)"
+               @onmouseleave="()=>SetAddNewCollectionButtonActive(false)"
+               Color="Color.Inherit" 
+               Class="ml-4"
+               StartIcon="@Icons.Material.Filled.Add" 
+                                    >
+        Add new @_collectionTypeName
+        </MudButton> *@
 
 </MudNavMenu>
 
@@ -71,11 +52,26 @@
     [Parameter]
     public EventCallback<string> OnContextFocused { get; set; }
 
+    private string _collectionTypeName = string.Empty;
     private string _editMenuClassStr = "invisible";
+    private bool _newCollectionDialogVisible = false;
+    private string _addNewCollectionButtonDescription = string.Empty;
 
     private void ShowHideItemEditMenu(bool newShow)
     {
         _editMenuClassStr = newShow ? "" : "invisible";
+    }
+
+    private void SetAddNewCollectionButtonActive(bool newActive)
+    {
+        if (newActive)
+        {
+            _addNewCollectionButtonDescription = $"Add new {_collectionTypeName}";
+        }
+        else
+        {
+            _addNewCollectionButtonDescription = string.Empty;
+        }
     }
 
     private string CollectionName
@@ -87,6 +83,46 @@
     {
         LoadLocalProjectData();
         LoadLocalContextData();
+    }
+
+    protected override void OnParametersSet()
+    {
+        // LoadLocalProjectData();
+        // LoadLocalContextData();
+        _collectionTypeName = IsProjectsSubMenu?
+            "Project" : "Context";
+    }
+
+    protected override void LoadLocalProjectData()
+    {
+        if (DataState.IsDataLoaded())
+        {
+            List<ProjectDisplayModel> projects = DataState.Projects!;
+            projects = projects.OrderBy(x => x.OrderIndex).ToList();
+            LocalProjects = projects;
+
+            foreach (ProjectDisplayModel project in LocalProjects!)
+            {
+                project.PropertyChanged += OnExistingProjectPropertyChanged!; // subscribe to property changed event
+                //Console.WriteLine($"{project.ProjectName}'s OrderIndex: {project.OrderIndex}");
+            }
+        }
+    }
+
+    protected override void LoadLocalContextData()
+    {
+        if (DataState.IsDataLoaded())
+        {
+            List<ContextDisplayModel> contexts = DataState.Contexts!;
+            contexts = contexts.OrderBy(x => x.OrderIndex).ToList();
+            LocalContexts = contexts;
+
+            foreach (ContextDisplayModel context in LocalContexts!)
+            {
+                context.PropertyChanged += OnExistingContextPropertyChanged!; // subscribe to property changed event
+                Console.WriteLine($"{context.ContextName}'s OrderIndex: {context.OrderIndex}, LocalContexts.IndexOf: {LocalContexts.IndexOf(context)}");
+            }
+        }
     }
 
     private void ResetToAllItemsView()
@@ -109,5 +145,22 @@
         { AppState.FocusedProjectIdStr = itemId.ToString(); }
         else
         { AppState.FocusedContextIdStr = itemId.ToString(); ; }
+    }
+
+    protected override bool HandleDataStateChanged(String propertyName, DataState dataState)
+    {
+        if (!dataRefreshTriggers.Contains(propertyName))
+        {
+            return false;
+        }
+
+        if (AppState.CanRefresh)
+        {
+            //Console.WriteLine("SubNavMenu: returned true on HandleDataStateChanged!");
+            LoadLocalProjectData();
+            LoadLocalContextData();
+        }
+
+        return AppState.CanRefresh;
     }
 }

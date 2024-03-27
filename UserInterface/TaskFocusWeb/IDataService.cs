@@ -17,5 +17,7 @@ namespace TaskFocusWeb
         Task UpdateTaskData(TaskDisplayModel displayTask);
         Task DeleteTask(TaskDisplayModel displayTask);
         Task AddTask(TaskDisplayModel displayTask);
+        Task DeleteProject(ProjectDisplayModel displayProject);
+        Task DeleteContext(ContextDisplayModel displayContext);
     }
 }

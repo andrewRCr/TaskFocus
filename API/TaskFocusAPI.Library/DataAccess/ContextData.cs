@@ -53,6 +53,7 @@ namespace TaskFocusAPI.Library.DataAccess
             }
 
             dbContext.ContextName = frontEndContext.ContextName.Trim();
+            dbContext.OrderIndex = frontEndContext.OrderIndex;
 
             try
             {
@@ -66,7 +67,8 @@ namespace TaskFocusAPI.Library.DataAccess
 
         public void DeleteContext(ContextModel contextToDelete)
         {
-            throw new NotImplementedException();
+            var p = new { Id = contextToDelete.Id };
+            _sqlDataAccess.SaveData("dbo.spContext_Delete", p, "TaskFocusData");
         }
     }
 }

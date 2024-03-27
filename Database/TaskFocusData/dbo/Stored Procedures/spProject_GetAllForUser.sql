@@ -4,7 +4,7 @@ AS
 BEGIN
 	SET NOCOUNT ON;
 
-	SELECT Project.Id, ProjectName, ContextId, DueDate, ContextName
+	SELECT Project.Id, ProjectName, ContextId, DueDate, ContextName, Project.OrderIndex
 	FROM dbo.Project
 	LEFT JOIN dbo.Context ON dbo.Project.ContextId = dbo.Context.Id
 	WHERE Project.UserId = @Id

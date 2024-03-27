@@ -60,6 +60,7 @@ namespace TaskFocusAPI.Library.DataAccess
             dbProject.Completed = frontEndProject.Completed;
             dbProject.ProjectName = frontEndProject.ProjectName.Trim();
             dbProject.DueDate = frontEndProject.DueDate;
+            dbProject.OrderIndex = frontEndProject.OrderIndex;
 
             // these will have been updated by the front-end prior to call
             dbProject.ContextId = frontEndProject.ContextId;
@@ -76,7 +77,8 @@ namespace TaskFocusAPI.Library.DataAccess
 
         public void DeleteProject(ProjectModel projectToDelete)
         {
-            throw new NotImplementedException();
+            var p = new { Id = projectToDelete.Id };
+            _sqlDataAccess.SaveData("dbo.spProject_Delete", p, "TaskFocusData");
         }
 
     }

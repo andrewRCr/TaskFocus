@@ -6,7 +6,8 @@
 	@DateCompleted datetime2,
 	@ContextId int,
 	@ContextName nvarchar(128),
-	@DueDate datetime2
+	@DueDate datetime2,
+	@OrderIndex int
 AS
 BEGIN
 	SET NOCOUNT ON;
@@ -16,6 +17,7 @@ BEGIN
 		Completed = cast(@Completed as bit), 
 		DateCompleted = @DateCompleted, 
 		ContextId = @ContextId, 
-		DueDate = @DueDate
+		DueDate = @DueDate,
+		OrderIndex = @OrderIndex
 	WHERE Id = @Id;
 END

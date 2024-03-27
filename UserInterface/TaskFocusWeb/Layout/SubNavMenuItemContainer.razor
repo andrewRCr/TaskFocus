@@ -1,0 +1,128 @@
+﻿@inherits _ComponentBase
+
+@if (IsProjectsSubMenu)
+{
+    <MudDropContainer @ref=_projectContainer 
+                      T="ProjectDisplayModel"
+                      Items="@ContainerProjectsParam"
+                      ItemsSelector="@((item, dropzone) => true)"
+                      ItemPicked="()=>SetCanRefresh(false)"
+                      ItemDropped="OnProjectItemDropped">
+        <ChildContent>
+            <MudDropZone T="ProjectDisplayModel"
+                         Identifier="@ContainerIdentifierParam"
+                         AllowReorder="true"
+                         Class="rounded mud-background-gray px-0 py-0 ma-0" />
+        </ChildContent>
+        <ItemRenderer>
+                <SubNavMenuItem IsProjectsSubMenu="IsProjectsSubMenu" ProjectParam="@context" />
+        </ItemRenderer>
+    </MudDropContainer>
+}
+else
+{
+    <MudDropContainer @ref=_contextContainer
+                      T="ContextDisplayModel"
+                      Items="@ContainerContextsParam"
+                      ItemsSelector="@((item, dropzone) => true)"
+                      ItemPicked="()=>SetCanRefresh(false)"
+                      ItemDropped="OnContextItemDropped">
+        <ChildContent>
+            <MudDropZone T="ContextDisplayModel"
+                         Identifier="@ContainerIdentifierParam"
+                         AllowReorder="true"
+                         Class="rounded mud-background-gray px-0 py-0 ma-0" />
+        </ChildContent>
+        <ItemRenderer>
+            <SubNavMenuItem IsProjectsSubMenu="IsProjectsSubMenu" ContextParam="@context" />
+        </ItemRenderer>
+    </MudDropContainer>
+}
+
+@code {
+    [Parameter]
+    public bool IsProjectsSubMenu { get; set; } = default!;
+
+    [Parameter]
+    public string ContainerIdentifierParam { get; set; } = default!;
+
+    [Parameter]
+    public List<ProjectDisplayModel> ContainerProjectsParam { get; set; } = default!;
+
+    [Parameter]
+    public List<ContextDisplayModel> ContainerContextsParam { get; set; } = default!;
+
+    private MudDropContainer<ProjectDisplayModel> _projectContainer = default!;
+    private MudDropContainer<ContextDisplayModel> _contextContainer = default!;
+
+    private void OnProjectItemDropped(MudItemDropInfo<ProjectDisplayModel> dropItem)
+    {
+        UpdateLocalOrder(dropItem, ContainerProjectsParam);
+        SetCanRefresh(true);
+    }
+
+    private void OnContextItemDropped(MudItemDropInfo<ContextDisplayModel> dropItem)
+    {
+        UpdateLocalOrder(dropItem, ContainerContextsParam);
+        SetCanRefresh(true);
+    }
+
+    private void RefreshContainer()
+    {
+        if (IsProjectsSubMenu)
+        {
+            ContainerProjectsParam = ContainerProjectsParam.OrderBy(x => x.OrderIndex).ToList();
+            StateHasChanged(); // update the binding to the container
+            _projectContainer.Refresh(); // container refreshes internal state
+        }
+        else
+        {
+            ContainerContextsParam = ContainerContextsParam.OrderBy(x => x.OrderIndex).ToList();
+            StateHasChanged(); 
+            _contextContainer.Refresh();
+        }
+    }
+
+    private void UpdateLocalOrder<T>(MudItemDropInfo<T> reorderedDropItem, List<T> ContainerCollectionParam) where T: ICollectionDisplayModel
+    {
+        int oldIndex = (int)reorderedDropItem.Item!.OrderIndex!;
+        var newIndex = reorderedDropItem.IndexInZone;
+
+        if (oldIndex > -1)
+        {
+            var oldItem = ContainerCollectionParam[oldIndex];
+            if (newIndex > -1)
+            {
+                ContainerCollectionParam.RemoveAt(oldIndex);
+                ContainerCollectionParam.Insert(newIndex, oldItem);
+                UpdateRemoteOrder(ContainerCollectionParam);
+            }
+        }
+    }
+
+    private void UpdateRemoteOrder<T>(List<T> ContainerCollectionParam) where T : ICollectionDisplayModel
+    {
+        foreach (var item in ContainerCollectionParam)
+        {
+            // will trigger an API UpdateProjectData/UpdateContextData call
+            item.OrderIndex = ContainerCollectionParam.IndexOf(item);
+        }
+    }
+
+    protected override bool HandleDataStateChanged(String propertyName, DataState dataState)
+    {
+        if (IsProjectsSubMenu && propertyName != nameof(dataState.Projects) || 
+            !IsProjectsSubMenu && propertyName != nameof(dataState.Contexts))
+        {
+            return false;
+        }
+
+        if (AppState.CanRefresh)
+        {
+            //Console.WriteLine("SubNavMenuItemContainerComp: returned true on HandleDataStateChanged!");
+            RefreshContainer();
+        }
+
+        return AppState.CanRefresh;
+    }
+}

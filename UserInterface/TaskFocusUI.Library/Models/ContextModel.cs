@@ -9,5 +9,6 @@ namespace TaskFocusUI.Library.Models
         public int? Id { get; set; }
         public string UserId { get; set; }
         public string ContextName { get; set; }
+        public int? OrderIndex { get; set; }
     }
 }

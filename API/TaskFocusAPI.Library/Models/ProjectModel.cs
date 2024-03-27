@@ -16,5 +16,6 @@ namespace TaskFocusAPI.Library.Models
         public DateTime? DueDate { get; set; }
         public bool Completed { get; set; } = false;
         public DateTime? DateCompleted { get; set; }
+        public int? OrderIndex { get; set; }
     }
 }

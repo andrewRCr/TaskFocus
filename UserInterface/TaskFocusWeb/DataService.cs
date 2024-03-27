@@ -81,7 +81,7 @@ namespace TaskFocusWeb
                 if (task.ProjectId != null && task.ContextId != null) 
                 {
                     //ShiftInboxSourceIndices(task);
-                    ShiftCollectionSourceIndices(task, "InboxIndex");
+                    ShiftTaskCollectionSourceIndices(task, "InboxIndex");
                     task.InboxIndex = null; 
                 }
 
@@ -137,7 +137,20 @@ namespace TaskFocusWeb
             }
         }
 
-        public void ShiftCollectionSourceIndices(TaskModel task, string indexType)
+        // for use when removing a project/context
+        public void ShiftCollectionOrderIndices<T>(T collectionDisplayModel, List<T> collectionSource) where T: ICollectionDisplayModel
+        {
+            int? previouslyAssignedCollectionIndex = collectionDisplayModel.OrderIndex;
+
+            foreach (T item in collectionSource)
+            {
+                bool shiftNeeded = item.OrderIndex > previouslyAssignedCollectionIndex;
+                if (shiftNeeded) { item.OrderIndex--; }
+            }
+        }
+
+        // for use when removing a task *from* the inbox or a project/context
+        public void ShiftTaskCollectionSourceIndices(TaskModel task, string indexType)
         {
             int? previouslyAssignedCollectionIndex = null;
             int? previouslyAssignedCollectionId = null;
@@ -191,83 +204,10 @@ namespace TaskFocusWeb
             }
         }
 
-        //// task is being moved out of the inbox
-        //public void ShiftInboxSourceIndices(TaskModel task)
-        //{
-        //    int? previouslyAssignedInboxIndex = task.InboxIndex;
-
-        //    if (previouslyAssignedInboxIndex != null)
-        //    {
-        //        List<TaskDisplayModel> inboxTasks = _dataState.Tasks!
-        //            .Where(x => x.ProjectId == null || x.ContextId == null).ToList();
-
-        //        foreach (TaskDisplayModel inboxTask in inboxTasks)
-        //        {
-        //            // shift downwards
-        //            if (inboxTask.InboxIndex > previouslyAssignedInboxIndex)
-        //            {
-        //                inboxTask.InboxIndex--;
-        //            }
-        //        }
-        //    }
-        //}
-
-        //// task is being moved out of another existing project
-        //public void ShiftProjectSourceIndices(TaskModel task)
-        //{
-        //    int? previouslyAssignedProjectId = null;
-        //    int? previouslyAssignedProjectIndex = null;
-
-        //    // if no contextId, task is still in inbox - so do nothing yet
-        //    if (task.ProjectId != null && task.ContextId != null)
-        //    {
-        //        previouslyAssignedProjectId = task.ProjectId;
-        //        previouslyAssignedProjectIndex = task.ProjectIndex;
-
-        //        List<TaskDisplayModel> previousProjectTasks = _dataState.Tasks!
-        //            .Where(x => x.ProjectId == previouslyAssignedProjectId).ToList();
-
-        //        foreach (TaskDisplayModel previousNeighborTask in previousProjectTasks)
-        //        {
-        //            // shift downwards
-        //            if (previousNeighborTask.ProjectIndex > previouslyAssignedProjectIndex)
-        //            {
-        //                previousNeighborTask.ProjectIndex--;
-        //            }
-        //        }
-        //    }
-        //}
-
-        //// task is being moved out of another existing context
-        //public void ShiftContextSourceIndices(TaskModel task)
-        //{
-        //    int? previouslyAssignedContextId = null;
-        //    int? previouslyAssignedContextIndex = null;
-
-        //    // if no projectId, task is still in inbox - so do nothing yet
-        //    if (task.ContextId != null && task.ProjectId != null)
-        //    {
-        //        previouslyAssignedContextId = task.ContextId;
-        //        previouslyAssignedContextIndex = task.ContextIndex;
-
-        //        List<TaskDisplayModel> previousContextTasks = _dataState.Tasks!
-        //            .Where(x => x.ContextId == previouslyAssignedContextId).ToList();
-
-        //        foreach (TaskDisplayModel previousNeighborTask in previousContextTasks)
-        //        {
-        //            // shift downwards
-        //            if (previousNeighborTask.ContextIndex > previouslyAssignedContextIndex)
-        //            {
-        //                previousNeighborTask.ContextIndex--;
-        //            }
-        //        }
-        //    }
-        //}
-
         public async Task HandleTaskProjectChanged(TaskModel task)
         {
             //ShiftProjectSourceIndices(task);
-            ShiftCollectionSourceIndices(task, "ProjectIndex");
+            ShiftTaskCollectionSourceIndices(task, "ProjectIndex");
 
             if (task.ProjectName == null) // project was unassigned
             { 
@@ -317,7 +257,7 @@ namespace TaskFocusWeb
         public async Task HandleTaskContextChanged(TaskModel task)
         {
             //ShiftContextSourceIndices(task);
-            ShiftCollectionSourceIndices(task, "ContextIndex");
+            ShiftTaskCollectionSourceIndices(task, "ContextIndex");
 
             if (task.ContextName == null)  // context was unassigned
             { 
@@ -368,9 +308,36 @@ namespace TaskFocusWeb
         {
             if (string.IsNullOrWhiteSpace(newProject.ProjectName)) { return; }
 
+            // determine OrderIndex for project
+            newProject.OrderIndex = _dataState.Projects!.Count > 0 ? _dataState.Projects.Count : 0;
+
             await _projectEndpoint.AddProject(newProject, _apiHelper.GetLoggedInUserId());
 
             // refresh Tasks, Projects, Contexts + clear NewTask
+            await FetchRemoteTaskData();
+            await FetchRemoteProjectData();
+            await FetchRemoteContextData();
+        }
+
+        public async Task DeleteProject(ProjectDisplayModel displayProject)
+        {
+            // map from ProjectDisplayModel to ProjectModel
+            ProjectModel project = _mapper.Map<ProjectModel>(displayProject);
+
+            // ensure other projects have updated OrderIndex values
+            ShiftCollectionOrderIndices(displayProject, _dataState.Projects!);
+
+            // handle project's tasks - remove assigned project
+            List<TaskDisplayModel> projectTasks = _dataState.Tasks!.Where(x => x.ProjectId == project.Id).ToList();
+            foreach (TaskDisplayModel task in projectTasks)
+            {
+                task.ProjectName = null;
+                await UpdateTaskData(task);
+            }
+
+            await _projectEndpoint.DeleteProject(project);
+
+            // refresh all data
             await FetchRemoteTaskData();
             await FetchRemoteProjectData();
             await FetchRemoteContextData();
@@ -380,9 +347,36 @@ namespace TaskFocusWeb
         {
             if (string.IsNullOrWhiteSpace(newContext.ContextName)) { return; }
 
+            // determine OrderIndex for context
+            newContext.OrderIndex = _dataState.Contexts!.Count > 0 ? _dataState.Contexts.Count : 0;
+
             await _contextEndpoint.AddContext(newContext, _apiHelper.GetLoggedInUserId());
 
             // refresh Tasks, Projects, Contexts + clear NewTask
+            await FetchRemoteTaskData();
+            await FetchRemoteProjectData();
+            await FetchRemoteContextData();
+        }
+
+        public async Task DeleteContext(ContextDisplayModel displayContext)
+        {
+            // map from ContextDisplayModel to ContextModel
+            ContextModel context = _mapper.Map<ContextModel>(displayContext);
+
+            // ensure other contexts have updated OrderIndex values
+            ShiftCollectionOrderIndices(displayContext, _dataState.Contexts!);
+
+            // handle context's tasks - remove assigned context
+            List<TaskDisplayModel> contextTasks = _dataState.Tasks!.Where(x => x.ContextId == context.Id).ToList();
+            foreach (TaskDisplayModel task in contextTasks)
+            {
+                task.ContextName = null;
+                await UpdateTaskData(task);
+            }
+
+            await _contextEndpoint.DeleteContext(context);
+
+            // refresh all data
             await FetchRemoteTaskData();
             await FetchRemoteProjectData();
             await FetchRemoteContextData();
@@ -429,17 +423,17 @@ namespace TaskFocusWeb
             if (task.ProjectId == null || task.ContextId == null) 
             { 
                 //ShiftInboxSourceIndices(task);
-                ShiftCollectionSourceIndices(task, "InboxIndex");
+                ShiftTaskCollectionSourceIndices(task, "InboxIndex");
             }
             if (task.ProjectId != null) 
             {
                 //ShiftProjectSourceIndices(task);
-                ShiftCollectionSourceIndices(task, "ProjectIndex");
+                ShiftTaskCollectionSourceIndices(task, "ProjectIndex");
             }
             if (task.ContextId != null) 
             {
                 //ShiftContextSourceIndices(task);
-                ShiftCollectionSourceIndices(task, "ContextIndex");
+                ShiftTaskCollectionSourceIndices(task, "ContextIndex");
             }
 
             await _taskEndpoint.DeleteTask(task);

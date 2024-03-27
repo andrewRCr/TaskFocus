@@ -4,7 +4,7 @@ AS
 BEGIN
 	SET NOCOUNT ON;
 
-	SELECT Id, ContextName
+	SELECT Id, ContextName, OrderIndex
 	FROM dbo.Context
 	WHERE UserId = @Id
 END

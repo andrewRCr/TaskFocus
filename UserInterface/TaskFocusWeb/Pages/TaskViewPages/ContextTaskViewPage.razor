@@ -9,8 +9,12 @@
             <MudButton Disabled Class="mx-2">@ContextParam.ContextName</MudButton>
         </MudPaper>
 
-        <TaskContainerComponent ContainerTaskItemsParam="@LocalTasks" ContainerIdentifierParam="@ContextParam.ContextName" ContainerItemsSelectorParam="@ItemsSelector"
-                                ContainerProjectsParam="@LocalProjects" ContainerContextsParam="@LocalContexts" />
+        <TaskContainerComponent ContainerTaskItemsParam="@LocalTasks" 
+                                ContainerIdentifierParam="@ContextParam.ContextName"
+                                ContainerOrderingTypeParam="Context"
+                                ContainerItemsSelectorParam="@ItemsSelector"
+                                ContainerProjectsParam="@LocalProjects" 
+                                ContainerContextsParam="@LocalContexts" />
     </MudStack>
 }
 
@@ -34,9 +38,26 @@
     bool isValid = false;
     int integerContextId;
 
+    protected override void LoadLocalTaskData()
+    {
+        if (DataState.IsDataLoaded())
+        {
+            List<TaskDisplayModel> contextTasks = DataState.Tasks!.Where(x => x.ContextId == int.Parse(ContextId)).ToList();
+            contextTasks.OrderBy(x => x.ContextIndex);
+            LocalTasks = contextTasks;
+
+            foreach (TaskDisplayModel task in LocalTasks!)
+            {
+                //Console.WriteLine($"{task.TaskName}: {task.ProjectIndex.ToString()}");
+                task.PropertyChanged += OnExistingTaskPropertyChanged!; // subscribe to property changed event
+            }
+        }
+    }
+
     protected override void OnParametersSet()
     {
-       GetContextFromId();
+        GetContextFromId();
+        LoadAllLocalData();
     }
 
     protected void GetContextFromId()
