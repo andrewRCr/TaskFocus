@@ -3,10 +3,30 @@
 
 @if (ProjectParam != null && IsLocalDataLoaded())
 {
-    <MudStack Style="width:100%;">
 
-        <MudPaper Square Class="mud-background-gray" Elevation="25">
-            <MudButton Disabled Class="mx-2">@ProjectParam.ProjectName</MudButton>
+    <MudExpansionPanel Style="background-color: #32333d;" IsInitiallyExpanded="true" Class="" >
+        <TitleContent>
+            <MudPaper Class="mud-background-gray pa-3" Elevation="25" MaxWidth="98%;">
+                <MudIcon Icon="@Icons.Material.Filled.AssignmentTurnedIn" Style="color: #919195;" />
+                <MudText Class="mx-2" Color="Color.Primary" Typo="Typo.button">@ProjectParam.ProjectName</MudText>
+            </MudPaper>
+        </TitleContent>
+        <ChildContent>
+            <TaskContainerComponent ContainerTaskItemsParam="@LocalTasks"
+                                    ContainerIdentifierParam="@ProjectParam.ProjectName"
+                                    ContainerOrderingTypeParam="Project"
+                                    ContainerItemsSelectorParam="@ItemsSelector"
+                                    ContainerProjectsParam="@LocalProjects"
+                                    ContainerContextsParam="@LocalContexts" />
+        </ChildContent>
+        </MudExpansionPanel>
+
+
+
+@*     <MudStack Style="width:100%;">
+        <MudPaper Square Class="mud-background-gray" Elevation="0" >
+            <MudText Class="mx-2 pt-2" Typo="Typo.button">@ProjectParam.ProjectName</MudText>
+
         </MudPaper>
 
         <TaskContainerComponent ContainerTaskItemsParam="@LocalTasks" 
@@ -15,21 +35,10 @@
                                 ContainerItemsSelectorParam="@ItemsSelector"
                                 ContainerProjectsParam="@LocalProjects" 
                                 ContainerContextsParam="@LocalContexts" />
-    </MudStack>
+    </MudStack> *@
 
 
 }
-@* #929296, #7e6fff  *@
-<style>
-    .mud-button {
-        &:disabled
-        {
-            color: #7e6fff !important;
-            cursor: default;
-            pointer-events: none;
-        }
-    }
-</style>
 
 @code {
     [Parameter]

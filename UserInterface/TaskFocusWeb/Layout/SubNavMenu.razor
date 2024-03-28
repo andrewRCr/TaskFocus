@@ -1,8 +1,9 @@
 ﻿@inherits _ComponentBase
+@inject IDataService DataService
 
-<MudNavMenu Bordered="true" Style="width: 250px;">
+<MudNavMenu Bordered="true" Style="width: 250px;" >
     <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.ArrowBackIosNew" OnClick="HideSubMenu"/>
-    <MudButton OnClick="ResetToAllItemsView" Color="Color.Inherit" Class="mx-2">@CollectionName</MudButton>
+    <MudButton OnClick="ResetToAllItemsView" Color="Color.Inherit" Class="ml-2">@CollectionName</MudButton>
     <MudDivider />
 
     @if (IsProjectsSubMenu)
@@ -20,25 +21,44 @@
         }
     }
 
-    @*
-    <MudNavLink Disabled DisableRipple />
-
-    <MudButton OnClick="()=>_newCollectionDialogVisible = true" 
-               @onmouseover="()=>SetAddNewCollectionButtonActive(true)"
-               @onmouseleave="()=>SetAddNewCollectionButtonActive(false)"
-               Color="Color.Inherit" 
-               Class="ml-4"
-               StartIcon="@Icons.Material.Filled.Add" 
-                                    >
-        Add new @_collectionTypeName
-        </MudButton> *@
+    <div class="flex-grow-1" style="max-width: 250px;" @onmouseover="()=>SetAddNewCollectionButtonActive(true)"
+         @onmouseleave="()=>SetAddNewCollectionButtonActive(false)">
+        <MudIconButton OnClick="()=>_newCollectionDialogVisible = true"
+                       Color="@_addNewCollectionButtonColor"
+                       Class="ml-1 mr-2"
+                       Icon="@Icons.Material.Filled.Add"
+                       />
+        <MudText Typo="Typo.button" Class="@_addCollectionTextClassStr">Add new @_collectionTypeName</MudText>
+    </div>
 
 </MudNavMenu>
+
+<!-- addNewCollection dialog -->
+<MudDialog @bind-IsVisible="_newCollectionDialogVisible" Options="dialogOptions" @onfocusout="()=> _newCollectionName = string.Empty">
+    <TitleContent>
+        <MudIcon Icon="@Icons.Material.Filled.Add" Class="mr-1 mb-1" />
+        <MudText Typo="Typo.button" >
+             Add new @_collectionTypeName
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudTextField @bind-Value="_newCollectionName" Variant="Variant.Text" Margin="Margin.Dense" Placeholder="@_addNewPlaceholderText" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CancelAddNewCollectionDialog" Class="px-0">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="SubmitNewCollection" Class="px-0">Add</MudButton>
+    </DialogActions>
+</MudDialog>
 
 <style>
     .subNavLink .mud-nav-link {
         font-size: 1.0rem;
         align-items: center;
+    }
+
+    .mud-icon-button {
+        height: fit-content;
+        align-self: center;
     }
 </style>
 
@@ -53,9 +73,15 @@
     public EventCallback<string> OnContextFocused { get; set; }
 
     private string _collectionTypeName = string.Empty;
+    private string _addNewPlaceholderText = string.Empty;
     private string _editMenuClassStr = "invisible";
+    private string _addCollectionButtonClassStr = "invisible";
+    private string _addCollectionTextClassStr = "invisible";
     private bool _newCollectionDialogVisible = false;
     private string _addNewCollectionButtonDescription = string.Empty;
+    private MudBlazor.Color _addNewCollectionButtonColor = Color.Inherit;
+    private string _newCollectionName = string.Empty;
+    private DialogOptions dialogOptions = new() { FullWidth = true };
 
     private void ShowHideItemEditMenu(bool newShow)
     {
@@ -64,14 +90,15 @@
 
     private void SetAddNewCollectionButtonActive(bool newActive)
     {
-        if (newActive)
-        {
-            _addNewCollectionButtonDescription = $"Add new {_collectionTypeName}";
-        }
-        else
-        {
-            _addNewCollectionButtonDescription = string.Empty;
-        }
+        _addCollectionButtonClassStr = newActive ? "ml-1" : "invisible";
+        _addCollectionTextClassStr = newActive ? "ml-n2 pt-2" : "invisible";
+        _addNewCollectionButtonColor = newActive ? Color.Primary : Color.Inherit;
+    }
+
+    private void CancelAddNewCollectionDialog()
+    {
+        _newCollectionName = string.Empty;
+        _newCollectionDialogVisible = false;
     }
 
     private string CollectionName
@@ -87,10 +114,11 @@
 
     protected override void OnParametersSet()
     {
-        // LoadLocalProjectData();
-        // LoadLocalContextData();
         _collectionTypeName = IsProjectsSubMenu?
             "Project" : "Context";
+        _addNewPlaceholderText = IsProjectsSubMenu ?
+            "Project Name" : "Context Name";
+        _newCollectionName = string.Empty;
     }
 
     protected override void LoadLocalProjectData()
@@ -104,7 +132,7 @@
             foreach (ProjectDisplayModel project in LocalProjects!)
             {
                 project.PropertyChanged += OnExistingProjectPropertyChanged!; // subscribe to property changed event
-                //Console.WriteLine($"{project.ProjectName}'s OrderIndex: {project.OrderIndex}");
+                                                                              //Console.WriteLine($"{project.ProjectName}'s OrderIndex: {project.OrderIndex}");
             }
         }
     }
@@ -120,7 +148,7 @@
             foreach (ContextDisplayModel context in LocalContexts!)
             {
                 context.PropertyChanged += OnExistingContextPropertyChanged!; // subscribe to property changed event
-                Console.WriteLine($"{context.ContextName}'s OrderIndex: {context.OrderIndex}, LocalContexts.IndexOf: {LocalContexts.IndexOf(context)}");
+                                                                              //Console.WriteLine($"{context.ContextName}'s OrderIndex: {context.OrderIndex}, LocalContexts.IndexOf: {LocalContexts.IndexOf(context)}");
             }
         }
     }
@@ -145,6 +173,26 @@
         { AppState.FocusedProjectIdStr = itemId.ToString(); }
         else
         { AppState.FocusedContextIdStr = itemId.ToString(); ; }
+    }
+
+    private async Task SubmitNewCollection()
+    {
+        _newCollectionDialogVisible = false;
+
+        if (IsProjectsSubMenu)
+        {
+            ProjectModel newProject = new();
+            newProject.ProjectName = _newCollectionName;
+            await DataService.AddProject(newProject);
+        }
+        else
+        {
+            ContextModel newContext = new();
+            newContext.ContextName = _newCollectionName;
+            await DataService.AddContext(newContext);
+        }
+
+        _newCollectionName = string.Empty;
     }
 
     protected override bool HandleDataStateChanged(String propertyName, DataState dataState)

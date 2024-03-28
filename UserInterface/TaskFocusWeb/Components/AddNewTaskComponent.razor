@@ -21,8 +21,9 @@
            Style="background-color: #27272f" >
 
     <TitleContent>
-        <MudStack Row="true">
-            <MudButton Disabled StartIcon="@Icons.Material.Filled.Add">Add new task</MudButton>
+        <MudStack Row="true" Spacing="1">
+            <MudIcon Icon="@Icons.Material.Filled.Add"   />
+            <MudText Typo="Typo.button">Add new task</MudText>
         </MudStack>
     </TitleContent>
 
@@ -129,18 +130,6 @@
     </DialogActions>
 
 </MudDialog>
-
-<style>
-    .mud-button {
-        &:disabled
-        {
-        color: #adadb1 !important;
-            cursor: default;
-            pointer-events: none;
-        }
-    }
-</style>
-
 
 @code {
     private bool _newTaskInputsVisible = false;
