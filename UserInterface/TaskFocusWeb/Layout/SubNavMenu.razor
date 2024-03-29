@@ -1,7 +1,7 @@
 ﻿@inherits _ComponentBase
 @inject IDataService DataService
 
-<MudNavMenu Bordered="true" Style="width: 250px;" >
+<MudNavMenu Bordered="true" Style="width: 250px;">
     <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.ArrowBackIosNew" OnClick="HideSubMenu"/>
     <MudButton OnClick="ResetToAllItemsView" Color="Color.Inherit" Class="ml-2">@CollectionName</MudButton>
     <MudDivider />
@@ -54,6 +54,12 @@
     .subNavLink .mud-nav-link {
         font-size: 1.0rem;
         align-items: center;
+    }
+
+    .subNavLinkActive .mud-nav-link {
+        font-size: 1.0rem;
+        align-items: center;
+        color: #7e6fff;
     }
 
     .mud-icon-button {

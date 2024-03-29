@@ -13,7 +13,21 @@
         }
         else // all projects view
         {
-            <MudDropContainer
+            <MudTreeView T="TaskContainerComponent" Width="100%">
+                @foreach (ProjectDisplayModel project in LocalProjects!)
+                {
+                    <MudTreeViewItem T="TaskContainerComponent" Expanded="true" Icon="@Icons.Material.Filled.AssignmentTurnedIn" Text="@project.ProjectName" TextTypo="Typo.button">
+                        <TaskContainerComponent ContainerTaskItemsParam="@LocalTasks!.Where(x=>x.ProjectId == project.Id).ToList()"
+                                                ContainerIdentifierParam="@project.ProjectName"
+                                                ContainerOrderingTypeParam="Project"
+                                                ContainerItemsSelectorParam="@((item, dropzone) => item.ProjectName == dropzone)"
+                                                ContainerProjectsParam="@LocalProjects"
+                                                ContainerContextsParam="@LocalContexts" />
+                    </MudTreeViewItem>  
+                }
+            </MudTreeView>
+
+@*             <MudDropContainer
                 T="TaskDisplayModel"
                               Items="@LocalTasks"
                               ItemsSelector="@((item, dropzone) => item.ProjectName == dropzone)" 
@@ -31,7 +45,7 @@
                                            ContextsParam="@LocalContexts" />
                     </MudPaper>
                 </ItemRenderer>
-            </MudDropContainer>
+            </MudDropContainer> *@
 
 @*             <MudDropContainer T="TaskDisplayModel" Items="Tasks" ItemsSelector="@((item, dropzone) => item.ProjectName == dropzone)" Class="flex-grow-1">
                 <ChildContent>
@@ -82,7 +96,6 @@
 </MudStack>
 
 @code {
-    private bool _isProjectExpanded = true;
     private string? _focusedProjectIdStr = null;
 
     private void OnItemDropped()

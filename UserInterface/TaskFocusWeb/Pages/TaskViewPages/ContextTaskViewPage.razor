@@ -3,31 +3,22 @@
 
 @if (ContextParam != null && IsLocalDataLoaded())
 {
-    <MudStack Style="width:100%;">
+    <MudTreeView T="TaskContainerComponent" Width="100%">
+        <MudTreeViewItem T="TaskContainerComponent" 
+                         Expanded="true" 
+                         Icon="@Icons.Material.Filled.AutoAwesomeMotion" 
+                         Text="@ContextParam.ContextName" 
+                         TextTypo="Typo.button">
 
-        <MudPaper Square Class="mud-background-gray" Elevation="25">
-            <MudButton Disabled Class="mx-2">@ContextParam.ContextName</MudButton>
-        </MudPaper>
-
-        <TaskContainerComponent ContainerTaskItemsParam="@LocalTasks" 
-                                ContainerIdentifierParam="@ContextParam.ContextName"
-                                ContainerOrderingTypeParam="Context"
-                                ContainerItemsSelectorParam="@ItemsSelector"
-                                ContainerProjectsParam="@LocalProjects" 
-                                ContainerContextsParam="@LocalContexts" />
-    </MudStack>
+            <TaskContainerComponent ContainerTaskItemsParam="@LocalTasks" 
+                                    ContainerIdentifierParam="@ContextParam.ContextName"
+                                    ContainerOrderingTypeParam="Context"
+                                    ContainerItemsSelectorParam="@ItemsSelector"
+                                    ContainerProjectsParam="@LocalProjects" 
+                                    ContainerContextsParam="@LocalContexts" />
+        </MudTreeViewItem>
+ </MudTreeView>
 }
-
-<style>
-    .mud-button {
-        &:disabled
-        {
-            color: #7e6fff !important;
-            cursor: default;
-            pointer-events: none;
-        }
-    }
-</style>
 
 @code {
     [Parameter]

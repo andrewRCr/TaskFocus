@@ -46,10 +46,10 @@
 
     protected override void CustomAuthenticatedOnInit()
     {
-        Console.WriteLine($"ContainerOrderingTypeParam: {ContainerOrderingTypeParam}");
+        //Console.WriteLine($"ContainerOrderingTypeParam: {ContainerOrderingTypeParam}");
         _orderingIndex = ContainerOrderingTypeParam + "Index";
         ContainerTaskItemsParam = ContainerTaskItemsParam.OrderBy(x => x[_orderingIndex]).ToList();
-        Console.WriteLine($"_orderingIndex: {_orderingIndex}");
+        //Console.WriteLine($"_orderingIndex: {_orderingIndex}");
     }
 
     private void OnItemDropped(MudItemDropInfo<TaskDisplayModel> dropItem)
@@ -89,38 +89,6 @@
         foreach (var item in ContainerTaskItemsParam)
         {
             // will trigger an API UpdateTaskData call
-
-            // switch (_orderingIndex)
-            // {
-            //     case "InboxIndex":
-            //         if (item.ProjectId == null || item.ContextId == null)
-            //         {
-            //             item[_orderingIndex] = ContainerTaskItemsParam.IndexOf(item);
-            //         }
-            //         break;
-
-            //     case "ProjectIndex":
-
-
-            //         if (item.ProjectId == reorderedDropItem.Item!.ProjectId)
-            //         {
-            //             Console.WriteLine($"{item.TaskName}'s ContainerTaskItemsParam.IndexOf {ContainerTaskItemsParam.IndexOf(item)}");
-            //             item[_orderingIndex] = ContainerTaskItemsParam.IndexOf(item);
-            //             Console.WriteLine($"{item.TaskName}'s item.ProjectIndex: {item.ProjectIndex}");
-            //         }
-            //         break;
-
-            //     case "ContextIndex":
-            //         if (item.ContextId == reorderedDropItem.Item!.ContextId)
-            //         {
-            //             item[_orderingIndex] = ContainerTaskItemsParam.IndexOf(item);
-            //         }
-            //         break;
-
-            //     default:
-            //         break;
-            // }
-
             item[_orderingIndex] = ContainerTaskItemsParam.IndexOf(item);
             Console.WriteLine($"{item.TaskName} OrderingIndex({_orderingIndex}): {item[_orderingIndex]}");
         }

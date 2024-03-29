@@ -13,22 +13,24 @@
         }
         else // all contexts view
         {
-            <MudDropContainer T="TaskDisplayModel" Items="LocalTasks" ItemsSelector="@((item, dropzone) => item.ContextName == dropzone)" Class="flex-grow-1">
-                <ChildContent>
-                    <ContextContainerComponent ContainerContextItemsParam="@LocalContexts" ContainerItemsSelectorParam="@ContextItemsSelector" IsExpanded=@_isContextExpanded />
-                </ChildContent>
-                <ItemRenderer>
-                    <MudPaper Class="pa-0 my-2">
-                        <TaskItemComponent TaskParam=@context ProjectsParam="@LocalProjects" ContextsParam="@LocalContexts" />
-                    </MudPaper>
-                </ItemRenderer>
-            </MudDropContainer>
+            <MudTreeView T="TaskContainerComponent" Width="100%">
+                @foreach (ContextDisplayModel context in LocalContexts!)
+                {
+                    <MudTreeViewItem T="TaskContainerComponent" Expanded="true" Icon="@Icons.Material.Filled.AutoAwesomeMotion" Text="@context.ContextName" TextTypo="Typo.button">
+                        <TaskContainerComponent ContainerTaskItemsParam="@LocalTasks!.Where(x=>x.ContextId == context.Id).ToList()"
+                                                ContainerIdentifierParam="@context.ContextName"
+                                                ContainerOrderingTypeParam="Context"
+                                                ContainerItemsSelectorParam="@((item, dropzone) => item.ContextName == dropzone)"
+                                                ContainerProjectsParam="@LocalProjects"
+                                                ContainerContextsParam="@LocalContexts" />
+                    </MudTreeViewItem>
+                }
+            </MudTreeView>
         }
     }
 </MudStack>
 
 @code {
-    private bool _isContextExpanded = true;
     private string? _focusedContextIdStr = null;
 
     protected override void OnInitialized()

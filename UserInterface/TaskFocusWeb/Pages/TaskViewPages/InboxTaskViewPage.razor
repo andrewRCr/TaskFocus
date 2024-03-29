@@ -11,14 +11,24 @@
 
 @if (IsLocalDataLoaded())
 {
-    <TaskContainerComponent ContainerTaskItemsParam="@LocalTasks" 
-                            ContainerIdentifierParam="Inbox"
-                            ContainerOrderingTypeParam="Inbox"
-                            ContainerItemsSelectorParam="@ItemsSelector"
-                            ContainerProjectsParam="@LocalProjects" 
-                            ContainerContextsParam="@LocalContexts" />
+    <MudTreeView T="TaskContainerComponent" Width="100%">
+        <MudTreeViewItem T="TaskContainerComponent"
+                         Expanded="true"
+                         Icon="@Icons.Material.Filled.Inbox"
+                         Text="Inbox"
+                         TextTypo="Typo.button">
 
-@*     <AddNewTaskItemComponent /> *@
+            <TaskContainerComponent ContainerTaskItemsParam="@LocalTasks"
+                                    ContainerIdentifierParam="Inbox"
+                                    ContainerOrderingTypeParam="Inbox"
+                                    ContainerItemsSelectorParam="@ItemsSelector"
+                                    ContainerProjectsParam="@LocalProjects"
+                                    ContainerContextsParam="@LocalContexts" />
+        </MudTreeViewItem>
+    </MudTreeView>
+
+
+
 }
 
 @code {

@@ -1,7 +1,7 @@
 ﻿@inherits LayoutComponentBase
 @inject IDataService DataService
 
-<MudThemeProvider @bind-IsDarkMode="@_isDarkMode" Theme="_theme" />
+<MudThemeProvider @bind-IsDarkMode="@_isDarkMode" Theme="_customTheme" />
 <MudDialogProvider />
 <MudSnackbarProvider />
 
@@ -21,7 +21,7 @@
         </AuthorizeView>
     </MudAppBar>
 
-    <MudDrawer @bind-Open="@_drawerOpen" Elevation="1" Width="300px" Variant="@DrawerVariant.Responsive" Breakpoint="Breakpoint.Md" PreserveOpenState="true">
+    <MudDrawer @bind-Open="@_drawerOpen" Elevation="25" Width="300px" Variant="@DrawerVariant.Responsive" Breakpoint="Breakpoint.Md" PreserveOpenState="true">
             <MudDrawerHeader Class="d-flex align-center">
                 <MudIcon Icon="@Icons.Material.Filled.OfflinePin" Color="Color.Primary" Class="mr-3" />
                 <MudText Color="Color.Primary" Typo="Typo.h6" Style="font-family:Bahnschrift; font-weight:700; font-size:x-large;">TaskFocus</MudText>
@@ -30,7 +30,7 @@
     </MudDrawer>
 
     <MudMainContent>
-        <div class="col-12  col-xxl-10">
+        <div class="col-12  col-xxl-10" style="margin-left: 8px;" >
             @Body
         </div>
     </MudMainContent>
@@ -51,8 +51,16 @@
     protected DataState DataState { get; private set; } = default!;
 
     protected bool _drawerOpen = true;
-    private MudTheme _theme = new();
     private bool _isDarkMode = true;
+
+    private MudTheme _customTheme = new MudTheme()
+        {
+            PaletteDark = new PaletteDark()
+            {
+                // Primary = Colors.Blue.Default,
+                Background = "#27272f"
+        },
+    };
 
     protected void DrawerToggle()
     {

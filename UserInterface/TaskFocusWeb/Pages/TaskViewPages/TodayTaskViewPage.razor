@@ -3,29 +3,54 @@
 
 <PageTitle>TaskFocus: Today</PageTitle>
 
-<MudButton Color="Color.Inherit" Class="mx-2">Today</MudButton>
-
 @if (IsLocalDataLoaded())
 {
     if (todayItemCount > 0)
     {
-        <TaskContainerComponent ContainerTaskItemsParam="@LocalTasks" ContainerIdentifierParam="Today" ContainerItemsSelectorParam="@ItemsSelector"
-                                ContainerProjectsParam="@LocalProjects" ContainerContextsParam="@LocalContexts" />
+        <MudTreeView T="TaskContainerComponent" Width="100%">
+            <MudTreeViewItem T="TaskContainerComponent"
+                             Expanded="true"
+                             Icon="@Icons.Material.Filled.Today"
+                             Text="Today"
+                             TextTypo="Typo.button">
+
+                <TaskContainerComponent ContainerTaskItemsParam="@LocalTasks" 
+                                        ContainerIdentifierParam="Today" 
+                                        ContainerItemsSelectorParam="@ItemsSelector"
+                                        ContainerProjectsParam="@LocalProjects" 
+                                        ContainerContextsParam="@LocalContexts" />
+            </MudTreeViewItem>
+        </MudTreeView>
     }
     else
     {
-        <MudContainer>
-            <MudPaper>
-                <MudText Class="pa-4">
-                    Tasks that have been Starred or whose assigned Due Date is today will appear here.
-                </MudText>
-            </MudPaper>
-        </MudContainer>
+        <MudTreeView T="MudContainer" Width="75%">
+            <MudTreeViewItem T="MudContainer"
+                             Expanded="true"
+                             Icon="@Icons.Material.Filled.Today"
+                             Text="Today"
+                             TextTypo="Typo.button">
+
+                <MudContainer>
+                        <MudPaper Elevation="25" Class="pa-0 my-2">
+                        <MudText Class="pa-4" Align="Align.Center">
+                            Tasks that have been Starred or whose assigned Due Date is today will appear here.
+                        </MudText>
+                    </MudPaper>
+                </MudContainer>
+
+            </MudTreeViewItem>
+        </MudTreeView>
     }
 }
 
 @code {
     private int todayItemCount = 0;
+
+    protected override void CustomAuthenticatedOnInit()
+    {
+        LoadAllLocalData();
+    }
 
     public override bool ItemsSelector(TaskDisplayModel item, string dropzone)
     {

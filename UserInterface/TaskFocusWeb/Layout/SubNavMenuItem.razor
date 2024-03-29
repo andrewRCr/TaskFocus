@@ -1,16 +1,24 @@
 ﻿@inherits _ComponentBase
 @inject ISnackbar Snackbar
-@inject NavigationManager NavManager
 @inject IDataService DataService
 
-<MudStack Row="true" @onmouseover="()=> ShowHideItemEditMenuButton(true)"
+<MudStack Row="true" Class="@_stackClass"
+          Spacing="0" 
+          @onmouseover="()=> ShowHideItemEditMenuButton(true)" 
           @onmouseout="()=> ShowHideItemEditMenuButton(false)"
           @onfocusout="CloseItemEditMenu">
 
-    <MudNavLink Class="subNavLink" OnClick="@SetFocusedItemIdStr"
-                Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">
-        @if (IsProjectsSubMenu) { @ProjectParam.ProjectName }
-        else { @ContextParam.ContextName }
+    <MudNavLink OnClick="@SetFocusedItemIdStr" 
+                Icon="@Icons.Material.Filled.List" 
+                IconColor="@_linkColor"
+                Class="subNavLink active"
+                ActiveClass="active">
+        <ChildContent>
+            <MudText Color="@_linkColor">
+                 @if (IsProjectsSubMenu) { @ProjectParam.ProjectName }
+                  else { @ContextParam.ContextName }
+            </MudText>
+        </ChildContent>
     </MudNavLink>
 
     <MudMenu @ref="_itemEditMenu"
@@ -73,6 +81,8 @@
     private string _collectionTypeName = string.Empty;
     private MudMenu _itemEditMenu = default!;
     private string _editMenuClassStr = "invisible";
+    private string _stackClass = string.Empty;
+    private MudBlazor.Color _linkColor = Color.Inherit;
 
     private bool _itemClicked = false;
     private bool _renameDialogVisible = false;
@@ -81,6 +91,11 @@
 
     private void OpenRenameDialog() => _renameDialogVisible = true;
     private void OpenDeleteDialog() => _deleteDialogVisible = true;
+
+    protected override void CustomAuthenticatedOnInit()
+    {
+        SetLinkColor();
+    }
 
     private void SubmitRename()
     {
@@ -109,6 +124,21 @@
 
         _collectionTypeName = IsProjectsSubMenu ?
             "Project" : "Context";
+
+        if (IsProjectsSubMenu && ProjectParam.OrderIndex == 0 ||
+            !IsProjectsSubMenu && ContextParam.OrderIndex == 0)
+        { _stackClass = "pt-1"; }
+    }
+
+    private void SetLinkColor()
+    {
+        string? idStrToParse = IsProjectsSubMenu ? AppState.FocusedProjectIdStr : AppState.FocusedContextIdStr;
+        ICollectionDisplayModel relevantCollection = IsProjectsSubMenu ? ProjectParam : ContextParam;
+
+        int integerFocusedCollectionId;
+        bool isValid = int.TryParse(idStrToParse, out integerFocusedCollectionId);
+
+        _linkColor = (isValid && relevantCollection.Id == integerFocusedCollectionId) ? Color.Primary : Color.Inherit;
     }
 
     private void CloseItemEditMenu()
@@ -137,11 +167,22 @@
         if (IsProjectsSubMenu && ProjectParam != null)
         { AppState.FocusedProjectIdStr = ProjectParam.Id.ToString(); }
         else if (ContextParam != null)
-        { AppState.FocusedContextIdStr = ContextParam.Id.ToString(); ; }
+        { AppState.FocusedContextIdStr = ContextParam.Id.ToString(); }
     }
 
     private void RenameItem(MouseEventArgs args) => OpenRenameDialog();
     private void RenameItemTouch(TouchEventArgs args) => Snackbar.Add("Rename Invoked");
     private void DeleteItem(MouseEventArgs args) => OpenDeleteDialog();
     private void DeleteItemTouch(TouchEventArgs args) => OpenDeleteDialog();
+
+    protected override bool HandleAppStateChanged(String propertyName, AppState state)
+    {
+        if (propertyName != nameof(AppState.FocusedProjectIdStr) && propertyName != nameof(AppState.FocusedContextIdStr))
+        {
+            return false;
+        }
+
+        SetLinkColor();
+        return true;
+    }
 }
