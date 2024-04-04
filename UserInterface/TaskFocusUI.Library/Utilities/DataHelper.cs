@@ -24,7 +24,9 @@ namespace TaskFocusUI.Library.Utilities
                     taskA.DueDate == taskB.DueDate &&
                     taskA.InboxIndex == taskB.InboxIndex &&
                     taskA.ProjectIndex == taskB.ProjectIndex &&
-                    taskA.ContextIndex == taskB.ContextIndex;
+                    taskA.ContextIndex == taskB.ContextIndex &&
+                    taskA.Starred == taskB.Starred &&
+                    taskA.TodayIndex == taskB.TodayIndex;
             }
 
             return !IsDataEqual(frontEndTask, taskLastFetch);
@@ -40,6 +42,16 @@ namespace TaskFocusUI.Library.Utilities
         {
             TaskModel taskLastFetch = TasksLastFetch.Find(x => x.Id == frontEndTask.Id);
             return frontEndTask.ContextName != taskLastFetch.ContextName;
+        }
+
+        public bool IsTaskDueOrOverDue(TaskModel frontEndTask)
+        {
+            if (frontEndTask.DueDate != null)
+            {
+                return frontEndTask.DueDate <= DateTime.Now.Date;
+            }
+
+            return false;
         }
     }
 }

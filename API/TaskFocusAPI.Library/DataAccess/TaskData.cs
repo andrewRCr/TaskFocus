@@ -75,10 +75,12 @@ namespace TaskFocusAPI.Library.DataAccess
             dbTask.Completed = frontEndTask.Completed;
             dbTask.TaskName = frontEndTask.TaskName.Trim();
             dbTask.DueDate = frontEndTask.DueDate;
+            dbTask.Starred = frontEndTask.Starred;
 
             dbTask.InboxIndex = frontEndTask.InboxIndex;
             dbTask.ProjectIndex = frontEndTask.ProjectIndex;
             dbTask.ContextIndex = frontEndTask.ContextIndex;
+            dbTask.TodayIndex = frontEndTask.TodayIndex;
 
             // these will have been updated by the front-end prior to call
             dbTask.ProjectId = frontEndTask.ProjectId;

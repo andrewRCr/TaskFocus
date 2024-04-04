@@ -11,7 +11,9 @@
 	@DueDate datetime2,
 	@InboxIndex int,
 	@ProjectIndex int,
-	@ContextIndex int
+	@ContextIndex int,
+	@Starred bit,
+	@TodayIndex int
 AS
 BEGIN
 	SET NOCOUNT ON;
@@ -25,6 +27,8 @@ BEGIN
 		DueDate = @DueDate,
 		InboxIndex = @InboxIndex,
 		ProjectIndex = @ProjectIndex,
-		ContextIndex = @ContextIndex
+		ContextIndex = @ContextIndex,
+		Starred = cast(@Starred as bit),
+		TodayIndex = @TodayIndex
 	WHERE Id = @Id;
 END

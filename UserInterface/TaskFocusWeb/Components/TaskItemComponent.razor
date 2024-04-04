@@ -16,7 +16,7 @@
             <MudIcon Icon="@Icons.Material.Filled.DragIndicator" />
             <div class="ml-n1">
                 <!-- starred/today input -->
-                <MudCheckBox Class="@_starredClassStr" @bind-Value="TaskParam.Completed" Size="Size.Medium" Color="Color.Default"
+                <MudCheckBox Class="@_starredClassStr" @bind-Value="TaskParam.Starred" Size="Size.Medium" Color="Color.Default"
                              CheckedIcon="@Icons.Material.Filled.Star" UncheckedIcon="@Icons.Material.Filled.StarOutline" />
             </div>
             <div class="ml-n3">
@@ -105,6 +105,7 @@
                                DisableToolbar="true"
                                Editable="true"
                                AutoClose="false"
+                               Style="@_dateStyleStr"
                                @onmousedown="OnItemMouseDown"
                                @onfocusout="DatePickerClose">
                     <PickerActions>
@@ -174,6 +175,7 @@
     private MudAutocomplete<string> _projectSelectInput = default!;
     private MudAutocomplete<string> _contextSelectInput = default!;
     private MudDatePicker _datePicker = default!;
+    private string _dateStyleStr = string.Empty;
 
     private string[] _projectNames = { };
     private string[] _contextNames = { };
@@ -183,7 +185,6 @@
     private bool _isContextNameClearable = false;
     private bool _isDueDateClearable = false;
 
-    private bool _showStarIcon = false;
     private string _starredClassStr = "invisible";
     private string _deleteClassStr = "invisible ";
     private string _deleteClassStrBase = "invisible ";
@@ -208,8 +209,6 @@
 
     private void SetElementsActive(bool newActive)
     {
-        _showStarIcon = newActive;
-
         if (newActive) 
         { 
             _starredClassStr = string.Empty;
@@ -219,7 +218,7 @@
         else
         {
             // TODO: once Starred is its own TaskModel property, swap over from Completed (just placeholder prop for Starred)
-            if (!TaskParam.Completed) { _starredClassStr = "invisible"; }
+            if (!TaskParam.Starred) { _starredClassStr = "invisible"; }
             _deleteClassStr = _deleteClassStrBase + _deleteClassStrSpacing;
         }
     }
@@ -227,6 +226,8 @@
     protected override void OnParametersSet()
     {
         UpdateProjectContextSelectionLists();
+        if (TaskParam.Starred) { _starredClassStr = string.Empty; }
+        _dateStyleStr = TaskParam.DueDate < DateTime.Now.Date ? "color: #f64e62;" : string.Empty;
         //Console.WriteLine("TaskItemComponent: OnParametersSet called!");
     }
 

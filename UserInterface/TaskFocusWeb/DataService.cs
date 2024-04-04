@@ -78,11 +78,40 @@ namespace TaskFocusWeb
                 }
 
                 // if has both project and context, task is no longer in inbox
-                if (task.ProjectId != null && task.ContextId != null) 
+                if (task.ProjectId != null && task.ContextId != null && task.InboxIndex != null) 
                 {
                     //ShiftInboxSourceIndices(task);
                     ShiftTaskCollectionSourceIndices(task, "InboxIndex");
                     task.InboxIndex = null; 
+                }
+
+                // no longer in Today view
+                //if (!task.Starred && task.TodayIndex != null)
+                if (task.TodayIndex != null && (!task.Starred && !_dataHelper.IsTaskDueOrOverDue(task)))
+                {
+                    ShiftTaskCollectionSourceIndices(task, "TodayIndex");
+                    task.TodayIndex = null;
+                }
+
+                if ((task.Starred || _dataHelper.IsTaskDueOrOverDue(task)) && task.TodayIndex == null)
+                {
+                    Console.WriteLine($"passed TodayIndex == null check! TodayIndex value: {task.TodayIndex}");
+
+                    List<TaskDisplayModel> starredTasks = _dataState.Tasks!
+                        .Where(x => x.Starred).ToList();
+
+                    List<TaskDisplayModel> dueTasks = _dataState.Tasks!
+                        .Where(x => x.DueDate <= DateTime.Now.Date).ToList();
+
+                    List<TaskDisplayModel> todayTasks = dueTasks.Concat(starredTasks).ToList();
+                    // TODO: REMOVE DUPLICATE TASKS FROM todayTasks! (i.e., both due and starred shouldn't count twice!)
+                    todayTasks = todayTasks.DistinctBy(x => x.Id).ToList();
+                    // TODO: remove SELF from todayTasks count! else will be +1 and incorrect
+                    //int thisTaskIndex = todayTasks.IndexOf(displayTask);
+                    //todayTasks.RemoveAt(thisTaskIndex);
+
+                    task.TodayIndex = todayTasks.Count > 1 ? (todayTasks.Count - 1) : 0;
+                    Console.WriteLine($"{task.TaskName}: new TodayIndex is {task.TodayIndex}");
                 }
 
                 await _taskEndpoint.UpdateTask(task);
@@ -167,6 +196,7 @@ namespace TaskFocusWeb
                         bool shiftNeeded = previousCollectionTask.InboxIndex > previouslyAssignedCollectionIndex;
                         if (shiftNeeded) { previousCollectionTask.InboxIndex--; }
                     }
+
                     break;
 
                 case "ProjectIndex": // task is being moved out of an existing project
@@ -195,6 +225,23 @@ namespace TaskFocusWeb
                         {
                             bool shiftNeeded = previousCollectionTask.ContextIndex > previouslyAssignedCollectionIndex;
                             if (shiftNeeded) { previousCollectionTask.ContextIndex--; }
+                        }
+                    }
+                    break;
+
+                case "TodayIndex": // task is having its Starred prop set to False / due date changed to no longer due/overdue
+                    if (!task.Starred || !_dataHelper.IsTaskDueOrOverDue(task))
+                    {
+                        previouslyAssignedCollectionIndex = task.TodayIndex;
+                        List<TaskDisplayModel> dueTasks = _dataState.Tasks!
+                            .Where(x => x.DueDate <= DateTime.Now.Date).ToList();
+                        List<TaskDisplayModel> starredTasks = _dataState.Tasks!
+                            .Where(x => x.Starred).ToList();
+                        previousCollectionTasks = dueTasks.Concat(starredTasks).ToList();
+                        foreach (TaskDisplayModel previousCollectionTask in previousCollectionTasks)
+                        {
+                            bool shiftNeeded = previousCollectionTask.TodayIndex > previouslyAssignedCollectionIndex;
+                            if (shiftNeeded) { previousCollectionTask.TodayIndex--; }
                         }
                     }
                     break;
@@ -434,6 +481,10 @@ namespace TaskFocusWeb
             {
                 //ShiftContextSourceIndices(task);
                 ShiftTaskCollectionSourceIndices(task, "ContextIndex");
+            }
+            if (task.Starred)
+            {
+                ShiftTaskCollectionSourceIndices(task, "TodayIndex");
             }
 
             await _taskEndpoint.DeleteTask(task);

@@ -26,24 +26,9 @@
                                     ContainerContextsParam="@LocalContexts" />
         </MudTreeViewItem>
     </MudTreeView>
-
-
-
 }
 
 @code {
-    private TaskModel _newInboxTask;
-    public TaskModel NewInboxTask
-    {
-        get { return _newInboxTask; }
-        set { _newInboxTask = value; }
-    }
-
-    public InboxTaskViewPage()
-    {
-        _newInboxTask = new();
-    }
-
     protected override void CustomAuthenticatedOnInit()
     {
         LoadAllLocalData();
@@ -64,14 +49,6 @@
             }
         }
     }
-
-    // protected override async Task LoadTasks(bool inboxOnly)
-    // {
-    //     await base.LoadTasks(inboxOnly = true);
-
-    //     // new inbox task input placeholder
-    //     NewInboxTask = new();
-    // }
 
     public override bool ItemsSelector(TaskDisplayModel item, string dropzone)
     {

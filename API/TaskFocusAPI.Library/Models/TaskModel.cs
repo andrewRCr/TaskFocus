@@ -21,5 +21,7 @@ namespace TaskFocusAPI.Library.Models
         public int? InboxIndex { get; set; }
         public int? ProjectIndex { get; set; }
         public int? ContextIndex { get; set; }
+        public bool Starred { get; set; } = false;
+        public int? TodayIndex { get; set; }
     }
 }

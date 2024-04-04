@@ -11,11 +11,13 @@
 	@DueDate datetime2 = NULL,
 	@InboxIndex int = NULL,
 	@ProjectIndex int = NULL,
-	@ContextIndex int = NULL
+	@ContextIndex int = NULL,
+	@Starred bit = 0,
+	@TodayIndex int = NULL
 AS
 BEGIN
 	SET NOCOUNT ON;
 
-	INSERT INTO dbo.Task(UserId, TaskName, Completed, DateCompleted, ContextId, ProjectId, DueDate, InboxIndex, ProjectIndex, ContextIndex)
-	VALUES(@UserId, @TaskName, cast(@Completed as bit), @DateCompleted, @ContextId, @ProjectId, @DueDate, @InboxIndex, @ProjectIndex, @ContextIndex);
+	INSERT INTO dbo.Task(UserId, TaskName, Completed, DateCompleted, ContextId, ProjectId, DueDate, InboxIndex, ProjectIndex, ContextIndex, Starred, TodayIndex)
+	VALUES(@UserId, @TaskName, cast(@Completed as bit), @DateCompleted, @ContextId, @ProjectId, @DueDate, @InboxIndex, @ProjectIndex, @ContextIndex, @Starred, @TodayIndex);
 END

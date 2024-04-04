@@ -5,7 +5,7 @@
 
 @if (IsLocalDataLoaded())
 {
-    if (todayItemCount > 0)
+    if (LocalTasks!.Count() > 0)
     {
         <MudTreeView T="TaskContainerComponent" Width="100%">
             <MudTreeViewItem T="TaskContainerComponent"
@@ -16,6 +16,7 @@
 
                 <TaskContainerComponent ContainerTaskItemsParam="@LocalTasks" 
                                         ContainerIdentifierParam="Today" 
+                                        ContainerOrderingTypeParam="Today"
                                         ContainerItemsSelectorParam="@ItemsSelector"
                                         ContainerProjectsParam="@LocalProjects" 
                                         ContainerContextsParam="@LocalContexts" />
@@ -45,21 +46,58 @@
 }
 
 @code {
-    private int todayItemCount = 0;
-
     protected override void CustomAuthenticatedOnInit()
     {
         LoadAllLocalData();
     }
 
+    protected override void LoadLocalTaskData()
+    {
+        if (DataState.IsDataLoaded())
+        {
+            List<TaskDisplayModel> dueTasks = DataState.Tasks!.Where(x => x.DueDate <= DateTime.Now.Date).ToList();
+            List<TaskDisplayModel> starredTasks = DataState.Tasks!.Where(x => x.Starred == true).ToList();
+            List<TaskDisplayModel> todayTasks = dueTasks.Concat(starredTasks).ToList();
+
+            // ensure any newly due/overdue tasks have a TodayIndex
+            int todayTasksWithTodayIndexCount = todayTasks.Where(x => x.TodayIndex != null).ToList().Count();
+            foreach (TaskDisplayModel task in dueTasks)
+            {
+                if (task.TodayIndex == null)
+                {
+                    task.TodayIndex = todayTasksWithTodayIndexCount;
+                    todayTasksWithTodayIndexCount++;
+                }
+            }
+
+            todayTasks = todayTasks.OrderBy(x => x.TodayIndex).ToList();
+            LocalTasks = todayTasks;
+            foreach (TaskDisplayModel task in LocalTasks!)
+            {
+                //Console.WriteLine($"{task.TaskName}: {task.InboxIndex.ToString()}");
+                task.PropertyChanged += OnExistingTaskPropertyChanged!; // subscribe to property changed event
+            }
+        }
+    }
+
     public override bool ItemsSelector(TaskDisplayModel item, string dropzone)
     {
-        // TODO: swap Completed prop check to Starred once that prop is implemented!
-        if (item.DueDate == DateTime.Today || item.Completed)
+        return true;
+    }
+
+    protected override bool HandleDataStateChanged(string propertyName, DataState dataState)
+    {
+        if (!dataRefreshTriggers.Contains(propertyName))
         {
-            todayItemCount += 1;
-            return true;
+            return false;
         }
-        return false;
+
+        if (AppState.CanRefresh)
+        {
+            //Console.WriteLine("TodayTaskPage: returned true on HandleDataStateChanged!");
+            LoadAllLocalData();
+        }
+
+        return AppState.CanRefresh;
     }
 }

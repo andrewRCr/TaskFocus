@@ -69,6 +69,17 @@ namespace TaskFocusUI.Library.Models
             }
         }
 
+        private bool _starred = false;
+        public bool Starred
+        {
+            get { return _starred; }
+            set
+            {
+                _starred = value;
+                CallPropertyChanged(nameof(Starred));
+            }
+        }
+
         private string _projectName;
         public string ProjectName
         {
@@ -132,6 +143,17 @@ namespace TaskFocusUI.Library.Models
             {
                 _contextIndex = value;
                 CallPropertyChanged(nameof(ContextIndex));
+            }
+        }
+
+        private int? _todayIndex;
+        public int? TodayIndex
+        {
+            get { return _todayIndex; }
+            set
+            {
+                _todayIndex = value;
+                CallPropertyChanged(nameof(TodayIndex));
             }
         }
     }
