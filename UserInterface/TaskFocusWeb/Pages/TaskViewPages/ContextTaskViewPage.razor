@@ -33,7 +33,7 @@
     {
         if (DataState.IsDataLoaded())
         {
-            List<TaskDisplayModel> contextTasks = DataState.Tasks!.Where(x => x.ContextId == int.Parse(ContextId)).ToList();
+            List<TaskDisplayModel> contextTasks = DataState.Tasks!.Where(x => (x.ContextId == int.Parse(ContextId)) && !x.Completed).ToList();
             contextTasks.OrderBy(x => x.ContextIndex);
             LocalTasks = contextTasks;
 

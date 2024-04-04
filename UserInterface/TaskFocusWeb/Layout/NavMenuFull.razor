@@ -23,8 +23,13 @@
                 </MudNavLink>
             </div>
 
-            <MudDivider />
-            <MudNavLink Class="mainNavLink" Href="verifyauth" Match="NavLinkMatch.Prefix">Verify Auth</MudNavLink>
+            <MudNavLink Disabled />
+            <MudDivider DividerType="DividerType.Middle" />
+
+            <MudNavLink Class="mainNavLink" Href="completed" Match="NavLinkMatch.Prefix" Style="color:#5e5e65;"><i>[ Completed ]</i></MudNavLink>
+            <MudDivider Class="invisible" />
+            <MudDivider DividerType="DividerType.Middle" />
+            <MudNavLink Class="mainNavLink" Href="verifyauth" Match="NavLinkMatch.Prefix">Settings</MudNavLink>
         </Authorized>
     </AuthorizeView>
 </MudNavMenu>

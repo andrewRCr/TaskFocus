@@ -1,25 +1,40 @@
 ﻿@inherits _ComponentBase
 
-<MudDropContainer @ref=_container 
-                  T="TaskDisplayModel" 
-                  Items="@ContainerTaskItemsParam" 
-                  ItemsSelector="@ContainerItemsSelectorParam"
-                  ItemPicked="()=>SetCanRefresh(false)"
-                  ItemDropped="OnItemDropped" >
-    <ChildContent>
-        <MudDropZone T="TaskDisplayModel" 
-                     Identifier="@ContainerIdentifierParam" 
-                     AllowReorder="true" 
-                     Class="rounded mud-background-gray px-2 py-1 ma-2" />
-    </ChildContent>
-    <ItemRenderer>
-        <MudPaper Elevation="25" Class="pa-0 my-2">
-            <TaskItemComponent TaskParam="@context" 
-                               ProjectsParam="@ContainerProjectsParam" 
-                               ContextsParam="@ContainerContextsParam" />
+@if (ContainerTaskItemsParam.Count > 0)
+{
+    <MudDropContainer @ref=_container
+                      T="TaskDisplayModel"
+                      Items="@ContainerTaskItemsParam"
+                      ItemsSelector="@ContainerItemsSelectorParam"
+                      ItemPicked="()=>SetCanRefresh(false)"
+                      ItemDropped="OnItemDropped">
+        <ChildContent>
+            <MudDropZone T="TaskDisplayModel"
+                         Identifier="@ContainerIdentifierParam"
+                         AllowReorder="@CanReorderParam"
+                         ItemIsDisabled="(task)=>IsDraggingDisabled(task)"
+                         Class="rounded mud-background-gray px-2 py-1 ma-2" />
+        </ChildContent>
+        <ItemRenderer>
+            <MudPaper Elevation="25" Class="pa-0 my-2">
+                <TaskItemComponent TaskParam="@context"
+                                   ProjectsParam="@ContainerProjectsParam"
+                                   ContextsParam="@ContainerContextsParam" />
+            </MudPaper>
+        </ItemRenderer>
+    </MudDropContainer>
+}
+else
+{
+    <MudContainer MaxWidth="MaxWidth.ExtraSmall">
+        <MudPaper Elevation="25" Class="pa-0 my-0">
+            <MudText Class="pa-3" Align="Align.Center">
+                <i>No tasks assigned.</i>
+            </MudText>
         </MudPaper>
-    </ItemRenderer>
-</MudDropContainer>
+    </MudContainer>
+}
+
 
 
 @code {
@@ -31,6 +46,9 @@
 
     [Parameter]
     public string ContainerOrderingTypeParam { get; set; } = default!;
+
+    [Parameter]
+    public bool CanReorderParam { get; set; } = true;
 
     [Parameter]
     public List<ProjectDisplayModel> ContainerProjectsParam { get; set; } = default!;
@@ -47,9 +65,18 @@
     protected override void CustomAuthenticatedOnInit()
     {
         //Console.WriteLine($"ContainerOrderingTypeParam: {ContainerOrderingTypeParam}");
-        _orderingIndex = ContainerOrderingTypeParam + "Index";
-        ContainerTaskItemsParam = ContainerTaskItemsParam.OrderBy(x => x[_orderingIndex]).ToList();
+        if (CanReorderParam)
+        {
+            _orderingIndex = ContainerOrderingTypeParam + "Index";
+            ContainerTaskItemsParam = ContainerTaskItemsParam.OrderBy(x => x[_orderingIndex]).ToList();
+        }
+
         //Console.WriteLine($"_orderingIndex: {_orderingIndex}");
+    }
+
+    private bool IsDraggingDisabled(TaskDisplayModel task)
+    {
+        return !CanReorderParam;
     }
 
     private void OnItemDropped(MudItemDropInfo<TaskDisplayModel> dropItem)
@@ -104,7 +131,7 @@
         if (AppState.CanRefresh)
         {
             //Console.WriteLine("TaskContainerComp: returned true on HandleDataStateChanged!");
-            RefreshContainer();
+            if (CanReorderParam) { RefreshContainer(); }
         }
 
         return AppState.CanRefresh;

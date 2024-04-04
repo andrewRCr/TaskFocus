@@ -17,13 +17,13 @@
                 @foreach (ContextDisplayModel context in LocalContexts!)
                 {
                     <MudTreeViewItem T="TaskContainerComponent" Expanded="true" Icon="@Icons.Material.Filled.AutoAwesomeMotion" Text="@context.ContextName" TextTypo="Typo.button">
-                        <TaskContainerComponent ContainerTaskItemsParam="@LocalTasks!.Where(x=>x.ContextId == context.Id).ToList()"
+                        <TaskContainerComponent ContainerTaskItemsParam="@LocalTasks!.Where(x=>(x.ContextId == context.Id) && !x.Completed).ToList()"
                                                 ContainerIdentifierParam="@context.ContextName"
                                                 ContainerOrderingTypeParam="Context"
                                                 ContainerItemsSelectorParam="@((item, dropzone) => item.ContextName == dropzone)"
                                                 ContainerProjectsParam="@LocalProjects"
                                                 ContainerContextsParam="@LocalContexts" />
-                    </MudTreeViewItem>
+                    </MudTreeViewItem>              
                 }
             </MudTreeView>
         }

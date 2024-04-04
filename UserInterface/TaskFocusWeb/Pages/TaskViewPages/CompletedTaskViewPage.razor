@@ -1,7 +1,7 @@
-﻿@page "/today"
+﻿@page "/completed"
 @inherits _TaskViewPageBase
 
-<PageTitle>TaskFocus: Today</PageTitle>
+<PageTitle>TaskFocus: Completed</PageTitle>
 
 @if (IsLocalDataLoaded())
 {
@@ -10,15 +10,15 @@
         <MudTreeView T="TaskContainerComponent" Width="100%">
             <MudTreeViewItem T="TaskContainerComponent"
                              Expanded="true"
-                             Icon="@Icons.Material.Filled.Today"
-                             Text="Today"
+                             Icon="@Icons.Material.Filled.Checklist"
+                             Text="Completed"
                              TextTypo="Typo.button">
 
-                <TaskContainerComponent ContainerTaskItemsParam="@LocalTasks" 
-                                        ContainerIdentifierParam="Today" 
-                                        ContainerOrderingTypeParam="Today"
+                <TaskContainerComponent ContainerTaskItemsParam="@LocalTasks"
+                                        ContainerIdentifierParam="Completed"
+                                        CanReorderParam="false"
                                         ContainerItemsSelectorParam="@ItemsSelector"
-                                        ContainerProjectsParam="@LocalProjects" 
+                                        ContainerProjectsParam="@LocalProjects"
                                         ContainerContextsParam="@LocalContexts" />
             </MudTreeViewItem>
         </MudTreeView>
@@ -28,14 +28,14 @@
         <MudTreeView T="MudContainer" Width="75%">
             <MudTreeViewItem T="MudContainer"
                              Expanded="true"
-                             Icon="@Icons.Material.Filled.Today"
-                             Text="Today"
+                             Icon="@Icons.Material.Filled.Checklist"
+                             Text="Completed"
                              TextTypo="Typo.button">
 
                 <MudContainer MaxWidth="MaxWidth.Medium">
                     <MudPaper Elevation="25" Class="pa-0 my-2">
                         <MudText Class="pa-4" Align="Align.Center">
-                            Tasks that have been Starred, or whose assigned Due Date is today or earlier, will appear here.
+                            Completed tasks will appear here until deleted. Adjust automatic deletion interval in Settings (current: {30} days).
                         </MudText>
                     </MudPaper>
                 </MudContainer>
@@ -46,9 +46,11 @@
 }
 
 @code {
+
+    // TODO: bind 0 completed items {30} days to an actual settings variable, once implemented!
+
     protected override void CustomAuthenticatedOnInit()
     {
-        Console.WriteLine("today hi");
         LoadAllLocalData();
     }
 
@@ -56,23 +58,10 @@
     {
         if (DataState.IsDataLoaded())
         {
-            List<TaskDisplayModel> dueTasks = DataState.Tasks!.Where(x => (x.DueDate <= DateTime.Now.Date) && !x.Completed).ToList();
-            List<TaskDisplayModel> starredTasks = DataState.Tasks!.Where(x => (x.Starred == true) && !x.Completed).ToList();
-            List<TaskDisplayModel> todayTasks = dueTasks.Concat(starredTasks).ToList();
-
-            // ensure any newly due/overdue tasks have a TodayIndex
-            int todayTasksWithTodayIndexCount = todayTasks.Where(x => x.TodayIndex != null).ToList().Count();
-            foreach (TaskDisplayModel task in dueTasks)
-            {
-                if (task.TodayIndex == null)
-                {
-                    task.TodayIndex = todayTasksWithTodayIndexCount;
-                    todayTasksWithTodayIndexCount++;
-                }
-            }
-
-            todayTasks = todayTasks.OrderBy(x => x.TodayIndex).ToList();
-            LocalTasks = todayTasks;
+            List<TaskDisplayModel> completedTasks = DataState.Tasks!.Where(x => x.Completed).ToList();
+            
+            completedTasks.OrderBy(x => x.DateCompleted);
+            LocalTasks = completedTasks;
             foreach (TaskDisplayModel task in LocalTasks!)
             {
                 //Console.WriteLine($"{task.TaskName}: {task.InboxIndex.ToString()}");
@@ -95,7 +84,7 @@
 
         if (AppState.CanRefresh)
         {
-            //Console.WriteLine("TodayTaskPage: returned true on HandleDataStateChanged!");
+            //Console.WriteLine("InboxTaskPage: returned true on HandleDataStateChanged!");
             LoadAllLocalData();
         }
 

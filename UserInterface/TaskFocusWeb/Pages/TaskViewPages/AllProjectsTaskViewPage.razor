@@ -16,8 +16,8 @@
             <MudTreeView T="TaskContainerComponent" Width="100%">
                 @foreach (ProjectDisplayModel project in LocalProjects!)
                 {
-                    <MudTreeViewItem T="TaskContainerComponent" Expanded="true" Icon="@Icons.Material.Filled.AssignmentTurnedIn" Text="@project.ProjectName" TextTypo="Typo.button">
-                        <TaskContainerComponent ContainerTaskItemsParam="@LocalTasks!.Where(x=>x.ProjectId == project.Id).ToList()"
+                    <MudTreeViewItem T="TaskContainerComponent" Expanded="true" Icon="@Icons.Material.Filled.Assignment" Text="@project.ProjectName" TextTypo="Typo.button">
+                        <TaskContainerComponent ContainerTaskItemsParam="@LocalTasks!.Where(x=>(x.ProjectId == project.Id) && !x.Completed).ToList()"
                                                 ContainerIdentifierParam="@project.ProjectName"
                                                 ContainerOrderingTypeParam="Project"
                                                 ContainerItemsSelectorParam="@((item, dropzone) => item.ProjectName == dropzone)"
@@ -26,71 +26,6 @@
                     </MudTreeViewItem>  
                 }
             </MudTreeView>
-
-@*             <MudDropContainer
-                T="TaskDisplayModel"
-                              Items="@LocalTasks"
-                              ItemsSelector="@((item, dropzone) => item.ProjectName == dropzone)" 
-                Class="flex-grow-1"
-                ItemPicked="()=>SetCanRefresh(false)"
-                ItemDropped="OnItemDropped"
-            >
-                <ChildContent>
-                    <ProjectContainerComponent ContainerProjectItemsParam="@LocalProjects" ContainerItemsSelectorParam="@ProjectItemsSelector" IsExpanded=@_isProjectExpanded />
-                </ChildContent>
-                <ItemRenderer>
-                    <MudPaper Class="pa-0 my-2">
-                        <TaskItemComponent TaskParam=@context 
-                                           ProjectsParam="@LocalProjects" 
-                                           ContextsParam="@LocalContexts" />
-                    </MudPaper>
-                </ItemRenderer>
-            </MudDropContainer> *@
-
-@*             <MudDropContainer T="TaskDisplayModel" Items="Tasks" ItemsSelector="@((item, dropzone) => item.ProjectName == dropzone)" Class="flex-grow-1">
-                <ChildContent>
-                    <MudDropZone T="ProjectDisplayModel" AllowReorder Class="6 rounded mud-background-gray px-2 py-1 ma-2" >
-
-                        <MudExpansionPanels DisableBorders="true" Elevation="0" MultiExpansion="true">
-
-                            @foreach (ProjectDisplayModel project in AppState.Projects)
-                            {
-                                <MudPaper Elevation=25 Class="pa-0 my-2">
-
-                                    <MudExpansionPanel IsExpanded="_isProjectExpanded" DisableGutters="true" Dense="true" Class="pa-0 my-2">
-                                        <TitleContent>
-                                            <div class="d-flex">
-                                                <MudText><strong>@project.ProjectName</strong></MudText>
-                                            </div>
-                                        </TitleContent>
-                                        <ChildContent>
-                                            <MudDropZone T="TaskDisplayModel" Identifier="@project.ProjectName" AllowReorder Class="mud-background-gray px-3 py-2 ma-0">
-                                                @foreach (TaskDisplayModel task in Tasks)
-                                                {
-                                                    if (task.ProjectId == project.Id)
-                                                    {
-                                                        <MudPaper Class="pa-0 my-2">
-                                                            <TaskItemComponent TaskParam="task" ProjectsParam="@AppState.Projects" ContextsParam="@Contexts" />
-                                                        </MudPaper>
-                                                    }
-                                                }
-                                            </MudDropZone>
-                                        </ChildContent>
-                                    </MudExpansionPanel>
-
-                                </MudPaper>
-                            }
-
-                        </MudExpansionPanels>
-
-                    </MudDropZone>
-
-
-                </ChildContent>
-
-
-
-             </MudDropContainer> *@
         }
     }
 </MudStack>

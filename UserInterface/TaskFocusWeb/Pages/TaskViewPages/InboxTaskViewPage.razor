@@ -3,29 +3,47 @@
 
 <PageTitle>TaskFocus: Inbox</PageTitle>
 
-@* <MudPaper Square Class="mud-background-gray" Elevation="25">
-    <MudButton Color="Color.Primary" Class="mx-2">Inbox</MudButton>
-</MudPaper>
-
-<MudDivider /> *@
-
 @if (IsLocalDataLoaded())
 {
-    <MudTreeView T="TaskContainerComponent" Width="100%">
-        <MudTreeViewItem T="TaskContainerComponent"
-                         Expanded="true"
-                         Icon="@Icons.Material.Filled.Inbox"
-                         Text="Inbox"
-                         TextTypo="Typo.button">
 
-            <TaskContainerComponent ContainerTaskItemsParam="@LocalTasks"
-                                    ContainerIdentifierParam="Inbox"
-                                    ContainerOrderingTypeParam="Inbox"
-                                    ContainerItemsSelectorParam="@ItemsSelector"
-                                    ContainerProjectsParam="@LocalProjects"
-                                    ContainerContextsParam="@LocalContexts" />
-        </MudTreeViewItem>
-    </MudTreeView>
+    if (LocalTasks!.Count() > 0)
+    {
+        <MudTreeView T="TaskContainerComponent" Width="100%">
+            <MudTreeViewItem T="TaskContainerComponent"
+                             Expanded="true"
+                             Icon="@Icons.Material.Filled.Inbox"
+                             Text="Inbox"
+                             TextTypo="Typo.button">
+
+                <TaskContainerComponent ContainerTaskItemsParam="@LocalTasks"
+                                        ContainerIdentifierParam="Inbox"
+                                        ContainerOrderingTypeParam="Inbox"
+                                        ContainerItemsSelectorParam="@ItemsSelector"
+                                        ContainerProjectsParam="@LocalProjects"
+                                        ContainerContextsParam="@LocalContexts" />
+            </MudTreeViewItem>
+        </MudTreeView>
+    }
+    else
+    {
+        <MudTreeView T="MudContainer" Width="75%">
+            <MudTreeViewItem T="MudContainer"
+                             Expanded="true"
+                             Icon="@Icons.Material.Filled.Inbox"
+                             Text="Inbox"
+                             TextTypo="Typo.button">
+
+                <MudContainer MaxWidth="MaxWidth.Medium">
+                    <MudPaper Elevation="25" Class="pa-0 my-2">
+                        <MudText Class="pa-4" Align="Align.Center">
+                            Tasks that have not yet been assigned a Project <strong>and</strong> Context will appear here.
+                        </MudText>
+                    </MudPaper>
+                </MudContainer>
+
+            </MudTreeViewItem>
+        </MudTreeView>
+    }
 }
 
 @code {
@@ -38,7 +56,7 @@
     {
         if (DataState.IsDataLoaded())
         {
-            List<TaskDisplayModel> inboxTasks = DataState.Tasks!.Where(x => x.ProjectId == null || x.ContextId == null).ToList();
+            List<TaskDisplayModel> inboxTasks = DataState.Tasks!.Where(x => (x.ProjectId == null || x.ContextId == null) && !x.Completed).ToList();
             inboxTasks.OrderBy(x => x.InboxIndex);
             LocalTasks = inboxTasks;
 

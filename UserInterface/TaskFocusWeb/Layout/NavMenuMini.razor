@@ -3,28 +3,25 @@
 <MudNavMenu Bordered="@ShowBorderHighlight" Style="display: flex; flex-flow: column; height: inherit; width:60px;" >
     <AuthorizeView>
         <Authorized>
-@*         <MudNavLink Href="all" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">All Tasks</MudNavLink> *@
-            <MudNavLink Class="mainNavLink" Href="inbox" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Inbox">
-               @*  Inbox *@
-            </MudNavLink>
-            <MudNavLink Class="mainNavLink" Href="today" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Today">
-               @*  Today *@
-            </MudNavLink>
+            <MudNavLink Class="mainNavLink" Href="inbox" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Inbox" />
+            <MudNavLink Class="mainNavLink" Href="today" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Today" />
 
             <div @onclick=@ResetFocusedProjectIdStr>
-            <MudNavLink Class="mainNavLink" Href="projects" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.AssignmentTurnedIn">
-               @*  Projects *@
-            </MudNavLink>
+            <MudNavLink Class="mainNavLink" Href="projects" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Assignment" />
             </div>
 
             <div @onclick=@ResetFocusedContextIdStr>
-            <MudNavLink Class="mainNavLink" Href="contexts" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.AutoAwesomeMotion">
-             @*    Contexts *@
-            </MudNavLink>
+            <MudNavLink Class="mainNavLink" Href="contexts" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.AutoAwesomeMotion" />
             </div>
 
-            <MudDivider  />
-            <MudNavLink Class="mainNavLink" Href="verifyauth" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.ManageAccounts">@* Verify Auth *@</MudNavLink>
+            <MudNavLink Disabled />
+            <MudDivider DividerType="DividerType.Middle" />
+    
+            <MudNavLink Class="mainNavLink" Href="completed" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Checklist" />
+            
+            <MudDivider Class="invisible"  />
+            <MudDivider DividerType="DividerType.Middle" />
+            <MudNavLink Class="mainNavLink" Href="verifyauth" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.ManageAccounts" />
         </Authorized>
     </AuthorizeView>
 </MudNavMenu>

@@ -261,12 +261,15 @@ namespace TaskFocusWeb
                 task.ProjectId = null;
                 task.ProjectIndex = null;
 
-                List<TaskDisplayModel> inboxTasks = _dataState.Tasks!
-                    .Where(x => x.ProjectId == null || x.ContextId == null).ToList();
+                // if not already in inbox, will need InboxIndex assigned
+                if (task.InboxIndex == null)
+                {
+                    List<TaskDisplayModel> inboxTasks = _dataState.Tasks!
+                        .Where(x => x.ProjectId == null || x.ContextId == null).ToList();
 
-                task.InboxIndex = inboxTasks.Count > 0 ? inboxTasks.Count : 0;
-                Console.WriteLine($"{task.TaskName}: new InboxIndex is {task.InboxIndex}");
-
+                    task.InboxIndex = inboxTasks.Count > 0 ? inboxTasks.Count : 0;
+                    Console.WriteLine($"{task.TaskName}: new InboxIndex is {task.InboxIndex}");
+                }
             }
             else // has new assigned project
             {
@@ -311,11 +314,15 @@ namespace TaskFocusWeb
                 task.ContextId = null;
                 task.ContextIndex = null;
 
-                List<TaskDisplayModel> inboxTasks = _dataState.Tasks!
-                    .Where(x => x.ProjectId == null || x.ContextId == null).ToList();
+                // if not already in inbox, will need InboxIndex assigned
+                if (task.InboxIndex == null)
+                {
+                    List<TaskDisplayModel> inboxTasks = _dataState.Tasks!
+                        .Where(x => x.ProjectId == null || x.ContextId == null).ToList();
 
-                task.InboxIndex = inboxTasks.Count > 0 ? inboxTasks.Count : 0;
-                Console.WriteLine($"{task.TaskName}: new InboxIndex is {task.InboxIndex}");
+                    task.InboxIndex = inboxTasks.Count > 0 ? inboxTasks.Count : 0;
+                    Console.WriteLine($"{task.TaskName}: new InboxIndex is {task.InboxIndex}");
+                }
             }
             else // has new assigned context
             {

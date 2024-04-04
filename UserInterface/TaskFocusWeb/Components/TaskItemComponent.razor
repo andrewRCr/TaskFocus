@@ -13,25 +13,39 @@
 
         <div class="d-flex align-center ml-1">
             <!-- drag indicator icon -->
-            <MudIcon Icon="@Icons.Material.Filled.DragIndicator" />
+            <MudIcon Icon="@Icons.Material.Filled.DragIndicator" Style="@_dragIndicatorStyleStr" />
             <div class="ml-n1">
                 <!-- starred/today input -->
-                <MudCheckBox Class="@_starredClassStr" @bind-Value="TaskParam.Starred" Size="Size.Medium" Color="Color.Default"
-                             CheckedIcon="@Icons.Material.Filled.Star" UncheckedIcon="@Icons.Material.Filled.StarOutline" />
+                <MudCheckBox Class="@_starredClassStr" 
+                             @bind-Value="TaskParam.Starred" 
+                             Size="Size.Medium" 
+                             Color="Color.Default"
+                             Disabled="TaskParam.Completed"
+                             CheckedIcon="@Icons.Material.Filled.Star" 
+                             UncheckedIcon="@Icons.Material.Filled.StarOutline" />
             </div>
             <div class="ml-n3">
                 <!-- completed input -->
-                <MudCheckBox @bind-Value="TaskParam.Completed" Size="Size.Small" />
+                <MudCheckBox @bind-Value="TaskParam.Completed" 
+                             Size="Size.Small" />
             </div>
         </div>
 
         <MudGrid Class="pb-3" Spacing="@(_gridSpacing)">
 
             <!-- taskName input -->
-            <MudItem xs="8" sm="5" md="3" lg="3" xl="3" @onmouseenter="()=> SetIsTaskNameClearable(true)"
+            <MudItem xs="8" sm="5" md="3" lg="3" xl="3" 
+                     @onmouseenter="()=> SetIsTaskNameClearable(true)"
                      @onmouseleave="()=> SetIsTaskNameClearable(false)">
-                <MudTextField @bind-Value="TaskParam.TaskName" Placeholder="Task" Variant="Variant.Text" Margin="Margin.Dense"
-                              Clearable=@_isTaskNameClearable @onmouseenter="()=> SetIsTaskNameClearable(true)" AutoGrow />
+                <MudTextField @bind-Value="TaskParam.TaskName" 
+                              Placeholder="Task" 
+                              Variant="Variant.Text" 
+                              Margin="Margin.Dense"
+                              Clearable=@_isTaskNameClearable
+                              AutoGrow="true"
+                              Disabled="TaskParam.Completed"
+                              Style="@_inputStyleStr"
+                              @onmouseenter="()=> SetIsTaskNameClearable(true)" />
             </MudItem>
 
             <!-- projectName input-->
@@ -52,6 +66,8 @@
                                  CoerceText="true"
                                  SelectOnClick="true"
                                  SelectValueOnTab="true"
+                                 Style="@_inputStyleStr"
+                                 Disabled="TaskParam.Completed"
                                  OnClearButtonClick="()=>FocusSelectInputAfterClear(_projectSelectInput)">
                     <ItemTemplate Context="e">
                         <!-- capturing _itemClicked in dropdown list content -->
@@ -82,6 +98,8 @@
                                  CoerceText="true"
                                  SelectOnClick="true"
                                  SelectValueOnTab="true"
+                                 Style="@_inputStyleStr"
+                                 Disabled="TaskParam.Completed"
                                  OnClearButtonClick="()=>FocusSelectInputAfterClear(_contextSelectInput!)">
                     <ItemTemplate Context="e">
                         <!-- capturing _itemClicked in dropdown list content -->
@@ -105,6 +123,7 @@
                                DisableToolbar="true"
                                Editable="true"
                                AutoClose="false"
+                               Disabled="TaskParam.Completed"
                                Style="@_dateStyleStr"
                                @onmousedown="OnItemMouseDown"
                                @onfocusout="DatePickerClose">
@@ -176,6 +195,7 @@
     private MudAutocomplete<string> _contextSelectInput = default!;
     private MudDatePicker _datePicker = default!;
     private string _dateStyleStr = string.Empty;
+    private string _inputStyleStr = string.Empty;
 
     private string[] _projectNames = { };
     private string[] _contextNames = { };
@@ -185,6 +205,7 @@
     private bool _isContextNameClearable = false;
     private bool _isDueDateClearable = false;
 
+    private string _dragIndicatorStyleStr = string.Empty;
     private string _starredClassStr = "invisible";
     private string _deleteClassStr = "invisible ";
     private string _deleteClassStrBase = "invisible ";
@@ -209,7 +230,7 @@
 
     private void SetElementsActive(bool newActive)
     {
-        if (newActive) 
+        if (newActive && !TaskParam.Completed) 
         { 
             _starredClassStr = string.Empty;
             _deleteClassStr = string.Empty;
@@ -228,8 +249,20 @@
         UpdateProjectContextSelectionLists();
         if (TaskParam.Starred) { _starredClassStr = string.Empty; }
         _dateStyleStr = TaskParam.DueDate < DateTime.Now.Date ? "color: #f64e62;" : string.Empty;
+        if (TaskParam.Completed) { _dateStyleStr = "font-style: italic"; }
+        _inputStyleStr = TaskParam.Completed ? "font-style: italic;" : string.Empty;
+        _dragIndicatorStyleStr = TaskParam.Completed ? "color: #5e5e65;" : string.Empty;
+
         //Console.WriteLine("TaskItemComponent: OnParametersSet called!");
     }
+
+    // private void HandleStarredOnCompleted()
+    // {
+    //     if (TaskParam.Completed)
+    //     {
+    //         TaskParam.Starred = false;
+    //     }
+    // }
 
     private void UpdateProjectContextSelectionLists()
     {

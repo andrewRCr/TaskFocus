@@ -6,7 +6,7 @@
     <MudTreeView T="TaskContainerComponent" Width="100%">
         <MudTreeViewItem T="TaskContainerComponent"
                          Expanded="true"
-                         Icon="@Icons.Material.Filled.AssignmentTurnedIn"
+                         Icon="@Icons.Material.Filled.Assignment"
                          Text="@ProjectParam.ProjectName"
                          TextTypo="Typo.button">
 
@@ -33,7 +33,7 @@
     {
         if (DataState.IsDataLoaded())
         {
-            List<TaskDisplayModel> projectTasks = DataState.Tasks!.Where(x => x.ProjectId == int.Parse(ProjectId)).ToList();
+            List<TaskDisplayModel> projectTasks = DataState.Tasks!.Where(x => (x.ProjectId == int.Parse(ProjectId)) && !x.Completed).ToList();
             projectTasks = projectTasks.OrderBy(x => x.ProjectIndex).ToList();
             LocalTasks = projectTasks;
 
