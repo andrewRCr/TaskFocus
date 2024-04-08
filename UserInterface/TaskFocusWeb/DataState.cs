@@ -14,6 +14,30 @@ namespace TaskFocusWeb
     {
         public event DataStateChangedHandler DataStateChanged = default!;
 
+        private bool _canUpdate = true;
+        public bool CanUpdate
+        {
+            get { return _canUpdate; }
+            set
+            {
+                //Console.WriteLine($"DataState: CanUpdate changed to {value}!");
+                _canUpdate = value;
+                DataStateChanged?.Invoke(nameof(CanUpdate), this);
+            }
+        }
+
+        private UserSettingsDisplayModel _userSettings = default!;
+        public UserSettingsDisplayModel UserSettings
+        {
+            get { return _userSettings; }
+            set
+            {
+                Console.WriteLine("DataState: UserSettings changed!");
+                _userSettings = value;
+                DataStateChanged?.Invoke(nameof(UserSettings), this);
+            }
+        }
+
         private List<TaskDisplayModel>? _tasks;
         public List<TaskDisplayModel>? Tasks
         {
@@ -52,7 +76,7 @@ namespace TaskFocusWeb
 
         public bool IsDataLoaded()
         {
-            return Tasks != null && Projects != null && Contexts != null;
+            return Tasks != null && Projects != null && Contexts != null && UserSettings != null;
         }  
     }
 }

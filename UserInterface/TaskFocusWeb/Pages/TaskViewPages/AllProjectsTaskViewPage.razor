@@ -17,7 +17,7 @@
                 @foreach (ProjectDisplayModel project in LocalProjects!)
                 {
                     <MudTreeViewItem T="TaskContainerComponent" Expanded="true" Icon="@Icons.Material.Filled.Assignment" Text="@project.ProjectName" TextTypo="Typo.button">
-                        <TaskContainerComponent ContainerTaskItemsParam="@LocalTasks!.Where(x=>(x.ProjectId == project.Id) && !x.Completed).ToList()"
+                        <TaskContainerComponent ContainerTaskItemsParam="@LocalTasks!.Where(x=>(x.ProjectId == project.Id) && !x.CleanedUp).ToList()"
                                                 ContainerIdentifierParam="@project.ProjectName"
                                                 ContainerOrderingTypeParam="Project"
                                                 ContainerItemsSelectorParam="@((item, dropzone) => item.ProjectName == dropzone)"

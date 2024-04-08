@@ -27,10 +27,22 @@ namespace TaskFocusAPI.Library.DataAccess
             return userData;
         }
 
+        public List<UserSettingsModel> GetUserSettingsById(string id) 
+        { 
+            var p = new { Id = id };
+            var userSettingsData = _sqlDataAccess.LoadData<UserSettingsModel, dynamic>("dbo.spUserSettings_GetById", p, "TaskFocusData");
+
+            return userSettingsData;
+        }
+
         public void CreateUser(UserModel user)
         {
             var p = new { Id = user.Id, user.FirstName, user.LastName, user.EmailAddress };
             _sqlDataAccess.SaveData("dbo.spUser_Insert", p, "TaskFocusData");
+
+            // make default settings entry
+            var v = new { Id = user.Id };
+            _sqlDataAccess.SaveData("dbo.spUserSettings_Insert", v, "TaskFocusData");
         }
     }
 }

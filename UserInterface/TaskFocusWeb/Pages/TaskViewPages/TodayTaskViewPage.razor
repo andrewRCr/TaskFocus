@@ -48,7 +48,6 @@
 @code {
     protected override void CustomAuthenticatedOnInit()
     {
-        Console.WriteLine("today hi");
         LoadAllLocalData();
     }
 
@@ -56,8 +55,8 @@
     {
         if (DataState.IsDataLoaded())
         {
-            List<TaskDisplayModel> dueTasks = DataState.Tasks!.Where(x => (x.DueDate <= DateTime.Now.Date) && !x.Completed).ToList();
-            List<TaskDisplayModel> starredTasks = DataState.Tasks!.Where(x => (x.Starred == true) && !x.Completed).ToList();
+            List<TaskDisplayModel> dueTasks = DataState.Tasks!.Where(x => (x.DueDate <= DateTime.Now.Date) && !x.CleanedUp).ToList();
+            List<TaskDisplayModel> starredTasks = DataState.Tasks!.Where(x => (x.Starred == true) && !x.CleanedUp).ToList();
             List<TaskDisplayModel> todayTasks = dueTasks.Concat(starredTasks).ToList();
 
             // ensure any newly due/overdue tasks have a TodayIndex

@@ -20,10 +20,6 @@
     [CascadingParameter]
     public Task<AuthenticationState> AuthState { get; set; } = default!;
 
-    // protected List<int> inboxOrderedTasks;
-    // protected List<int> orderedProjects;
-    // protected List<int> orderedContexts;
-
     protected List<string> dataRefreshTriggers = new List<string> { 
         nameof(DataState.Tasks), nameof(DataState.Projects), nameof(DataState.Contexts) };
 
@@ -123,6 +119,34 @@
         LoadLocalTaskData();
         LoadLocalProjectData();
         LoadLocalContextData();
+
+        PerformTaskCleanup();
+    }
+
+    protected void PerformTaskCleanup()
+    {
+        if (LocalTasks != null && DataState.IsDataLoaded())
+        {
+            foreach (TaskDisplayModel task in LocalTasks)
+            {
+                if (task.Completed && !task.CleanedUp)
+                {
+                    if (DataState.UserSettings.CleanUpImmediately) { task.CleanedUp = true; }
+                    else
+                    {
+                        int cleanupIntervalSetting = DataState.UserSettings.CleanUpDelayDays;
+
+                        TimeSpan interval = (DateTime.Now - (DateTime)task.DateCompleted!);
+                        int daysPassedSinceTaskCompletion = interval.Days;
+
+                        if (daysPassedSinceTaskCompletion > cleanupIntervalSetting)
+                        {
+                            task.CleanedUp = true;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     protected virtual void LoadLocalTaskData()

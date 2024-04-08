@@ -12,17 +12,19 @@ namespace TaskFocusWeb
         ITaskEndpoint _taskEndpoint;
         IProjectEndpoint _projectEndpoint;
         IContextEndpoint _contextEndpoint;
+        IUserEndpoint _userEndpoint;
         IMapper _mapper;
         IDataHelper _dataHelper;
         DataState _dataState;
 
         public DataService(IAPIHelper apiHelper, ITaskEndpoint taskEndpoint, IProjectEndpoint projectEndpoint,
-            IContextEndpoint contextEndpoint, IMapper mapper, IDataHelper dataHelper, DataState dataState)
+            IContextEndpoint contextEndpoint, IUserEndpoint userEndpoint, IMapper mapper, IDataHelper dataHelper, DataState dataState)
         {
             _apiHelper = apiHelper;
             _taskEndpoint = taskEndpoint;
             _projectEndpoint = projectEndpoint;
             _contextEndpoint = contextEndpoint;
+            _userEndpoint = userEndpoint;
             _mapper = mapper;
             _dataHelper = dataHelper;
             _dataState = dataState;
@@ -31,6 +33,7 @@ namespace TaskFocusWeb
         public async Task FetchAllRemoteData()
         {
             Console.WriteLine("DataService: FetchAllRemoteData called");
+            await FetchRemoteSettingsData();
             await FetchRemoteTaskData();
             await FetchRemoteProjectData();
             await FetchRemoteContextData();
@@ -59,6 +62,13 @@ namespace TaskFocusWeb
             _dataState.Contexts = new List<ContextDisplayModel>(displayContextList);
         }
 
+        public async Task FetchRemoteSettingsData()
+        {
+            var userSettings = await _userEndpoint.GetCurrentUserSettings();
+            var displayUserSettings = _mapper.Map<UserSettingsDisplayModel>(userSettings);
+            _dataState.UserSettings = displayUserSettings;
+        }
+
         // post updated task data to API for a single task
         public async Task UpdateTaskData(TaskDisplayModel displayTask)
         {
@@ -80,13 +90,11 @@ namespace TaskFocusWeb
                 // if has both project and context, task is no longer in inbox
                 if (task.ProjectId != null && task.ContextId != null && task.InboxIndex != null) 
                 {
-                    //ShiftInboxSourceIndices(task);
                     ShiftTaskCollectionSourceIndices(task, "InboxIndex");
                     task.InboxIndex = null; 
                 }
 
                 // no longer in Today view
-                //if (!task.Starred && task.TodayIndex != null)
                 if (task.TodayIndex != null && (!task.Starred && !_dataHelper.IsTaskDueOrOverDue(task)))
                 {
                     ShiftTaskCollectionSourceIndices(task, "TodayIndex");
@@ -104,11 +112,7 @@ namespace TaskFocusWeb
                         .Where(x => x.DueDate <= DateTime.Now.Date).ToList();
 
                     List<TaskDisplayModel> todayTasks = dueTasks.Concat(starredTasks).ToList();
-                    // TODO: REMOVE DUPLICATE TASKS FROM todayTasks! (i.e., both due and starred shouldn't count twice!)
                     todayTasks = todayTasks.DistinctBy(x => x.Id).ToList();
-                    // TODO: remove SELF from todayTasks count! else will be +1 and incorrect
-                    //int thisTaskIndex = todayTasks.IndexOf(displayTask);
-                    //todayTasks.RemoveAt(thisTaskIndex);
 
                     task.TodayIndex = todayTasks.Count > 1 ? (todayTasks.Count - 1) : 0;
                     Console.WriteLine($"{task.TaskName}: new TodayIndex is {task.TodayIndex}");
@@ -253,7 +257,6 @@ namespace TaskFocusWeb
 
         public async Task HandleTaskProjectChanged(TaskModel task)
         {
-            //ShiftProjectSourceIndices(task);
             ShiftTaskCollectionSourceIndices(task, "ProjectIndex");
 
             if (task.ProjectName == null) // project was unassigned
@@ -306,7 +309,6 @@ namespace TaskFocusWeb
 
         public async Task HandleTaskContextChanged(TaskModel task)
         {
-            //ShiftContextSourceIndices(task);
             ShiftTaskCollectionSourceIndices(task, "ContextIndex");
 
             if (task.ContextName == null)  // context was unassigned

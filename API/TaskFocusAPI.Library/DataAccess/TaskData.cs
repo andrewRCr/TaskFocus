@@ -69,22 +69,27 @@ namespace TaskFocusAPI.Library.DataAccess
                 throw new Exception($"The task Id of {frontEndTask.Id} could not be found in the database.");
             }
 
+            // handle DateCompleted
             if (!dbTask.Completed && frontEndTask.Completed) { dbTask.DateCompleted = DateTime.Now; }
             else if (dbTask.Completed && !frontEndTask.Completed) { dbTask.DateCompleted = null; }
 
+            // handle general user-editable properties
             dbTask.Completed = frontEndTask.Completed;
             dbTask.TaskName = frontEndTask.TaskName.Trim();
             dbTask.DueDate = frontEndTask.DueDate;
             dbTask.Starred = frontEndTask.Starred;
 
+            // handle indices
             dbTask.InboxIndex = frontEndTask.InboxIndex;
             dbTask.ProjectIndex = frontEndTask.ProjectIndex;
             dbTask.ContextIndex = frontEndTask.ContextIndex;
             dbTask.TodayIndex = frontEndTask.TodayIndex;
 
-            // these will have been updated by the front-end prior to call
+            // these, while not directly editable, will have been updated (if needed) by the front-end prior to call
+            // (user can edit ProjectName and ContextName, which front-end assigns Id props based upon)
             dbTask.ProjectId = frontEndTask.ProjectId;
             dbTask.ContextId = frontEndTask.ContextId;
+            dbTask.CleanedUp = frontEndTask.CleanedUp;
 
             try
             {

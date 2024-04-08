@@ -17,7 +17,8 @@ BEGIN
 		   Task.TodayIndex,
 		   Task.InboxIndex,
 		   Task.ProjectIndex,
-		   Task.ContextIndex
+		   Task.ContextIndex,
+		   Task.CleanedUp
 	FROM dbo.Task
 	LEFT JOIN dbo.Project ON dbo.Task.ProjectId = dbo.Project.Id
 	LEFT JOIN dbo.Context ON dbo.Task.ContextId = dbo.Context.Id

@@ -13,6 +13,7 @@ namespace TaskFocusUI.Library.Models
         public DateTime? DateCompleted { get; set; }
         public int? ProjectId { get; set; }
         public int? ContextId { get; set; }
+        //public bool CleanedUp { get; set; } = false;
 
         // indexer
         public object this[string propertyName]
@@ -45,7 +46,7 @@ namespace TaskFocusUI.Library.Models
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        // user-editable properties
+        // directly editable (by user or app) properties
         // ====================
         private string _taskName;
         public string TaskName
@@ -66,6 +67,17 @@ namespace TaskFocusUI.Library.Models
             {
                 _completed = value;
                 CallPropertyChanged(nameof(Completed));
+            }
+        }
+
+        private bool _cleanedUp = false;
+        public bool CleanedUp
+        {
+            get { return _cleanedUp; }
+            set
+            {
+                _cleanedUp = value;
+                CallPropertyChanged(nameof(CleanedUp));
             }
         }
 

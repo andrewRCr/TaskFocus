@@ -26,7 +26,8 @@ namespace TaskFocusUI.Library.Utilities
                     taskA.ProjectIndex == taskB.ProjectIndex &&
                     taskA.ContextIndex == taskB.ContextIndex &&
                     taskA.Starred == taskB.Starred &&
-                    taskA.TodayIndex == taskB.TodayIndex;
+                    taskA.TodayIndex == taskB.TodayIndex &&
+                    taskA.CleanedUp == taskB.CleanedUp;
             }
 
             return !IsDataEqual(frontEndTask, taskLastFetch);

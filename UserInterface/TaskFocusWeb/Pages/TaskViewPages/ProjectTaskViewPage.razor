@@ -33,7 +33,7 @@
     {
         if (DataState.IsDataLoaded())
         {
-            List<TaskDisplayModel> projectTasks = DataState.Tasks!.Where(x => (x.ProjectId == int.Parse(ProjectId)) && !x.Completed).ToList();
+            List<TaskDisplayModel> projectTasks = DataState.Tasks!.Where(x => (x.ProjectId == int.Parse(ProjectId)) && !x.CleanedUp).ToList();
             projectTasks = projectTasks.OrderBy(x => x.ProjectIndex).ToList();
             LocalTasks = projectTasks;
 

@@ -14,6 +14,7 @@
     [ContextIndex] INT NULL, 
     [Starred] BIT NOT NULL DEFAULT 0, 
     [TodayIndex] INT NULL, 
+    [CleanedUp] BIT NOT NULL DEFAULT 0, 
     CONSTRAINT [FK_Task_ToUser] FOREIGN KEY (UserId) REFERENCES [User](Id),
     CONSTRAINT [FK_Task_ToProject] FOREIGN KEY (ProjectId) REFERENCES Project(Id), 
     CONSTRAINT [FK_Task_ToContext] FOREIGN KEY (ContextId) REFERENCES Context(Id)

@@ -25,5 +25,6 @@ namespace TaskFocusUI.Library.Models
         public int? ContextIndex { get; set; }
         public bool Starred { get; set; } = false;
         public int? TodayIndex { get; set; }
+        public bool CleanedUp { get; set; } = false;
     }
 }

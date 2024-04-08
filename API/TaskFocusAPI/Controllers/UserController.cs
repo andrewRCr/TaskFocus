@@ -36,6 +36,13 @@ namespace TaskFocusAPI.Controllers
             return _userData.GetUserById(userId).First();
         }
 
+        [HttpGet]
+        public UserSettingsModel GetCurrentUserSettings()
+        {
+            string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return _userData.GetUserSettingsById(userId).First();
+        }
+
         [Authorize(Roles = "Admin")]
         [HttpGet]
         [Route("Admin/GetAllUsers")]

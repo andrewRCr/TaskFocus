@@ -13,7 +13,8 @@
 	@ProjectIndex int,
 	@ContextIndex int,
 	@Starred bit,
-	@TodayIndex int
+	@TodayIndex int,
+	@CleanedUp bit
 AS
 BEGIN
 	SET NOCOUNT ON;
@@ -29,6 +30,7 @@ BEGIN
 		ProjectIndex = @ProjectIndex,
 		ContextIndex = @ContextIndex,
 		Starred = cast(@Starred as bit),
-		TodayIndex = @TodayIndex
+		TodayIndex = @TodayIndex,
+		CleanedUp = cast(@CleanedUp as bit)
 	WHERE Id = @Id;
 END
