@@ -91,6 +91,7 @@
     <Build Include="dbo\Tables\UserSettings.sql" />
     <Build Include="dbo\Stored Procedures\spUserSettings_GetById.sql" />
     <Build Include="dbo\Stored Procedures\spUserSettings_Insert.sql" />
+    <Build Include="dbo\Stored Procedures\spUserSettings_Update.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="TaskFocusData.refactorlog" />

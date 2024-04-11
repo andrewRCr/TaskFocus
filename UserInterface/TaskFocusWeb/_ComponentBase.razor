@@ -7,7 +7,6 @@
 @inject IContextEndpoint ContextEndpoint
 @inject IMapper Mapper
 @inject IDataHelper DataHelper
-
 @inject IDataService DataService
 
 @code {
@@ -135,14 +134,9 @@
                     else
                     {
                         int cleanupIntervalSetting = DataState.UserSettings.CleanUpDelayDays;
-
                         TimeSpan interval = (DateTime.Now - (DateTime)task.DateCompleted!);
                         int daysPassedSinceTaskCompletion = interval.Days;
-
-                        if (daysPassedSinceTaskCompletion > cleanupIntervalSetting)
-                        {
-                            task.CleanedUp = true;
-                        }
+                        if (daysPassedSinceTaskCompletion > cleanupIntervalSetting) { task.CleanedUp = true; }
                     }
                 }
             }

@@ -69,9 +69,13 @@ namespace TaskFocusAPI.Library.DataAccess
                 throw new Exception($"The task Id of {frontEndTask.Id} could not be found in the database.");
             }
 
-            // handle DateCompleted
+            // handle DateCompleted/unflagging CleanedUp on removing Completed status
             if (!dbTask.Completed && frontEndTask.Completed) { dbTask.DateCompleted = DateTime.Now; }
-            else if (dbTask.Completed && !frontEndTask.Completed) { dbTask.DateCompleted = null; }
+            else if (dbTask.Completed && !frontEndTask.Completed) 
+            { 
+                dbTask.DateCompleted = null;
+                frontEndTask.CleanedUp = false;
+            }
 
             // handle general user-editable properties
             dbTask.Completed = frontEndTask.Completed;

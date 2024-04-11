@@ -42,7 +42,7 @@ namespace TaskFocusAPI.Library.DataAccess
         {
             if (frontEndContext.Id == null)
             {
-                throw new Exception($"The provided project's Id was a null value.");
+                throw new Exception($"The provided context's Id was a null value.");
             }
 
             var dbContext = GetContextById((int)frontEndContext.Id);

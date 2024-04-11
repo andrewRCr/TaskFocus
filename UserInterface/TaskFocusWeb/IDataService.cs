@@ -14,10 +14,13 @@ namespace TaskFocusWeb
         Task FetchRemoteTaskData();
         Task UpdateContextData(ContextDisplayModel displayContext);
         Task UpdateProjectData(ProjectDisplayModel displayProject);
-        Task UpdateTaskData(TaskDisplayModel displayTask);
+        Task UpdateTaskData(TaskDisplayModel displayTask, bool forceUpdate = false);
         Task DeleteTask(TaskDisplayModel displayTask);
         Task AddTask(TaskDisplayModel displayTask);
         Task DeleteProject(ProjectDisplayModel displayProject);
         Task DeleteContext(ContextDisplayModel displayContext);
+        Task UpdateSettingsData(UserSettingsDisplayModel displaySettings);
+        TaskModel MapToRawTask(TaskDisplayModel displayTask);
+        void ShiftTaskCollectionSourceIndices(TaskModel task, string indexType);
     }
 }

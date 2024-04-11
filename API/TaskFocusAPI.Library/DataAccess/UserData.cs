@@ -27,12 +27,40 @@ namespace TaskFocusAPI.Library.DataAccess
             return userData;
         }
 
-        public List<UserSettingsModel> GetUserSettingsById(string id) 
+        public UserSettingsModel GetUserSettingsById(string id) 
         { 
             var p = new { Id = id };
-            var userSettingsData = _sqlDataAccess.LoadData<UserSettingsModel, dynamic>("dbo.spUserSettings_GetById", p, "TaskFocusData");
+            var userSettingsData = _sqlDataAccess.LoadData<UserSettingsModel, dynamic>(
+                    "dbo.spUserSettings_GetById", p, "TaskFocusData").FirstOrDefault();
 
             return userSettingsData;
+        }
+
+        public void UpdateSettingsData(UserSettingsModel frontEndSettings)
+        {
+            if (frontEndSettings.Id == null)
+            {
+                throw new Exception($"The provided UserSettings's Id was a null value.");
+            }
+
+            var dbSettings = GetUserSettingsById(frontEndSettings.Id);
+
+            if (dbSettings == null)
+            {
+                throw new Exception($"The Settings Id of {frontEndSettings.Id} could not be found in the database.");
+            }
+
+            dbSettings.CleanUpImmediately = frontEndSettings.CleanUpImmediately;
+            dbSettings.CleanUpDelayDays = frontEndSettings.CleanUpDelayDays;
+
+            try
+            {
+                _sqlDataAccess.SaveData("dbo.spUserSettings_Update", dbSettings, "TaskFocusData");
+            }
+            catch (System.Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
 
         public void CreateUser(UserModel user)

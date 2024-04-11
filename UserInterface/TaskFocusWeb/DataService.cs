@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using System;
 using System.Threading.Tasks;
 using TaskFocusUI.Library.API;
 using TaskFocusUI.Library.Models;
@@ -69,13 +70,18 @@ namespace TaskFocusWeb
             _dataState.UserSettings = displayUserSettings;
         }
 
+        public TaskModel MapToRawTask(TaskDisplayModel displayTask)
+        {
+            return _mapper.Map<TaskModel>(displayTask);
+        }
+
         // post updated task data to API for a single task
-        public async Task UpdateTaskData(TaskDisplayModel displayTask)
+        public async Task UpdateTaskData(TaskDisplayModel displayTask, bool forceUpdate = false)
         {
             // map from TaskDisplayModel to TaskModel
             TaskModel task = _mapper.Map<TaskModel>(displayTask);
 
-            if (_dataHelper.HasTaskDataChanged(task))
+            if (_dataHelper.HasTaskDataChanged(task) || forceUpdate)
             {
                 if (_dataHelper.HasTaskProjectNameChanged(task))
                 {
@@ -95,14 +101,22 @@ namespace TaskFocusWeb
                 }
 
                 // no longer in Today view
-                if (task.TodayIndex != null && (!task.Starred && !_dataHelper.IsTaskDueOrOverDue(task)))
+                if (task.TodayIndex != null && (
+                    (!task.Starred && !_dataHelper.IsTaskDueOrOverDue(task))) || // neither starred nor due/overdue
+                    (task.Completed && task.DateCompleted != DateTime.Now.Date)) // completed earlier than today
                 {
+                    Console.WriteLine(task.TaskName);
                     ShiftTaskCollectionSourceIndices(task, "TodayIndex");
                     task.TodayIndex = null;
+                    Console.WriteLine(task.TaskName + " " + task.TodayIndex);
                 }
 
-                if ((task.Starred || _dataHelper.IsTaskDueOrOverDue(task)) && task.TodayIndex == null)
+                // should be in Today view
+                if (task.TodayIndex == null && (task.Starred || _dataHelper.IsTaskDueOrOverDue(task)) &&
+                    !(task.Completed && task.DateCompleted != DateTime.Now.Date))
                 {
+                    //if (task.Completed && task.DateCompleted != DateTime.Now.Date) { return; }
+
                     Console.WriteLine($"passed TodayIndex == null check! TodayIndex value: {task.TodayIndex}");
 
                     List<TaskDisplayModel> starredTasks = _dataState.Tasks!
@@ -131,7 +145,7 @@ namespace TaskFocusWeb
             // map from ProjectDisplayModel to ProjectModel
             ProjectModel project = _mapper.Map<ProjectModel>(displayProject);
 
-            if (true)
+            if (true) // TODO
             {
                 // if (DataHelper.HasTaskContextNameChanged(task))
                 // {
@@ -154,7 +168,7 @@ namespace TaskFocusWeb
             // map from ContextDisplayModel to ContextModel
             ContextModel context = _mapper.Map<ContextModel>(displayContext);
 
-            if (true)
+            if (true) // TODO
             {
                 // if (DataHelper.HasTaskContextNameChanged(task))
                 // {
@@ -165,7 +179,22 @@ namespace TaskFocusWeb
 
                 await _contextEndpoint.UpdateContext(context);
 
-                // refresh data + repopulate TasksLastFetch
+                // refresh data 
+                await FetchAllRemoteData();
+            }
+        }
+
+        //
+        public async Task UpdateSettingsData(UserSettingsDisplayModel displaySettings)
+        {
+            // re-map
+            UserSettingsModel settings = _mapper.Map<UserSettingsModel>(displaySettings);
+
+            if (true) // datahelper.hasSettingsDataChanged, etc - TODO
+            {
+                await _userEndpoint.UpdateUserSettings(settings);
+
+                // refresh data 
                 await FetchAllRemoteData();
             }
         }
@@ -247,6 +276,10 @@ namespace TaskFocusWeb
                             bool shiftNeeded = previousCollectionTask.TodayIndex > previouslyAssignedCollectionIndex;
                             if (shiftNeeded) { previousCollectionTask.TodayIndex--; }
                         }
+                    }
+                    else
+                    {
+                        Console.WriteLine("criteria not met!");
                     }
                     break;
 

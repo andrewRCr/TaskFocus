@@ -43,6 +43,18 @@ namespace TaskFocusUI.Library.API
             }
         }
 
+        public async Task UpdateUserSettings(UserSettingsModel updatedSettings)
+        {
+            using (HttpResponseMessage response = await _apiHelper.APIClient.PutAsJsonAsync("/api/user/put/settings", updatedSettings))
+            {
+                if (response.IsSuccessStatusCode)
+                {
+                    // TODO - log successful update call ?
+                }
+                else { throw new Exception(response.ReasonPhrase); }
+            }
+        }
+
         public async Task CreateUser(CreateUserModel userModel)
         {
             var data = new { 

@@ -9,5 +9,6 @@ namespace TaskFocusUI.Library.API
         Task CreateUser(CreateUserModel userModel);
         Task<List<UserModel>> GetAllUsers();
         Task<UserSettingsModel> GetCurrentUserSettings();
+        Task UpdateUserSettings(UserSettingsModel updatedSettings);
     }
 }

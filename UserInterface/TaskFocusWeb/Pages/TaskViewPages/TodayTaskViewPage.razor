@@ -1,5 +1,6 @@
 ﻿@page "/today"
 @inherits _TaskViewPageBase
+@inject IDataService DataService
 
 <PageTitle>TaskFocus: Today</PageTitle>
 
@@ -51,19 +52,34 @@
         LoadAllLocalData();
     }
 
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        // remove TodayIndex from any completed (but not CleanedUp) tasks from view if completed > 1 day ago
+        var oldCompletedTodayTasks = DataState.Tasks!.Where(x => x.TodayIndex != null && x.Completed && (x.DateCompleted < DateTime.Now.Date)).ToList();
+        foreach (TaskDisplayModel task in oldCompletedTodayTasks)
+        {
+            // force update: will detect and remove TodayIndex, as well as shift other task indices accordingly if needed
+            await DataService.UpdateTaskData(task, true);
+        }
+    }
+
     protected override void LoadLocalTaskData()
     {
         if (DataState.IsDataLoaded())
         {
-            List<TaskDisplayModel> dueTasks = DataState.Tasks!.Where(x => (x.DueDate <= DateTime.Now.Date) && !x.CleanedUp).ToList();
-            List<TaskDisplayModel> starredTasks = DataState.Tasks!.Where(x => (x.Starred == true) && !x.CleanedUp).ToList();
+            List<TaskDisplayModel> dueTasks = DataState.Tasks!.Where(x => 
+                (x.DueDate <= DateTime.Now.Date) && !x.CleanedUp && (x.DateCompleted == null || x.DateCompleted == DateTime.Now.Date)).ToList();
+            List<TaskDisplayModel> starredTasks = DataState.Tasks!.Where(x => 
+                (x.Starred == true) && !x.CleanedUp && (x.DateCompleted == null || x.DateCompleted == DateTime.Now.Date)).ToList();
             List<TaskDisplayModel> todayTasks = dueTasks.Concat(starredTasks).ToList();
 
             // ensure any newly due/overdue tasks have a TodayIndex
             int todayTasksWithTodayIndexCount = todayTasks.Where(x => x.TodayIndex != null).ToList().Count();
-            foreach (TaskDisplayModel task in dueTasks)
+            foreach (TaskDisplayModel task in todayTasks)
             {
-                if (task.TodayIndex == null)
+                if (task.DueDate <= DateTime.Now.Date && task.TodayIndex == null)
                 {
                     task.TodayIndex = todayTasksWithTodayIndexCount;
                     todayTasksWithTodayIndexCount++;
@@ -74,7 +90,6 @@
             LocalTasks = todayTasks;
             foreach (TaskDisplayModel task in LocalTasks!)
             {
-                //Console.WriteLine($"{task.TaskName}: {task.InboxIndex.ToString()}");
                 task.PropertyChanged += OnExistingTaskPropertyChanged!; // subscribe to property changed event
             }
         }

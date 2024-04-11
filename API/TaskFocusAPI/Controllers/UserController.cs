@@ -40,7 +40,14 @@ namespace TaskFocusAPI.Controllers
         public UserSettingsModel GetCurrentUserSettings()
         {
             string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            return _userData.GetUserSettingsById(userId).First();
+            return _userData.GetUserSettingsById(userId);
+        }
+
+        [HttpPut]
+        [Route("settings")]
+        public void Put(UserSettingsModel updatedSettings)
+        {
+            _userData.UpdateSettingsData(updatedSettings);
         }
 
         [Authorize(Roles = "Admin")]

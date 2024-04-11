@@ -1,0 +1,175 @@
+﻿@page "/settings"
+@inherits _ComponentBase
+@inject IDataService DataService
+
+@if (LocalSettings != null)
+{
+    <MudTreeView T="MudContainer" Width="100%">
+        <MudTreeViewItem T="MudContainer" 
+                         Expanded="true"
+                         Icon="@Icons.Material.Filled.Settings"
+                         Text="Preferences"
+                         TextTypo="Typo.button">
+
+            <MudContainer MaxWidth="MaxWidth.Medium">
+
+             
+
+                <MudText Class="ml-4 mb-n1">Automatically clean up completed tasks:</MudText>
+
+                <MudRadioGroup @bind-Value="LocalSettings.CleanUpImmediately" Class="ml-2">
+                    <MudRadio Value="true" 
+                              Dense="true" 
+                              Class="ml-2" 
+                              Color="Color.Primary"
+                              UnCheckedColor="Color.Inherit">
+                        <MudText Style="@_immediateTextStyleStr">Immediately</MudText>
+                    </MudRadio>
+
+                    <MudRadio Value="false" Dense="true" Class="ml-2" Color="!LocalSettings.CleanUpImmediately ? Color.Primary : Color.Inherit">
+                        <MudStack Row="true" AlignItems="AlignItems.Center">
+                        <MudNumericField @bind-Value="LocalSettings.CleanUpDelayDays"
+                                         Class="ml-2 d-flex align-start pb-3"
+                                         HideSpinButtons="false"
+                                         DisableUnderLine="true"
+                                         Variant="Variant.Text"
+                                         Min="1"
+                                         Max="90"
+                                         MaxLength="2"
+                                         Disabled="@LocalSettings.CleanUpImmediately"
+                                         FullWidth="false"
+                                         Margin="Margin.Dense"
+                                         Style="max-width: 45px;" />
+
+                            <MudText Class="ml-n2" Style="@_daysTextStyleStr">@_daysTextStr after completion</MudText>
+                        </MudStack>
+                    </MudRadio>
+                </MudRadioGroup>
+
+@*                 <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.FlexStart" Spacing="1" Style="max-width: 375px;">
+
+          
+                    <MudCheckBox @bind-Value="LocalSettings.CleanUpImmediately"
+                                 Class="" >
+                        Immediately
+                    </MudCheckBox>
+                    
+                    <MudNumericField @bind-Value="LocalSettings.CleanUpDelayDays" 
+                                     Class="ml-5 d-flex align-start pb-4"
+                                     HideSpinButtons="false"
+                                     Variant="Variant.Text"
+                                    
+                               
+                                     Min="1" 
+                                     Max="90"
+                                     MaxLength="2"
+                                     Disabled="@LocalSettings.CleanUpImmediately"
+                                     FullWidth="false"
+                                     Margin="Margin.Dense"
+                                     Style="max-width: 45px;"
+                                     />
+              
+                    <MudText Class="d-block" Align="Align.Start" >days from completion</MudText>
+                </MudStack> *@
+
+               
+            </MudContainer>
+        </MudTreeViewItem>
+    </MudTreeView>
+
+    <MudTreeView T="MudContainer" Width="100%">
+        <MudTreeViewItem T="MudContainer"
+                         Expanded="true"
+                         Icon="@Icons.Material.Filled.AccountCircle"
+                         Text="Profile"
+                         TextTypo="Typo.button">
+
+            <MudContainer MaxWidth="MaxWidth.Medium">
+                <MudPaper Elevation="25" Class="pa-0 my-2">
+                    <MudText Class="pa-4" Align="Align.Center">
+                        ACCOUNT FIELDS GO HERE
+                    </MudText>
+                </MudPaper>
+            </MudContainer>
+        </MudTreeViewItem>
+    </MudTreeView>
+}
+
+@code {
+    private string _immediateTextStyleStr = string.Empty;
+    private string _daysTextStyleStr = string.Empty;
+    private string _daysTextStr = string.Empty;
+
+    private UserSettingsDisplayModel _localSettings = default!;
+    public UserSettingsDisplayModel LocalSettings
+    {
+        get { return _localSettings; }
+        set { _localSettings = value; }
+    }
+
+    private void SetRadioTextColor()
+    {
+        string enabledStr = "color: rgba(255, 255, 255, 0.6980392156862745)";
+        string disabledStr = "color: rgba(255, 255, 255, 0.2)";
+
+        _immediateTextStyleStr = LocalSettings.CleanUpImmediately ? enabledStr : disabledStr;
+        _daysTextStyleStr = LocalSettings.CleanUpImmediately ? disabledStr : enabledStr;
+    }
+
+    private void SetDaysTextColor()
+    {
+        _daysTextStyleStr = !LocalSettings.CleanUpImmediately ?
+            "color: rgba(255, 255, 255, 0.6980392156862745)" : "color: rgba(255, 255, 255, 0.2)";
+    }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        AppState.ShowProjectSubMenu = false;
+        AppState.ShowContextSubMenu = false;
+
+        dataRefreshTriggers = new List<string> { nameof(DataState.UserSettings) };
+    }
+
+    protected override void CustomAuthenticatedOnInit()
+    {
+        LoadLocalSettingsData();
+    }
+
+    protected void LoadLocalSettingsData()
+    {
+        if (DataState.IsDataLoaded())
+        {
+            LocalSettings = DataState.UserSettings;
+            LocalSettings.PropertyChanged += OnExistingSettingsPropertyChanged!; // subscribe to property changed event
+            SetRadioTextColor();
+            _daysTextStr = LocalSettings.CleanUpDelayDays > 1 ? "days" : "day";
+        }
+    }
+
+    // saves updated user settings data to server on property change
+    protected async void OnExistingSettingsPropertyChanged(object sender, PropertyChangedEventArgs e)
+    {
+        string? changedProperty = e.PropertyName;
+        UserSettingsDisplayModel senderSettings = (UserSettingsDisplayModel)sender;
+        Console.WriteLine($"LocalSettings's property {changedProperty} was changed.");
+
+        await DataService.UpdateSettingsData(senderSettings);
+    }
+
+    protected override bool HandleDataStateChanged(string propertyName, DataState dataState)
+    {
+        if (!dataRefreshTriggers.Contains(propertyName))
+        {
+            return false;
+        }
+
+        if (AppState.CanRefresh)
+        {
+            Console.WriteLine("SettingsViewPage: returned true on HandleDataStateChanged!");
+            LoadLocalSettingsData();
+        }
+
+        return AppState.CanRefresh;
+    }
+}
