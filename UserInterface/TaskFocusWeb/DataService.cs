@@ -94,7 +94,7 @@ namespace TaskFocusWeb
                 }
 
                 // if has both project and context, task is no longer in inbox
-                if (task.ProjectId != null && task.ContextId != null && task.InboxIndex != null) 
+                if (task.InboxIndex != null && ((task.ProjectId != null && task.ContextId != null) || (task.CleanedUp))) 
                 {
                     ShiftTaskCollectionSourceIndices(task, "InboxIndex");
                     task.InboxIndex = null; 
@@ -103,12 +103,23 @@ namespace TaskFocusWeb
                 // no longer in Today view
                 if (task.TodayIndex != null && (
                     (!task.Starred && !_dataHelper.IsTaskDueOrOverDue(task))) || // neither starred nor due/overdue
-                    (task.Completed && task.DateCompleted != DateTime.Now.Date)) // completed earlier than today
+                    (task.Completed && task.DateCompleted != DateTime.Now.Date) || // completed earlier than today
+                    (task.CleanedUp))
                 {
-                    Console.WriteLine(task.TaskName);
                     ShiftTaskCollectionSourceIndices(task, "TodayIndex");
                     task.TodayIndex = null;
-                    Console.WriteLine(task.TaskName + " " + task.TodayIndex);
+                }
+
+                if (task.ProjectIndex != null && task.CleanedUp) 
+                {
+                    ShiftTaskCollectionSourceIndices(task, "ProjectIndex");
+                    task.ProjectIndex = null;
+                }
+
+                if (task.ContextIndex != null && task.CleanedUp)
+                {
+                    ShiftTaskCollectionSourceIndices(task, "ContextIndex");
+                    task.ContextIndex = null;
                 }
 
                 // should be in Today view
