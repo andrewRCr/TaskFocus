@@ -22,7 +22,7 @@ namespace TaskFocusAPI.Library.DataAccess
         public List<UserModel> GetUserById(string id)
         {
             var p = new { Id = id };
-            var userData = _sqlDataAccess.LoadData<UserModel, dynamic>("dbo.spUserLookup", p, "TaskFocusData");
+            var userData = _sqlDataAccess.LoadData<UserModel, dynamic>("dbo.spUser_GetById", p, "TaskFocusData");
 
             return userData;
         }
@@ -65,7 +65,7 @@ namespace TaskFocusAPI.Library.DataAccess
 
         public void CreateUser(UserModel user)
         {
-            var p = new { Id = user.Id, user.FirstName, user.LastName, user.EmailAddress };
+            var p = new { Id = user.Id, user.FirstName, user.LastName, user.Email };
             _sqlDataAccess.SaveData("dbo.spUser_Insert", p, "TaskFocusData");
 
             // make default settings entry

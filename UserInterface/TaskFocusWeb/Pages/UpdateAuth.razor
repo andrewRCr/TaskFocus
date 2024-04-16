@@ -1,0 +1,191 @@
+﻿@page "/updateauth"
+@using TaskFocusUI.Library.Models
+@using System.Text.RegularExpressions
+@using System.ComponentModel.DataAnnotations
+
+<MudTreeView T="MudContainer" Width="100%">
+    <MudTreeViewItem T="MudContainer"
+                     Expanded="true"
+                     Icon="@Icons.Material.Filled.AccountCircle"
+                     Text="Update Login Credentials"
+                     TextTypo="Typo.button">
+
+        <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
+
+            <MudForm @ref="_updateAuthForm" @bind-IsValid="@_success" @bind-Errors="@_errors">
+
+                <MudTextField T="string"
+                              Label="Email"
+                              Required="true"
+                              Style="width: 350px;"
+                              RequiredError="Email is required."
+                              Validation="@(new EmailAddressAttribute() {ErrorMessage = "The email address is invalid"})" />
+
+                <MudTextField T="string"
+                              Label="Password"
+                              @ref="_pwField1"
+                              Style="width: 350px;"
+                              InputType="@_passwordInput"
+                              Adornment="Adornment.End"
+                              AdornmentIcon="@_passwordInputIcon"
+                              OnAdornmentClick="ToggleShowPassword"
+                              AdornmentAriaLabel="Show Password"
+                              Validation="@(new Func<string, IEnumerable<string>>(PasswordStrength))" Required="true"
+                              RequiredError="Password is required!" />
+
+                <MudTextField T="string"
+                              Label="Confirm Password"
+                              InputType="@_passwordInput"
+                              Style="width: 350px;"
+                              Adornment="Adornment.End"
+                              AdornmentIcon="@_passwordInputIcon"
+                              OnAdornmentClick="ToggleShowPassword"
+                              AdornmentAriaLabel="Show Confirm Password"
+                              Validation="@(new Func<string, string>(PasswordMatch))" />
+
+@*                 <MudButton ButtonType="ButtonType.Submit" Disabled 
+                           Variant="Variant.Filled"
+                           Class="mt-4"
+                           Color="Color.Primary">
+                    Submit
+                </MudButton> *@
+
+            </MudForm>
+
+
+            <div class="mt-3">
+                <MudButton Variant="Variant.Filled" 
+                            Color="Color.Primary" 
+                            DisableElevation="false"
+                           Class="mt-3"
+                            OnClick="@(()=>_updateAuthForm.Validate())">
+                    Validate
+                </MudButton>
+
+                <MudButton Variant="Variant.Outlined" 
+                            Color="Color.Inherit" 
+                            DisableElevation="true" 
+
+                            OnClick="@(()=>_updateAuthForm.ResetAsync())" 
+                            Class="mx-2 mt-3">
+                    Reset
+                </MudButton>
+
+             @*    <MudButton Variant="Variant.Filled" DisableElevation="true" OnClick="@(()=>_updateAuthForm.ResetValidation())">Reset Validation</MudButton> *@
+            </div>
+   
+            <div class="mt-9">
+                @if (_errors.Length > 0)
+                {
+                    <MudText Typo="Typo.button">@($"Errors ({_errors.Length})")</MudText>
+                    @foreach (var error in _errors)
+                    {
+                        <MudText Color="@Color.Error">@error</MudText>
+                    }
+                }
+
+            </div>
+
+
+
+
+
+        </MudContainer>
+
+    </MudTreeViewItem>
+</MudTreeView>
+
+
+
+@code {
+    [CascadingParameter]
+    public Task<AuthenticationState> AuthState { get; set; }
+
+    private bool _isAuthenticated = false;
+    private string? _localEmail;
+    private string? _localPassword;
+
+    private bool _success;
+    private string[] _errors = { };
+    private MudTextField<string> _pwField1;
+    private MudForm _updateAuthForm;
+
+    private bool _isShowPassword = false;
+    private InputType _passwordInput = InputType.Password;
+    private string _passwordInputIcon = Icons.Material.Filled.VisibilityOff;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthState;
+
+        if (authState.User.Identity.IsAuthenticated)
+        {
+            _isAuthenticated = true;
+            _localEmail = authState.User.FindFirst(ClaimTypes.Name).Value;
+            //Password = authState.User.Identity.
+        }
+    }
+
+    private void ToggleShowPassword()
+    {
+        Console.WriteLine("toggled!");
+
+        _isShowPassword = !_isShowPassword;
+        _passwordInputIcon = _isShowPassword ? 
+            Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff;
+        _passwordInput = _isShowPassword ? InputType.Text : InputType.Password;
+
+
+        // @if (_isShowPassword)
+        // {
+        //     _isShowPassword = false;
+        //     _passwordInputIcon = Icons.Material.Filled.VisibilityOff;
+        //     _passwordInput = InputType.Password;
+        // }
+        // else
+        // {
+        //     _isShowPassword = true;
+        //     _passwordInputIcon = Icons.Material.Filled.Visibility;
+        //     _passwordInput = InputType.Text;
+        // }
+        // if (_isShowConfirmPassword)
+        // {
+        //     _isShowConfirmPassword = false;
+        //     _confirmPasswordInputIcon = Icons.Material.Filled.VisibilityOff;
+        //     _confirmPasswordInput = InputType.Password;
+        // }
+        // else
+        // {
+        //     _isShowConfirmPassword = true;
+        //     _confirmPasswordInputIcon = Icons.Material.Filled.Visibility;
+        //     _confirmPasswordInput = InputType.Text;
+        // }
+
+    }
+
+    private IEnumerable<string> PasswordStrength(string pw)
+    {
+        if (string.IsNullOrWhiteSpace(pw))
+        {
+            yield return "Password is required!";
+            yield break;
+        }
+        if (pw.Length < 6)
+            yield return "Password must be at least of length 6.";
+        if (!Regex.IsMatch(pw, @"[A-Z]"))
+            yield return "Password must contain at least one capital letter.";
+        if (!Regex.IsMatch(pw, @"[a-z]"))
+            yield return "Password must contain at least one lowercase letter.";
+        if (!Regex.IsMatch(pw, @"[0-9]"))
+            yield return "Password must contain at least one digit.";
+        if (!Regex.IsMatch(pw, @"[-+_!@#$%^&*.,?]"))
+            yield return "Password must contain at least one special character.";
+    }
+
+    private string PasswordMatch(string arg)
+    {
+        if (_pwField1.Value != arg)
+            return "Passwords do not match.";
+        return null;
+    }
+}

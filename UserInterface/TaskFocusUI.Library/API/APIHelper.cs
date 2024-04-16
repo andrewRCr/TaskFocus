@@ -73,14 +73,14 @@ namespace TaskFocusUI.Library.API
             _apiClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _apiClient.DefaultRequestHeaders.Add("Authorization", $"Bearer { token }");
 
-            using (HttpResponseMessage response = await _apiClient.GetAsync("/api/user/getbyid"))
+            using (HttpResponseMessage response = await _apiClient.GetAsync("/api/user/getcurrentuser"))
             {
                 if (response.IsSuccessStatusCode)
                 {
                     var result = await response.Content.ReadAsAsync<LoggedInUserModel>();
                     _loggedInUser.Token = token;
                     _loggedInUser.Id = result.Id;
-                    _loggedInUser.EmailAddress = result.EmailAddress;
+                    _loggedInUser.Email = result.Email;
                     _loggedInUser.FirstName = result.FirstName;
                     _loggedInUser.LastName = result.LastName;
                     _loggedInUser.CreatedDate = result.CreatedDate;

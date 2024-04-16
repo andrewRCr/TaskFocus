@@ -2,6 +2,6 @@
 {
     public record UserRegistrationModel(string FirstName,
                                         string LastName,
-                                        string EmailAddress,
+                                        string Email,
                                         string Password);
 }

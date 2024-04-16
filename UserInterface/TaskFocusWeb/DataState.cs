@@ -26,6 +26,18 @@ namespace TaskFocusWeb
             }
         }
 
+        private UserModel _currentUser = default!;
+        public UserModel CurrentUser
+        {
+            get { return _currentUser; }
+            set
+            {
+                Console.WriteLine("DataState: CurrentUser changed!");
+                _currentUser = value;
+                DataStateChanged?.Invoke(nameof(CurrentUser), this);
+            }
+        }
+
         private UserSettingsDisplayModel _userSettings = default!;
         public UserSettingsDisplayModel UserSettings
         {
@@ -76,7 +88,8 @@ namespace TaskFocusWeb
 
         public bool IsDataLoaded()
         {
-            return Tasks != null && Projects != null && Contexts != null && UserSettings != null;
+            return Tasks != null && Projects != null && Contexts != null 
+                && UserSettings != null && CurrentUser != null;
         }  
     }
 }

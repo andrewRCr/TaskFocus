@@ -1,53 +1,82 @@
 ﻿@inject IAuthenticationService AuthService
 @inject NavigationManager NavManager
+@inject IDataService DataService
+@using System.ComponentModel.DataAnnotations
 
-<EditForm Model="userModel" OnValidSubmit="ExecuteLogin">
-    <DataAnnotationsValidator />
+<MudForm Model="userModel" @ref="_loginForm" @bind-IsValid="@_success" @bind-Errors="@_errors" >
 
-    @* TODO: improve spacing/layout, especially when error/validation messages display & at smaller width breakpoints *@
-    <div class="row">
+    <MudGrid>
+        <MudStack Row="true" Class="mt-2" AlignItems="AlignItems.Center">
+            <MudItem Class="col-auto">
+                <MudTextField @bind-Value="userModel.Email"
+                              Variant="Variant.Outlined" 
+                              Margin="Margin.Dense"
+                              Style="width: 235px"
+                              Placeholder="Email Address" 
+                              ErrorText=" " 
+                              OnlyValidateIfDirty="false"
+                              Required="true"
+                              RequiredError=" "
+                              Validation="@(new EmailAddressAttribute() {ErrorMessage = " "})" />
+            </MudItem>
+            <MudItem Class="col-auto">
+                <MudTextField @bind-Value="userModel.Password"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              Placeholder="Password"
+                              Style="width: 235px"
+                              ErrorText=" "
+                              InputType="@_passwordInput"
+                              TextChanged="SetAdornment"
+                              Adornment="_passwordAdornment"
+                              AdornmentIcon="@_passwordInputIcon"
+                              OnAdornmentClick="ToggleShowPassword"
+                              AdornmentAriaLabel="Show Password"
+                              OnlyValidateIfDirty="false"
+                              Required="true"
+                              RequiredError=" "
+                              Validation="@(new Func<string, string>(PasswordValidator))" />
+            </MudItem>
 
-        <div class="col-auto">
-            <label for="email" class="visually-hidden">Email</label>
-            <InputText id="email" class="form-control" @bind-Value="userModel.Email" placeholder="Email Address" />
-            <ValidationMessage For="@(() => userModel.Email)" />
-        </div>
+            <MudItem Class="col-auto mr-2">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Button" OnClick="ValidateAndExecute">Login</MudButton>
+            </MudItem>
 
-        <div class="col-auto">
-            <label for="password" class="visually-hidden">Password</label>
-            <InputText type="password" id="password" class="form-control" @bind-Value="userModel.Password" placeholder="Password" />
-            <ValidationMessage For="@(() => userModel.Password)" />
-        </div>
+@*             <MudItem Class="col-auto">
+                <MudButton Variant="Variant.Text" Color="Color.Inherit" ButtonType="ButtonType.Button" OnClick="RegisterUser">Register</MudButton>
+            </MudItem> *@
 
-        <div class="col-auto">
-            <button type="submit" class="btn btn-success">Login</button>
-        </div>
+        </MudStack>
+    </MudGrid>
 
-        <div class="col-auto">
-            <button type="button" class="btn btn-primary" @onclick="RegisterUser">Register</button>
-        </div>
-
-    </div>
-
-    <div class="row">
-        @if (showAuthenticationError)
-        {
-            <div class="text-danger">
-                @authenticationErrorText
-            </div>
-        }
-    </div>
-
-</EditForm>
+</MudForm>
 
 @code {
     private AuthenticationUserModel userModel = new();
     private bool showAuthenticationError = false;
     private string authenticationErrorText = string.Empty;
 
+    private MudForm _loginForm;
+    private bool _success;
+    private string[] _errors = { };
+
+    private bool _isShowPassword = false;
+    private InputType _passwordInput = InputType.Password;
+    private string _passwordInputIcon = Icons.Material.Filled.VisibilityOff;
+    private MudBlazor.Adornment _passwordAdornment = Adornment.None;
+
     private void RegisterUser()
     {
         NavManager.NavigateTo("/register");
+    }
+
+    private async Task ValidateAndExecute()
+    {
+        await _loginForm.Validate();
+        if (_loginForm.IsValid)
+        {
+            await ExecuteLogin();
+        }
     }
 
     private async Task ExecuteLogin()
@@ -58,13 +87,30 @@
 
         if (result != null)
         {
-            NavManager.NavigateTo("/");
-            // TODO: ^ change to navigate to page you were trying to access
+            await DataService.FetchAllRemoteData();
+            NavManager.NavigateTo("/inbox");
+            // TODO: ^ change to navigate to page user was trying to access?
         }
-        else
-        {
-            authenticationErrorText = "There was an error when attempting to log in.";
-            showAuthenticationError = true;
-        }
+        else { NavManager.NavigateTo("/autherror"); }
+    }
+
+    private string PasswordValidator(string pw)
+    {
+        if (string.IsNullOrWhiteSpace(pw)) { return " "; }
+
+        return null;
+    }
+
+    private void ToggleShowPassword()
+    {
+        _isShowPassword = !_isShowPassword;
+        _passwordInputIcon = _isShowPassword ?
+            Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff;
+        _passwordInput = _isShowPassword ? InputType.Text : InputType.Password;
+    }
+
+    private void SetAdornment()
+    {
+        _passwordAdornment = userModel.Password.Length > 0 ? Adornment.End : Adornment.None;
     }
 }

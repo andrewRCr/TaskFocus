@@ -2,11 +2,11 @@
 	@Id NVARCHAR(128),
 	@FirstName NVARCHAR(50),
 	@LastName NVARCHAR(50),
-	@EmailAddress NVARCHAR(256)
+	@Email NVARCHAR(256)
 AS
 BEGIN
 	SET NOCOUNT ON;
 
-	INSERT INTO [dbo].[User](Id, FirstName, LastName, EmailAddress)
-	VALUES(@Id, @FirstName, @LastName, @EmailAddress);
+	INSERT INTO [dbo].[User](Id, FirstName, LastName, Email)
+	VALUES(@Id, @FirstName, @LastName, @Email);
 END

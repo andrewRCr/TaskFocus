@@ -30,7 +30,7 @@ namespace TaskFocusAPI.Controllers
         }
 
         [HttpGet]
-        public UserModel GetById()
+        public UserModel GetCurrentUser()
         {
             string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             return _userData.GetUserById(userId).First();
@@ -85,21 +85,21 @@ namespace TaskFocusAPI.Controllers
         {
             if (ModelState.IsValid) // TODO: implement validation!
             {
-                var existingUser = await _userManager.FindByEmailAsync(user.EmailAddress);
+                var existingUser = await _userManager.FindByEmailAsync(user.Email);
                 if (existingUser == null)
                 {
                     IdentityUser newUser = new()
                     {
-                        Email = user.EmailAddress,
+                        Email = user.Email,
                         EmailConfirmed = true, // TODO: need to implement email confirm link sending!
-                        UserName = user.EmailAddress,
+                        UserName = user.Email,
                     };
 
                     IdentityResult result = await _userManager.CreateAsync(newUser, user.Password);
 
                     if (result.Succeeded)
                     {
-                        existingUser = await _userManager.FindByEmailAsync(user.EmailAddress);
+                        existingUser = await _userManager.FindByEmailAsync(user.Email);
                         if (existingUser == null)
                         {
                             return BadRequest();
@@ -110,7 +110,7 @@ namespace TaskFocusAPI.Controllers
                             Id = existingUser.Id,
                             FirstName = user.FirstName, 
                             LastName = user.LastName, 
-                            EmailAddress = user.EmailAddress
+                            Email = user.Email
                         };
 
                         _userData.CreateUser(newUserModel);

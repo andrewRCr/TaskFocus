@@ -2,8 +2,10 @@
 @inject IUserEndpoint UserEndpoint
 @inject IAuthenticationService AuthService
 @inject NavigationManager NavManager
+@using System.Text.RegularExpressions
+@using System.ComponentModel.DataAnnotations
 
-<h3>Create Account</h3>
+
 
 @if (!string.IsNullOrWhiteSpace(errorMessage))
 {
@@ -12,58 +14,96 @@
     </div>
 }
 
-<EditForm Model="@userModel" OnValidSubmit="@OnValidSubmit">
-    <DataAnnotationsValidator />
-    <div class="form-group row">
-        <label for="first-name" class="col-md-2 col-form-label">First Name: </label>
-        <div class="col-md-10">
-            <InputText id="first-name" class="form-control" @bind-Value="userModel.FirstName" />
-            <ValidationMessage For="@(() => userModel.FirstName)" />
-        </div>
-    </div>
+<MudTreeView T="MudContainer" Width="100%">
+    <MudTreeViewItem T="MudContainer"
+                     Expanded="true"
+                     Icon="@Icons.Material.Filled.AccountCircle"
+                     Text="Create new account"
+                     TextTypo="Typo.button">
 
-    <div class="form-group row">
-        <label for="last-name" class="col-md-2 col-form-label">Last Name: </label>
-        <div class="col-md-10">
-            <InputText id="last-name" class="form-control" @bind-Value="userModel.LastName" />
-            <ValidationMessage For="@(() => userModel.LastName)" />
-        </div>
-    </div>
+        <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
 
-    <div class="form-group row">
-        <label for="email" class="col-md-2 col-form-label">Email Address: </label>
-        <div class="col-md-10">
-            <InputText id="email" class="form-control" @bind-Value="userModel.EmailAddress" />
-            <ValidationMessage For="@(() => userModel.EmailAddress)" />
-        </div>
-    </div>
+            <MudForm @ref="_registerForm" @bind-IsValid="@_success" @bind-Errors="@_errors" Model="userModel" >
 
-    <div class="form-group row">
-        <label for="password" class="col-md-2 col-form-label">Password: </label>
-        <div class="col-md-10">
-            <InputText type="password" id="password" class="form-control" @bind-Value="userModel.Password" />
-            <ValidationMessage For="@(() => userModel.Password)" />
-        </div>
-    </div>
+                <MudTextField T="string"
+                              Label="First Name"
+                              Style="width: 350px;"
+                              Validation="@(new Func<string, IEnumerable<string>>(FirstNameValidator))" />
 
-    <div class="form-group row">
-        <label for="confirm-password" class="col-md-2 col-form-label">Confirm Password: </label>
-        <div class="col-md-10">
-            <InputText type="password" id="confirm-password" class="form-control" @bind-Value="userModel.ConfirmPassword" />
-            <ValidationMessage For="@(() => userModel.ConfirmPassword)" />
-        </div>
-    </div>
+                <MudTextField T="string"
+                              Label="Last Name"
+                              Style="width: 350px;"
+                              Validation="@(new Func<string, IEnumerable<string>>(LastNameValidator))"/>
 
-    <div class="row">
-        <div class="col-md-12 text-right">
-            <button type="submit" class="btn btn-success">Create Account</button>
-        </div>
-    </div>
-</EditForm>
+                <MudTextField T="string"
+                              Label="Email address"
+                         
+                              Style="width: 350px;"
+                     
+                              Validation="@(new EmailAddressAttribute() {ErrorMessage = "Please provide a valid email address."})" />
+
+                <MudTextField T="string"
+                              Label="Password"
+                              @ref="_pwField1"
+                              Style="width: 350px;"
+                              InputType="@_passwordInput"
+                              Adornment="Adornment.End"
+                              AdornmentIcon="@_passwordInputIcon"
+                              OnAdornmentClick="ToggleShowPassword"
+                              AdornmentAriaLabel="Show Password"
+                              Validation="@(new Func<string, IEnumerable<string>>(PasswordStrength))" />
+
+                <MudTextField T="string"
+                              Label="Confirm Password"
+                              InputType="@_passwordInput"
+                              Style="width: 350px;"
+                              Adornment="Adornment.End"
+                              AdornmentIcon="@_passwordInputIcon"
+                              OnAdornmentClick="ToggleShowPassword"
+                              AdornmentAriaLabel="Show Confirm Password"
+                              Validation="@(new Func<string, string>(PasswordMatch))" />
+
+                <MudButton Variant="Variant.Filled" 
+                           Color="Color.Primary" 
+                           Disabled="@(!_success)" 
+                           Class="ml-auto mt-6"
+                           OnClick="(() => SubmitRegisterForm())" >
+                    Register
+                </MudButton>
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Inherit"
+                           DisableElevation="true"
+                           OnClick="@(()=>_registerForm.ResetAsync())"
+                           Class="mx-2 mt-6">
+                    Reset
+                </MudButton>
+            </MudForm>
+
+        </MudContainer>
+    </MudTreeViewItem>
+</MudTreeView>
 
 @code {
     CreateUserModel userModel = new();
     string? errorMessage;
+
+    private MudForm _registerForm;
+    private bool _success;
+    private string[] _errors = { };
+    private MudTextField<string> _pwField1;
+
+    private bool _isShowPassword = false;
+    private InputType _passwordInput = InputType.Password;
+    private string _passwordInputIcon = Icons.Material.Filled.VisibilityOff;
+
+private async Task SubmitRegisterForm()
+{
+    await _registerForm.Validate();
+    if (_registerForm.IsValid)
+    {
+        await OnValidSubmit();
+    }
+}
 
     private async Task OnValidSubmit()
     {
@@ -86,6 +126,58 @@
         catch (Exception ex)
         {
             errorMessage = ex.Message;
+        }
+    }
+
+    private void ToggleShowPassword()
+    {
+        _isShowPassword = !_isShowPassword;
+        _passwordInputIcon = _isShowPassword ?
+            Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff;
+        _passwordInput = _isShowPassword ? InputType.Text : InputType.Password;
+    }
+
+    private IEnumerable<string> PasswordStrength(string pw)
+    {
+        if (string.IsNullOrWhiteSpace(pw))
+        {
+            yield return "Password is required.";
+            yield break;
+        }
+        if (pw.Length < 6)
+            yield return "Password must be at least of length 6.";
+        if (!Regex.IsMatch(pw, @"[A-Z]"))
+            yield return "Password must contain at least one capital letter.";
+        if (!Regex.IsMatch(pw, @"[a-z]"))
+            yield return "Password must contain at least one lowercase letter.";
+        if (!Regex.IsMatch(pw, @"[0-9]"))
+            yield return "Password must contain at least one digit.";
+        if (!Regex.IsMatch(pw, @"[-+_!@#$%^&*.,?]"))
+            yield return "Password must contain at least one special character.";
+    }
+
+    private string PasswordMatch(string arg)
+    {
+        if (_pwField1.Value != arg)
+            return "Passwords do not match.";
+        return null;
+    }
+
+    private IEnumerable<string> FirstNameValidator(string arg)
+    {
+        if (string.IsNullOrWhiteSpace(arg))
+        {
+            yield return "First name is required.";
+            yield break;
+        }
+    }
+
+    private IEnumerable<string> LastNameValidator(string arg)
+    {
+        if (string.IsNullOrWhiteSpace(arg))
+        {
+            yield return "Last name is required.";
+            yield break;
         }
     }
 }

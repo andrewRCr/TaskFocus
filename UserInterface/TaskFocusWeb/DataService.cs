@@ -34,6 +34,7 @@ namespace TaskFocusWeb
         public async Task FetchAllRemoteData()
         {
             Console.WriteLine("DataService: FetchAllRemoteData called");
+            await FetchRemoteUserData();
             await FetchRemoteSettingsData();
             await FetchRemoteTaskData();
             await FetchRemoteProjectData();
@@ -68,6 +69,12 @@ namespace TaskFocusWeb
             var userSettings = await _userEndpoint.GetCurrentUserSettings();
             var displayUserSettings = _mapper.Map<UserSettingsDisplayModel>(userSettings);
             _dataState.UserSettings = displayUserSettings;
+        }
+
+        public async Task FetchRemoteUserData()
+        {
+            var userData = await _userEndpoint.GetCurrentUserData();
+            _dataState.CurrentUser = userData;
         }
 
         public TaskModel MapToRawTask(TaskDisplayModel displayTask)

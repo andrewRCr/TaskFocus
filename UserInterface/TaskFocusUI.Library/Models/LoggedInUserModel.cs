@@ -12,7 +12,7 @@ namespace TaskFocusUI.Library.Models
         public string Id { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
-        public string EmailAddress { get; set; }
+        public string Email { get; set; }
         public DateTime CreatedDate { get; set; }
 
         public void ResetUserModel()
@@ -21,7 +21,7 @@ namespace TaskFocusUI.Library.Models
             Id = string.Empty;
             FirstName = string.Empty;
             LastName = string.Empty;
-            EmailAddress = string.Empty;
+            Email = string.Empty;
             CreatedDate = DateTime.MinValue;
         }
     }

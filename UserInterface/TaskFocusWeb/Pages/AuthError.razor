@@ -1,4 +1,4 @@
-﻿@page "/"
+﻿@page "/autherror"
 @inherits _ComponentBase
 @inject NavigationManager NavManager
 
@@ -8,22 +8,14 @@
 {
     <MudContainer MaxWidth="MaxWidth.ExtraSmall" Class="mt-6">
 
-        <MudText Typo="Typo.button" Color="Color.Primary">
-            Not Authenticated
+        <MudText Typo="Typo.button" Color="Color.Error">
+            Authentication Error
         </MudText>
 
         <MudPaper Elevation="25" Class="mt-2">
-            <MudText Class="pt-4 px-4 text-center">
-                Please log in to continue.
+            <MudText Class="px-4 py-2 text-center">
+                There was an error when attempting to log in; please try again.
             </MudText>
-
-            <MudText Class="pb-4 px-4 text-center">
-                New user? Click <MudLink Href="/register">here</MudLink> to register.
-            </MudText>
-
-@*             <div class="mx-auto text-center">
-            <MudButton Class="mb-3" Variant="Variant.Text" Color="Color.Primary" ButtonType="ButtonType.Button" OnClick="RegisterUser">Register</MudButton>
-            </div> *@
         </MudPaper>
 
     </MudContainer>
@@ -49,11 +41,6 @@
         _isAuthenticated = authState.User.Identity!.IsAuthenticated;
     }
 
-    private void RegisterUser()
-    {
-        NavManager.NavigateTo("/register");
-    }
-
     protected override bool HandleDataStateChanged(string propertyName, DataState dataState)
     {
         if (!dataRefreshTriggers.Contains(propertyName))
@@ -63,7 +50,7 @@
 
         if (AppState.CanRefresh)
         {
-            //Console.WriteLine("Home: returned true on HandleDataStateChanged!");
+            //Console.WriteLine("AuthError: returned true on HandleDataStateChanged!");
             InvokeAsync(VerifyAuth);
         }
 

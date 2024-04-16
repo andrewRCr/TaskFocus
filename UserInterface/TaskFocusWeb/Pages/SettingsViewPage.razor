@@ -1,8 +1,10 @@
 ﻿@page "/settings"
 @inherits _ComponentBase
 @inject IDataService DataService
+@inject IAPIHelper ApiHelper
 
-@if (LocalSettings != null)
+@* @if (LocalSettings != null && LocalCurrentUser != null) *@
+@if (LocalCurrentUser != null)
 {
     <MudTreeView T="MudContainer" Width="100%">
         <MudTreeViewItem T="MudContainer" 
@@ -12,8 +14,6 @@
                          TextTypo="Typo.button">
 
             <MudContainer MaxWidth="MaxWidth.Medium">
-
-             
 
                 <MudText Class="ml-4 mb-n1">Automatically clean up completed tasks:</MudText>
 
@@ -45,54 +45,89 @@
                         </MudStack>
                     </MudRadio>
                 </MudRadioGroup>
-
-@*                 <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.FlexStart" Spacing="1" Style="max-width: 375px;">
-
-          
-                    <MudCheckBox @bind-Value="LocalSettings.CleanUpImmediately"
-                                 Class="" >
-                        Immediately
-                    </MudCheckBox>
-                    
-                    <MudNumericField @bind-Value="LocalSettings.CleanUpDelayDays" 
-                                     Class="ml-5 d-flex align-start pb-4"
-                                     HideSpinButtons="false"
-                                     Variant="Variant.Text"
-                                    
-                               
-                                     Min="1" 
-                                     Max="90"
-                                     MaxLength="2"
-                                     Disabled="@LocalSettings.CleanUpImmediately"
-                                     FullWidth="false"
-                                     Margin="Margin.Dense"
-                                     Style="max-width: 45px;"
-                                     />
-              
-                    <MudText Class="d-block" Align="Align.Start" >days from completion</MudText>
-                </MudStack> *@
-
                
             </MudContainer>
+
         </MudTreeViewItem>
     </MudTreeView>
 
     <MudTreeView T="MudContainer" Width="100%">
-        <MudTreeViewItem T="MudContainer"
+        <MudTreeViewItem T="MudContainer" 
                          Expanded="true"
                          Icon="@Icons.Material.Filled.AccountCircle"
                          Text="Profile"
                          TextTypo="Typo.button">
 
             <MudContainer MaxWidth="MaxWidth.Medium">
-                <MudPaper Elevation="25" Class="pa-0 my-2">
-                    <MudText Class="pa-4" Align="Align.Center">
-                        ACCOUNT FIELDS GO HERE
-                    </MudText>
-                </MudPaper>
+
+                <MudGrid>
+                    <MudStack Class="mt-3 mb-3 ml-7" Row="true" AlignItems="AlignItems.Center" Spacing="4">
+                        <MudItem xs="5">
+                            <MudTextField MaxLength="50" Variant="Variant.Text" Margin="Margin.Dense" HelperText="First Name" @bind-Value="LocalCurrentUser.FirstName" />
+                        </MudItem>
+                        <MudItem xs="5">
+                            <MudTextField MaxLength="50" Variant="Variant.Text" Margin="Margin.Dense" HelperText="Last Name" @bind-Value="LocalCurrentUser.LastName" />
+                        </MudItem>
+
+                    </MudStack>
+                </MudGrid>
+
+                <!-- need to trigger an update to MS Identity EF data as well as TaskFocusData dbses for email and password-->
+                <MudTextField Class="ml-4" 
+                              Style="width:370px;" 
+                              ReadOnly="true" 
+                              Variant="Variant.Text" 
+                              Margin="Margin.Dense" 
+                              HelperText="Email Address" 
+                              @bind-Value="LocalCurrentUser.Email" />
+@*                 <MudButton Class="mt-5 ml-4" 
+                           Variant="Variant.Filled" 
+                           ButtonType="ButtonType.Button"
+                           OnClick="()=>_updateEmailDialogVisible = true"
+                           Color="Color.Primary">
+                    Change Email address
+                </MudButton> *@
+
+                <MudButton Class="mt-5 ml-4"
+                           Variant="Variant.Filled"
+                           ButtonType="ButtonType.Button"
+                           Href="/updateauth"
+                           Color="Color.Primary">
+                    Update email / password
+                </MudButton>
+
+                @*                             <MudTextField Variant="Variant.Text"
+            Margin="Margin.Dense"
+            HelperText="Password"
+            ReadOnly="true"
+            @bind-Value="LocalCurrentUser.LastName"
+            InputType="@_passwordInput"
+            Adornment="Adornment.End"
+            AdornmentIcon="@_passwordInputIcon"
+            OnAdornmentClick="ToggleShowPassword"
+            AdornmentAriaLabel="Show Password" /> *@
+     
             </MudContainer>
         </MudTreeViewItem>
     </MudTreeView>
+
+    <!-- updateEmail dialog -->
+    <MudDialog @bind-IsVisible="_updateEmailDialogVisible" Options="dialogOptions" @onfocusout="()=> _updatedEmail = string.Empty">
+        <TitleContent>
+            <MudIcon Icon="@Icons.Material.Filled.Edit" Class="mr-1 mb-1" />
+            <MudText Typo="Typo.button">
+                Change Email Address
+            </MudText>
+        </TitleContent>
+        <DialogContent>
+            <MudTextField @bind-Value="_updatedEmail" Variant="Variant.Text" Margin="Margin.Dense" Placeholder="@LocalCurrentUser.Email" />
+        </DialogContent>
+        <DialogActions>
+            <MudButton OnClick="CancelUpdateEmailDialog" Class="px-0">Cancel</MudButton>
+            <MudButton Color="Color.Primary" OnClick="SubmitUpdatedEmail" Class="px-0">Update</MudButton>
+        </DialogActions>
+    </MudDialog>
+
 }
 
 @code {
@@ -100,11 +135,54 @@
     private string _daysTextStyleStr = string.Empty;
     private string _daysTextStr = string.Empty;
 
+    private DialogOptions dialogOptions = new() { FullWidth = true };
+    private bool _updateEmailDialogVisible = false;
+    private bool _updatePasswordDialogVisible = false;
+
+    private string _updatedEmail = string.Empty;
+    private string _updatedPassword = string.Empty;
+    private bool _isShowPassword = false;
+    private InputType _passwordInput = InputType.Password;
+    private string _passwordInputIcon = Icons.Material.Filled.VisibilityOff;
+
     private UserSettingsDisplayModel _localSettings = default!;
     public UserSettingsDisplayModel LocalSettings
     {
         get { return _localSettings; }
         set { _localSettings = value; }
+    }
+
+    private UserModel _localCurrentUser = default!;
+    public UserModel LocalCurrentUser
+    {
+        get { return _localCurrentUser; }
+        set { _localCurrentUser = value; }
+    }
+
+    private void CancelUpdateEmailDialog()
+    {
+        _updatedEmail = string.Empty;
+        _updateEmailDialogVisible = false;
+    }
+
+    private async Task SubmitUpdatedEmail()
+    {
+        _updateEmailDialogVisible = false;
+
+        // if (IsProjectsSubMenu)
+        // {
+        //     ProjectModel newProject = new();
+        //     newProject.ProjectName = _newCollectionName;
+        //     await DataService.AddProject(newProject);
+        // }
+        // else
+        // {
+        //     ContextModel newContext = new();
+        //     newContext.ContextName = _newCollectionName;
+        //     await DataService.AddContext(newContext);
+        // }
+
+        // _newCollectionName = string.Empty;
     }
 
     private void SetRadioTextColor()
@@ -134,6 +212,7 @@
     protected override void CustomAuthenticatedOnInit()
     {
         LoadLocalSettingsData();
+        LoadLocalUserData();
     }
 
     protected void LoadLocalSettingsData()
@@ -144,6 +223,17 @@
             LocalSettings.PropertyChanged += OnExistingSettingsPropertyChanged!; // subscribe to property changed event
             SetRadioTextColor();
             _daysTextStr = LocalSettings.CleanUpDelayDays > 1 ? "days" : "day";
+        }
+    }
+
+    protected void LoadLocalUserData()
+    {
+        
+        if (DataState.IsDataLoaded())
+        {
+            //Console.WriteLine("hi");
+            LocalCurrentUser = DataState.CurrentUser;
+            Console.WriteLine(LocalCurrentUser.FirstName);
         }
     }
 

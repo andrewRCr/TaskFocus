@@ -30,6 +30,19 @@ namespace TaskFocusUI.Library.API
             }
         }
 
+        public async Task<UserModel> GetCurrentUserData()
+        {
+            using (HttpResponseMessage response = await _apiHelper.APIClient.GetAsync("/api/user/GetCurrentUser"))
+            {
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsAsync<UserModel>();
+                    return result;
+                }
+                else { throw new Exception(response.ReasonPhrase); }
+            }
+        }
+
         public async Task<UserSettingsModel> GetCurrentUserSettings()
         {
             using (HttpResponseMessage response = await _apiHelper.APIClient.GetAsync("/api/user/GetCurrentUserSettings"))

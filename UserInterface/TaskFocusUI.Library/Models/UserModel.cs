@@ -10,6 +10,8 @@ namespace TaskFocusUI.Library.Models
     {
         public string Id { get; set; }
         public string Email { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
         public Dictionary<string, string> Roles { get; set; } = new Dictionary<string, string>();
 
         public string RoleList

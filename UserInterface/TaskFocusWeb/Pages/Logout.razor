@@ -1,4 +1,5 @@
 ﻿@page "/logout"
+@inherits _ComponentBase
 @inject NavigationManager NavManager
 @inject IAuthenticationService AuthService
 
@@ -6,6 +7,8 @@
     protected override async Task OnInitializedAsync()
     {
         await AuthService.LogoutAsync();
+        DataState.CurrentUser = null;
+
         NavManager.NavigateTo("/");
     }
 }
