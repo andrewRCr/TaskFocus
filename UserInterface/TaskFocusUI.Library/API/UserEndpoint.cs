@@ -73,7 +73,7 @@ namespace TaskFocusUI.Library.API
             var data = new { 
                 userModel.FirstName, 
                 userModel.LastName,
-                userModel.EmailAddress,
+                userModel.Email,
                 userModel.Password,
             };
 
@@ -83,6 +83,39 @@ namespace TaskFocusUI.Library.API
                 {
                     throw new Exception(response.ReasonPhrase);
                 }
+            }
+        }
+
+        public async Task UpdateUser(UserModel updatedUserModel)
+        {
+            var data = new
+            {
+                updatedUserModel.Id,
+                updatedUserModel.FirstName,
+                updatedUserModel.LastName,
+                updatedUserModel.Email,
+                updatedUserModel.Roles
+            };
+
+            using (HttpResponseMessage response = await _apiHelper.APIClient.PutAsJsonAsync("/api/User/Update", data))
+            {
+                if (response.IsSuccessStatusCode)
+                {
+                    // TODO - log successful update call ?
+                }
+                else { throw new Exception(response.ReasonPhrase); }
+            }
+        }
+
+        public async Task UpdatePassword(CreateUserModel updatedUserModel)
+        {
+            using (HttpResponseMessage response = await _apiHelper.APIClient.PutAsJsonAsync("/api/User/UpdatePassword", updatedUserModel))
+            {
+                if (response.IsSuccessStatusCode)
+                {
+                    // TODO - log successful update call ?
+                }
+                else { throw new Exception(response.ReasonPhrase); }
             }
         }
     }

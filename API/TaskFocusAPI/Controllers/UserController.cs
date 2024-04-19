@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Win32;
 using System.Security.Claims;
 using TaskFocusAPI.Data;
 using TaskFocusAPI.Library.DataAccess;
@@ -122,6 +123,74 @@ namespace TaskFocusAPI.Controllers
             }
 
             return BadRequest();
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> Update(ApplicationUserModel updatedUser)
+        {
+            if (ModelState.IsValid)
+            {
+                string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                UserModel currentUser = _userData.GetUserById(userId).First();
+                IdentityUser? existingIdentityUser = await _userManager.FindByIdAsync(userId!);
+
+                if (existingIdentityUser == null) { return BadRequest(); }
+                else
+                {
+                    // update EFData - email + username (which is email)
+                    existingIdentityUser.Email = updatedUser.Email;
+                    existingIdentityUser.UserName = updatedUser.Email;
+                    IdentityResult result = await _userManager.UpdateAsync(existingIdentityUser);
+
+                    if (result.Succeeded)
+                    {
+                        // update TaskFocusData - email + names
+                        UserModel updatedUserModel = new()
+                        {
+                            Id = existingIdentityUser.Id,
+                            CreatedDate = currentUser.CreatedDate,
+                            FirstName = updatedUser.FirstName,
+                            LastName = updatedUser.LastName,
+                            Email = updatedUser.Email
+                        };
+
+                        _userData.UpdateUser(updatedUserModel);
+
+                        return Ok();
+                    }
+                }
+            }
+
+            return BadRequest();
+        }
+
+        [HttpPut]
+        public async Task UpdatePassword(UserRegistrationModel updatedUserModel)
+        {
+            try
+            {
+                string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                IdentityUser? existingUser = await _userManager.FindByIdAsync(userId!);
+
+                if (existingUser != null)
+                {
+                    if (!string.IsNullOrEmpty(existingUser.UserName))
+                    {
+                        var token = await _userManager.GeneratePasswordResetTokenAsync(existingUser);
+                        var passwordChangeResult = await _userManager.ResetPasswordAsync(existingUser, token, updatedUserModel.Password);
+
+                        if (passwordChangeResult.Succeeded)
+                        {
+                            // TODO: send email, etc
+                            //Console.WriteLine("password change: success");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
     }
 }

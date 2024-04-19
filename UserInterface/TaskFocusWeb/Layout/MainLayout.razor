@@ -11,9 +11,7 @@
         <MudSpacer />
         <AuthorizeView>
             <Authorized>
-                <MudLink Href="Account/Manage">@context.User.Identity?.Name</MudLink>
-                <MudIcon Icon="@Icons.Material.Filled.Logout" Color="Color.Inherit" Class="ml-6 mr-3"/>
-                <MudLink Href="logout">Log Out</MudLink>
+                <AuthWidget />
             </Authorized>
             <NotAuthorized>
                 <Login />

@@ -72,5 +72,17 @@ namespace TaskFocusAPI.Library.DataAccess
             var v = new { Id = user.Id };
             _sqlDataAccess.SaveData("dbo.spUserSettings_Insert", v, "TaskFocusData");
         }
+
+        public void UpdateUser(UserModel user)
+        {
+            try
+            {
+                _sqlDataAccess.SaveData("dbo.spUser_Update", user, "TaskFocusData");
+            }
+            catch (System.Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
     }
 }

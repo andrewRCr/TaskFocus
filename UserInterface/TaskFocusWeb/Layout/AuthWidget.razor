@@ -1,0 +1,42 @@
+﻿@inherits _ComponentBase
+
+<MudLink Href="Account/Manage">@_currentUserEmail</MudLink>
+<MudIcon Icon="@Icons.Material.Filled.Logout" Color="Color.Inherit" Class="ml-6 mr-3" />
+<MudLink Href="logout">Log Out</MudLink>
+
+@code {
+    private bool _isAuthenticated = false;
+    private string _currentUserEmail = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        dataRefreshTriggers = new List<string> { nameof(DataState.CurrentUser) };
+        await VerifyAuth();
+    }
+
+    private async Task VerifyAuth()
+    {
+        var authState = await AuthState;
+        _isAuthenticated = authState.User.Identity!.IsAuthenticated;
+        if (_isAuthenticated)
+        {
+            _currentUserEmail = authState.User.Identity.Name!;
+        }
+    }
+
+    protected override bool HandleDataStateChanged(string propertyName, DataState dataState)
+    {
+        if (!dataRefreshTriggers.Contains(propertyName))
+        {
+            return false;
+        }
+
+        if (AppState.CanRefresh)
+        {
+            //Console.WriteLine("AuthWidget: returned true on HandleDataStateChanged!");
+            InvokeAsync(VerifyAuth);
+        }
+
+        return AppState.CanRefresh;
+    }
+}

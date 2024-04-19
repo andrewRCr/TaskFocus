@@ -1,11 +1,16 @@
 ﻿@page "/settings"
-@inherits _ComponentBase
-@inject IDataService DataService
-@inject IAPIHelper ApiHelper
 
-@* @if (LocalSettings != null && LocalCurrentUser != null) *@
+@inherits _ComponentBase
+@inject IUserEndpoint UserEndpoint
+@inject IDataService DataService
+@inject IAuthenticationService AuthService
+@inject NavigationManager NavManager
+@using System.Text.RegularExpressions
+@using System.ComponentModel.DataAnnotations
+
 @if (LocalCurrentUser != null)
 {
+    <!-- user app preferences -->
     <MudTreeView T="MudContainer" Width="100%">
         <MudTreeViewItem T="MudContainer" 
                          Expanded="true"
@@ -51,6 +56,7 @@
         </MudTreeViewItem>
     </MudTreeView>
 
+    <!-- user profile info / settings -->
     <MudTreeView T="MudContainer" Width="100%">
         <MudTreeViewItem T="MudContainer" 
                          Expanded="true"
@@ -72,62 +78,132 @@
                     </MudStack>
                 </MudGrid>
 
-                <!-- need to trigger an update to MS Identity EF data as well as TaskFocusData dbses for email and password-->
+                <!-- disabled email address display -->
                 <MudTextField Class="ml-4" 
                               Style="width:370px;" 
-                              ReadOnly="true" 
+                              Disabled="true" 
                               Variant="Variant.Text" 
                               Margin="Margin.Dense" 
                               HelperText="Email Address" 
                               @bind-Value="LocalCurrentUser.Email" />
-@*                 <MudButton Class="mt-5 ml-4" 
-                           Variant="Variant.Filled" 
+
+                <!-- email/password update buttons (open dialogs) -->
+                <MudButton Class="mt-5 ml-4"
+                           Variant="Variant.Filled"
                            ButtonType="ButtonType.Button"
-                           OnClick="()=>_updateEmailDialogVisible = true"
+                           OnClick="OpenUpdateEmailDialog"
                            Color="Color.Primary">
-                    Change Email address
-                </MudButton> *@
+                    Update email
+                </MudButton>
 
                 <MudButton Class="mt-5 ml-4"
                            Variant="Variant.Filled"
                            ButtonType="ButtonType.Button"
-                           Href="/updateauth"
+                           OnClick="OpenUpdatePasswordDialog"
                            Color="Color.Primary">
-                    Update email / password
+                    Change password
                 </MudButton>
-
-                @*                             <MudTextField Variant="Variant.Text"
-            Margin="Margin.Dense"
-            HelperText="Password"
-            ReadOnly="true"
-            @bind-Value="LocalCurrentUser.LastName"
-            InputType="@_passwordInput"
-            Adornment="Adornment.End"
-            AdornmentIcon="@_passwordInputIcon"
-            OnAdornmentClick="ToggleShowPassword"
-            AdornmentAriaLabel="Show Password" /> *@
      
             </MudContainer>
         </MudTreeViewItem>
     </MudTreeView>
 
     <!-- updateEmail dialog -->
-    <MudDialog @bind-IsVisible="_updateEmailDialogVisible" Options="dialogOptions" @onfocusout="()=> _updatedEmail = string.Empty">
+    <MudDialog @bind-IsVisible="_updateEmailDialogVisible" @ref="_updateEmailDialog"
+               Options="dialogOptions"
+               Style="background-color: #27272f" >
         <TitleContent>
             <MudIcon Icon="@Icons.Material.Filled.Edit" Class="mr-1 mb-1" />
             <MudText Typo="Typo.button">
                 Change Email Address
             </MudText>
+
         </TitleContent>
         <DialogContent>
-            <MudTextField @bind-Value="_updatedEmail" Variant="Variant.Text" Margin="Margin.Dense" Placeholder="@LocalCurrentUser.Email" />
+            <MudPaper Outlined Style="background-color: #373740;" Class="pa-2 ma-0 mb-1" Elevation="3">
+                <MudForm @ref="_updateEmailForm" @bind-IsValid="@_emailFormIsValid" @bind-Errors="@_emailErrors" Model="_userModel">
+
+                    <MudTextField T="string" Class="mb-2"
+                                  Label="Email Address" ShrinkLabel="true"
+                                  Margin="Margin.Dense"
+                                  @bind-Value="_userModel.Email"
+                                  Style="width: 350px;"
+                                  Validation="@(new EmailAddressAttribute() {ErrorMessage = "Please provide a valid email address."})" />
+                </MudForm>
+            </MudPaper>
+            <MudText Typo="Typo.caption">You will need to re-authenticate after updating.</MudText>
         </DialogContent>
         <DialogActions>
-            <MudButton OnClick="CancelUpdateEmailDialog" Class="px-0">Cancel</MudButton>
-            <MudButton Color="Color.Primary" OnClick="SubmitUpdatedEmail" Class="px-0">Update</MudButton>
+            <MudButton OnClick="()=> _updateEmailDialogVisible = false" Class="px-0">Cancel</MudButton>
+            <MudButton Color="Color.Primary"
+                       Disabled="@(!_emailFormIsValid)"
+                       Class="px-0"
+                       OnClick="SubmitUpdatedEmail">
+                Submit
+            </MudButton>
         </DialogActions>
     </MudDialog>
 
+    <!-- updatePassword dialog -->
+    <MudDialog @bind-IsVisible="_updatePasswordDialogVisible" @ref="_updatePasswordDialog" 
+               Options="dialogOptions"
+               Style="background-color: #27272f">
+        <TitleContent>
+            <MudIcon Icon="@Icons.Material.Filled.Edit" Class="mr-1 mb-1" />
+            <MudText Typo="Typo.button">
+                Change Password
+            </MudText>
+        </TitleContent>
+        <DialogContent>
+            <MudPaper Outlined Style="background-color: #373740;" Class="pa-2 ma-0 mb-1" Elevation="3">
+
+                <MudForm @ref="_updatePasswordForm" @bind-IsValid="@_passwordFormIsValid" @bind-Errors="@_passwordErrors" Model="_authUserModel">
+                    <MudTextField T="string" Class="pl-2 my-2"
+                                  Label="New password" ShrinkLabel="true"
+                                  @bind-Value="_authUserModel.Password"
+                                  @ref="_pwField1"
+                                  Style="width: 350px;"
+                                  Margin="Margin.Dense"
+                                  InputType="@_passwordInput"
+                                  Adornment="Adornment.End"
+                                  AdornmentIcon="@_passwordInputIcon"
+                                  OnAdornmentClick="ToggleShowPassword"
+                                  AdornmentAriaLabel="Show Password"
+                                  Validation="@(new Func<string, IEnumerable<string>>(PasswordStrength))" Required="true"
+                                  RequiredError="Password is required!" />
+
+                    <MudTextField T="string" class="pl-2 mb-2"
+                                  Label="Confirm new password" ShrinkLabel="true"
+                                  @bind-Value="_authUserModel.ConfirmPassword"
+                                  InputType="@_passwordInput"
+                                  Style="width: 350px;"
+                                  Margin="Margin.Dense"
+                                  Adornment="Adornment.End"
+                                  AdornmentIcon="@_passwordInputIcon"
+                                  OnAdornmentClick="ToggleShowPassword"
+                                  AdornmentAriaLabel="Show Confirm Password"
+                                  Validation="@(new Func<string, string>(PasswordMatch))" />
+                </MudForm>
+            </MudPaper>
+            <MudText Typo="Typo.caption">You will need to re-authenticate after updating.</MudText>
+        </DialogContent>
+        <DialogActions>
+            <MudButton OnClick="()=> _updatePasswordDialogVisible = false" Class="px-0">Cancel</MudButton>
+            <MudButton Color="Color.Primary"
+                       Disabled="@(!_passwordFormIsValid)"
+                       Class="px-0"
+                       OnClick="SubmitUpdatedPassword">
+                Submit
+            </MudButton>
+        </DialogActions>
+    </MudDialog>
+
+    @if (!string.IsNullOrWhiteSpace(errorMessage))
+    {
+        <div class="alert alert-danger" role="alert">
+            @errorMessage
+        </div>
+    }
 }
 
 @code {
@@ -136,11 +212,21 @@
     private string _daysTextStr = string.Empty;
 
     private DialogOptions dialogOptions = new() { FullWidth = true };
+    private MudDialog _updateEmailDialog = default!;
+    private MudDialog _updatePasswordDialog = default!;
     private bool _updateEmailDialogVisible = false;
     private bool _updatePasswordDialogVisible = false;
+    private bool _emailFormIsValid;
+    private bool _passwordFormIsValid;
+    private string[] _emailErrors = { };
+    private string[] _passwordErrors = { };
+    string? errorMessage;
+    private MudForm _updateEmailForm = default!;
+    private MudForm _updatePasswordForm = default!;
+    private MudTextField<string> _pwField1 = default!;
 
-    private string _updatedEmail = string.Empty;
-    private string _updatedPassword = string.Empty;
+    private UserModel _userModel = new();
+    private CreateUserModel _authUserModel = new();
     private bool _isShowPassword = false;
     private InputType _passwordInput = InputType.Password;
     private string _passwordInputIcon = Icons.Material.Filled.VisibilityOff;
@@ -159,30 +245,128 @@
         set { _localCurrentUser = value; }
     }
 
-    private void CancelUpdateEmailDialog()
+    protected override void OnInitialized()
     {
-        _updatedEmail = string.Empty;
-        _updateEmailDialogVisible = false;
+        base.OnInitialized();
+        AppState.ShowProjectSubMenu = false;
+        AppState.ShowContextSubMenu = false;
+
+        dataRefreshTriggers = new List<string> { nameof(DataState.UserSettings), nameof(DataState.CurrentUser) };
+    }
+
+    protected override void CustomAuthenticatedOnInit()
+    {
+        LoadLocalSettingsData();
+        LoadLocalUserData();
+    }
+
+    private void OpenUpdateEmailDialog()
+    {
+        if (DataState.IsDataLoaded()) { _userModel.Email = LocalCurrentUser.Email; }
+        _updateEmailDialogVisible = true;
     }
 
     private async Task SubmitUpdatedEmail()
     {
-        _updateEmailDialogVisible = false;
+        await _updateEmailForm.Validate();
+        if (_updateEmailForm.IsValid)
+        {
+            _updateEmailDialogVisible = false;
+            await OnValidEmailSubmit();
+        }
+    }
 
-        // if (IsProjectsSubMenu)
-        // {
-        //     ProjectModel newProject = new();
-        //     newProject.ProjectName = _newCollectionName;
-        //     await DataService.AddProject(newProject);
-        // }
-        // else
-        // {
-        //     ContextModel newContext = new();
-        //     newContext.ContextName = _newCollectionName;
-        //     await DataService.AddContext(newContext);
-        // }
+    private async Task OnValidEmailSubmit()
+    {
+        errorMessage = string.Empty;
 
-        // _newCollectionName = string.Empty;
+        try
+        {
+            await UserEndpoint.UpdateUser(_userModel);
+
+            // update auth state: log user out
+            await AuthService.LogoutAsync();
+            NavManager.NavigateTo("/");
+            // TODO: send notification
+
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+    }
+
+    private void OpenUpdatePasswordDialog()
+    {
+        _authUserModel.Password = string.Empty;
+        _authUserModel.ConfirmPassword = string.Empty;
+        _updatePasswordDialogVisible = true;
+    }
+
+    private async Task SubmitUpdatedPassword()
+    {
+        await _updatePasswordForm.Validate();
+        if (_updatePasswordForm.IsValid)
+        {
+            _updatePasswordDialogVisible = false;
+            await OnValidPasswordSubmit();
+        }
+    }
+
+    private async Task OnValidPasswordSubmit()
+    {
+        errorMessage = string.Empty;
+
+        try
+        {
+            await UserEndpoint.UpdatePassword(_authUserModel);
+
+            // update auth state: log user out
+            await AuthService.LogoutAsync();
+            NavManager.NavigateTo("/");
+            // TODO: send notification
+
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+    }
+
+    private void ToggleShowPassword()
+    {
+        _isShowPassword = !_isShowPassword;
+        _passwordInputIcon = _isShowPassword ?
+            Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff;
+        _passwordInput = _isShowPassword ? InputType.Text : InputType.Password;
+    }
+
+    private IEnumerable<string> PasswordStrength(string pw)
+    {
+        if (string.IsNullOrWhiteSpace(pw))
+        {
+            yield return "Password is required.";
+            yield break;
+        }
+        if (pw.Length < 6)
+            yield return "Password must be at least of length 6.";
+        if (!Regex.IsMatch(pw, @"[A-Z]"))
+            yield return "Password must contain at least one capital letter.";
+        if (!Regex.IsMatch(pw, @"[a-z]"))
+            yield return "Password must contain at least one lowercase letter.";
+        if (!Regex.IsMatch(pw, @"[0-9]"))
+            yield return "Password must contain at least one digit.";
+        if (!Regex.IsMatch(pw, @"[-+_!@#$%^&*.,?]"))
+            yield return "Password must contain at least one special character.";
+    }
+
+    private string PasswordMatch(string arg)
+    {
+        if (string.IsNullOrWhiteSpace(arg))
+            return "Password confirmation is required.";
+        else if (_pwField1.Value != arg)
+            return "Passwords do not match.";
+        return null;
     }
 
     private void SetRadioTextColor()
@@ -200,21 +384,6 @@
             "color: rgba(255, 255, 255, 0.6980392156862745)" : "color: rgba(255, 255, 255, 0.2)";
     }
 
-    protected override void OnInitialized()
-    {
-        base.OnInitialized();
-        AppState.ShowProjectSubMenu = false;
-        AppState.ShowContextSubMenu = false;
-
-        dataRefreshTriggers = new List<string> { nameof(DataState.UserSettings) };
-    }
-
-    protected override void CustomAuthenticatedOnInit()
-    {
-        LoadLocalSettingsData();
-        LoadLocalUserData();
-    }
-
     protected void LoadLocalSettingsData()
     {
         if (DataState.IsDataLoaded())
@@ -228,12 +397,17 @@
 
     protected void LoadLocalUserData()
     {
-        
         if (DataState.IsDataLoaded())
         {
-            //Console.WriteLine("hi");
             LocalCurrentUser = DataState.CurrentUser;
-            Console.WriteLine(LocalCurrentUser.FirstName);
+
+            _userModel.Id = LocalCurrentUser.Id;
+            _userModel.FirstName = LocalCurrentUser.FirstName;
+            _userModel.LastName = LocalCurrentUser.LastName;
+            _userModel.Email = LocalCurrentUser.Email;
+            _authUserModel.FirstName = LocalCurrentUser.FirstName;
+            _authUserModel.LastName = LocalCurrentUser.LastName;
+            _authUserModel.Email = LocalCurrentUser.Email;
         }
     }
 
@@ -256,7 +430,7 @@
 
         if (AppState.CanRefresh)
         {
-            Console.WriteLine("SettingsViewPage: returned true on HandleDataStateChanged!");
+            //Console.WriteLine("SettingsViewPage: returned true on HandleDataStateChanged!");
             LoadLocalSettingsData();
         }
 
