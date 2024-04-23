@@ -35,7 +35,14 @@
                 <MudContainer MaxWidth="MaxWidth.Medium">
                     <MudPaper Elevation="25" Class="pa-0 my-2">
                         <MudText Class="pa-4" Align="Align.Center">
-                            Completed tasks will appear here until deleted. Adjust automatic deletion interval in Settings (current: {30} days).
+                            Completed tasks will appear here until deleted. 
+                            <br />
+                            Adjust automatic deletion interval in Settings (current: <strong>@_currentDeletionIntervalSettingStr</strong>).
+                            <br />
+                            <br />
+                            Completed tasks will <strong>also</strong> remain displayed in other views, until cleaned up. 
+                            <br />
+                            Adjust automatic clean up interval in Settings (current: <strong>@_currentCleanUpIntervalSettingStr</strong>).
                         </MudText>
                     </MudPaper>
                 </MudContainer>
@@ -46,12 +53,13 @@
 }
 
 @code {
-
-    // TODO: bind 0 completed items {30} days to an actual settings variable, once implemented!
+    private string _currentDeletionIntervalSettingStr = string.Empty;
+    private string _currentCleanUpIntervalSettingStr = string.Empty;
 
     protected override void CustomAuthenticatedOnInit()
     {
         LoadAllLocalData();
+        LoadCurrentSettingsStrings();
     }
 
     protected override void LoadLocalTaskData()
@@ -59,13 +67,29 @@
         if (DataState.IsDataLoaded())
         {
             List<TaskDisplayModel> completedTasks = DataState.Tasks!.Where(x => x.Completed).ToList();
-            
+
             completedTasks.OrderBy(x => x.DateCompleted);
             LocalTasks = completedTasks;
             foreach (TaskDisplayModel task in LocalTasks!)
             {
                 //Console.WriteLine($"{task.TaskName}: {task.InboxIndex.ToString()}");
                 task.PropertyChanged += OnExistingTaskPropertyChanged!; // subscribe to property changed event
+            }
+        }
+    }
+
+    private void LoadCurrentSettingsStrings()
+    {
+        if (DataState.IsDataLoaded())
+        {
+            string dayStr = DataState.UserSettings.DeleteDelayDays > 1 ? " days" : " day";
+            _currentDeletionIntervalSettingStr = DataState.UserSettings.DeleteDelayDays.ToString() + dayStr;
+
+            if (DataState.UserSettings.CleanUpImmediately) { _currentCleanUpIntervalSettingStr = "immediate"; }
+            else
+            {
+                dayStr = DataState.UserSettings.CleanUpDelayDays > 1 ? " days" : " day";
+                _currentCleanUpIntervalSettingStr = DataState.UserSettings.CleanUpDelayDays.ToString() + dayStr;
             }
         }
     }
@@ -86,6 +110,7 @@
         {
             //Console.WriteLine("InboxTaskPage: returned true on HandleDataStateChanged!");
             LoadAllLocalData();
+            LoadCurrentSettingsStrings();
         }
 
         return AppState.CanRefresh;

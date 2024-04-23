@@ -10,6 +10,30 @@ namespace TaskFocusWeb
     {
         public event AppStateChangedHandler AppStateChanged = default!;
 
+        private MudBlazor.Severity _alertSeverity = MudBlazor.Severity.Normal;
+        public MudBlazor.Severity AlertSeverity
+        {
+            get { return _alertSeverity; }
+            set
+            {
+                //Console.WriteLine($"AppState: AlertSeverity changed to {value}!");
+                _alertSeverity = value;
+                AppStateChanged?.Invoke(nameof(AlertSeverity), this);
+            }
+        }
+
+        private string _alertMessage = string.Empty;
+        public string AlertMessage
+        {
+            get { return _alertMessage; }
+            set
+            {
+                //Console.WriteLine($"AppState: AlertMessage changed to {value}!");
+                _alertMessage = value;
+                AppStateChanged?.Invoke(nameof(AlertMessage), this);
+            }
+        }
+
         private bool _canRefresh = true;
         public bool CanRefresh
         {
@@ -65,6 +89,18 @@ namespace TaskFocusWeb
                 _focusedContextIdStr = value;
                 AppStateChanged?.Invoke(nameof(FocusedContextIdStr), this);
             }
+        }
+
+        public void ClearAlertMessage()
+        {
+            _alertSeverity = MudBlazor.Severity.Info;
+            _alertMessage = string.Empty;
+        }
+
+        public void ShowLoginError()
+        {
+            _alertSeverity = MudBlazor.Severity.Error;
+            AlertMessage = "There was an error when attempting to log in. Please try again.";
         }
     }
 }

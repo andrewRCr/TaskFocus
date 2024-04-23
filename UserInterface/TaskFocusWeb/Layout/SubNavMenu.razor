@@ -96,6 +96,16 @@
 
     private void SetAddNewCollectionButtonActive(bool newActive)
     {
+        // always display if no collections exist
+        if (IsProjectsSubMenu && LocalProjects != null)
+        {
+            if (!newActive && LocalProjects.Count == 0) { return; }
+        }
+        else if (!IsProjectsSubMenu && LocalContexts != null)
+        {
+            if (!newActive && LocalContexts.Count == 0) { return; }
+        }
+
         _addCollectionButtonClassStr = newActive ? "ml-1" : "invisible";
         _addCollectionTextClassStr = newActive ? "ml-n2 pt-2" : "invisible";
         _addNewCollectionButtonColor = newActive ? Color.Primary : Color.Inherit;
@@ -140,6 +150,11 @@
                 project.PropertyChanged += OnExistingProjectPropertyChanged!; // subscribe to property changed event
                                                                               //Console.WriteLine($"{project.ProjectName}'s OrderIndex: {project.OrderIndex}");
             }
+
+            if (LocalProjects.Count == 0)
+            {
+                SetAddNewCollectionButtonActive(true);
+            }
         }
     }
 
@@ -153,8 +168,7 @@
 
             foreach (ContextDisplayModel context in LocalContexts!)
             {
-                context.PropertyChanged += OnExistingContextPropertyChanged!; // subscribe to property changed event
-                                                                              //Console.WriteLine($"{context.ContextName}'s OrderIndex: {context.OrderIndex}, LocalContexts.IndexOf: {LocalContexts.IndexOf(context)}");
+                context.PropertyChanged += OnExistingContextPropertyChanged!; // subscribe to property changed event                                                                        
             }
         }
     }

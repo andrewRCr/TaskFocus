@@ -5,6 +5,7 @@
 @inject IDataService DataService
 @inject IAuthenticationService AuthService
 @inject NavigationManager NavManager
+@inject ISnackbar Snackbar
 @using System.Text.RegularExpressions
 @using System.ComponentModel.DataAnnotations
 
@@ -20,7 +21,7 @@
 
             <MudContainer MaxWidth="MaxWidth.Medium">
 
-                <MudText Class="ml-4 mb-n1">Automatically clean up completed tasks:</MudText>
+                <MudText Class="ml-4 mb-n1">Automatically <strong>clean up</strong> completed tasks:</MudText>
 
                 <MudRadioGroup @bind-Value="LocalSettings.CleanUpImmediately" Class="ml-2">
                     <MudRadio Value="true" 
@@ -44,12 +45,33 @@
                                          Disabled="@LocalSettings.CleanUpImmediately"
                                          FullWidth="false"
                                          Margin="Margin.Dense"
-                                         Style="max-width: 45px;" />
+                                         Style="@_cleanDaysNumFieldStyleStr" />
 
-                            <MudText Class="ml-n2" Style="@_daysTextStyleStr">@_daysTextStr after completion</MudText>
+                            <MudText Class="ml-n2" Style="@_cleanDaysTextStyleStr">@_cleanDaysTextStr after completion</MudText>
                         </MudStack>
                     </MudRadio>
                 </MudRadioGroup>
+
+
+                <MudText Class="ml-4 mb-n1">Automatically <strong>delete</strong> completed tasks:</MudText>
+
+                    <div class="d-flex">
+                    <MudStack Row="true" AlignItems="AlignItems.Center">
+                        <MudNumericField @bind-Value="LocalSettings.DeleteDelayDays"
+                                            Class="ml-6 d-flex align-start pb-3"
+                                            HideSpinButtons="false"
+                                            DisableUnderLine="true"
+                                            Variant="Variant.Text"
+                                            Min="1"
+                                            Max="90"
+                                            MaxLength="2"
+                                            FullWidth="false"
+                                            Margin="Margin.Dense"
+                                            Style="@_deleteDaysNumFieldStyleStr" />
+
+                        <MudText Class="ml-n2">@_deleteDaysTextStr after completion</MudText>
+                    </MudStack>
+                    </div>
                
             </MudContainer>
 
@@ -182,7 +204,7 @@
                                   AdornmentIcon="@_passwordInputIcon"
                                   OnAdornmentClick="ToggleShowPassword"
                                   AdornmentAriaLabel="Show Confirm Password"
-                                  Validation="@(new Func<string, string>(PasswordMatch))" />
+                                  Validation="@(new Func<string, string?>(PasswordMatch))" />
                 </MudForm>
             </MudPaper>
             <MudText Typo="Typo.caption">You will need to re-authenticate after updating.</MudText>
@@ -208,8 +230,11 @@
 
 @code {
     private string _immediateTextStyleStr = string.Empty;
-    private string _daysTextStyleStr = string.Empty;
-    private string _daysTextStr = string.Empty;
+    private string _cleanDaysTextStyleStr = string.Empty;
+    private string _cleanDaysNumFieldStyleStr = string.Empty;
+    private string _cleanDaysTextStr = string.Empty;
+    private string _deleteDaysTextStr = string.Empty;
+    private string _deleteDaysNumFieldStyleStr = string.Empty;
 
     private DialogOptions dialogOptions = new() { FullWidth = true };
     private MudDialog _updateEmailDialog = default!;
@@ -286,9 +311,11 @@
 
             // update auth state: log user out
             await AuthService.LogoutAsync();
-            NavManager.NavigateTo("/");
-            // TODO: send notification
 
+            // set Alert notification on home page
+            AppState.AlertMessage = "Email successfully updated. Please log in again.";
+            AppState.AlertSeverity = Severity.Success;
+            NavManager.NavigateTo("/");
         }
         catch (Exception ex)
         {
@@ -323,8 +350,11 @@
 
             // update auth state: log user out
             await AuthService.LogoutAsync();
+
+            // set Alert notification on home page
+            AppState.AlertMessage = "Password successfully updated. Please log in again.";
+            AppState.AlertSeverity = Severity.Success;
             NavManager.NavigateTo("/");
-            // TODO: send notification
 
         }
         catch (Exception ex)
@@ -360,7 +390,7 @@
             yield return "Password must contain at least one special character.";
     }
 
-    private string PasswordMatch(string arg)
+    private string? PasswordMatch(string arg)
     {
         if (string.IsNullOrWhiteSpace(arg))
             return "Password confirmation is required.";
@@ -375,12 +405,12 @@
         string disabledStr = "color: rgba(255, 255, 255, 0.2)";
 
         _immediateTextStyleStr = LocalSettings.CleanUpImmediately ? enabledStr : disabledStr;
-        _daysTextStyleStr = LocalSettings.CleanUpImmediately ? disabledStr : enabledStr;
+        _cleanDaysTextStyleStr = LocalSettings.CleanUpImmediately ? disabledStr : enabledStr;
     }
 
     private void SetDaysTextColor()
     {
-        _daysTextStyleStr = !LocalSettings.CleanUpImmediately ?
+        _cleanDaysTextStyleStr = !LocalSettings.CleanUpImmediately ?
             "color: rgba(255, 255, 255, 0.6980392156862745)" : "color: rgba(255, 255, 255, 0.2)";
     }
 
@@ -391,7 +421,10 @@
             LocalSettings = DataState.UserSettings;
             LocalSettings.PropertyChanged += OnExistingSettingsPropertyChanged!; // subscribe to property changed event
             SetRadioTextColor();
-            _daysTextStr = LocalSettings.CleanUpDelayDays > 1 ? "days" : "day";
+            _cleanDaysTextStr = LocalSettings.CleanUpDelayDays > 1 ? "days" : "day";
+            _cleanDaysNumFieldStyleStr = LocalSettings.CleanUpDelayDays > 9 ? "max-width: 45px;" : "max-width: 35px;";
+            _deleteDaysTextStr = LocalSettings.DeleteDelayDays > 1 ? "days" : "day";
+            _deleteDaysNumFieldStyleStr = LocalSettings.DeleteDelayDays > 9 ? "max-width: 45px;" : "max-width: 35px;";
         }
     }
 

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using FluentValidation;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Http.Extensions;
 using TaskFocusUI.Library.API;
@@ -13,18 +14,6 @@ namespace TaskFocusWeb
     public class DataState
     {
         public event DataStateChangedHandler DataStateChanged = default!;
-
-        private bool _canUpdate = true;
-        public bool CanUpdate
-        {
-            get { return _canUpdate; }
-            set
-            {
-                //Console.WriteLine($"DataState: CanUpdate changed to {value}!");
-                _canUpdate = value;
-                DataStateChanged?.Invoke(nameof(CanUpdate), this);
-            }
-        }
 
         private UserModel _currentUser = default!;
         public UserModel CurrentUser
@@ -88,8 +77,8 @@ namespace TaskFocusWeb
 
         public bool IsDataLoaded()
         {
-            return Tasks != null && Projects != null && Contexts != null 
+            return Tasks != null && Projects != null && Contexts != null
                 && UserSettings != null && CurrentUser != null;
-        }  
+        }
     }
 }

@@ -28,7 +28,7 @@ namespace TaskFocusUI.Library.Models
             }
         }
 
-        private int _cleanUpDelayDays = 30;
+        private int _cleanUpDelayDays = 7;
         public int CleanUpDelayDays
         {
             get { return _cleanUpDelayDays; }
@@ -36,6 +36,17 @@ namespace TaskFocusUI.Library.Models
             {
                 _cleanUpDelayDays = value;
                 CallPropertyChanged(nameof(CleanUpDelayDays));
+            }
+        }
+
+        private int _deleteDelayDays = 30;
+        public int DeleteDelayDays
+        {
+            get { return _deleteDelayDays; }
+            set
+            {
+                _deleteDelayDays = value;
+                CallPropertyChanged(nameof(DeleteDelayDays));
             }
         }
     }

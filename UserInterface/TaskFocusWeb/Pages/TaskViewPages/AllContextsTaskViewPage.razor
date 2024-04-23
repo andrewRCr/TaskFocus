@@ -11,7 +11,7 @@
         {
             <ContextTaskViewPage ContextId="@_focusedContextIdStr" />
         }
-        else // all contexts view
+        else if (LocalContexts!.Count > 0) // all contexts view
         {
             <MudTreeView T="TaskContainerComponent" Width="100%">
                 @foreach (ContextDisplayModel context in LocalContexts!)
@@ -25,6 +25,25 @@
                                                 ContainerContextsParam="@LocalContexts" />
                     </MudTreeViewItem>              
                 }
+            </MudTreeView>
+        }
+        else
+        {
+            <MudTreeView T="MudContainer" Width="75%">
+                <MudTreeViewItem T="MudContainer"
+                                 Expanded="true"
+                                 Icon="@Icons.Material.Filled.AutoAwesomeMotion"
+                                 Text=""
+                                 TextTypo="Typo.button">
+
+                    <MudContainer MaxWidth="MaxWidth.Medium">
+                        <MudPaper Elevation="25" Class="pa-0 my-2">
+                            <MudText Class="pa-4" Align="Align.Center">
+                                Group tasks that will be performed in similar conditions by creating and assigning <strong>Contexts</strong>, which will appear here.
+                            </MudText>
+                        </MudPaper>
+                    </MudContainer>
+                </MudTreeViewItem>
             </MudTreeView>
         }
     }

@@ -1,7 +1,8 @@
 ﻿CREATE PROCEDURE [dbo].[spUserSettings_Update]
 	@Id nvarchar(128),
 	@CleanUpImmediately bit,
-	@CleanUpDelayDays int
+	@CleanUpDelayDays int,
+	@DeleteDelayDays int
 
 AS
 BEGIN
@@ -9,6 +10,7 @@ BEGIN
 
 	UPDATE dbo.UserSettings
 	SET CleanUpImmediately = cast(@CleanUpImmediately as bit), 
-		CleanUpDelayDays = @CleanUpDelayDays
+		CleanUpDelayDays = @CleanUpDelayDays,
+		DeleteDelayDays = @DeleteDelayDays
 	WHERE Id = @Id;
 END

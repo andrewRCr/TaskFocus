@@ -52,6 +52,7 @@ namespace TaskFocusAPI.Library.DataAccess
 
             dbSettings.CleanUpImmediately = frontEndSettings.CleanUpImmediately;
             dbSettings.CleanUpDelayDays = frontEndSettings.CleanUpDelayDays;
+            dbSettings.DeleteDelayDays = frontEndSettings.DeleteDelayDays;
 
             try
             {

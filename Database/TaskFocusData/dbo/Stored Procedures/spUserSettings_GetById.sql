@@ -4,7 +4,7 @@ AS
 BEGIN
 	SET NOCOUNT ON;
 
-	SELECT Id, CleanUpImmediately, CleanUpDelayDays
+	SELECT Id, CleanUpImmediately, CleanUpDelayDays, DeleteDelayDays
 	FROM [dbo].UserSettings
 	WHERE Id = @Id;
 END

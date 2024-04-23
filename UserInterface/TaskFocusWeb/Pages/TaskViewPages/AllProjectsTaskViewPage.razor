@@ -11,7 +11,7 @@
         {
             <ProjectTaskViewPage ProjectId="@_focusedProjectIdStr" />
         }
-        else // all projects view
+        else if (LocalProjects!.Count > 0) // all projects view
         {
             <MudTreeView T="TaskContainerComponent" Width="100%">
                 @foreach (ProjectDisplayModel project in LocalProjects!)
@@ -25,6 +25,25 @@
                                                 ContainerContextsParam="@LocalContexts" />
                     </MudTreeViewItem>  
                 }
+            </MudTreeView>
+        }
+        else
+        {
+            <MudTreeView T="MudContainer" Width="75%">
+                <MudTreeViewItem T="MudContainer"
+                                 Expanded="true"
+                                 Icon="@Icons.Material.Filled.Assignment"
+                                 Text=""
+                                 TextTypo="Typo.button">
+
+                        <MudContainer MaxWidth="MaxWidth.Medium">
+                            <MudPaper Elevation="25" Class="pa-0 my-2">
+                                <MudText Class="pa-4" Align="Align.Center">
+                                    Group related or dependent tasks by creating and assigning <strong>Projects</strong>, which will appear here.
+                                </MudText>
+                            </MudPaper>
+                        </MudContainer>
+                </MudTreeViewItem>
             </MudTreeView>
         }
     }

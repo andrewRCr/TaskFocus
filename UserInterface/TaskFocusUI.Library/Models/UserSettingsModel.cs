@@ -8,6 +8,7 @@ namespace TaskFocusUI.Library.Models
     {
         public string Id { get; set; }
         public bool CleanUpImmediately { get; set; } = false;
-        public int CleanUpDelayDays { get; set; } = 30;
+        public int CleanUpDelayDays { get; set; } = 7;
+        public int DeleteDelayDays { get; set; } = 30;
     }
 }

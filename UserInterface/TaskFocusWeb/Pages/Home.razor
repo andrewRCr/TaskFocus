@@ -21,10 +21,12 @@
                 New user? Click <MudLink Href="/register">here</MudLink> to register.
             </MudText>
 
-@*             <div class="mx-auto text-center">
-            <MudButton Class="mb-3" Variant="Variant.Text" Color="Color.Primary" ButtonType="ButtonType.Button" OnClick="RegisterUser">Register</MudButton>
-            </div> *@
         </MudPaper>
+
+        @if (!string.IsNullOrEmpty(_alertMessage))
+        {
+            <MudAlert Class="mt-6" Elevation="25" Severity="_alertSeverity">@_alertMessage</MudAlert>
+        }
 
     </MudContainer>
 }
@@ -32,21 +34,34 @@
 @code {
     private bool _isAuthenticated = false;
 
+    private MudBlazor.Severity _alertSeverity = Severity.Normal;
+    private string _alertMessage = string.Empty;
+
     protected override async Task OnInitializedAsync()
     {
         dataRefreshTriggers = new List<string> { nameof(DataState.CurrentUser) };
         await VerifyAuth();
+        LoadAlertMessage();
 
         if (_isAuthenticated)
         {
             NavManager.NavigateTo("/inbox");
-        }
+        }  
     }
 
     private async Task VerifyAuth()
     {
         var authState = await AuthState;
         _isAuthenticated = authState.User.Identity!.IsAuthenticated;
+    }
+
+    private void LoadAlertMessage()
+    {
+        if (AppState.AlertMessage != null)
+        {
+            _alertMessage = AppState.AlertMessage;
+            _alertSeverity = AppState.AlertSeverity;
+        }
     }
 
     private void RegisterUser()
@@ -65,6 +80,22 @@
         {
             //Console.WriteLine("Home: returned true on HandleDataStateChanged!");
             InvokeAsync(VerifyAuth);
+        }
+
+        return AppState.CanRefresh;
+    }
+
+    protected override bool HandleAppStateChanged(string propertyName, AppState appState)
+    {
+        if (propertyName != nameof(AppState.AlertMessage))
+        {
+            return false;
+        }
+
+        if (AppState.CanRefresh)
+        {
+            //Console.WriteLine("Home: returned true on HandleAppStateChanged!");
+            LoadAlertMessage();
         }
 
         return AppState.CanRefresh;
