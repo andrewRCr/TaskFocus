@@ -5,6 +5,7 @@
 @implements IAsyncDisposable
 
 @inject IDataService DataService
+@inject ISnackbar Snackbar
 
 @if (TaskParam != null)
 {
@@ -153,18 +154,21 @@
 }
 
 <!-- delete task dialog -->
-<MudDialog @bind-IsVisible="_deleteDialogVisible" Options="dialogOptions">
+<MudDialog @bind-IsVisible="_deleteDialogVisible" Options="dialogOptions" Style="background-color: #27272f">
     <TitleContent>
-        <MudText Typo="Typo.h6">
-            <MudIcon Icon="@Icons.Material.Filled.Edit" Class="mr-3" /> Delete task?
-        </MudText>
+        <MudStack Row="true" Spacing="1">
+            <MudIcon Icon="@Icons.Material.Filled.DeleteForever" Class="mr-3" />
+            <MudText Typo="Typo.button"> Delete task </MudText>
+        </MudStack>
     </TitleContent>
     <DialogContent>
-        <MudText>Are you sure?</MudText>
+        <MudPaper Outlined Style="background-color: #373740;" Class="pa-2 ma-0 mb-1" Elevation="3">
+            <MudText>"@TaskParam!.TaskName" will be permanently deleted.</MudText>
+        </MudPaper>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="SubmitDelete" Class="px-10">Yes</MudButton>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="()=>_deleteDialogVisible = false" Class="px-10">No</MudButton>
+        <MudButton Class="px-0" OnClick="()=>_deleteDialogVisible = false">Cancel</MudButton>
+        <MudButton Class="px-0" Color="Color.Error" OnClick="SubmitDelete">Delete</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -226,6 +230,7 @@
     {
         _deleteDialogVisible = false;
         await DataService.DeleteTask(TaskParam);
+        Snackbar.Add("Task deleted.", Severity.Success);
     }
 
     private void SetElementsActive(bool newActive)
@@ -238,7 +243,6 @@
         }
         else
         {
-            // TODO: once Starred is its own TaskModel property, swap over from Completed (just placeholder prop for Starred)
             if (!TaskParam.Starred) { _starredClassStr = "invisible"; }
             _deleteClassStr = _deleteClassStrBase + _deleteClassStrSpacing;
         }
@@ -255,14 +259,6 @@
 
         //Console.WriteLine("TaskItemComponent: OnParametersSet called!");
     }
-
-    // private void HandleStarredOnCompleted()
-    // {
-    //     if (TaskParam.Completed)
-    //     {
-    //         TaskParam.Starred = false;
-    //     }
-    // }
 
     private void UpdateProjectContextSelectionLists()
     {

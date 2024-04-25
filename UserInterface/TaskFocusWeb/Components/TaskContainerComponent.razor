@@ -131,7 +131,7 @@ else
         if (AppState.CanRefresh)
         {
             //Console.WriteLine("TaskContainerComp: returned true on HandleDataStateChanged!");
-            if (CanReorderParam) { RefreshContainer(); }
+            if (CanReorderParam && _container != null) { RefreshContainer(); }
         }
 
         return AppState.CanRefresh;

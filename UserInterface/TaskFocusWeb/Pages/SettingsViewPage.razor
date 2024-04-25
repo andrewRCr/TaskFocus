@@ -430,7 +430,7 @@
 
     protected void LoadLocalUserData()
     {
-        if (DataState.IsDataLoaded())
+        if (DataState.IsDataLoaded() && DataState.CurrentUser != null)
         {
             LocalCurrentUser = DataState.CurrentUser;
 

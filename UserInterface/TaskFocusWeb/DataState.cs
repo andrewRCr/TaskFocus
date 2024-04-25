@@ -15,8 +15,8 @@ namespace TaskFocusWeb
     {
         public event DataStateChangedHandler DataStateChanged = default!;
 
-        private UserModel _currentUser = default!;
-        public UserModel CurrentUser
+        private UserModel? _currentUser;
+        public UserModel? CurrentUser
         {
             get { return _currentUser; }
             set

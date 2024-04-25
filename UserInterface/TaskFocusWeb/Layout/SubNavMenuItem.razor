@@ -1,6 +1,7 @@
 ﻿@inherits _ComponentBase
-@inject ISnackbar Snackbar
+
 @inject IDataService DataService
+@inject ISnackbar Snackbar
 
 <MudStack Row="true" Class="@_stackClass"
           Spacing="0" 
@@ -24,46 +25,60 @@
     <MudMenu @ref="_itemEditMenu"
              Icon="@Icons.Material.Filled.MoreVert"
              Class="@_editMenuClassStr"
-             Dense="true"
-             Size="Size.Small">
+             Dense="true" 
+             Size="Size.Medium">
+             
         <div @onmousedown=OnItemMouseDown>
-            <MudMenuItem OnClick="RenameItem" OnTouch="RenameItemTouch">Rename</MudMenuItem>
-            <MudMenuItem OnClick="DeleteItem" OnTouch="DeleteItemTouch">Delete</MudMenuItem>
+            <MudMenuItem OnClick="RenameItem" OnTouch="RenameItemTouch" Icon="@Icons.Material.Filled.Edit" IconSize="Size.Medium">
+                <MudText Typo="Typo.button" Class="ml-n4">Rename</MudText>
+            </MudMenuItem>
+            <MudMenuItem OnClick="DeleteItem" OnTouch="DeleteItemTouch" Icon="@Icons.Material.Filled.DeleteForever" IconSize="Size.Medium">
+                <MudText Typo="Typo.button" Class="ml-n4">Delete</MudText>
+                </MudMenuItem>
         </div>
     </MudMenu>
 
 </MudStack>
 
 <!-- rename dialog -->
-<MudDialog @bind-IsVisible="_renameDialogVisible" Options="dialogOptions">
+<MudDialog @bind-IsVisible="_renameDialogVisible" Options="dialogOptions" Style="background-color: #27272f">
     <TitleContent>
-        <MudText Typo="Typo.h6">
-            <MudIcon Icon="@Icons.Material.Filled.Edit" Class="mr-3" /> Rename @_collectionTypeName?
-        </MudText>
+        <MudStack Row="true" Spacing="1">
+            <MudIcon Icon="@Icons.Material.Filled.Edit" Class="mr-3" />
+            <MudText Typo="Typo.button">
+                 Rename @_collectionTypeName
+            </MudText>
+        </MudStack>
     </TitleContent>
     <DialogContent>
-        <MudTextField @bind-Value="_itemName" Variant="Variant.Text" Margin="Margin.Dense"/>
+        <MudPaper Outlined Style="background-color: #373740;" Class="pb-2 px-2 pt-n1" Elevation="3">
+            <MudTextField @bind-Value="_itemName" Variant="Variant.Text" Margin="Margin.Dense" OnKeyUp="RenameEnterKeyPressed" />
+        </MudPaper>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SubmitRename" Class="px-10">Save</MudButton>
+        <MudButton OnClick="()=>_renameDialogVisible = false" Class="px-0">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="SubmitRename" Class="px-0">Save</MudButton>
     </DialogActions>
 </MudDialog>
 
 <!-- delete dialog -->
-<MudDialog @bind-IsVisible="_deleteDialogVisible" Options="dialogOptions">
+<MudDialog @bind-IsVisible="_deleteDialogVisible" Options="dialogOptions" Style="background-color: #27272f">
     <TitleContent>
-        <MudText Typo="Typo.h6">
-            <MudIcon Icon="@Icons.Material.Filled.DeleteForever" Class="mr-3" /> Delete "@_itemName"?
-        </MudText>
+        <MudStack Row="true" Spacing="1">
+            <MudIcon Icon="@Icons.Material.Filled.DeleteForever" Class="mr-3" />
+            <MudText Typo="Typo.button">Delete "@_itemName"?</MudText>
+        </MudStack>
     </TitleContent>
     <DialogContent>
-        <MudText>
-            Any tasks with this @_collectionTypeName assigned will be moved to your Inbox.
-        </MudText>
+        <MudPaper Outlined Style="background-color: #373740;" Class="pa-3 ma-0 mb-1" Elevation="3">
+            <MudText>
+                Any tasks with this @_collectionTypeName assigned will be moved to your Inbox.
+            </MudText>
+        </MudPaper>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="()=>_deleteDialogVisible= false" Class="px-0">Cancel</MudButton>
-        <MudButton Color="Color.Error" OnClick="SubmitDelete" Class="px-10">Delete</MudButton>
+        <MudButton Color="Color.Error" OnClick="SubmitDelete" Class="px-0">Delete</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -97,12 +112,23 @@
         SetLinkColor();
     }
 
+    private void TrySubmitRename()
+    {
+        if (string.IsNullOrWhiteSpace(_itemName))
+        {
+            Snackbar.Add($"{_collectionTypeName} name is required.", Severity.Error);
+        }
+        else { SubmitRename(); }
+    }
+
     private void SubmitRename()
     {
         if (IsProjectsSubMenu) { ProjectParam.ProjectName = _itemName; }
         else { ContextParam.ContextName = _itemName; }
 
         _renameDialogVisible = false;
+
+        Snackbar.Add($"{_collectionTypeName} renamed.", Severity.Success);
     }
 
     private async Task SubmitDelete()
@@ -113,6 +139,8 @@
         { await DataService.DeleteProject(ProjectParam); }
         else
         { await DataService.DeleteContext(ContextParam); }
+
+        Snackbar.Add($"{_collectionTypeName} deleted.", Severity.Success);
     }
 
     protected override void OnParametersSet()
@@ -168,6 +196,14 @@
         { AppState.FocusedProjectIdStr = ProjectParam.Id.ToString(); }
         else if (ContextParam != null)
         { AppState.FocusedContextIdStr = ContextParam.Id.ToString(); }
+    }
+
+    public void RenameEnterKeyPressed(KeyboardEventArgs e)
+    {
+        if (e.Code == "Enter" || e.Code == "NumpadEnter")
+        {
+            TrySubmitRename();
+        }
     }
 
     private void RenameItem(MouseEventArgs args) => OpenRenameDialog();

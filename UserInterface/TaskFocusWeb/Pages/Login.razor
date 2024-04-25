@@ -53,7 +53,6 @@
 
 @code {
     private AuthenticationUserModel userModel = new();
-    private bool showAuthenticationError = false;
     private string authenticationErrorText = string.Empty;
 
     private MudForm _loginForm = default!;
@@ -82,8 +81,6 @@
 
     private async Task ExecuteLogin()
     {
-        showAuthenticationError = false;
-
         var result = await AuthService.LoginAsync(userModel);
 
         if (result != null)

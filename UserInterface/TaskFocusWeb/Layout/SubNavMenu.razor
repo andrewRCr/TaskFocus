@@ -1,5 +1,6 @@
 ﻿@inherits _ComponentBase
 @inject IDataService DataService
+@inject ISnackbar Snackbar
 
 <MudNavMenu Bordered="true" Style="width: 250px;">
     <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.ArrowBackIosNew" OnClick="HideSubMenu"/>
@@ -34,7 +35,10 @@
 </MudNavMenu>
 
 <!-- addNewCollection dialog -->
-<MudDialog @bind-IsVisible="_newCollectionDialogVisible" Options="dialogOptions" @onfocusout="()=> _newCollectionName = string.Empty">
+<MudDialog @bind-IsVisible="_newCollectionDialogVisible" 
+           Options="dialogOptions" 
+           Style="background-color: #27272f"
+           @onfocusout="()=> _newCollectionName = string.Empty">
     <TitleContent>
         <MudIcon Icon="@Icons.Material.Filled.Add" Class="mr-1 mb-1" />
         <MudText Typo="Typo.button" >
@@ -42,11 +46,17 @@
         </MudText>
     </TitleContent>
     <DialogContent>
-        <MudTextField @bind-Value="_newCollectionName" Variant="Variant.Text" Margin="Margin.Dense" Placeholder="@_addNewPlaceholderText" />
+        <MudPaper Outlined Style="background-color: #373740;" Class="pb-2 px-2 pt-n1" Elevation="3">
+            <MudTextField @bind-Value="_newCollectionName" 
+                          Variant="Variant.Text" 
+                          Margin="Margin.Dense" 
+                          OnKeyUp="EnterKeyPressed"
+                          Placeholder="@_addNewPlaceholderText" />
+        </MudPaper>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="CancelAddNewCollectionDialog" Class="px-0">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="SubmitNewCollection" Class="px-0">Add</MudButton>
+        <MudButton Color="Color.Primary" OnClick="TrySubmitNewCollection" Class="px-0">Add</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -135,6 +145,17 @@
         _addNewPlaceholderText = IsProjectsSubMenu ?
             "Project Name" : "Context Name";
         _newCollectionName = string.Empty;
+
+        if (IsProjectsSubMenu && LocalProjects != null && LocalProjects.Count > 0 || 
+            !IsProjectsSubMenu && LocalContexts != null && LocalContexts.Count > 0)
+        {
+            SetAddNewCollectionButtonActive(false); 
+        }
+        else if (IsProjectsSubMenu && LocalProjects != null && LocalProjects.Count == 0 ||
+            !IsProjectsSubMenu && LocalContexts != null && LocalContexts.Count == 0)
+        {
+            SetAddNewCollectionButtonActive(true);
+        }
     }
 
     protected override void LoadLocalProjectData()
@@ -148,12 +169,6 @@
             foreach (ProjectDisplayModel project in LocalProjects!)
             {
                 project.PropertyChanged += OnExistingProjectPropertyChanged!; // subscribe to property changed event
-                                                                              //Console.WriteLine($"{project.ProjectName}'s OrderIndex: {project.OrderIndex}");
-            }
-
-            if (LocalProjects.Count == 0)
-            {
-                SetAddNewCollectionButtonActive(true);
             }
         }
     }
@@ -195,6 +210,15 @@
         { AppState.FocusedContextIdStr = itemId.ToString(); ; }
     }
 
+    private async Task TrySubmitNewCollection()
+    {
+        if (string.IsNullOrWhiteSpace(_newCollectionName))
+        {
+            Snackbar.Add($"{_collectionTypeName} name is required.", Severity.Error);
+        }
+        else { await SubmitNewCollection(); }
+    }
+
     private async Task SubmitNewCollection()
     {
         _newCollectionDialogVisible = false;
@@ -213,6 +237,14 @@
         }
 
         _newCollectionName = string.Empty;
+    }
+
+    public async Task EnterKeyPressed(KeyboardEventArgs e)
+    {
+        if (e.Code == "Enter" || e.Code == "NumpadEnter")
+        {
+            await TrySubmitNewCollection();
+        }
     }
 
     protected override bool HandleDataStateChanged(String propertyName, DataState dataState)
