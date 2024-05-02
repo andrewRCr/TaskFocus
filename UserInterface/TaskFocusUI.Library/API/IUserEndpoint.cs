@@ -10,6 +10,7 @@ namespace TaskFocusUI.Library.API
         Task<List<UserModel>> GetAllUsers();
         Task<UserModel> GetCurrentUserData();
         Task<UserSettingsModel> GetCurrentUserSettings();
+        Task SendTestEmailToUser();
         Task UpdatePassword(CreateUserModel userModel);
         Task UpdateUser(UserModel updatedUserModel);
         Task UpdateUserSettings(UserSettingsModel updatedSettings);

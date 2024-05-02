@@ -6,6 +6,7 @@
 @inject IAuthenticationService AuthService
 @inject NavigationManager NavManager
 @inject ISnackbar Snackbar
+@inject IEmailSender EmailSender
 @using System.Text.RegularExpressions
 @using System.ComponentModel.DataAnnotations
 
@@ -125,6 +126,8 @@
                            Color="Color.Primary">
                     Change password
                 </MudButton>
+
+                <MudButton OnClick="SendTestEmail">Send Test Email</MudButton>
      
             </MudContainer>
         </MudTreeViewItem>
@@ -268,6 +271,13 @@
     {
         get { return _localCurrentUser; }
         set { _localCurrentUser = value; }
+    }
+
+    private async Task SendTestEmail()
+    {
+        //await EmailSender.SendEmailFluent("andrew.creekmore@me.com", "testSubject", "testMessage");
+
+        await UserEndpoint.SendTestEmailToUser();
     }
 
     protected override void OnInitialized()

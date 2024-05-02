@@ -3,6 +3,9 @@ using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using MudBlazor;
 using MudBlazor.Extensions;
 using MudBlazor.Services;
@@ -74,6 +77,13 @@ namespace TaskFocusWeb
                 config.SnackbarConfiguration.ClearAfterNavigation = false;
             });
             builder.Services.AddMudExtensions();
+
+            builder.Services.AddSingleton<IEmailSender, EmailSender>();
+
+            builder.Services.Configure<IdentityOptions>(options =>
+            {
+                //options.SignIn.RequireConfirmedEmail = true;
+            });
 
             await builder.Build().RunAsync();
         }

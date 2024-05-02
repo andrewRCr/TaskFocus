@@ -6,9 +6,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Win32;
 using System.Security.Claims;
 using TaskFocusAPI.Data;
+using TaskFocusAPI.Library.Utilities;
 using TaskFocusAPI.Library.DataAccess;
 using TaskFocusAPI.Library.Models;
 using TaskFocusAPI.Models;
+
 
 namespace TaskFocusAPI.Controllers
 {
@@ -20,14 +22,54 @@ namespace TaskFocusAPI.Controllers
         private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly IUserData _userData;
+        private readonly IEmailSender _emailSender;
 
         public UserController(ApplicationDbContext context,
                               UserManager<IdentityUser> userManager,
-                              IUserData userData)
+                              IUserData userData,
+                              IEmailSender emailSender)
         {
             _context = context;
             _userManager = userManager;
             _userData = userData;
+            _emailSender = emailSender;
+        }
+
+        [HttpGet]
+        public async Task SendTestEmailToUser()
+        {
+            string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            UserModel currentUser = _userData.GetUserById(userId).First();
+
+            UserModel testUser = new();
+            testUser.FirstName = "TestFirst";
+            testUser.LastName = "TestLast";
+            testUser.Email = "andrew.creekmore@me.com";
+
+            await _emailSender.SendEmailAsync(testUser, "test", "Hey, this is a test!");
+        }
+
+        [HttpGet]
+        public async Task SendPasswordResetEmail()
+        {
+            string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            UserModel currentUser = _userData.GetUserById(userId).First();
+
+            UserModel testUser = new();
+            testUser.FirstName = "TestFirst";
+            testUser.LastName = "TestLast";
+            testUser.Email = "andrew.creekmore@me.com";
+
+            IdentityUser? existingUser = await _userManager.FindByIdAsync(userId!);
+            if (existingUser != null)
+            {
+                var token = await _userManager.GeneratePasswordResetTokenAsync(existingUser);
+                //var callback = Url.Action(nameof(ResetPassword), "Account", new { token, email = user.Email }, Request.Scheme);
+                //var message = new Message(new string[] { user.Email }, "Reset password token", callback, null);
+            }
+
+
+            //await _emailSender.SendPasswordResetLinkAsync(testUser);
         }
 
         [HttpGet]

@@ -5,7 +5,10 @@ using Microsoft.OpenApi.Models;
 using System.Configuration;
 using System.Text;
 using TaskFocusAPI.Data;
+using TaskFocusAPI.Library.Utilities;
 using TaskFocusAPI.Library.DataAccess;
+using Microsoft.Extensions.Azure;
+using Azure.Security.KeyVault.Secrets;
 
 namespace TaskFocusAPI
 {
@@ -36,6 +39,7 @@ namespace TaskFocusAPI
             });
 
             // internal services
+            builder.Services.AddTransient<IEmailSender, EmailSender>();
             builder.Services.AddTransient<IUserData, UserData>();
             builder.Services.AddTransient<ITaskData, TaskData>();
             builder.Services.AddTransient<IProjectData, ProjectData>();

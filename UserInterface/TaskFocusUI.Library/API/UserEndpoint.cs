@@ -17,6 +17,18 @@ namespace TaskFocusUI.Library.API
             _apiHelper = apiHelper;
         }
 
+        public async Task SendTestEmailToUser()
+        {
+            using (HttpResponseMessage response = await _apiHelper.APIClient.GetAsync("/api/user/SendTestEmailToUser"))
+            {
+                if (response.IsSuccessStatusCode)
+                {
+                    // TODO - log successful call ?
+                }
+                else { throw new Exception(response.ReasonPhrase); }
+            }
+        }
+
         public async Task<List<UserModel>> GetAllUsers()
         {
             using (HttpResponseMessage response = await _apiHelper.APIClient.GetAsync("/api/user/Admin/GetAllUsers"))
