@@ -1,4 +1,6 @@
 ﻿@page "/register"
+
+@inherits _ComponentBase
 @inject IDataService DataService
 @inject IUserEndpoint UserEndpoint
 @inject IAuthenticationService AuthService
@@ -63,8 +65,8 @@
                               AdornmentIcon="@_passwordInputIcon"
                               OnAdornmentClick="ToggleShowPassword"
                               AdornmentAriaLabel="Show Confirm Password"
-                              Validation="@(new Func<string, string>(PasswordMatch))" />
-
+                              Validation="@(new Func<string, string?>(PasswordMatch))" />
+        
                 <MudButton Variant="Variant.Filled" 
                            Color="Color.Primary" 
                            Disabled="@(!_success)" 
@@ -89,10 +91,10 @@
     CreateUserModel userModel = new();
     string? errorMessage;
 
-    private MudForm _registerForm;
+    private MudForm _registerForm = default!;
     private bool _success;
     private string[] _errors = { };
-    private MudTextField<string> _pwField1;
+    private MudTextField<string> _pwField1 = default!;
 
     private bool _isShowPassword = false;
     private InputType _passwordInput = InputType.Password;
@@ -114,16 +116,19 @@
         try
         {
             await UserEndpoint.CreateUser(userModel);
-            var result = await AuthService.LoginAsync(new() { Email = userModel.Email, Password = userModel.Password });
 
-            if (result != null)
+            UserModel createdUserModel = new() { Email = userModel.Email };
+            bool success = await UserEndpoint.CheckUserExists(createdUserModel);
+            if (success)
             {
-                await DataService.FetchAllRemoteData();
-                NavManager.NavigateTo("/");
+                // set Alert notification + navigate to unconfirmed email page
+                AppState.AlertMessage = "Account created but email not yet confirmed. Please check your email for a confirmation link.";
+                AppState.AlertSeverity = Severity.Success;
+                NavManager.NavigateTo($"/unconfirmedemail?email={userModel.Email}");
             }
             else
             {
-                errorMessage = "Registration was successful, but there was an error when attempting to log in.";
+                errorMessage = "There was an error when attempting to register.";
             }
         }
         catch (Exception ex)
@@ -159,7 +164,7 @@
             yield return "Password must contain at least one special character.";
     }
 
-    private string PasswordMatch(string arg)
+    private string? PasswordMatch(string arg)
     {
         if (string.IsNullOrWhiteSpace(arg))
             return "Password confirmation is required.";

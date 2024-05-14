@@ -1,8 +1,18 @@
 ﻿@page "/"
 @inherits _ComponentBase
 @inject NavigationManager NavManager
+@inject IUserEndpoint UserEndpoint
+@using System.ComponentModel.DataAnnotations
 
 <PageTitle>TaskFocus</PageTitle>
+
+@if (!string.IsNullOrWhiteSpace(_errorMessage))
+{
+    <div class="alert alert-danger" role="alert">
+        @_errorMessage
+    </div>
+}
+
 
 @if (!_isAuthenticated)
 {
@@ -23,6 +33,36 @@
 
         </MudPaper>
 
+        <MudText Class="mt-5 pb-2 px-4 text-center">
+            <MudLink Color="Color.Inherit" OnClick="ToggleForgotPasswordForm">Forgot password?</MudLink>
+        </MudText>
+
+        @if (_forgotPassword)
+        {
+            <MudPaper Elevation="25" Class="mt-3 px-4">
+
+                <MudForm @ref="_forgotPasswordForm" @bind-IsValid="@_success" @bind-Errors="@_errors" Model="_userModel">
+                    <MudTextField T="string"
+                                    @bind-Value="_userModel.Email"
+                                    Label="Email Address"
+                                    Style="width: 350px;"
+                                    Margin="Margin.Normal"
+                                    Validation="@(new EmailAddressAttribute() {ErrorMessage = "Please provide a valid email address."})"
+                                    Class="pa-2" />
+
+                    <MudText Class="pb-2 px-4 text-center">
+                        <MudButton Variant="Variant.Text"
+                                    Color="Color.Primary"
+                                    Disabled="@(!_success)"
+                                    OnClick="(() => SubmitForgotPasswordForm())">
+                            Send reset link
+                        </MudButton>
+                    </MudText>
+
+                </MudForm>
+            </MudPaper>
+        }
+
         @if (!string.IsNullOrEmpty(_alertMessage))
         {
             <MudAlert Class="mt-6" Elevation="25" Severity="_alertSeverity">@_alertMessage</MudAlert>
@@ -33,6 +73,13 @@
 
 @code {
     private bool _isAuthenticated = false;
+    private bool _forgotPassword = false;
+    private ForgotPasswordModel _userModel = new();
+    private string? _errorMessage = string.Empty;
+
+    private MudForm _forgotPasswordForm = default!;
+    private bool _success = false;
+    private string[] _errors = { };
 
     private MudBlazor.Severity _alertSeverity = Severity.Normal;
     private string _alertMessage = string.Empty;
@@ -67,6 +114,48 @@
     private void RegisterUser()
     {
         NavManager.NavigateTo("/register");
+    }
+
+    private void ToggleForgotPasswordForm()
+    {
+        _forgotPassword = !_forgotPassword;
+        _alertMessage = string.Empty;
+    }
+
+    private async Task SubmitForgotPasswordForm()
+    {
+        UserModel userModel = new() { Email = _userModel.Email };
+        bool validUser = await UserEndpoint.CheckUserExists(userModel);
+        if (!validUser)
+        {
+            AppState.AlertSeverity = Severity.Warning;
+            AppState.AlertMessage = "No matching user found.";
+        }
+        else
+        {
+            await _forgotPasswordForm.Validate();
+            if (_forgotPasswordForm.IsValid)
+            {
+                await SendPasswordResetEmail();
+            }
+        }
+    }
+
+    private async Task SendPasswordResetEmail()
+    {
+        try
+        {
+            UserModel userModel = new() { Email = _userModel.Email };
+            await UserEndpoint.SendPasswordResetEmail(userModel);
+
+            AppState.AlertSeverity = Severity.Success;
+            AppState.AlertMessage = "Password reset email sent.";
+            _forgotPassword = false;
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
     }
 
     protected override bool HandleDataStateChanged(string propertyName, DataState dataState)

@@ -7,7 +7,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MudBlazor;
-using MudBlazor.Extensions;
+//using MudBlazor.Extensions;
+using MudExtensions.Services;
 using MudBlazor.Services;
 using TaskFocusUI.Library.API;
 using TaskFocusUI.Library.Models;
@@ -77,13 +78,6 @@ namespace TaskFocusWeb
                 config.SnackbarConfiguration.ClearAfterNavigation = false;
             });
             builder.Services.AddMudExtensions();
-
-            builder.Services.AddSingleton<IEmailSender, EmailSender>();
-
-            builder.Services.Configure<IdentityOptions>(options =>
-            {
-                //options.SignIn.RequireConfirmedEmail = true;
-            });
 
             await builder.Build().RunAsync();
         }

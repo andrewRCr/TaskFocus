@@ -1,0 +1,228 @@
+﻿@page "/unconfirmedupdatedemail"
+
+@inherits _ComponentBase
+@inject NavigationManager NavManager
+@inject IAuthenticationService AuthService
+@inject IUserEndpoint UserEndpoint
+@using Microsoft.AspNetCore.WebUtilities
+
+<PageTitle>TaskFocus</PageTitle>
+
+@if (!string.IsNullOrWhiteSpace(_errorMessage))
+{
+    <div class="alert alert-danger" role="alert">
+        @_errorMessage
+    </div>
+}
+
+<MudContainer>
+    @if (!_emailUpdateHasBeenProcessed)
+    {
+        <MudLoading @bind-Loading="_loading">
+            <LoaderContent>
+                <div class="mx-auto text-center mt-3">
+                    <MudProgressLinear Class="mb-3" Color="Color.Primary" Indeterminate="true" />
+                    <MudText Typo="Typo.button" Class="mt-3">Processing</MudText>
+                </div>
+            </LoaderContent>
+
+            <ChildContent>
+                <MudContainer MaxWidth="MaxWidth.ExtraSmall" Class="mt-6">
+
+                    <MudText Typo="Typo.button" Color="Color.Primary">
+                        Updated Email Unconfirmed
+                    </MudText>
+
+                    <MudPaper Elevation="25" Class="mt-2">
+                        <MudText Class="pt-4 px-4 text-center">
+                            Check your email for a confirmation link.
+                        </MudText>
+
+                        <MudText Class="pb-2 px-4 text-center">
+                            <MudButton ButtonType="ButtonType.Button" Variant="Variant.Text" Color="Color.Primary" OnClick="ResendConfirmLink">Resend</MudButton>
+                        </MudText>
+
+                    </MudPaper>
+
+                    @if (!string.IsNullOrEmpty(_alertMessage))
+                    {
+                        <MudAlert Class="mt-6" Elevation="25" Severity="_alertSeverity">@_alertMessage</MudAlert>
+                    }
+
+                </MudContainer>
+
+            </ChildContent>
+        </MudLoading>
+    }
+    else
+    {
+        <MudContainer>
+            @if (!string.IsNullOrEmpty(_alertMessage))
+            {
+                <MudAlert Class="mt-6" Elevation="25" Severity="_alertSeverity">@_alertMessage</MudAlert>
+            }
+
+        </MudContainer>
+    }
+</MudContainer>
+
+@code {
+    private bool _emailUpdateHasBeenProcessed = false;
+    private bool _isAuthenticated = false;
+    private ConfirmUpdatedEmailModel _confirmUpdatedEmailModel = new();
+
+    private MudBlazor.Severity _alertSeverity = Severity.Normal;
+    private string _alertMessage = string.Empty;
+    private string? _errorMessage;
+    private bool _loading = false;
+
+    private async Task VerifyAuth()
+    {
+        var authState = await AuthState;
+        _isAuthenticated = authState.User.Identity!.IsAuthenticated;
+    }
+
+    protected override void OnInitialized()
+    {
+        var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
+
+        var queryStrings = QueryHelpers.ParseQuery(uri.Query);
+        if (queryStrings.TryGetValue("email", out var emailParam))
+        {
+            _confirmUpdatedEmailModel.NewEmail = emailParam;
+        }
+        if (queryStrings.TryGetValue("token", out var tokenParam))
+        {
+            _confirmUpdatedEmailModel.Token = tokenParam;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        dataRefreshTriggers = new List<string> { nameof(DataState.CurrentUser) };
+        await VerifyAuth();
+        await CheckEmailUpdatedStatus();
+        LoadAlertMessage();
+
+        if (!_emailUpdateHasBeenProcessed)
+        {
+            if (!string.IsNullOrWhiteSpace(_confirmUpdatedEmailModel.Token) && 
+                !string.IsNullOrWhiteSpace(_confirmUpdatedEmailModel.NewEmail) &&
+                !string.IsNullOrWhiteSpace(_confirmUpdatedEmailModel.OldEmail))
+            {
+                try
+                {
+                    await UserEndpoint.ConfirmUpdatedEmail(_confirmUpdatedEmailModel);
+
+                    await CheckEmailUpdatedStatus();
+                    if (_emailUpdateHasBeenProcessed)
+                    {
+                        // set Alert notification for home page
+                        AppState.AlertSeverity = Severity.Success;
+                        AppState.AlertMessage = "Updated email confirmed. Please log in again to continue.";
+
+                        // update auth state: log user out
+                        if (_isAuthenticated) { NavManager.NavigateTo("/logout"); }
+                        NavManager.NavigateTo("/");
+                    }
+                    else
+                    {
+                        _errorMessage = "There was an error when attempting to confirm your updated email. Please send a new link.";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _errorMessage = ex.Message;
+                }
+            }
+        }
+        else
+        {
+            NavManager.NavigateTo("/");
+        }
+    }
+
+    private async Task ResendConfirmLink()
+    {
+        if (DataState.CurrentUser != null)
+        {
+            UserModel updatedUserModel = DataState.CurrentUser;
+            updatedUserModel.Email = _confirmUpdatedEmailModel.NewEmail;
+
+            try
+            {
+                _loading = true; // indicate request processing
+                await UserEndpoint.RequestUpdateEmail(updatedUserModel);
+                _loading = false;
+
+                AppState.AlertSeverity = Severity.Success;
+                AppState.AlertMessage = "Email sent.";
+                NavManager.NavigateTo($"/unconfirmedupdatedemail?email={updatedUserModel.Email}");
+            }
+            catch (Exception ex)
+            {
+                _errorMessage = ex.Message;
+            }
+        }
+        else
+        {
+            AppState.AlertSeverity = Severity.Warning;
+            AppState.AlertMessage = "Unable to process, please log in and re-request through Settings.";
+        }
+    }
+
+    private async Task CheckEmailUpdatedStatus()
+    {
+        if (_isAuthenticated)
+        {
+            UserModel currentUserData = await UserEndpoint.GetCurrentUserData();
+            _emailUpdateHasBeenProcessed = currentUserData.Email == _confirmUpdatedEmailModel.NewEmail;
+
+            if (!_emailUpdateHasBeenProcessed)
+            {
+                _confirmUpdatedEmailModel.OldEmail = currentUserData.Email;
+            }
+        }
+    }
+
+    private void LoadAlertMessage()
+    {
+        if (AppState.AlertMessage != null)
+        {
+            _alertMessage = AppState.AlertMessage;
+            _alertSeverity = AppState.AlertSeverity;
+        }
+    }
+
+    protected override bool HandleDataStateChanged(string propertyName, DataState dataState)
+    {
+        if (!dataRefreshTriggers.Contains(propertyName))
+        {
+            return false;
+        }
+
+        if (AppState.CanRefresh)
+        {
+            //Console.WriteLine("UnconfirmedUpdatedEmail: returned true on HandleDataStateChanged!");
+            InvokeAsync(CheckEmailUpdatedStatus);
+        }
+
+        return AppState.CanRefresh;
+    }
+
+    protected override bool HandleAppStateChanged(string propertyName, AppState appState)
+    {
+        if (propertyName != nameof(AppState.AlertMessage))
+        {
+            return false;
+        }
+
+        if (AppState.CanRefresh)
+        {
+            //Console.WriteLine("UnconfirmedUpdatedEmail: returned true on HandleAppStateChanged!");
+            LoadAlertMessage();
+        }
+
+        return AppState.CanRefresh;
+    }
+}

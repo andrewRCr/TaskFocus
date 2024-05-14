@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System;
 using Azure.Security.KeyVault.Secrets;
 using Azure.Identity;
+using MimeKit.Text;
 
 namespace TaskFocusAPI.Library.Utilities
 {
@@ -31,7 +32,7 @@ namespace TaskFocusAPI.Library.Utilities
             string emailAuthKey = null;
             string keyVaultUrl = _config["AzureKeyVaultUrl"];
             var secretsClient = new SecretClient(new Uri(keyVaultUrl), new DefaultAzureCredential());
-            emailAuthKey = secretsClient.GetSecret("ZohoPW").Value.Value;
+            emailAuthKey = secretsClient.GetSecret("ZeptoMailAuthKey").Value.Value;
 
             if (string.IsNullOrWhiteSpace(emailAuthKey)) {  throw new Exception("Null emailAuthKey!"); }
 
@@ -41,20 +42,17 @@ namespace TaskFocusAPI.Library.Utilities
         public async Task Execute(string emailAuthKey, UserModel recipientUser, string subject, string message)
         {
             var email = new MimeMessage();
-            email.From.Add(new MailboxAddress("TaskFocus", "petresort@zohomail.com"));
+            email.From.Add(new MailboxAddress("TaskFocus", "taskfocus@andrewcreekmore.com"));
             string recipientFullName = recipientUser.FirstName + " " + recipientUser.LastName;
             email.To.Add(new MailboxAddress(recipientFullName, recipientUser.Email));
             email.Subject = subject;
 
-            email.Body = new TextPart("plain")
-            {
-                Text = message
-            };
+            email.Body = new TextPart("html") { Text = message };
 
             using (var client = new SmtpClient())
             {
-                client.Connect("smtp.zoho.com", 465, true);
-                client.Authenticate("petresort@zohomail.com", emailAuthKey);
+                client.Connect("smtp.zeptomail.com", 465, true);
+                client.Authenticate("emailapikey", emailAuthKey);
 
                 await client.SendAsync(email);
                 client.Disconnect(true);

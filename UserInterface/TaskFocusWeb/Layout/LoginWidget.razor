@@ -1,6 +1,7 @@
 ﻿@inherits _ComponentBase
 
 @inject IAuthenticationService AuthService
+@inject IUserEndpoint UserEndpoint
 @inject NavigationManager NavManager
 @inject IDataService DataService
 @using System.ComponentModel.DataAnnotations
@@ -81,15 +82,32 @@
 
     private async Task ExecuteLogin()
     {
-        var result = await AuthService.LoginAsync(userModel);
-
-        if (result != null)
+        UserModel attemptLoginUserModel = new UserModel { Email = userModel.Email };
+        bool exists = await UserEndpoint.CheckUserExists(attemptLoginUserModel);
+        if (!exists)
         {
-            await DataService.FetchAllRemoteData();
-            AppState.ClearAlertMessage();
-            NavManager.NavigateTo("/inbox");
+            AppState.AlertSeverity = MudBlazor.Severity.Warning;
+            AppState.AlertMessage = "No matching user found.";
         }
-        else { AppState.ShowLoginError(); }
+        else
+        {
+            bool confirmed = await UserEndpoint.CheckUserEmailConfirmed(attemptLoginUserModel);
+            if (!confirmed)
+            {
+                NavManager.NavigateTo($"/unconfirmedemail?email={userModel.Email}");
+            }
+            else
+            {
+                var result = await AuthService.LoginAsync(userModel);
+                if (result != null)
+                {
+                    await DataService.FetchAllRemoteData();
+                    AppState.ClearAlertMessage();
+                    NavManager.NavigateTo("/inbox");
+                }
+                else { AppState.ShowLoginError(); }
+            }
+        }
     }
 
     public async Task EnterKeyPressed(KeyboardEventArgs e)

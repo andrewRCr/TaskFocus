@@ -6,132 +6,153 @@
 @inject IAuthenticationService AuthService
 @inject NavigationManager NavManager
 @inject ISnackbar Snackbar
-@inject IEmailSender EmailSender
 @using System.Text.RegularExpressions
 @using System.ComponentModel.DataAnnotations
 
 @if (LocalCurrentUser != null)
 {
-    <!-- user app preferences -->
-    <MudTreeView T="MudContainer" Width="100%">
-        <MudTreeViewItem T="MudContainer" 
-                         Expanded="true"
-                         Icon="@Icons.Material.Filled.Settings"
-                         Text="Preferences"
-                         TextTypo="Typo.button">
+    <MudLoading @bind-Loading="_loading">
 
-            <MudContainer MaxWidth="MaxWidth.Medium">
+        <LoaderContent>
+            <div class="mx-auto text-center mt-3">
+                <MudProgressLinear Class="mb-3" Color="Color.Primary" Indeterminate="true" />
+                <MudText Typo="Typo.button" Class="mt-3">Processing</MudText>
+            </div>
+        </LoaderContent>
 
-                <MudText Class="ml-4 mb-n1">Automatically <strong>clean up</strong> completed tasks:</MudText>
+        <ChildContent>
 
-                <MudRadioGroup @bind-Value="LocalSettings.CleanUpImmediately" Class="ml-2">
-                    <MudRadio Value="true" 
-                              Dense="true" 
-                              Class="ml-2" 
-                              Color="Color.Primary"
-                              UnCheckedColor="Color.Inherit">
-                        <MudText Style="@_immediateTextStyleStr">Immediately</MudText>
-                    </MudRadio>
+            <!-- user app preferences -->
+            <MudTreeView T="MudContainer" Width="100%">
+                <MudTreeViewItem T="MudContainer" 
+                                 Expanded="true"
+                                 Icon="@Icons.Material.Filled.Settings"
+                                 Text="Preferences"
+                                 TextTypo="Typo.button">
 
-                    <MudRadio Value="false" Dense="true" Class="ml-2" Color="!LocalSettings.CleanUpImmediately ? Color.Primary : Color.Inherit">
-                        <MudStack Row="true" AlignItems="AlignItems.Center">
-                        <MudNumericField @bind-Value="LocalSettings.CleanUpDelayDays"
-                                         Class="ml-2 d-flex align-start pb-3"
-                                         HideSpinButtons="false"
-                                         DisableUnderLine="true"
-                                         Variant="Variant.Text"
-                                         Min="1"
-                                         Max="90"
-                                         MaxLength="2"
-                                         Disabled="@LocalSettings.CleanUpImmediately"
-                                         FullWidth="false"
-                                         Margin="Margin.Dense"
-                                         Style="@_cleanDaysNumFieldStyleStr" />
+                    <MudContainer MaxWidth="MaxWidth.Medium">
 
-                            <MudText Class="ml-n2" Style="@_cleanDaysTextStyleStr">@_cleanDaysTextStr after completion</MudText>
-                        </MudStack>
-                    </MudRadio>
-                </MudRadioGroup>
+                        <MudText Class="ml-4 mb-n1">Automatically <strong>clean up</strong> completed tasks:</MudText>
+
+                        <MudRadioGroup @bind-Value="LocalSettings.CleanUpImmediately" Class="ml-2">
+                            <MudRadio Value="true" 
+                                      Dense="true" 
+                                      Class="ml-2" 
+                                      Color="Color.Primary"
+                                      UnCheckedColor="Color.Inherit">
+                                <MudText Style="@_immediateTextStyleStr">Immediately</MudText>
+                            </MudRadio>
+
+                            <MudRadio Value="false" Dense="true" Class="ml-2" Color="!LocalSettings.CleanUpImmediately ? Color.Primary : Color.Inherit">
+                                <MudStack Row="true" AlignItems="AlignItems.Center">
+                                <MudNumericField @bind-Value="LocalSettings.CleanUpDelayDays"
+                                                 Class="ml-2 d-flex align-start pb-3"
+                                                 HideSpinButtons="false"
+                                                 DisableUnderLine="true"
+                                                 Variant="Variant.Text"
+                                                 Min="1"
+                                                 Max="90"
+                                                 MaxLength="2"
+                                                 Disabled="@LocalSettings.CleanUpImmediately"
+                                                 FullWidth="false"
+                                                 Margin="Margin.Dense"
+                                                 Style="@_cleanDaysNumFieldStyleStr" />
+
+                                    <MudText Class="ml-n2" Style="@_cleanDaysTextStyleStr">@_cleanDaysTextStr after completion</MudText>
+                                </MudStack>
+                            </MudRadio>
+                        </MudRadioGroup>
 
 
-                <MudText Class="ml-4 mb-n1">Automatically <strong>delete</strong> completed tasks:</MudText>
+                        <MudText Class="ml-4 mb-n1">Automatically <strong>delete</strong> completed tasks:</MudText>
 
-                    <div class="d-flex">
-                    <MudStack Row="true" AlignItems="AlignItems.Center">
-                        <MudNumericField @bind-Value="LocalSettings.DeleteDelayDays"
-                                            Class="ml-6 d-flex align-start pb-3"
-                                            HideSpinButtons="false"
-                                            DisableUnderLine="true"
-                                            Variant="Variant.Text"
-                                            Min="1"
-                                            Max="90"
-                                            MaxLength="2"
-                                            FullWidth="false"
-                                            Margin="Margin.Dense"
-                                            Style="@_deleteDaysNumFieldStyleStr" />
+                            <div class="d-flex">
+                            <MudStack Row="true" AlignItems="AlignItems.Center">
+                                <MudNumericField @bind-Value="LocalSettings.DeleteDelayDays"
+                                                    Class="ml-6 d-flex align-start pb-3"
+                                                    HideSpinButtons="false"
+                                                    DisableUnderLine="true"
+                                                    Variant="Variant.Text"
+                                                    Min="1"
+                                                    Max="90"
+                                                    MaxLength="2"
+                                                    FullWidth="false"
+                                                    Margin="Margin.Dense"
+                                                    Style="@_deleteDaysNumFieldStyleStr" />
 
-                        <MudText Class="ml-n2">@_deleteDaysTextStr after completion</MudText>
-                    </MudStack>
-                    </div>
+                                <MudText Class="ml-n2">@_deleteDaysTextStr after completion</MudText>
+                            </MudStack>
+                            </div>
                
+                    </MudContainer>
+
+                </MudTreeViewItem>
+            </MudTreeView>
+
+            <!-- user profile info / settings -->
+            <MudTreeView T="MudContainer" Width="100%">
+                <MudTreeViewItem T="MudContainer" 
+                                 Expanded="true"
+                                 Icon="@Icons.Material.Filled.AccountCircle"
+                                 Text="Profile"
+                                 TextTypo="Typo.button">
+
+                    <MudContainer MaxWidth="MaxWidth.Medium">
+
+                        <MudGrid>
+                            <MudStack Class="mt-3 mb-3 ml-7" Row="true" AlignItems="AlignItems.Center" Spacing="4">
+                                <MudItem xs="5">
+                                    <MudTextField MaxLength="50" Variant="Variant.Text" Margin="Margin.Dense" HelperText="First Name" @bind-Value="LocalCurrentUser.FirstName" />
+                                </MudItem>
+                                <MudItem xs="5">
+                                    <MudTextField MaxLength="50" Variant="Variant.Text" Margin="Margin.Dense" HelperText="Last Name" @bind-Value="LocalCurrentUser.LastName" />
+                                </MudItem>
+
+                            </MudStack>
+                        </MudGrid>
+
+                        <!-- disabled email address display -->
+                        <MudTextField Class="ml-4"
+                                        Style="width:370px;"
+                                        Disabled="true"
+                                        Variant="Variant.Text"
+                                        Margin="Margin.Dense"
+                                        HelperText="Email Address"
+                                        @bind-Value="LocalCurrentUser.Email" />
+
+                        <!-- email/password update buttons (open dialogs) -->
+                        <MudButton Class="mt-5 ml-4"
+                                    Variant="Variant.Filled"
+                                    ButtonType="ButtonType.Button"
+                                    OnClick="OpenUpdateEmailDialog"
+                                    Color="Color.Primary">
+                            Update email
+                        </MudButton>
+
+                        <MudButton Class="mt-5 ml-4"
+                                    Variant="Variant.Filled"
+                                    ButtonType="ButtonType.Button"
+                                    OnClick="OpenUpdatePasswordDialog"
+                                    Color="Color.Primary">
+                            Change password
+                        </MudButton>
+
+                        <MudButton OnClick="()=>_loading = !_loading">Toggle loading</MudButton>
+
+                    </MudContainer>
+                </MudTreeViewItem>
+            </MudTreeView>
+
+            <MudContainer>
+                @if (!string.IsNullOrEmpty(_alertMessage))
+                {
+                    <MudAlert Class="mt-6" Elevation="25" Severity="_alertSeverity">@_alertMessage</MudAlert>
+                }
+
             </MudContainer>
 
-        </MudTreeViewItem>
-    </MudTreeView>
-
-    <!-- user profile info / settings -->
-    <MudTreeView T="MudContainer" Width="100%">
-        <MudTreeViewItem T="MudContainer" 
-                         Expanded="true"
-                         Icon="@Icons.Material.Filled.AccountCircle"
-                         Text="Profile"
-                         TextTypo="Typo.button">
-
-            <MudContainer MaxWidth="MaxWidth.Medium">
-
-                <MudGrid>
-                    <MudStack Class="mt-3 mb-3 ml-7" Row="true" AlignItems="AlignItems.Center" Spacing="4">
-                        <MudItem xs="5">
-                            <MudTextField MaxLength="50" Variant="Variant.Text" Margin="Margin.Dense" HelperText="First Name" @bind-Value="LocalCurrentUser.FirstName" />
-                        </MudItem>
-                        <MudItem xs="5">
-                            <MudTextField MaxLength="50" Variant="Variant.Text" Margin="Margin.Dense" HelperText="Last Name" @bind-Value="LocalCurrentUser.LastName" />
-                        </MudItem>
-
-                    </MudStack>
-                </MudGrid>
-
-                <!-- disabled email address display -->
-                <MudTextField Class="ml-4" 
-                              Style="width:370px;" 
-                              Disabled="true" 
-                              Variant="Variant.Text" 
-                              Margin="Margin.Dense" 
-                              HelperText="Email Address" 
-                              @bind-Value="LocalCurrentUser.Email" />
-
-                <!-- email/password update buttons (open dialogs) -->
-                <MudButton Class="mt-5 ml-4"
-                           Variant="Variant.Filled"
-                           ButtonType="ButtonType.Button"
-                           OnClick="OpenUpdateEmailDialog"
-                           Color="Color.Primary">
-                    Update email
-                </MudButton>
-
-                <MudButton Class="mt-5 ml-4"
-                           Variant="Variant.Filled"
-                           ButtonType="ButtonType.Button"
-                           OnClick="OpenUpdatePasswordDialog"
-                           Color="Color.Primary">
-                    Change password
-                </MudButton>
-
-                <MudButton OnClick="SendTestEmail">Send Test Email</MudButton>
-     
-            </MudContainer>
-        </MudTreeViewItem>
-    </MudTreeView>
+        </ChildContent>
+    </MudLoading>
 
     <!-- updateEmail dialog -->
     <MudDialog @bind-IsVisible="_updateEmailDialogVisible" @ref="_updateEmailDialog"
@@ -156,7 +177,7 @@
                                   Validation="@(new EmailAddressAttribute() {ErrorMessage = "Please provide a valid email address."})" />
                 </MudForm>
             </MudPaper>
-            <MudText Typo="Typo.caption">You will need to re-authenticate after updating.</MudText>
+            <MudText Typo="Typo.caption">You will need to confirm your new email address after updating.</MudText>
         </DialogContent>
         <DialogActions>
             <MudButton OnClick="()=> _updateEmailDialogVisible = false" Class="px-0">Cancel</MudButton>
@@ -259,6 +280,10 @@
     private InputType _passwordInput = InputType.Password;
     private string _passwordInputIcon = Icons.Material.Filled.VisibilityOff;
 
+    private bool _loading = false;
+    private MudBlazor.Severity _alertSeverity = Severity.Normal;
+    private string _alertMessage = string.Empty;
+
     private UserSettingsDisplayModel _localSettings = default!;
     public UserSettingsDisplayModel LocalSettings
     {
@@ -273,13 +298,6 @@
         set { _localCurrentUser = value; }
     }
 
-    private async Task SendTestEmail()
-    {
-        //await EmailSender.SendEmailFluent("andrew.creekmore@me.com", "testSubject", "testMessage");
-
-        await UserEndpoint.SendTestEmailToUser();
-    }
-
     protected override void OnInitialized()
     {
         base.OnInitialized();
@@ -287,12 +305,22 @@
         AppState.ShowContextSubMenu = false;
 
         dataRefreshTriggers = new List<string> { nameof(DataState.UserSettings), nameof(DataState.CurrentUser) };
+        LoadAlertMessage();
     }
 
     protected override void CustomAuthenticatedOnInit()
     {
         LoadLocalSettingsData();
         LoadLocalUserData();
+    }
+
+    private void LoadAlertMessage()
+    {
+        if (AppState.AlertMessage != null)
+        {
+            _alertMessage = AppState.AlertMessage;
+            _alertSeverity = AppState.AlertSeverity;
+        }
     }
 
     private void OpenUpdateEmailDialog()
@@ -303,29 +331,34 @@
 
     private async Task SubmitUpdatedEmail()
     {
+        AppState.ClearAlertMessage();
+
         await _updateEmailForm.Validate();
         if (_updateEmailForm.IsValid)
         {
             _updateEmailDialogVisible = false;
-            await OnValidEmailSubmit();
+            _loading = true; // indicate request processing
+            bool emailTaken = await UserEndpoint.CheckUserExists(_userModel);
+            if (emailTaken)
+            {
+                _loading = false;
+                AppState.AlertSeverity = Severity.Warning;
+                AppState.AlertMessage = "Email address already associated with an existing account.";
+                
+            }
+            else { await OnValidEmailSubmit(); }
         }
     }
 
     private async Task OnValidEmailSubmit()
     {
         errorMessage = string.Empty;
+        AppState.ClearAlertMessage();
 
         try
         {
-            await UserEndpoint.UpdateUser(_userModel);
-
-            // update auth state: log user out
-            await AuthService.LogoutAsync();
-
-            // set Alert notification on home page
-            AppState.AlertMessage = "Email successfully updated. Please log in again.";
-            AppState.AlertSeverity = Severity.Success;
-            NavManager.NavigateTo("/");
+            await UserEndpoint.RequestUpdateEmail(_userModel);
+            NavManager.NavigateTo($"/unconfirmedupdatedemail?email={_userModel.Email}");
         }
         catch (Exception ex)
         {
@@ -475,6 +508,22 @@
         {
             //Console.WriteLine("SettingsViewPage: returned true on HandleDataStateChanged!");
             LoadLocalSettingsData();
+        }
+
+        return AppState.CanRefresh;
+    }
+
+    protected override bool HandleAppStateChanged(string propertyName, AppState appState)
+    {
+        if (propertyName != nameof(AppState.AlertMessage))
+        {
+            return false;
+        }
+
+        if (AppState.CanRefresh)
+        {
+            //Console.WriteLine("SettingsViewPage: returned true on HandleAppStateChanged!");
+            LoadAlertMessage();
         }
 
         return AppState.CanRefresh;

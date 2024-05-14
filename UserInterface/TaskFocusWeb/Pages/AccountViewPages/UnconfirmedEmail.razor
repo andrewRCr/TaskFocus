@@ -1,0 +1,175 @@
+﻿@page "/unconfirmedemail"
+
+@inherits _ComponentBase
+@inject NavigationManager NavManager
+@inject IAuthenticationService AuthService
+@inject IUserEndpoint UserEndpoint
+@using Microsoft.AspNetCore.WebUtilities
+
+<PageTitle>TaskFocus</PageTitle>
+
+@if (!string.IsNullOrWhiteSpace(_errorMessage))
+{
+    <div class="alert alert-danger" role="alert">
+        @_errorMessage
+    </div>
+}
+
+@if (!_isConfirmed)
+{
+        <MudContainer MaxWidth="MaxWidth.ExtraSmall" Class="mt-6">
+
+        <MudText Typo="Typo.button" Color="Color.Primary">
+            Email Unconfirmed
+        </MudText>
+
+        <MudPaper Elevation="25" Class="mt-2">
+            <MudText Class="pt-4 px-4 text-center">
+                Please check your email for a confirmation link.
+            </MudText>
+
+            <MudText Class="pb-2 px-4 text-center">
+                <MudButton ButtonType="ButtonType.Button" Variant="Variant.Text" Color="Color.Primary" OnClick="ResendConfirmLink">Resend</MudButton>
+            </MudText>
+
+        </MudPaper>
+
+        @if (!string.IsNullOrEmpty(_alertMessage))
+        {
+            <MudAlert Class="mt-6" Elevation="25" Severity="_alertSeverity">@_alertMessage</MudAlert>
+        }
+
+    </MudContainer>
+}
+else
+{
+    <MudContainer>
+        @if (!string.IsNullOrEmpty(_alertMessage))
+        {
+            <MudAlert Class="mt-6" Elevation="25" Severity="_alertSeverity">@_alertMessage</MudAlert>
+        }
+
+    </MudContainer>
+}
+
+
+@code {
+    private bool _isConfirmed = false;
+    private ConfirmEmailModel _confirmEmailModel = new();
+
+    private MudBlazor.Severity _alertSeverity = Severity.Normal;
+    private string _alertMessage = string.Empty;
+    private string? _errorMessage;
+
+    protected override void OnInitialized()
+    {
+        var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
+
+        var queryStrings = QueryHelpers.ParseQuery(uri.Query);
+        if (queryStrings.TryGetValue("email", out var emailParam))
+        {
+            _confirmEmailModel.Email = emailParam;
+        }
+        if (queryStrings.TryGetValue("token", out var tokenParam))
+        {
+            _confirmEmailModel.Token = tokenParam;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        dataRefreshTriggers = new List<string> { nameof(DataState.CurrentUser) };
+        await CheckConfirmedStatus();
+        LoadAlertMessage();
+
+        if (!_isConfirmed)
+        {
+            if (!string.IsNullOrWhiteSpace(_confirmEmailModel.Token) && !string.IsNullOrWhiteSpace(_confirmEmailModel.Email))
+            {
+                try
+                {
+                    await UserEndpoint.ConfirmEmail(_confirmEmailModel);
+
+                    await CheckConfirmedStatus();
+                    if (_isConfirmed)
+                    {
+                        // set Alert notification for home page
+                        AppState.AlertMessage = "Email confirmed. Please log in to continue.";
+                        AppState.AlertSeverity = Severity.Success;
+                        NavManager.NavigateTo("/");
+                    }
+                    else
+                    {
+                        _errorMessage = "There was an error when attempting to confirm your email. Please send a new link.";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _errorMessage = ex.Message;
+                }
+            }
+        }
+        else
+        {
+            NavManager.NavigateTo("/");
+        }
+    }
+
+    private async Task ResendConfirmLink()
+    {
+        UserModel userModel = new UserModel { Email = _confirmEmailModel.Email };
+        await UserEndpoint.SendEmailConfirmationLink(userModel);
+
+        AppState.AlertMessage = "Email sent.";
+        AppState.AlertSeverity = Severity.Success;
+        LoadAlertMessage();
+    }
+
+    private async Task CheckConfirmedStatus()
+    {
+        if (string.IsNullOrWhiteSpace(_confirmEmailModel.Email)) { _isConfirmed = false; }
+        UserModel checkConfirmModel = new UserModel { Email = _confirmEmailModel.Email };
+        _isConfirmed = await UserEndpoint.CheckUserEmailConfirmed(checkConfirmModel);
+    }
+
+    private void LoadAlertMessage()
+    {
+        if (AppState.AlertMessage != null)
+        {
+            _alertMessage = AppState.AlertMessage;
+            _alertSeverity = AppState.AlertSeverity;
+        }
+    }
+
+    protected override bool HandleDataStateChanged(string propertyName, DataState dataState)
+    {
+        if (!dataRefreshTriggers.Contains(propertyName))
+        {
+            return false;
+        }
+
+        if (AppState.CanRefresh)
+        {
+            //Console.WriteLine("Home: returned true on HandleDataStateChanged!");
+            InvokeAsync(CheckConfirmedStatus);
+        }
+
+        return AppState.CanRefresh;
+    }
+
+    protected override bool HandleAppStateChanged(string propertyName, AppState appState)
+    {
+        if (propertyName != nameof(AppState.AlertMessage))
+        {
+            return false;
+        }
+
+        if (AppState.CanRefresh)
+        {
+            //Console.WriteLine("UnconfirmedEmail: returned true on HandleAppStateChanged!");
+            LoadAlertMessage();
+        }
+
+        return AppState.CanRefresh;
+    }
+}

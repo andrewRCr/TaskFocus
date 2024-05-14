@@ -14,7 +14,7 @@
                 <AuthWidget />
             </Authorized>
             <NotAuthorized>
-                <Login />
+                <LoginWidget />
             </NotAuthorized>
         </AuthorizeView>
     </MudAppBar>
@@ -44,6 +44,9 @@
 @code {
     [CascadingParameter]
     public Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    [Inject]
+    protected AppState AppState { get; private set; } = default!;
 
     [Inject]
     protected DataState DataState { get; private set; } = default!;
