@@ -22,5 +22,7 @@ namespace TaskFocusUI.Library.API
         Task UpdateUserSettings(UserSettingsModel updatedSettings);
         Task RequestUpdateEmail(UserModel updatedUserModel);
         Task ConfirmUpdatedEmail(ConfirmUpdatedEmailModel confirmUpdatedEmailModel);
+        Task<bool> CheckPasswordValid(CheckPasswordModel checkPasswordModel);
+        Task SendPasswordChangeSuccessEmail(UserModel userModel);
     }
 }

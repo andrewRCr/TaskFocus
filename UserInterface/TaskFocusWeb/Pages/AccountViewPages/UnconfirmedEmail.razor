@@ -15,45 +15,60 @@
     </div>
 }
 
-@if (!_isConfirmed)
-{
-        <MudContainer MaxWidth="MaxWidth.ExtraSmall" Class="mt-6">
+<MudLoading @bind-Loading="_loading">
 
-        <MudText Typo="Typo.button" Color="Color.Primary">
-            Email Unconfirmed
-        </MudText>
+    <LoaderContent>
+        <div class="mx-auto text-center mt-3">
+            <MudProgressLinear Class="mb-3" Color="Color.Primary" Indeterminate="true" />
+            <MudText Typo="Typo.button" Class="mt-3">Processing</MudText>
+        </div>
+    </LoaderContent>
 
-        <MudPaper Elevation="25" Class="mt-2">
-            <MudText Class="pt-4 px-4 text-center">
-                Please check your email for a confirmation link.
-            </MudText>
+    <ChildContent>
 
-            <MudText Class="pb-2 px-4 text-center">
-                <MudButton ButtonType="ButtonType.Button" Variant="Variant.Text" Color="Color.Primary" OnClick="ResendConfirmLink">Resend</MudButton>
-            </MudText>
-
-        </MudPaper>
-
-        @if (!string.IsNullOrEmpty(_alertMessage))
+        @if (!_isConfirmed)
         {
-            <MudAlert Class="mt-6" Elevation="25" Severity="_alertSeverity">@_alertMessage</MudAlert>
+                <MudContainer MaxWidth="MaxWidth.ExtraSmall" Class="mt-6">
+
+                <MudText Typo="Typo.button" Color="Color.Primary">
+                    Email Unconfirmed
+                </MudText>
+
+                <MudPaper Elevation="25" Class="mt-2">
+                    <MudText Class="pt-4 px-4 text-center">
+                        Please check your email for a confirmation link.
+                    </MudText>
+
+                    <MudText Class="pb-2 px-4 text-center">
+                        <MudButton ButtonType="ButtonType.Button" Variant="Variant.Text" Color="Color.Primary" OnClick="ResendConfirmLink">Resend</MudButton>
+                    </MudText>
+
+                </MudPaper>
+
+                @if (!string.IsNullOrEmpty(_alertMessage))
+                {
+                    <MudAlert Class="mt-6" Elevation="25" Severity="_alertSeverity">@_alertMessage</MudAlert>
+                }
+
+            </MudContainer>
+        }
+        else
+        {
+            <MudContainer>
+                @if (!string.IsNullOrEmpty(_alertMessage))
+                {
+                    <MudAlert Class="mt-6" Elevation="25" Severity="_alertSeverity">@_alertMessage</MudAlert>
+                }
+
+            </MudContainer>
         }
 
-    </MudContainer>
-}
-else
-{
-    <MudContainer>
-        @if (!string.IsNullOrEmpty(_alertMessage))
-        {
-            <MudAlert Class="mt-6" Elevation="25" Severity="_alertSeverity">@_alertMessage</MudAlert>
-        }
-
-    </MudContainer>
-}
+    </ChildContent>
+</MudLoading>
 
 
 @code {
+    private bool _loading = false;
     private bool _isConfirmed = false;
     private ConfirmEmailModel _confirmEmailModel = new();
 
@@ -94,8 +109,8 @@ else
                     if (_isConfirmed)
                     {
                         // set Alert notification for home page
-                        AppState.AlertMessage = "Email confirmed. Please log in to continue.";
                         AppState.AlertSeverity = Severity.Success;
+                        AppState.AlertMessage = "Email confirmed. Please log in to continue.";
                         NavManager.NavigateTo("/");
                     }
                     else
@@ -118,10 +133,13 @@ else
     private async Task ResendConfirmLink()
     {
         UserModel userModel = new UserModel { Email = _confirmEmailModel.Email };
-        await UserEndpoint.SendEmailConfirmationLink(userModel);
 
-        AppState.AlertMessage = "Email sent.";
+        _loading = true; // indicate request processing
+        await UserEndpoint.SendEmailConfirmationLink(userModel);
+        _loading = false;
+
         AppState.AlertSeverity = Severity.Success;
+        AppState.AlertMessage = "Email sent.";
         LoadAlertMessage();
     }
 

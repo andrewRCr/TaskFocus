@@ -1,13 +1,27 @@
 ﻿@inherits _ComponentBase
 
-
 @code {
+    protected MudBlazor.Severity _alertSeverity = Severity.Normal;
+    protected string _alertMessage = string.Empty;
+
+    protected List<string> appRefreshTriggers = new List<string> {
+        nameof(AppState.AlertMessage) };
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
         AppState.ShowProjectSubMenu = false;
         AppState.ShowContextSubMenu = false;
+        LoadAlertMessage();
+    }
+
+    protected void LoadAlertMessage()
+    {
+        if (AppState.AlertMessage != null)
+        {
+            _alertMessage = AppState.AlertMessage;
+            _alertSeverity = AppState.AlertSeverity;
+        }
     }
 
     public virtual bool ItemsSelector(TaskDisplayModel item, string dropzone)

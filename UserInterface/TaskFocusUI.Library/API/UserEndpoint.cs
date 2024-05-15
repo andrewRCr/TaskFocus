@@ -29,6 +29,18 @@ namespace TaskFocusUI.Library.API
             }
         }
 
+        public async Task SendPasswordChangeSuccessEmail(UserModel userModel)
+        {
+            using (HttpResponseMessage response = await _apiHelper.APIClient.PostAsJsonAsync("/api/user/SendPasswordChangeSuccessEmail", userModel))
+            {
+                if (response.IsSuccessStatusCode)
+                {
+                    // TODO - log successful call ?
+                }
+                else { throw new Exception(response.ReasonPhrase); }
+            }
+        }
+
         public async Task SendEmailConfirmationLink(UserModel userModel)
         {
             using (HttpResponseMessage response = await _apiHelper.APIClient.PostAsJsonAsync("/api/user/SendEmailConfirmationLink", userModel))
@@ -71,6 +83,22 @@ namespace TaskFocusUI.Library.API
             if (string.IsNullOrWhiteSpace(userModel.Email)) { return false; }
 
             using (HttpResponseMessage response = await _apiHelper.APIClient.PostAsJsonAsync("/api/user/CheckUserExists", userModel))
+            {
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsAsync<bool>();
+                    return result;
+                }
+                else { throw new Exception(response.ReasonPhrase); }
+            }
+        }
+
+        public async Task<bool> CheckPasswordValid(CheckPasswordModel checkPasswordModel)
+        {
+            if (string.IsNullOrWhiteSpace(checkPasswordModel.Email) || 
+                string.IsNullOrWhiteSpace(checkPasswordModel.Password)) { return false; }
+
+            using (HttpResponseMessage response = await _apiHelper.APIClient.PostAsJsonAsync("/api/user/CheckPasswordValid", checkPasswordModel))
             {
                 if (response.IsSuccessStatusCode)
                 {

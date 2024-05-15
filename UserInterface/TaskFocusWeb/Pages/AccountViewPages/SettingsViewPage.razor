@@ -137,8 +137,6 @@
                             Change password
                         </MudButton>
 
-                        <MudButton OnClick="()=>_loading = !_loading">Toggle loading</MudButton>
-
                     </MudContainer>
                 </MudTreeViewItem>
             </MudTreeView>
@@ -344,7 +342,7 @@
                 _loading = false;
                 AppState.AlertSeverity = Severity.Warning;
                 AppState.AlertMessage = "Email address already associated with an existing account.";
-                
+
             }
             else { await OnValidEmailSubmit(); }
         }
@@ -389,16 +387,32 @@
 
         try
         {
+            _loading = true; // indicate request processing
             await UserEndpoint.UpdatePassword(_authUserModel);
 
-            // update auth state: log user out
-            await AuthService.LogoutAsync();
+            CheckPasswordModel checkPasswordModel = new() { Email = _authUserModel.Email, Password = _authUserModel.Password };
+            bool success = await UserEndpoint.CheckPasswordValid(checkPasswordModel);
+            _loading = false;
 
-            // set Alert notification on home page
-            AppState.AlertMessage = "Password successfully updated. Please log in again.";
-            AppState.AlertSeverity = Severity.Success;
-            NavManager.NavigateTo("/");
+            if (success)
+            {
+                // update auth state: log user out
+                await AuthService.LogoutAsync();
 
+                // set Alert notification on home page
+                AppState.AlertSeverity = Severity.Success;
+                AppState.AlertMessage = "Password successfully updated. Please log in again.";
+                NavManager.NavigateTo("/");
+
+                // send email confirmation
+                UserModel user = new UserModel { Email = _authUserModel.Email };
+                await UserEndpoint.SendPasswordChangeSuccessEmail(user);
+            }
+            else
+            {
+                AppState.AlertSeverity = Severity.Error;
+                AppState.AlertMessage = "There was an error when attempting to change your password. Please try again.";
+            }
         }
         catch (Exception ex)
         {

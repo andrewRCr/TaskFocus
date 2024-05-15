@@ -13,65 +13,78 @@
     </div>
 }
 
+<MudLoading @bind-Loading="_loading">
+    <LoaderContent>
+        <div class="mx-auto text-center mt-3">
+            <MudProgressLinear Class="mb-3" Color="Color.Primary" Indeterminate="true" />
+            <MudText Typo="Typo.button" Class="mt-3">Processing</MudText>
+        </div>
+    </LoaderContent>
 
-@if (!_isAuthenticated)
-{
-    <MudContainer MaxWidth="MaxWidth.ExtraSmall" Class="mt-6">
+    <ChildContent>
 
-        <MudText Typo="Typo.button" Color="Color.Primary">
-            Not Authenticated
-        </MudText>
-
-        <MudPaper Elevation="25" Class="mt-2">
-            <MudText Class="pt-4 px-4 text-center">
-                Please log in to continue.
-            </MudText>
-
-            <MudText Class="pb-4 px-4 text-center">
-                New user? Click <MudLink Href="/register">here</MudLink> to register.
-            </MudText>
-
-        </MudPaper>
-
-        <MudText Class="mt-5 pb-2 px-4 text-center">
-            <MudLink Color="Color.Inherit" OnClick="ToggleForgotPasswordForm">Forgot password?</MudLink>
-        </MudText>
-
-        @if (_forgotPassword)
+        @if (!_isAuthenticated)
         {
-            <MudPaper Elevation="25" Class="mt-3 px-4">
+            <MudContainer MaxWidth="MaxWidth.ExtraSmall" Class="mt-6">
 
-                <MudForm @ref="_forgotPasswordForm" @bind-IsValid="@_success" @bind-Errors="@_errors" Model="_userModel">
-                    <MudTextField T="string"
-                                    @bind-Value="_userModel.Email"
-                                    Label="Email Address"
-                                    Style="width: 350px;"
-                                    Margin="Margin.Normal"
-                                    Validation="@(new EmailAddressAttribute() {ErrorMessage = "Please provide a valid email address."})"
-                                    Class="pa-2" />
+                <MudText Typo="Typo.button" Color="Color.Primary">
+                    Not Authenticated
+                </MudText>
 
-                    <MudText Class="pb-2 px-4 text-center">
-                        <MudButton Variant="Variant.Text"
-                                    Color="Color.Primary"
-                                    Disabled="@(!_success)"
-                                    OnClick="(() => SubmitForgotPasswordForm())">
-                            Send reset link
-                        </MudButton>
+                <MudPaper Elevation="25" Class="mt-2">
+                    <MudText Class="pt-4 px-4 text-center">
+                        Please log in to continue.
                     </MudText>
 
-                </MudForm>
-            </MudPaper>
+                    <MudText Class="pb-4 px-4 text-center">
+                        New user? Click <MudLink Href="/register">here</MudLink> to register.
+                    </MudText>
+
+                </MudPaper>
+
+                <MudText Class="mt-5 pb-2 px-4 text-center">
+                    <MudLink Color="Color.Inherit" OnClick="ToggleForgotPasswordForm">Forgot password?</MudLink>
+                </MudText>
+
+                @if (_forgotPassword)
+                {
+                    <MudPaper Elevation="25" Class="mt-3 px-4">
+
+                        <MudForm @ref="_forgotPasswordForm" @bind-IsValid="@_success" @bind-Errors="@_errors" Model="_userModel">
+                            <MudTextField T="string"
+                                            @bind-Value="_userModel.Email"
+                                            Label="Email Address"
+                                            Style="width: 350px;"
+                                            Margin="Margin.Normal"
+                                            Validation="@(new EmailAddressAttribute() {ErrorMessage = "Please provide a valid email address."})"
+                                            Class="pa-2" />
+
+                            <MudText Class="pb-2 px-4 text-center">
+                                <MudButton Variant="Variant.Text"
+                                            Color="Color.Primary"
+                                            Disabled="@(!_success)"
+                                            OnClick="(() => SubmitForgotPasswordForm())">
+                                    Send reset link
+                                </MudButton>
+                            </MudText>
+
+                        </MudForm>
+                    </MudPaper>
+                }
+
+                @if (!string.IsNullOrEmpty(_alertMessage))
+                {
+                    <MudAlert Class="mt-6" Elevation="25" Severity="_alertSeverity">@_alertMessage</MudAlert>
+                }
+
+            </MudContainer>
         }
 
-        @if (!string.IsNullOrEmpty(_alertMessage))
-        {
-            <MudAlert Class="mt-6" Elevation="25" Severity="_alertSeverity">@_alertMessage</MudAlert>
-        }
-
-    </MudContainer>
-}
+    </ChildContent>
+</MudLoading>
 
 @code {
+    private bool _loading = false;
     private bool _isAuthenticated = false;
     private bool _forgotPassword = false;
     private ForgotPasswordModel _userModel = new();
@@ -124,10 +137,12 @@
 
     private async Task SubmitForgotPasswordForm()
     {
+        _loading = true; // indicate request processing
         UserModel userModel = new() { Email = _userModel.Email };
         bool validUser = await UserEndpoint.CheckUserExists(userModel);
         if (!validUser)
         {
+            _loading = false;
             AppState.AlertSeverity = Severity.Warning;
             AppState.AlertMessage = "No matching user found.";
         }
@@ -145,8 +160,10 @@
     {
         try
         {
+            //_loading = true; // indicate request processing
             UserModel userModel = new() { Email = _userModel.Email };
             await UserEndpoint.SendPasswordResetEmail(userModel);
+            _loading = false;
 
             AppState.AlertSeverity = Severity.Success;
             AppState.AlertMessage = "Password reset email sent.";

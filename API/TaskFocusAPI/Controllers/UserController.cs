@@ -78,6 +78,19 @@ namespace TaskFocusAPI.Controllers
 
         [HttpPost]
         [AllowAnonymous]
+        public async Task<bool> CheckPasswordValid(CheckPasswordModel checkPasswordModel)
+        {
+            IdentityUser? identityUser = await _userManager.FindByEmailAsync(checkPasswordModel.Email);
+            if (identityUser != null) 
+            {
+                return await _userManager.CheckPasswordAsync(identityUser, checkPasswordModel.Password);
+            }
+
+            return false;
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
         public async Task<IActionResult> SendPasswordResetEmail(UserModel userModel)
         {
             IdentityUser? existingUser = await _userManager.FindByEmailAsync(userModel.Email);
@@ -140,14 +153,32 @@ namespace TaskFocusAPI.Controllers
                 }
                 else
                 {
-                    UserModel user = _userData.GetUserById(existingUser.Id).First();
-                    await _emailSender.SendEmailAsync(user, "Password changed", "Your TaskFocus password has been updated.");
-                    return Ok();
+                    return StatusCode(StatusCodes.Status200OK,
+                        new Response { Status = "Success", Message = "Password changed successfully." });
                 }
             }
 
             return StatusCode(StatusCodes.Status400BadRequest,
             new Response { Status = "Error", Message = "Could not reset password, please try again." });
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        public async Task<IActionResult> SendPasswordChangeSuccessEmail(UserModel userModel)
+        {
+            IdentityUser? identityUser = await _userManager.FindByEmailAsync(userModel.Email);
+            if (identityUser != null)
+            {
+                UserModel user = _userData.GetUserById(identityUser.Id).First();
+                await _emailSender.SendEmailAsync(user, "Password changed", "Your TaskFocus password has been successfully updated.");
+                return StatusCode(StatusCodes.Status200OK,
+                new Response { Status = "Success", Message = $"Password changed successfully email sent to {identityUser.Email}." });
+            }
+            else
+            {
+                return StatusCode(StatusCodes.Status400BadRequest,
+                new Response { Status = "Error", Message = "Could not send password changed success email, please try again." });
+            }
         }
 
         [HttpGet]
@@ -382,13 +413,7 @@ namespace TaskFocusAPI.Controllers
                     if (!string.IsNullOrEmpty(existingUser.UserName))
                     {
                         var token = await _userManager.GeneratePasswordResetTokenAsync(existingUser);
-                        var passwordChangeResult = await _userManager.ResetPasswordAsync(existingUser, token, updatedUserModel.Password);
-
-                        if (passwordChangeResult.Succeeded)
-                        {
-                            UserModel user = _userData.GetUserById(existingUser.Id).First();
-                            await _emailSender.SendEmailAsync(user, "Password changed", "Your TaskFocus password has been updated. ");
-                        }
+                        await _userManager.ResetPasswordAsync(existingUser, token, updatedUserModel.Password);
                     }
                 }
             }

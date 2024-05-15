@@ -49,6 +49,15 @@
     }
 </MudStack>
 
+<MudContainer MaxWidth="MaxWidth.ExtraSmall" Class="mt-6">
+
+    @if (!string.IsNullOrEmpty(_alertMessage))
+    {
+        <MudAlert Class="mt-6" Elevation="25" Severity="_alertSeverity">@_alertMessage</MudAlert>
+    }
+
+</MudContainer>
+
 @code {
     private string? _focusedContextIdStr = null;
 
@@ -71,7 +80,7 @@
 
     protected override bool HandleAppStateChanged(String propertyName, AppState appState)
     {
-        if (propertyName != nameof(AppState.FocusedContextIdStr))
+        if (propertyName != nameof(AppState.FocusedContextIdStr) && !appRefreshTriggers.Contains(propertyName))
         {
             return false;
         }
@@ -80,6 +89,7 @@
         {
             //Console.WriteLine("AllProjectsPage: returned true on HandleAppStateChanged!");
             _focusedContextIdStr = appState.FocusedContextIdStr;
+            LoadAlertMessage();
         }
 
         return AppState.CanRefresh;

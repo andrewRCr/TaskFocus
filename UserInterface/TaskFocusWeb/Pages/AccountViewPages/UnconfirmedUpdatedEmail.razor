@@ -15,18 +15,19 @@
     </div>
 }
 
-<MudContainer>
-    @if (!_emailUpdateHasBeenProcessed)
-    {
-        <MudLoading @bind-Loading="_loading">
-            <LoaderContent>
-                <div class="mx-auto text-center mt-3">
-                    <MudProgressLinear Class="mb-3" Color="Color.Primary" Indeterminate="true" />
-                    <MudText Typo="Typo.button" Class="mt-3">Processing</MudText>
-                </div>
-            </LoaderContent>
+<MudLoading @bind-Loading="_loading">
+    <LoaderContent>
+        <div class="mx-auto text-center mt-3">
+            <MudProgressLinear Class="mb-3" Color="Color.Primary" Indeterminate="true" />
+            <MudText Typo="Typo.button" Class="mt-3">Processing</MudText>
+        </div>
+    </LoaderContent>
 
-            <ChildContent>
+    <ChildContent>
+
+        <MudContainer>
+            @if (!_emailUpdateHasBeenProcessed)
+            {
                 <MudContainer MaxWidth="MaxWidth.ExtraSmall" Class="mt-6">
 
                     <MudText Typo="Typo.button" Color="Color.Primary">
@@ -50,21 +51,21 @@
                     }
 
                 </MudContainer>
-
-            </ChildContent>
-        </MudLoading>
-    }
-    else
-    {
-        <MudContainer>
-            @if (!string.IsNullOrEmpty(_alertMessage))
-            {
-                <MudAlert Class="mt-6" Elevation="25" Severity="_alertSeverity">@_alertMessage</MudAlert>
             }
+            else
+            {
+                <MudContainer>
+                    @if (!string.IsNullOrEmpty(_alertMessage))
+                    {
+                        <MudAlert Class="mt-6" Elevation="25" Severity="_alertSeverity">@_alertMessage</MudAlert>
+                    }
 
+                </MudContainer>
+            }
         </MudContainer>
-    }
-</MudContainer>
+
+    </ChildContent>
+</MudLoading>
 
 @code {
     private bool _emailUpdateHasBeenProcessed = false;

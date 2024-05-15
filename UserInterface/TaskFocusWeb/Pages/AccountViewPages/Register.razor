@@ -15,79 +15,94 @@
     </div>
 }
 
-<MudTreeView T="MudContainer" Width="100%">
-    <MudTreeViewItem T="MudContainer"
-                     Expanded="true"
-                     Icon="@Icons.Material.Filled.AccountCircle"
-                     Text="Create new account"
-                     TextTypo="Typo.button">
+<MudLoading @bind-Loading="_loading">
 
-        <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
+    <LoaderContent>
+        <div class="mx-auto text-center mt-3">
+            <MudProgressLinear Class="mb-3" Color="Color.Primary" Indeterminate="true" />
+            <MudText Typo="Typo.button" Class="mt-3">Processing</MudText>
+        </div>
+    </LoaderContent>
 
-            <MudForm @ref="_registerForm" @bind-IsValid="@_success" @bind-Errors="@_errors" Model="userModel" >
+    <ChildContent>
 
-                <MudTextField T="string"
-                              @bind-Value="userModel.FirstName"
-                              Label="First Name"
-                              Style="width: 350px;"
-                              Validation="@(new Func<string, IEnumerable<string>>(FirstNameValidator))" />
+    <MudTreeView T="MudContainer" Width="100%">
+        <MudTreeViewItem T="MudContainer"
+                         Expanded="true"
+                         Icon="@Icons.Material.Filled.AccountCircle"
+                         Text="Create new account"
+                         TextTypo="Typo.button">
 
-                <MudTextField T="string"
-                              @bind-Value="userModel.LastName"
-                              Label="Last Name"
-                              Style="width: 350px;"
-                              Validation="@(new Func<string, IEnumerable<string>>(LastNameValidator))"/>
+            <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
 
-                <MudTextField T="string"
-                              @bind-Value="userModel.Email"
-                              Label="Email address"
-                              Style="width: 350px;"
-                              Validation="@(new EmailAddressAttribute() {ErrorMessage = "Please provide a valid email address."})" />
+                <MudForm @ref="_registerForm" @bind-IsValid="@_success" @bind-Errors="@_errors" Model="userModel" >
 
-                <MudTextField T="string"
-                              Label="Password"
-                              @bind-Value="userModel.Password"
-                              @ref="_pwField1"
-                              Style="width: 350px;"
-                              InputType="@_passwordInput"
-                              Adornment="Adornment.End"
-                              AdornmentIcon="@_passwordInputIcon"
-                              OnAdornmentClick="ToggleShowPassword"
-                              AdornmentAriaLabel="Show Password"
-                              Validation="@(new Func<string, IEnumerable<string>>(PasswordStrength))" />
+                    <MudTextField T="string"
+                                  @bind-Value="userModel.FirstName"
+                                  Label="First Name"
+                                  Style="width: 350px;"
+                                  Validation="@(new Func<string, IEnumerable<string>>(FirstNameValidator))" />
 
-                <MudTextField T="string"
-                              Label="Confirm Password"
-                              @bind-Value="userModel.ConfirmPassword"
-                              InputType="@_passwordInput"
-                              Style="width: 350px;"
-                              Adornment="Adornment.End"
-                              AdornmentIcon="@_passwordInputIcon"
-                              OnAdornmentClick="ToggleShowPassword"
-                              AdornmentAriaLabel="Show Confirm Password"
-                              Validation="@(new Func<string, string?>(PasswordMatch))" />
+                    <MudTextField T="string"
+                                  @bind-Value="userModel.LastName"
+                                  Label="Last Name"
+                                  Style="width: 350px;"
+                                  Validation="@(new Func<string, IEnumerable<string>>(LastNameValidator))"/>
+
+                    <MudTextField T="string"
+                                  @bind-Value="userModel.Email"
+                                  Label="Email address"
+                                  Style="width: 350px;"
+                                  Validation="@(new EmailAddressAttribute() {ErrorMessage = "Please provide a valid email address."})" />
+
+                    <MudTextField T="string"
+                                  Label="Password"
+                                  @bind-Value="userModel.Password"
+                                  @ref="_pwField1"
+                                  Style="width: 350px;"
+                                  InputType="@_passwordInput"
+                                  Adornment="Adornment.End"
+                                  AdornmentIcon="@_passwordInputIcon"
+                                  OnAdornmentClick="ToggleShowPassword"
+                                  AdornmentAriaLabel="Show Password"
+                                  Validation="@(new Func<string, IEnumerable<string>>(PasswordStrength))" />
+
+                    <MudTextField T="string"
+                                  Label="Confirm Password"
+                                  @bind-Value="userModel.ConfirmPassword"
+                                  InputType="@_passwordInput"
+                                  Style="width: 350px;"
+                                  Adornment="Adornment.End"
+                                  AdornmentIcon="@_passwordInputIcon"
+                                  OnAdornmentClick="ToggleShowPassword"
+                                  AdornmentAriaLabel="Show Confirm Password"
+                                  Validation="@(new Func<string, string?>(PasswordMatch))" />
         
-                <MudButton Variant="Variant.Filled" 
-                           Color="Color.Primary" 
-                           Disabled="@(!_success)" 
-                           Class="ml-auto mt-6"
-                           OnClick="(() => SubmitRegisterForm())" >
-                    Register
-                </MudButton>
-                <MudButton Variant="Variant.Outlined"
-                           Color="Color.Inherit"
-                           DisableElevation="true"
-                           OnClick="@(()=>_registerForm.ResetAsync())"
-                           Class="mx-2 mt-6">
-                    Reset
-                </MudButton>
-            </MudForm>
+                    <MudButton Variant="Variant.Filled" 
+                               Color="Color.Primary" 
+                               Disabled="@(!_success)" 
+                               Class="ml-auto mt-6"
+                               OnClick="(() => SubmitRegisterForm())" >
+                        Register
+                    </MudButton>
+                    <MudButton Variant="Variant.Outlined"
+                               Color="Color.Inherit"
+                               DisableElevation="true"
+                               OnClick="@(()=>_registerForm.ResetAsync())"
+                               Class="mx-2 mt-6">
+                        Reset
+                    </MudButton>
+                </MudForm>
 
-        </MudContainer>
-    </MudTreeViewItem>
-</MudTreeView>
+            </MudContainer>
+        </MudTreeViewItem>
+    </MudTreeView>
+
+    </ChildContent>
+</MudLoading>
 
 @code {
+    private bool _loading = false;
     CreateUserModel userModel = new();
     string? errorMessage;
 
@@ -115,6 +130,8 @@
 
         try
         {
+            // indicate processing to user
+            _loading = true;
             await UserEndpoint.CreateUser(userModel);
 
             UserModel createdUserModel = new() { Email = userModel.Email };
@@ -128,6 +145,7 @@
             }
             else
             {
+                _loading = false;
                 errorMessage = "There was an error when attempting to register.";
             }
         }
