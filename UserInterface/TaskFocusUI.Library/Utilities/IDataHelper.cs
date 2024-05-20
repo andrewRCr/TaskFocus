@@ -16,6 +16,10 @@ namespace TaskFocusUI.Library.Utilities
         bool HasTaskContextNameChanged(TaskModel frontEndTask);
         bool HasTaskDataChanged(TaskModel frontEndTask);
         bool HasTaskProjectNameChanged(TaskModel frontEndTask);
+        bool IsNewContextNameUnique(string proposedContextName);
+        bool IsNewProjectNameUnique(string proposedProjectName);
         bool IsTaskDueOrOverDue(TaskModel frontEndTask);
+        bool IsUpdatedContextNameUnique(ContextModel updatedFrontEndContext);
+        bool IsUpdatedProjectNameUnique(ProjectModel updatedFrontEndProject);
     }
 }

@@ -71,6 +71,33 @@ namespace TaskFocusUI.Library.Utilities
             return !IsDataEqual(frontEndProject, projectLastFetch);
         }
 
+        public bool IsNewProjectNameUnique(string proposedProjectName)
+        {
+            foreach (ProjectModel project in ProjectsLastFetch)
+            {
+                if (project.ProjectName.ToLower() == proposedProjectName.ToLower())
+                {
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+
+        public bool IsUpdatedProjectNameUnique(ProjectModel updatedFrontEndProject)
+        {
+            foreach (ProjectModel project in ProjectsLastFetch)
+            {
+                if (project.Id == updatedFrontEndProject.Id) { continue; }
+                if (project.ProjectName.ToLower() == updatedFrontEndProject.ProjectName.ToLower())
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         public bool HasContextDataChanged(ContextModel frontEndContext)
         {
             ContextModel contextLastFetch = ContextsLastFetch.Find(x => x.Id == frontEndContext.Id);
@@ -81,6 +108,34 @@ namespace TaskFocusUI.Library.Utilities
             }
 
             return !IsDataEqual(frontEndContext, contextLastFetch);
+        }
+
+
+        public bool IsNewContextNameUnique(string proposedContextName)
+        {
+            foreach (ContextModel context in ContextsLastFetch)
+            {
+                if (context.ContextName.ToLower() == proposedContextName.ToLower())
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public bool IsUpdatedContextNameUnique(ContextModel updatedFrontEndContext)
+        {
+            foreach (ContextModel context in ContextsLastFetch)
+            {
+                if (context.Id == updatedFrontEndContext.Id) { continue; }
+                if (context.ContextName.ToLower() == updatedFrontEndContext.ContextName.ToLower())
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         public bool HasSettingsDataChanged(UserSettingsModel frontEndSettings)

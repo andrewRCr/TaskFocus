@@ -186,6 +186,12 @@ namespace TaskFocusWeb
 
             if (_dataHelper.HasProjectDataChanged(project))
             {
+                if (!_dataHelper.IsUpdatedProjectNameUnique(project)) 
+                {
+                    _logger.LogError("Unable to update project: project names must be unique.");
+                    return; 
+                }
+
                 // lock
                 if (Interlocked.Increment(ref _projectUpdateEntered) != 1) { return; }
 
@@ -205,6 +211,12 @@ namespace TaskFocusWeb
 
             if (_dataHelper.HasContextDataChanged(context))
             {
+                if (!_dataHelper.IsUpdatedContextNameUnique(context))
+                {
+                    _logger.LogError("Unable to update context: context names must be unique.");
+                    return;
+                }
+
                 // lock
                 if (Interlocked.Increment(ref _contextUpdateEntered) != 1) { return; }
 
@@ -341,8 +353,8 @@ namespace TaskFocusWeb
             }
             else // has new assigned project
             {
-                // TODO: need to enforce uniqueness of the projectName property - casing, etc; something. ensure these will match!
-
+                // lookup ProjectId by projectName and assign
+                // note: unique project names are enforced on add/update
                 ProjectDisplayModel? FindAssignedProject()
                 {
                     List<ProjectDisplayModel> userProjects = _dataState.Projects!.ToList();
@@ -394,8 +406,7 @@ namespace TaskFocusWeb
             else // has new assigned context
             {
                 // lookup ContextId by contextName and assign
-                // TODO: need to enforce uniqueness of the contextName property - casing, etc; something. ensure these will match!
-
+                // note: unique context names are enforced on add/update
                 ContextDisplayModel? FindAssignedContext()
                 {
                     List<ContextDisplayModel> userContexts = _dataState.Contexts!.ToList();
@@ -428,6 +439,12 @@ namespace TaskFocusWeb
         public async Task AddProject(ProjectModel newProject)
         {
             if (string.IsNullOrWhiteSpace(newProject.ProjectName)) { return; }
+
+            if (!_dataHelper.IsNewProjectNameUnique(newProject.ProjectName))
+            {
+                _logger.LogError("Unable to create project: project names must be unique.");
+                return;
+            }
 
             // determine OrderIndex for project
             newProject.OrderIndex = _dataState.Projects!.Count > 0 ? _dataState.Projects.Count : 0;
@@ -467,6 +484,13 @@ namespace TaskFocusWeb
         public async Task AddContext(ContextModel newContext)
         {
             if (string.IsNullOrWhiteSpace(newContext.ContextName)) { return; }
+
+            if (!_dataHelper.IsNewContextNameUnique(newContext.ContextName))
+            {
+                _logger.LogError("Unable to create context: context names must be unique.");
+                return;
+            }
+
 
             // determine OrderIndex for context
             newContext.OrderIndex = _dataState.Contexts!.Count > 0 ? _dataState.Contexts.Count : 0;
