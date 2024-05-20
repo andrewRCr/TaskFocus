@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -11,10 +12,24 @@ namespace TaskFocusUI.Library.API
     public class UserEndpoint : IUserEndpoint
     {
         private readonly IAPIHelper _apiHelper;
+        private readonly ILogger<UserEndpoint> _logger;
 
-        public UserEndpoint(IAPIHelper apiHelper)
+        public UserEndpoint(IAPIHelper apiHelper, ILogger<UserEndpoint> logger = null)
         {
             _apiHelper = apiHelper;
+            _logger = logger;
+        }
+
+        public async Task SendTestEmailToUser()
+        {
+            using (HttpResponseMessage response = await _apiHelper.APIClient.GetAsync("/api/user/SendTestEmailToUser"))
+            {
+                if (response.IsSuccessStatusCode)
+                {
+                    _logger?.LogInformation("API: Test email sent to default dev email address.");
+                }
+                else { throw new Exception(response.ReasonPhrase); }
+            }
         }
 
         public async Task SendPasswordResetEmail(UserModel userModel)
@@ -23,7 +38,7 @@ namespace TaskFocusUI.Library.API
             {
                 if (response.IsSuccessStatusCode)
                 {
-                    // TODO - log successful call ?
+                    _logger?.LogInformation($"API: Password reset email succesfully sent to {userModel.Email}.");
                 }
                 else { throw new Exception(response.ReasonPhrase); }
             }
@@ -35,7 +50,7 @@ namespace TaskFocusUI.Library.API
             {
                 if (response.IsSuccessStatusCode)
                 {
-                    // TODO - log successful call ?
+                    _logger?.LogInformation($"API: Password changed success confirm email succesfully sent to {userModel.Email}.");
                 }
                 else { throw new Exception(response.ReasonPhrase); }
             }
@@ -47,19 +62,7 @@ namespace TaskFocusUI.Library.API
             {
                 if (response.IsSuccessStatusCode)
                 {
-                    // TODO - log successful call ?
-                }
-                else { throw new Exception(response.ReasonPhrase); }
-            }
-        }
-
-        public async Task SendTestEmailToUser()
-        {
-            using (HttpResponseMessage response = await _apiHelper.APIClient.GetAsync("/api/user/SendTestEmailToUser"))
-            {
-                if (response.IsSuccessStatusCode)
-                {
-                    // TODO - log successful call ?
+                    _logger?.LogInformation($"API: Account confirmation link email succesfully sent to {userModel.Email}.");
                 }
                 else { throw new Exception(response.ReasonPhrase); }
             }
@@ -154,7 +157,7 @@ namespace TaskFocusUI.Library.API
             {
                 if (response.IsSuccessStatusCode)
                 {
-                    // TODO - log successful update call ?
+                    _logger?.LogInformation("API: User UpdateUserSettings request processed successfully.");
                 }
                 else { throw new Exception(response.ReasonPhrase); }
             }
@@ -171,10 +174,11 @@ namespace TaskFocusUI.Library.API
 
             using (HttpResponseMessage response = await _apiHelper.APIClient.PostAsJsonAsync("/api/User/Register", data))
             {
-                if (!response.IsSuccessStatusCode)
+                if (response.IsSuccessStatusCode)
                 {
-                    throw new Exception(response.ReasonPhrase);
+                    _logger?.LogInformation($"API: User {userModel.Email} created successfully.");
                 }
+                else { throw new Exception(response.ReasonPhrase); }
             }
         }
 
@@ -193,7 +197,7 @@ namespace TaskFocusUI.Library.API
             {
                 if (response.IsSuccessStatusCode)
                 {
-                    // TODO - log successful update call ?
+                    _logger?.LogInformation($"API: User name updated to {updatedUserModel.FirstName} {updatedUserModel.LastName} successfully.");
                 }
                 else { throw new Exception(response.ReasonPhrase); }
             }
@@ -214,7 +218,7 @@ namespace TaskFocusUI.Library.API
             {
                 if (response.IsSuccessStatusCode)
                 {
-                    // TODO - log successful update call ?
+                    _logger?.LogInformation($"API: User RequestUpdateEmail call processed successfully.");
                 }
                 else { throw new Exception(response.ReasonPhrase); }
             }
@@ -226,7 +230,7 @@ namespace TaskFocusUI.Library.API
             {
                 if (response.IsSuccessStatusCode)
                 {
-                    // TODO - log successful update call ?
+                    _logger?.LogInformation("API: User UpdatePassword request processed successfully.");
                 }
                 else { throw new Exception(response.ReasonPhrase); }
             }
@@ -238,7 +242,7 @@ namespace TaskFocusUI.Library.API
             {
                 if (response.IsSuccessStatusCode)
                 {
-                    // TODO - log successful update call ?
+                    _logger?.LogInformation("API: User ResetPassword request processed successfully.");
                 }
                 else { throw new Exception(response.ReasonPhrase); }
             }
@@ -250,7 +254,7 @@ namespace TaskFocusUI.Library.API
             {
                 if (response.IsSuccessStatusCode)
                 {
-                    // TODO - log successful update call ?
+                    _logger?.LogInformation("API: User ConfirmEmail request processed successfully.");
                 }
                 else { throw new Exception(response.ReasonPhrase); }
             }
@@ -262,7 +266,7 @@ namespace TaskFocusUI.Library.API
             {
                 if (response.IsSuccessStatusCode)
                 {
-                    // TODO - log successful update call ?
+                    _logger?.LogInformation("API: User ConfirmUpdatedEmail request processed successfully.");
                 }
                 else { throw new Exception(response.ReasonPhrase); }
             }

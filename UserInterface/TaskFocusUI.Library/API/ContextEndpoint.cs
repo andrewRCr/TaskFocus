@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -11,10 +12,12 @@ namespace TaskFocusUI.Library.API
     public class ContextEndpoint : IContextEndpoint
     {
         private readonly IAPIHelper _apiHelper;
+        private readonly ILogger<ContextEndpoint> _logger;
 
-        public ContextEndpoint(IAPIHelper apiHelper)
+        public ContextEndpoint(IAPIHelper apiHelper, ILogger<ContextEndpoint> logger = null)
         {
             _apiHelper = apiHelper;
+            _logger = logger;
         }
 
         public async Task<ContextModel> GetContextById(int contextId)
@@ -55,7 +58,7 @@ namespace TaskFocusUI.Library.API
             {
                 if (response.IsSuccessStatusCode)
                 {
-                    // TODO - log successful insert call ?
+                    _logger?.LogInformation("API: AddContext request processed successfully.");
                 }
                 else { throw new Exception(response.ReasonPhrase); }
             }
@@ -67,7 +70,7 @@ namespace TaskFocusUI.Library.API
             {
                 if (response.IsSuccessStatusCode)
                 {
-                    // TODO - log successful update call ?
+                    _logger?.LogInformation("API: UpdateContext request processed successfully.");
                 }
                 else { throw new Exception(response.ReasonPhrase); }
             }
@@ -87,7 +90,7 @@ namespace TaskFocusUI.Library.API
             {
                 if (response.IsSuccessStatusCode)
                 {
-                    // TODO - log successful delete call ?
+                    _logger?.LogInformation("API: DeleteContext request processed successfully.");
                 }
                 else { throw new Exception(response.ReasonPhrase); }
             }

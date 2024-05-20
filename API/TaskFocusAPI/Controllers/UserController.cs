@@ -45,8 +45,8 @@ namespace TaskFocusAPI.Controllers
         [HttpGet]
         public async Task SendTestEmailToUser()
         {
-            string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            UserModel currentUser = _userData.GetUserById(userId).First();
+            //string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            //UserModel currentUser = _userData.GetUserById(userId).First();
 
             UserModel testUser = new();
             testUser.FirstName = "TestFirst";
@@ -257,7 +257,7 @@ namespace TaskFocusAPI.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Register(UserRegistrationModel user)
         {
-            if (ModelState.IsValid) // TODO: implement validation!
+            if (ModelState.IsValid)
             {
                 var existingUser = await _userManager.FindByEmailAsync(user.Email);
                 if (existingUser == null)

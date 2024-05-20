@@ -34,18 +34,6 @@ namespace TaskFocusWeb
             }
         }
 
-        private bool _loading = false;
-        public bool Loading
-        {
-            get { return _loading; }
-            set
-            {
-                //Console.WriteLine($"AppState: Loading changed to {value}!");
-                _loading = value;
-                AppStateChanged?.Invoke(nameof(Loading), this);
-            }
-        }
-
         private bool _canRefresh = true;
         public bool CanRefresh
         {

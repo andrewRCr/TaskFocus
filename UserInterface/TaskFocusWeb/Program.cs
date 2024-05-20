@@ -3,18 +3,15 @@ using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using MudBlazor;
-//using MudBlazor.Extensions;
 using MudExtensions.Services;
 using MudBlazor.Services;
 using TaskFocusUI.Library.API;
+using TaskFocusUI.Library.Logging;
 using TaskFocusUI.Library.Models;
 using TaskFocusUI.Library.Utilities;
 using TaskFocusWeb.Authentication;
-using TaskFocusWeb.Models;
 
 namespace TaskFocusWeb
 {
@@ -26,13 +23,21 @@ namespace TaskFocusWeb
             builder.RootComponents.Add<App>("#app");
             builder.RootComponents.Add<HeadOutlet>("head::after");
 
-            // dependency injection
+            // configure logging
+            var loggerConfig = new CustomLoggerConfiguration()
+            {
+                ConsoleMinLogLevel = LogLevel.Information,
+                InMemoryMinLogLevel = LogLevel.Warning
+            };
+            var memoryLog = new InMemoryLog();
+            builder.Services.AddSingleton(memoryLog);
+            builder.Logging.AddProvider(new CustomLoggerProvider(loggerConfig, memoryLog));
 
+            // dependency injection
             builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
             builder.Services.AddBlazoredLocalStorage();
             builder.Services.AddAuthorizationCore();
             builder.Services.AddScoped<AuthenticationStateProvider, AuthStateProvider>();
-
             builder.Services.AddSingleton<IAPIHelper, APIHelper>();
             builder.Services.AddSingleton<ILoggedInUserModel, LoggedInUserModel>();
             builder.Services.AddTransient<IUserEndpoint, UserEndpoint>();

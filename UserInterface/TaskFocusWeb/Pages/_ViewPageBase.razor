@@ -1,0 +1,26 @@
+﻿@inherits _ComponentBase
+
+@code {
+    protected MudBlazor.Severity _alertSeverity = Severity.Normal;
+    protected string _alertMessage = string.Empty;
+
+    protected List<string> appRefreshTriggers = new List<string> {
+        nameof(AppState.AlertMessage), nameof(AppState.ErrorMessage) };
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        AppState.ShowProjectSubMenu = false;
+        AppState.ShowContextSubMenu = false;
+        LoadAnyAppMessages();
+    }
+
+    protected void LoadAnyAppMessages()
+    {
+        if (AppState.AlertMessage != null)
+        {
+            _alertMessage = AppState.AlertMessage;
+            _alertSeverity = AppState.AlertSeverity;
+        }
+    }
+}

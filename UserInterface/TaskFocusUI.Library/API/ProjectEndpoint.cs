@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,10 +14,12 @@ namespace TaskFocusUI.Library.API
     public class ProjectEndpoint : IProjectEndpoint
     {
         private readonly IAPIHelper _apiHelper;
+        private readonly ILogger<ProjectEndpoint> _logger;
 
-        public ProjectEndpoint(IAPIHelper apiHelper)
+        public ProjectEndpoint(IAPIHelper apiHelper, ILogger<ProjectEndpoint> logger = null)
         {
             _apiHelper = apiHelper;
+            _logger = logger;
         }
 
         public async Task<ProjectModel> GetProjectById(int projectId)
@@ -57,7 +60,7 @@ namespace TaskFocusUI.Library.API
             {
                 if (response.IsSuccessStatusCode)
                 {
-                    // TODO - log successful insert call ?
+                    _logger?.LogInformation("API: AddProject request processed successfully.");
                 }
                 else { throw new Exception(response.ReasonPhrase); }
             }
@@ -69,7 +72,7 @@ namespace TaskFocusUI.Library.API
             {
                 if (response.IsSuccessStatusCode)
                 {
-                    // TODO - log successful update call ?
+                    _logger?.LogInformation("API: UpdateProject request processed successfully.");
                 }
                 else { throw new Exception(response.ReasonPhrase); }
             }
@@ -89,7 +92,7 @@ namespace TaskFocusUI.Library.API
             {
                 if (response.IsSuccessStatusCode)
                 {
-                    // TODO - log successful delete call ?
+                    _logger?.LogInformation("API: DeleteProject request processed successfully.");
                 }
                 else { throw new Exception(response.ReasonPhrase); }
             }

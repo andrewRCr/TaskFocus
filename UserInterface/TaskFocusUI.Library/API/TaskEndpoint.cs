@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -14,10 +15,12 @@ namespace TaskFocusUI.Library.API
     public class TaskEndpoint : ITaskEndpoint
     {
         private readonly IAPIHelper _apiHelper;
+        private readonly ILogger<TaskEndpoint> _logger;
 
-        public TaskEndpoint(IAPIHelper apiHelper)
+        public TaskEndpoint(IAPIHelper apiHelper, ILogger<TaskEndpoint> logger = null)
         {
             _apiHelper = apiHelper;
+            _logger = logger;
         }
 
         public async Task<TaskModel> GetTaskById(int taskId)
@@ -72,7 +75,7 @@ namespace TaskFocusUI.Library.API
             {
                 if (response.IsSuccessStatusCode)
                 {
-                    // TODO - log successful insert call ?
+                    _logger?.LogInformation("API: AddTask request processed successfully.");
                 }
                 else { throw new Exception(response.ReasonPhrase); }
             }
@@ -84,7 +87,7 @@ namespace TaskFocusUI.Library.API
             {
                 if (response.IsSuccessStatusCode)
                 {
-                    // TODO - log successful update call ?
+                    _logger?.LogInformation("API: UpdateTask request processed successfully.");
                 }
                 else { throw new Exception(response.ReasonPhrase); }
             }
@@ -104,7 +107,7 @@ namespace TaskFocusUI.Library.API
             {
                 if (response.IsSuccessStatusCode)
                 {
-                    // TODO - log successful delete call ?
+                    _logger?.LogInformation("API: DeleteTask request processed successfully.");
                 }
                 else { throw new Exception(response.ReasonPhrase); }
             }
