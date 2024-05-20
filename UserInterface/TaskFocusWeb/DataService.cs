@@ -1,6 +1,4 @@
 ﻿using AutoMapper;
-using System;
-using System.Threading.Tasks;
 using TaskFocusUI.Library.API;
 using TaskFocusUI.Library.Models;
 using TaskFocusUI.Library.Utilities;
@@ -10,18 +8,25 @@ namespace TaskFocusWeb
     public class DataService : IDataService
     {
         private IAPIHelper _apiHelper;
-        ITaskEndpoint _taskEndpoint;
-        IProjectEndpoint _projectEndpoint;
-        IContextEndpoint _contextEndpoint;
-        IUserEndpoint _userEndpoint;
-        IMapper _mapper;
-        IDataHelper _dataHelper;
-        DataState _dataState;
+        private ILogger<DataService> _logger;
+        private ITaskEndpoint _taskEndpoint;
+        private IProjectEndpoint _projectEndpoint;
+        private IContextEndpoint _contextEndpoint;
+        private IUserEndpoint _userEndpoint;
+        private IMapper _mapper;
+        private IDataHelper _dataHelper;
+        private DataState _dataState;
 
-        public DataService(IAPIHelper apiHelper, ITaskEndpoint taskEndpoint, IProjectEndpoint projectEndpoint,
+        private int _taskUpdateEntered = 0;
+        private int _projectUpdateEntered = 0;
+        private int _contextUpdateEntered = 0;
+        private int _settingsUpdateEntered = 0;
+
+        public DataService(IAPIHelper apiHelper, ILogger<DataService> logger, ITaskEndpoint taskEndpoint, IProjectEndpoint projectEndpoint,
             IContextEndpoint contextEndpoint, IUserEndpoint userEndpoint, IMapper mapper, IDataHelper dataHelper, DataState dataState)
         {
             _apiHelper = apiHelper;
+            _logger = logger;
             _taskEndpoint = taskEndpoint;
             _projectEndpoint = projectEndpoint;
             _contextEndpoint = contextEndpoint;
@@ -33,12 +38,20 @@ namespace TaskFocusWeb
 
         public async Task FetchAllRemoteData()
         {
-            Console.WriteLine("DataService: FetchAllRemoteData called");
-            await FetchRemoteUserData();
-            await FetchRemoteSettingsData();
-            await FetchRemoteTaskData();
-            await FetchRemoteProjectData();
-            await FetchRemoteContextData();
+            try
+            {
+                await FetchRemoteUserData();
+                await FetchRemoteSettingsData();
+                await FetchRemoteTaskData();
+                await FetchRemoteProjectData();
+                await FetchRemoteContextData();
+                _logger.LogInformation("FetchAllRemoteData call processed successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                throw;
+            }
         }
 
         public virtual async Task FetchRemoteTaskData()
@@ -53,6 +66,8 @@ namespace TaskFocusWeb
         public async Task FetchRemoteProjectData()
         {
             var projectList = await _projectEndpoint.GetAllProjectsForUser();
+            _dataHelper.ProjectsLastFetch = projectList; // store for comparison
+
             var displayProjectList = _mapper.Map<List<ProjectDisplayModel>>(projectList);
             _dataState.Projects = new List<ProjectDisplayModel>(displayProjectList);
         }
@@ -60,6 +75,8 @@ namespace TaskFocusWeb
         public async Task FetchRemoteContextData()
         {
             var contextList = await _contextEndpoint.GetAllContextsForUser();
+            _dataHelper.ContextsLastFetch = contextList; // store for comparison
+
             var displayContextList = _mapper.Map<List<ContextDisplayModel>>(contextList);
             _dataState.Contexts = new List<ContextDisplayModel>(displayContextList);
         }
@@ -67,6 +84,8 @@ namespace TaskFocusWeb
         public async Task FetchRemoteSettingsData()
         {
             var userSettings = await _userEndpoint.GetCurrentUserSettings();
+            _dataHelper.UserSettingsLastFetch = userSettings; // store for comparison
+
             var displayUserSettings = _mapper.Map<UserSettingsDisplayModel>(userSettings);
             _dataState.UserSettings = displayUserSettings;
         }
@@ -90,6 +109,9 @@ namespace TaskFocusWeb
 
             if (_dataHelper.HasTaskDataChanged(task) || forceUpdate)
             {
+                // lock
+                if (Interlocked.Increment(ref _taskUpdateEntered) != 1) { return; }
+
                 if (_dataHelper.HasTaskProjectNameChanged(task))
                 {
                     await HandleTaskProjectChanged(task);
@@ -133,9 +155,7 @@ namespace TaskFocusWeb
                 if (task.TodayIndex == null && (task.Starred || _dataHelper.IsTaskDueOrOverDue(task)) &&
                     !(task.Completed && task.DateCompleted != DateTime.Now.Date))
                 {
-                    //if (task.Completed && task.DateCompleted != DateTime.Now.Date) { return; }
-
-                    Console.WriteLine($"passed TodayIndex == null check! TodayIndex value: {task.TodayIndex}");
+                    //Console.WriteLine($"passed TodayIndex == null check! TodayIndex value: {task.TodayIndex}");
 
                     List<TaskDisplayModel> starredTasks = _dataState.Tasks!
                         .Where(x => x.Starred).ToList();
@@ -147,13 +167,14 @@ namespace TaskFocusWeb
                     todayTasks = todayTasks.DistinctBy(x => x.Id).ToList();
 
                     task.TodayIndex = todayTasks.Count > 1 ? (todayTasks.Count - 1) : 0;
-                    Console.WriteLine($"{task.TaskName}: new TodayIndex is {task.TodayIndex}");
+                    //Console.WriteLine($"{task.TaskName}: new TodayIndex is {task.TodayIndex}");
                 }
 
                 await _taskEndpoint.UpdateTask(task);
+                await FetchAllRemoteData();
 
-                // refresh Tasks + repopulate TasksLastFetch
-                await FetchRemoteTaskData();
+                // unlock
+                Interlocked.Exchange(ref _taskUpdateEntered, 0);
             }
         }
 
@@ -163,20 +184,16 @@ namespace TaskFocusWeb
             // map from ProjectDisplayModel to ProjectModel
             ProjectModel project = _mapper.Map<ProjectModel>(displayProject);
 
-            if (true) // TODO
+            if (_dataHelper.HasProjectDataChanged(project))
             {
-                // if (DataHelper.HasTaskContextNameChanged(task))
-                // {
-                //     await AssignContextIdFromContextName(task);
-                // }
-
-
+                // lock
+                if (Interlocked.Increment(ref _projectUpdateEntered) != 1) { return; }
 
                 await _projectEndpoint.UpdateProject(project);
+                await FetchAllRemoteData();
 
-                // refresh data + repopulate TasksLastFetch
-                await FetchRemoteTaskData();
-                await FetchRemoteProjectData();
+                // unlock
+                Interlocked.Exchange(ref _projectUpdateEntered, 0);
             }
         }
 
@@ -186,19 +203,16 @@ namespace TaskFocusWeb
             // map from ContextDisplayModel to ContextModel
             ContextModel context = _mapper.Map<ContextModel>(displayContext);
 
-            if (true) // TODO
+            if (_dataHelper.HasContextDataChanged(context))
             {
-                // if (DataHelper.HasTaskContextNameChanged(task))
-                // {
-                //     await AssignContextIdFromContextName(task);
-                // }
-
-
+                // lock
+                if (Interlocked.Increment(ref _contextUpdateEntered) != 1) { return; }
 
                 await _contextEndpoint.UpdateContext(context);
-
-                // refresh data 
                 await FetchAllRemoteData();
+
+                // unlock
+                Interlocked.Exchange(ref _contextUpdateEntered, 0);
             }
         }
 
@@ -208,12 +222,16 @@ namespace TaskFocusWeb
             // re-map
             UserSettingsModel settings = _mapper.Map<UserSettingsModel>(displaySettings);
 
-            if (true) // datahelper.hasSettingsDataChanged, etc - TODO
+            if (_dataHelper.HasSettingsDataChanged(settings))
             {
-                await _userEndpoint.UpdateUserSettings(settings);
+                // lock
+                if (Interlocked.Increment(ref _settingsUpdateEntered) != 1) { return; }
 
-                // refresh data 
+                await _userEndpoint.UpdateUserSettings(settings);
                 await FetchAllRemoteData();
+
+                // unlock
+                Interlocked.Exchange(ref _settingsUpdateEntered, 0);
             }
         }
 
@@ -295,10 +313,6 @@ namespace TaskFocusWeb
                             if (shiftNeeded) { previousCollectionTask.TodayIndex--; }
                         }
                     }
-                    else
-                    {
-                        Console.WriteLine("criteria not met!");
-                    }
                     break;
 
                 default:
@@ -322,7 +336,7 @@ namespace TaskFocusWeb
                         .Where(x => x.ProjectId == null || x.ContextId == null).ToList();
 
                     task.InboxIndex = inboxTasks.Count > 0 ? inboxTasks.Count : 0;
-                    Console.WriteLine($"{task.TaskName}: new InboxIndex is {task.InboxIndex}");
+                    //Console.WriteLine($"{task.TaskName}: new InboxIndex is {task.InboxIndex}");
                 }
             }
             else // has new assigned project
@@ -351,7 +365,7 @@ namespace TaskFocusWeb
                         .Where(x => x.ProjectId == assignedProject.Id).ToList();
 
                     task.ProjectIndex = projectTasks.Count > 0 ? projectTasks.Count : 0;
-                    Console.WriteLine($"{task.TaskName}: new ProjectIndex is {task.ProjectIndex}");
+                    //Console.WriteLine($"{task.TaskName}: new ProjectIndex is {task.ProjectIndex}");
                 }
 
                 task.ProjectId = assignedProject!.Id;
@@ -374,7 +388,7 @@ namespace TaskFocusWeb
                         .Where(x => x.ProjectId == null || x.ContextId == null).ToList();
 
                     task.InboxIndex = inboxTasks.Count > 0 ? inboxTasks.Count : 0;
-                    Console.WriteLine($"{task.TaskName}: new InboxIndex is {task.InboxIndex}");
+                    //Console.WriteLine($"{task.TaskName}: new InboxIndex is {task.InboxIndex}");
                 }
             }
             else // has new assigned context
@@ -404,7 +418,7 @@ namespace TaskFocusWeb
                         .Where(x => x.ContextId == assignedContext.Id).ToList();
 
                     task.ContextIndex = contextTasks.Count > 0 ? contextTasks.Count : 0;
-                    Console.WriteLine($"{task.TaskName}: new ContextIndex is {task.ContextIndex}");
+                    //Console.WriteLine($"{task.TaskName}: new ContextIndex is {task.ContextIndex}");
                 }
 
                 task.ContextId = assignedContext!.Id;
@@ -502,7 +516,7 @@ namespace TaskFocusWeb
                     .Where(x => x.ProjectId == null || x.ContextId == null).ToList();
 
                 task.InboxIndex = inboxTasks.Count > 0 ? inboxTasks.Count : 0;
-                Console.WriteLine($"{task.TaskName}: new InboxIndex is {task.InboxIndex}");
+                //Console.WriteLine($"{task.TaskName}: new InboxIndex is {task.InboxIndex}");
             }
 
             if (task.ProjectName != null)

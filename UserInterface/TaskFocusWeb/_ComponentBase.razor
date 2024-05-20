@@ -49,9 +49,6 @@
 
         AppState.AppStateChanged += AppStateChanged;
         DataState.DataStateChanged += DataStateChanged;
-
-        // never start in loading state
-        AppState.Loading = false;
     }
 
     protected override async Task OnInitializedAsync()

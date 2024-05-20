@@ -5,17 +5,17 @@
     protected string _alertMessage = string.Empty;
 
     protected List<string> appRefreshTriggers = new List<string> {
-        nameof(AppState.AlertMessage), nameof(AppState.ErrorMessage) };
+        nameof(AppState.AlertMessage) };
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
         AppState.ShowProjectSubMenu = false;
         AppState.ShowContextSubMenu = false;
-        LoadAnyAppMessages();
+        LoadAlertMessage();
     }
 
-    protected void LoadAnyAppMessages()
+    protected void LoadAlertMessage()
     {
         if (AppState.AlertMessage != null)
         {
