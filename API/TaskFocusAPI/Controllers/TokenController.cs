@@ -66,7 +66,7 @@ namespace TaskFocusAPI.Controllers
                     claims.Add(new Claim(ClaimTypes.Role, role.Name));
                 }
 
-                string? securityKey = _config.GetValue<string>("Secrets:SecurityKey");
+                string? securityKey = _config.GetValue<string>("Secrets:JwtSecurityKey");
 
                 if (securityKey != null)
                 {

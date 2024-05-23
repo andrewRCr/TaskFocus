@@ -61,7 +61,7 @@ namespace TaskFocusAPI
             })
                 .AddJwtBearer("JwtBearer", jwtBearerOptions =>
                 {
-                    string? securityKey = builder.Configuration.GetValue<string>("Secrets:SecurityKey");
+                    string? securityKey = builder.Configuration.GetValue<string>("Secrets:JwtSecurityKey");
 
                     if (securityKey != null)
                     {

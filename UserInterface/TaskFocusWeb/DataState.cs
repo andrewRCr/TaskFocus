@@ -1,11 +1,4 @@
-﻿using AutoMapper;
-using FluentValidation;
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Http.Extensions;
-using TaskFocusUI.Library.API;
-using TaskFocusUI.Library.Models;
-using TaskFocusUI.Library.Utilities;
-using static MudBlazor.CategoryTypes;
+﻿using TaskFocusUI.Library.Models;
 
 namespace TaskFocusWeb
 {
