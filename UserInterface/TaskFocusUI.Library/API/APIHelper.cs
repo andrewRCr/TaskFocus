@@ -36,6 +36,10 @@ namespace TaskFocusUI.Library.API
         {
             string api = _config.GetValue<string>("api");
 
+            string version = "2";
+            string lastChange = "changed manifest.webmanifest to manifest.json";
+            _logger?.LogInformation($"DEBUG - v{version}: {lastChange}");
+
             _apiClient = new HttpClient();
             _apiClient.BaseAddress = new Uri(api);
             _apiClient.DefaultRequestHeaders.Accept.Clear();
