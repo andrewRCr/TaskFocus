@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -14,6 +15,7 @@ namespace TaskFocusUI.Library.API
     public class APIHelper : IAPIHelper
     {
         private HttpClient _apiClient;
+        private ILogger<APIHelper> _logger;
         private readonly ILoggedInUserModel _loggedInUser;
         private readonly IConfiguration _config;
 
@@ -22,16 +24,18 @@ namespace TaskFocusUI.Library.API
             get { return _apiClient; } 
         }
 
-        public APIHelper(ILoggedInUserModel loggedInUser, IConfiguration config)
+        public APIHelper(ILoggedInUserModel loggedInUser, IConfiguration config, ILogger<APIHelper> logger = null)
         {
             _loggedInUser = loggedInUser;
             _config = config;
+            _logger = logger;
             InitializeClient();
         }
 
         private void InitializeClient()
         {
             string api = _config.GetValue<string>("api");
+            _logger?.LogInformation($"Pulled value for _config[api]: {api}");
 
             _apiClient = new HttpClient();
             _apiClient.BaseAddress = new Uri(api);
