@@ -35,8 +35,6 @@ namespace TaskFocusUI.Library.API
         private void InitializeClient()
         {
             string api = _config.GetValue<string>("api");
-            _logger?.LogInformation($"Pulled value for _config[api]: {api}");
-            Console.WriteLine($"Pulled value for _config[api]: {api}");
 
             _apiClient = new HttpClient();
             _apiClient.BaseAddress = new Uri(api);
