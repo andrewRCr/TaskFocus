@@ -36,8 +36,8 @@ namespace TaskFocusUI.Library.API
         {
             string api = _config.GetValue<string>("api");
 
-            string version = "5";
-            string lastChange = "removed IsLocalDataLoaded check on InboxTaskViewPage and AllContextsTaskViewPage";
+            string version = "6";
+            string lastChange = "replaced IsLocalDataLoaded check on InboxTaskViewPage with manual LocalX != null checks";
             _logger?.LogInformation($"DEBUG - v{version}: {lastChange}");
 
             _apiClient = new HttpClient();

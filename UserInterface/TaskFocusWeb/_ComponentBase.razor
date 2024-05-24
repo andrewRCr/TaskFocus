@@ -159,6 +159,8 @@
     {
         if (DataState.IsDataLoaded())
         {
+            Console.WriteLine("_ComponentBase: DataState.IsDataLoaded() returned true in func LoadLocalTaskData()");
+
             LocalTasks = DataState.Tasks;
             foreach (TaskDisplayModel task in LocalTasks!)
             {
