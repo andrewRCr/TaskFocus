@@ -80,14 +80,6 @@ namespace TaskFocusWeb
 
             var displayContextList = _mapper.Map<List<ContextDisplayModel>>(contextList);
             _dataState.Contexts = new List<ContextDisplayModel>(displayContextList);
-
-            _logger.LogInformation($"Length of _dataState.Contexts after fetch call: {_dataState.Contexts.Count()}");
-
-            foreach (ContextDisplayModel context in _dataState.Contexts)
-            {
-                _logger.LogInformation(context.ContextName);
-            }
-
         }
 
         public async Task FetchRemoteSettingsData()

@@ -3,10 +3,11 @@
 
 <PageTitle>TaskFocus: Inbox</PageTitle>
 
-<h2>TEST HEADER</h2>
 
-@if (IsLocalDataLoaded())
-{
+@* @if (IsLocalDataLoaded())
+{ *@
+
+
 
     if (LocalTasks!.Count() > 0)
     {
@@ -46,7 +47,7 @@
             </MudTreeViewItem>
         </MudTreeView>
     }
-}
+@* } *@
 
 <MudContainer MaxWidth="MaxWidth.ExtraSmall" Class="mt-6">
 
@@ -101,7 +102,7 @@
 
         if (AppState.CanRefresh)
         {
-            //Console.WriteLine("InboxTaskPage: returned true on HandleDataStateChanged!");
+            Console.WriteLine("InboxTaskPage: returned true on HandleDataStateChanged!");
             LoadAllLocalData();
         }
 

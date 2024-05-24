@@ -36,8 +36,8 @@ namespace TaskFocusUI.Library.API
         {
             string api = _config.GetValue<string>("api");
 
-            string version = "3";
-            string lastChange = "added test header to inboxtaskviewpage to see if conditional checks failing is issue or another rendering problem";
+            string version = "4";
+            string lastChange = "removed IsLocalDataLoaded check on InboxTaskViewPage to see result";
             _logger?.LogInformation($"DEBUG - v{version}: {lastChange}");
 
             _apiClient = new HttpClient();
