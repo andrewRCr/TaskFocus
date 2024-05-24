@@ -36,8 +36,8 @@ namespace TaskFocusUI.Library.API
         {
             string api = _config.GetValue<string>("api");
 
-            string version = "2";
-            string lastChange = "changed manifest.webmanifest to manifest.json";
+            string version = "3";
+            string lastChange = "added test header to inboxtaskviewpage to see if conditional checks failing is issue or another rendering problem";
             _logger?.LogInformation($"DEBUG - v{version}: {lastChange}");
 
             _apiClient = new HttpClient();
