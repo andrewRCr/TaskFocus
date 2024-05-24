@@ -139,9 +139,6 @@
                             Change password
                         </MudButton>
 
-                        <MudButton OnClick="SendTestEmail">Send test email</MudButton>
-                        <MudButton OnClick="TestLogger">Test Logger</MudButton>
-
                     </MudContainer>
                 </MudTreeViewItem>
             </MudTreeView>
@@ -299,20 +296,6 @@
     {
         get { return _localCurrentUser; }
         set { _localCurrentUser = value; }
-    }
-
-    private async Task SendTestEmail()
-    {
-        try
-        {
-            await UserEndpoint.SendTestEmailToUser();
-        }
-        catch (Exception ex) { Logger?.LogError(ex.Message); }
-    }
-
-    private void TestLogger()
-    {
-        Logger?.LogInformation("testing!");
     }
 
     protected override void OnInitialized()
