@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TaskFocusDesktop.ViewModels
+namespace TaskFocusDesktop.ViewModels.Base
 {
     public abstract class ViewModelBase : Screen
     {

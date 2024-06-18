@@ -13,14 +13,14 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace TaskFocusDesktop.Views
+namespace TaskFocusDesktop.Views.TopPanel
 {
     /// <summary>
-    /// Interaction logic for TodayView.xaml
+    /// Interaction logic for LoginWidgetView.xaml
     /// </summary>
-    public partial class TodayView : UserControl
+    public partial class LoginWidgetView : UserControl
     {
-        public TodayView()
+        public LoginWidgetView()
         {
             InitializeComponent();
         }

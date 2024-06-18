@@ -13,14 +13,14 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace TaskFocusDesktop.Views
+namespace TaskFocusDesktop.Views.TopPanel
 {
     /// <summary>
-    /// Interaction logic for InboxView.xaml
+    /// Interaction logic for AuthWidgetView.xaml
     /// </summary>
-    public partial class InboxView : UserControl
+    public partial class AuthWidgetView : UserControl
     {
-        public InboxView()
+        public AuthWidgetView()
         {
             InitializeComponent();
         }

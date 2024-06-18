@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,16 +10,17 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace TaskFocusDesktop.Views
+namespace TaskFocusDesktop.Views.MainContent
 {
     /// <summary>
-    /// Interaction logic for ShellView.xaml
+    /// Interaction logic for TodayView.xaml
     /// </summary>
-    public partial class ShellView : Window
+    public partial class TodayView : UserControl
     {
-        public ShellView()
+        public TodayView()
         {
             InitializeComponent();
         }

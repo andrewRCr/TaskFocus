@@ -9,7 +9,7 @@ using TaskFocusUI.Library.API;
 using TaskFocusUI.Library.Models;
 using TaskFocusUI.Library.Utilities;
 
-namespace TaskFocusDesktop.ViewModels
+namespace TaskFocusDesktop.ViewModels.Base
 {
     public abstract class TaskViewModelBase : ViewModelBase
     {

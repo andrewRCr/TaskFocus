@@ -49,7 +49,7 @@ namespace TaskFocusDesktop
                 .AddJsonFile("appsettings.json");
 
             string envJsonPath = System.Diagnostics.Debugger.IsAttached ? 
-                "appsettings.Development.json" : "appsettings.Production.json";
+                "appsettings.Development.json" : "appsettings.json";
 
             builder.AddJsonFile(envJsonPath, optional: true, reloadOnChange: true);
             return builder.Build();
@@ -57,7 +57,6 @@ namespace TaskFocusDesktop
 
         protected override void Configure()
         {
-
             // dependency injection
             // ====================
 

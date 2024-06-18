@@ -1,9 +1,12 @@
-﻿<UserControl x:Class="TaskFocusDesktop.Views.InboxView"
+﻿<UserControl x:Class="TaskFocusDesktop.Views.MainContent.InboxView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:TaskFocusDesktop.Views" xmlns:i="http://schemas.microsoft.com/xaml/behaviors" xmlns:viewmodels="clr-namespace:TaskFocusDesktop.ViewModels" d:DataContext="{d:DesignInstance Type=viewmodels:InboxViewModel}"
+             xmlns:local="clr-namespace:TaskFocusDesktop.Views.MainContent" 
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors" 
+             xmlns:viewmodels="clr-namespace:TaskFocusDesktop.ViewModels.MainContent" 
+             d:DataContext="{d:DesignInstance Type=viewmodels:InboxViewModel}"
              mc:Ignorable="d" Background="White" FontSize="14" FontFamily="Bahnschrift"
              d:DesignHeight="450" d:DesignWidth="800">
 

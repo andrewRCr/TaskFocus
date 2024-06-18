@@ -1,23 +1,14 @@
 ﻿using AutoMapper;
 using Caliburn.Micro;
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Dynamic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
+using TaskFocusDesktop.ViewModels.Base;
 using TaskFocusUI.Library.API;
-using TaskFocusUI.Library.Models;
 using TaskFocusUI.Library.Utilities;
-using static System.Net.Mime.MediaTypeNames;
 
-namespace TaskFocusDesktop.ViewModels
+namespace TaskFocusDesktop.ViewModels.MainContent
 {
     public class InboxViewModel : TaskViewModelBase, INotifyPropertyChanged
     {
@@ -38,8 +29,8 @@ namespace TaskFocusDesktop.ViewModels
 
             try
             {
-	            ActiveViewModel = ViewModelChildren.InboxVM;
-	            await LoadTasks();
+                ActiveViewModel = ViewModelChildren.InboxVM;
+                await LoadTasks();
             }
             catch (Exception ex)
             {

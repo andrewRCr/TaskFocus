@@ -1,0 +1,45 @@
+﻿<UserControl x:Class="TaskFocusDesktop.Views.TopPanel.LoginWidgetView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:TaskFocusDesktop.Views.TopPanel"
+             mc:Ignorable="d" 
+             d:DesignHeight="75" d:DesignWidth="1125">
+    <Grid>
+
+        <StackPanel Orientation="Horizontal" 
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center">
+
+            <TextBox x:Name="Username" 
+                     Grid.Column="0" 
+                     MinWidth="250"
+                     Margin="10 0 0 10" 
+                     Padding="2" 
+                     FontSize="14"
+                     Text="Username"
+                 />
+
+            <PasswordBox x:Name="Password" 
+                         Grid.Column="1" 
+                         MinWidth="250" 
+                         Margin="10 0 0 10" 
+                         Padding="2" 
+                         FontSize="14"
+                     
+                     />
+
+            <Button x:Name="Login" 
+                    Grid.Column="1"                     
+                    Margin="10 0 0 0" 
+                    Padding="5 5 5 5"
+                    HorizontalAlignment="Center" >
+                Log In
+            </Button>
+
+        </StackPanel>
+
+    </Grid>
+    
+</UserControl>
