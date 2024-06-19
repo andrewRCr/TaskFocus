@@ -8,13 +8,16 @@
         d:DataContext="{d:DesignInstance Type=viewmodels:ShellViewModel}"
         mc:Ignorable="d"
         Title="TaskFocus" 
-        Height="720" 
-        Width="1280"
+        Height="900" 
+        Width="1600"
+        MinHeight="{Binding WindowMinimumHeight}"
+        MinWidth="{Binding WindowMinimumWidth}"
         WindowStartupLocation="CenterScreen"
         Icon="../Images/favicon-32x32.png"
         WindowState="{Binding ShellWindowState, Mode=TwoWay}"
         WindowStyle="None"
         AllowsTransparency="True"
+        Background="Transparent"
         Style="{StaticResource BaseStyle}">
 
     <WindowChrome.WindowChrome>
@@ -26,14 +29,15 @@
             />
     </WindowChrome.WindowChrome>
 
-    <!-- outer window border with drop shadow margin -->
-    <Border Padding="{Binding OuterMarginSizeThickness, FallbackValue=10}">
-        
+
+    <!-- transparent outer window border for resizing -->
+    <Border BorderThickness="2" Padding="{Binding OuterMarginSizeThickness, FallbackValue=10}" >
+
         <!-- main window outline -->
         <Grid >
 
-            <!-- Opacity mask for corners on grid -->
-            <Border x:Name="Container" Panel.ZIndex="0"
+            <!-- opacity mask for corners on grid -->
+            <Border x:Name="Container" 
                     Background="{StaticResource BackgroundDarkGreyBrush}"
                     CornerRadius="{Binding WindowCornerRadius, FallbackValue=10}" />
 
@@ -48,11 +52,11 @@
             <!-- main window content -->
             <Grid>
 
-                <!-- Corner clipping -->
+                <!-- corner clipping, to round edges of window -->
                 <Grid.OpacityMask>
                     <VisualBrush Visual="{Binding ElementName=Container}" />
                 </Grid.OpacityMask>
-                
+
                 <!-- main window grid defs -->
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="250" />
@@ -74,13 +78,12 @@
                 <Grid Grid.Column="0"
                       Grid.Row="0"
                       Grid.ColumnSpan="2"
-                      Background="{StaticResource BackgroundDarkGreyBrush}"
-                      Panel.ZIndex="1">
+                      Background="Transparent" >
 
                     <Grid.ColumnDefinitions>
                         <!-- Icon -->
                         <ColumnDefinition Width="Auto" />
-                        <!-- Title -->
+                        <!-- Title (empty, spacer) -->
                         <ColumnDefinition Width="*" />
                         <!-- Windows button -->
                         <ColumnDefinition Width="Auto" />
@@ -88,89 +91,80 @@
                     </Grid.ColumnDefinitions>
 
                     <!-- Icon -->
-                    <!--<Button Background="Transparent" 
-                            BorderBrush="Transparent"
-                            BorderThickness="0"
-                            HorizontalAlignment="Left"
-                            Margin="3 0 0 0"
-                            Padding="3 1 3 1"
-                            Command="{Binding MenuCommand}">
-                        <Image Source="../Images/favicon-32x32.png" />
-                    </Button>-->
+                        <Button Style="{StaticResource WindowControlButton}"
+                            Command="{Binding TitleBarMenuCommand}">
+                            <materialDesign:PackIcon Kind="Menu"
+                                                 VerticalAlignment="Center"
+                                                 HorizontalAlignment="Center"
+                                                 Foreground="{StaticResource ForegroundMainBrush}" />
+                        </Button>
 
-                    <!-- Title -->
-                    <Viewbox Grid.Column="1" Margin="5" HorizontalAlignment="Left">
+                        <!-- Title -->
+                        <!--<Viewbox Grid.Column="1" Margin="5" HorizontalAlignment="Left">
                         <TextBlock  />
-                    </Viewbox>
+                    </Viewbox>-->
 
-                    <!-- Window Buttons -->
-                    <StackPanel Grid.Column="2" Orientation="Horizontal">
-                        
-                        <Button Command="{Binding MinimizeCommand}" 
-                                Margin="0 0 0 1" 
-                                Background="{StaticResource BackgroundLightGreyBrush}"
-                                BorderBrush="Transparent"
-                                BorderThickness="0"
-                                >
-                            <materialDesign:PackIcon Kind="WindowMinimize"
+                        <!-- Window Buttons -->
+                        <StackPanel Grid.Column="2" Orientation="Horizontal">
+
+                            <Button Command="{Binding MinimizeCommand}"
+                                Style="{StaticResource WindowControlButton}">
+                                <materialDesign:PackIcon Kind="WindowMinimize"
                                                      VerticalAlignment="Center"
                                                      HorizontalAlignment="Center"
                                                      Foreground="{StaticResource ForegroundMainBrush}" />
-                        </Button>
-                        
-                        <Button Command="{Binding MaximizeCommand}"
-                                Margin="0 0 0 1" 
-                                Background="{StaticResource BackgroundLightGreyBrush}"
-                                BorderBrush="Transparent"
-                                BorderThickness="0"
-                                >
-                            <materialDesign:PackIcon Kind="WindowMaximize"
+                            </Button>
+
+                            <Button Command="{Binding MaximizeCommand}"
+                                Style="{StaticResource WindowControlButton}">
+                                <materialDesign:PackIcon Kind="{Binding WindowMaxRestoreIcon}"
                                                      VerticalAlignment="Center"
                                                      HorizontalAlignment="Center"
                                                      Foreground="{StaticResource ForegroundMainBrush}" />
-                        </Button>
 
-                        <Button x:Name="ExitApplication" 
-                                Margin="0 0 0 1"
-                                Background="{StaticResource BackgroundLightGreyBrush}"
-                                BorderBrush="Transparent"
-                                BorderThickness="0"
-                                >
-                            <materialDesign:PackIcon Kind="WindowClose"
+                            </Button>
+
+                            <Button Command="{Binding CloseCommand}"
+                                Style="{StaticResource WindowCloseButton}">
+                                <materialDesign:PackIcon Kind="WindowClose"
                                                      VerticalAlignment="Center"
                                                      HorizontalAlignment="Center"
                                                      Foreground="{StaticResource ForegroundMainBrush}" />
-                        </Button>
+                            </Button>
 
-                    </StackPanel>
+                        </StackPanel>
 
                 </Grid>
 
-                <!-- Title bar drop shadow -->
-                <Border Grid.Row="1" Grid.ColumnSpan="2" Height="6" BorderThickness="0 0.2 0 0">
-                    <!-- Underline -->
+                <!-- Title bar underline/dropshadow -->
+                <!--<Border Grid.Row="1" 
+                        Grid.ColumnSpan="2" 
+                        Height="1" 
+                        BorderThickness="0 0.2 0 0"
+                        >
+                    --><!-- underline --><!--
                     <Border.BorderBrush>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="1, 0">
-                            <GradientStop Color="{StaticResource ForegroundHighlight}" Offset="0.0" />
+                            <GradientStop Color="{StaticResource ForegroundSecondary}" Offset="0.0" />
                             <GradientStop Color="{StaticResource ForegroundMain}" Offset="0.5" />
-                            <GradientStop Color="{StaticResource ForegroundHighlight}" Offset="1.0" />
+                            <GradientStop Color="{StaticResource ForegroundSecondary}" Offset="1.0" />
                         </LinearGradientBrush>
                     </Border.BorderBrush>
 
-                    <!-- Drop shadow -->
+                    --><!-- drop shadow --><!--
                     <Border.Background>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="0, 1">
-                            <GradientStop Color="{StaticResource BackgroundLightGrey}" Offset="0.0" />
-                            <GradientStop Color="{StaticResource BackgroundDarkGrey}" Offset="1.0" />
+                            <GradientStop Color="{StaticResource ForegroundSecondary}" Offset="0.0" />
+                            <GradientStop Color="{StaticResource BackgroundLightGrey}" Offset="1.0" />
                         </LinearGradientBrush>
                     </Border.Background>
-
-                </Border>
+                </Border>-->
 
                 <!-- Column 0, Row 2  -->
                 <!-- Logo header -->
                 <StackPanel Grid.Column="0" 
                             Grid.Row="2"
+                            Margin="0 0 50 0"
                             VerticalAlignment="Center"
                             HorizontalAlignment="Center"
                             Orientation="Horizontal">
@@ -189,13 +183,6 @@
                                 ><Run Text="TaskFocus"/></TextBlock>
 
                 </StackPanel>
-
-
-                <TextBlock Grid.Column="0" 
-                            Grid.Row="2" 
-                            VerticalAlignment="Bottom"
-                            HorizontalAlignment="Center"
-                            >test</TextBlock>
 
                 <!-- Column 0, Row 2  -->
                 <!-- Navigation bar -->
@@ -232,7 +219,7 @@
             </Grid>
 
         </Grid>
-
+            
     </Border>
 
 </Window>

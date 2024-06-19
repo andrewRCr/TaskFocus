@@ -16,7 +16,6 @@ namespace TaskFocusDesktop.ViewModels
 {
     public class ShellViewModel : Conductor<object>.Collection.AllActive, IHandle<LogOnEvent>
     {
-        private IWindowManager _windowManager;
         private IAPIHelper _apiHelper;
         private ILoggedInUserModel _loggedInUser;
         private IEventAggregator _events;
@@ -46,10 +45,15 @@ namespace TaskFocusDesktop.ViewModels
                 NotifyOfPropertyChange(() => OuterMarginSizeThickness);
                 NotifyOfPropertyChange(() => WindowRadius);
                 NotifyOfPropertyChange(() => WindowCornerRadius);
+                NotifyOfPropertyChange(() => WindowMaxRestoreIcon);
             }
         }
 
-        /// true if the window should be borderless because it is docked or maximized
+        public double WindowMinimumWidth { get; set; } = 600;
+
+        public double WindowMinimumHeight { get; set; } = 400;
+
+        // true if the window should be borderless because it is docked or maximized
         public bool Borderless { get { return (ShellWindowState == WindowState.Maximized); } }
 
         public int TitleBarHeight { get; set; } = 26;
@@ -66,9 +70,19 @@ namespace TaskFocusDesktop.ViewModels
 
         public ICommand MinimizeCommand => new RelayCommand(execute => ShellWindowState = WindowState.Minimized);
 
-        public ICommand MaximizeCommand => new RelayCommand(execute => ShellWindowState = WindowState.Maximized);
+        public ICommand MaximizeCommand => new RelayCommand(execute => ShellWindowState ^= WindowState.Maximized);
 
         public ICommand CloseCommand => new RelayCommand(async execute => await TryCloseAsync());
+
+        public ICommand TitleBarMenuCommand => new RelayCommand(execute => SystemCommands.ShowSystemMenu(Application.Current.MainWindow, GetMousePosition()));
+
+        public string WindowMaxRestoreIcon
+        {
+            get
+            {
+                return ShellWindowState == WindowState.Maximized ? "WindowRestore" : "WindowMaximize";
+            }
+        }
 
         // margin around window, to allow a drop shadow
         private int _outerMarginSize = 10;
@@ -108,12 +122,10 @@ namespace TaskFocusDesktop.ViewModels
             }
         }
 
-        public ShellViewModel(IWindowManager windowManager,
-                              IAPIHelper apiHelper,
+        public ShellViewModel(IAPIHelper apiHelper,
                               ILoggedInUserModel loggedInUser,
                               IEventAggregator events)
         {
-            _windowManager = windowManager;
             _apiHelper = apiHelper;
             _loggedInUser = loggedInUser;
             _events = events;
@@ -137,6 +149,20 @@ namespace TaskFocusDesktop.ViewModels
             {
                 return !string.IsNullOrWhiteSpace(_loggedInUser.Token);
             }
+        }
+
+        private Point GetMousePosition()
+        {
+            Window appWindow = (Window)GetView();
+
+            // position of the mouse relative to the window
+            var position = Mouse.GetPosition(appWindow);
+            Point toWindowPosition = new Point(position.X, position.Y);
+
+            // add the window position so it's relative to the Screen
+            Point toScreenPosition = new Point(position.X + appWindow.Left, position.Y + appWindow.Top);
+
+            return ShellWindowState == WindowState.Maximized ? toWindowPosition : toScreenPosition;
         }
 
         public async Task ExitApplication()

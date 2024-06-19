@@ -5,6 +5,9 @@
     <Style TargetType="{x:Type Control}" x:Key="BaseStyle">
         <Setter Property="FontFamily" Value="Helvetica Neue" />
     </Style>
-   
+
+    <Style TargetType="TextBlock" x:Key="BaseTextBlockStyle">
+        <Setter Property="FontFamily" Value="Helvetica Neue" />
+    </Style>
     
 </ResourceDictionary>
