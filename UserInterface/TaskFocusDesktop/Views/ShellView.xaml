@@ -16,6 +16,8 @@
         Icon="../Images/favicon-32x32.png"
         WindowState="{Binding ShellWindowState, Mode=TwoWay}"
         WindowStyle="None"
+        SourceInitialized="Window_SourceInitialized"
+        
         AllowsTransparency="True"
         Background="Transparent"
         Style="{StaticResource BaseStyle}">
@@ -65,12 +67,11 @@
                 <Grid.RowDefinitions>
                     <!-- Title bar -->
                     <RowDefinition Height="{Binding TitleBarHeightGridLength, FallbackValue=32}" />
-                    <!-- Title bar drop shadow -->
-                    <RowDefinition Height="Auto" />
 
                     <!-- Window content-->
                     <RowDefinition Height="75" />
                     <RowDefinition Height="*" />
+                    <RowDefinition Height="50" />
                 </Grid.RowDefinitions>
 
                 <!-- Column 0-1, Row 0  -->
@@ -91,79 +92,55 @@
                     </Grid.ColumnDefinitions>
 
                     <!-- Icon -->
-                        <Button Style="{StaticResource WindowControlButton}"
+                    <Button Style="{StaticResource WindowControlButton}"
                             Command="{Binding TitleBarMenuCommand}">
-                            <materialDesign:PackIcon Kind="Menu"
+                        <materialDesign:PackIcon Kind="Menu"
                                                  VerticalAlignment="Center"
                                                  HorizontalAlignment="Center"
                                                  Foreground="{StaticResource ForegroundMainBrush}" />
-                        </Button>
+                    </Button>
 
-                        <!-- Title -->
-                        <!--<Viewbox Grid.Column="1" Margin="5" HorizontalAlignment="Left">
+                    <!-- Title -->
+                    <!--<Viewbox Grid.Column="1" Margin="5" HorizontalAlignment="Left">
                         <TextBlock  />
                     </Viewbox>-->
 
-                        <!-- Window Buttons -->
-                        <StackPanel Grid.Column="2" Orientation="Horizontal">
+                    <!-- Window Buttons -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal">
 
-                            <Button Command="{Binding MinimizeCommand}"
+                        <Button Command="{Binding MinimizeCommand}"
                                 Style="{StaticResource WindowControlButton}">
-                                <materialDesign:PackIcon Kind="WindowMinimize"
+                            <materialDesign:PackIcon Kind="WindowMinimize"
                                                      VerticalAlignment="Center"
                                                      HorizontalAlignment="Center"
                                                      Foreground="{StaticResource ForegroundMainBrush}" />
-                            </Button>
+                        </Button>
 
-                            <Button Command="{Binding MaximizeCommand}"
+                        <Button Command="{Binding MaximizeCommand}"
                                 Style="{StaticResource WindowControlButton}">
-                                <materialDesign:PackIcon Kind="{Binding WindowMaxRestoreIcon}"
+                            <materialDesign:PackIcon Kind="{Binding WindowMaxRestoreIcon}"
                                                      VerticalAlignment="Center"
                                                      HorizontalAlignment="Center"
                                                      Foreground="{StaticResource ForegroundMainBrush}" />
 
-                            </Button>
+                        </Button>
 
-                            <Button Command="{Binding CloseCommand}"
+                        <Button Command="{Binding CloseCommand}"
                                 Style="{StaticResource WindowCloseButton}">
-                                <materialDesign:PackIcon Kind="WindowClose"
+                            <materialDesign:PackIcon Kind="WindowClose"
                                                      VerticalAlignment="Center"
                                                      HorizontalAlignment="Center"
                                                      Foreground="{StaticResource ForegroundMainBrush}" />
-                            </Button>
+                        </Button>
 
-                        </StackPanel>
+                    </StackPanel>
 
                 </Grid>
-
-                <!-- Title bar underline/dropshadow -->
-                <!--<Border Grid.Row="1" 
-                        Grid.ColumnSpan="2" 
-                        Height="1" 
-                        BorderThickness="0 0.2 0 0"
-                        >
-                    --><!-- underline --><!--
-                    <Border.BorderBrush>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="1, 0">
-                            <GradientStop Color="{StaticResource ForegroundSecondary}" Offset="0.0" />
-                            <GradientStop Color="{StaticResource ForegroundMain}" Offset="0.5" />
-                            <GradientStop Color="{StaticResource ForegroundSecondary}" Offset="1.0" />
-                        </LinearGradientBrush>
-                    </Border.BorderBrush>
-
-                    --><!-- drop shadow --><!--
-                    <Border.Background>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="0, 1">
-                            <GradientStop Color="{StaticResource ForegroundSecondary}" Offset="0.0" />
-                            <GradientStop Color="{StaticResource BackgroundLightGrey}" Offset="1.0" />
-                        </LinearGradientBrush>
-                    </Border.Background>
-                </Border>-->
 
                 <!-- Column 0, Row 2  -->
                 <!-- Logo header -->
                 <StackPanel Grid.Column="0" 
-                            Grid.Row="2"
+                            Grid.Row="1"
                             Margin="0 0 50 0"
                             VerticalAlignment="Center"
                             HorizontalAlignment="Center"
@@ -185,35 +162,42 @@
                 </StackPanel>
 
                 <!-- Column 0, Row 2  -->
-                <!-- Navigation bar -->
+                <!-- // Navigation menu // -->
                 <StackPanel Orientation="Vertical"
                             Grid.Column="0" 
                             Grid.Row="2"
                             Visibility="{
                             Binding IsUserLoggedIn, 
                             Converter={StaticResource BooleanToVisibilityConverter}, 
-                            FallbackValue=Collapsed}">
+                            FallbackValue=Visible}">
 
-                    <Button x:Name="SwitchToInboxView"
-                            Width="100">
-                        Inbox</Button>
+                    <Menu Template="{StaticResource NavMenu_Template}" />
 
-                    <Button x:Name="SwitchToTodayView"
-                            Width="100">
-                        Today</Button>
 
                 </StackPanel>
+
+                <!-- Column 0, Row 3  -->
+                <!-- // Bottom-sticky navigation menu: Settings // -->
+                <Menu Grid.Row="3">
+                    <MenuItem Header="Settings" 
+                              Command="{Binding SwitchToSettingsViewCommand}"
+                              Template="{StaticResource NavMenuItem_Template}">
+                        <MenuItem.Icon>
+                            <materialDesign:PackIcon Kind="AccountCog" Margin="0 0 0 0" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                </Menu>
 
                 <!-- Column 1, Row 2  -->
                 <ContentControl x:Name="TopWidgetPanel"  
                                 Grid.Column="1" 
-                                Grid.Row="2"
+                                Grid.Row="1"
                                 />
 
                 <!-- Column 1, Row 2  -->
                 <ContentControl x:Name="MainContentPanel"
                                 Grid.Column="1" 
-                                Grid.Row="3"
+                                Grid.Row="2"
                                     />
 
             </Grid>

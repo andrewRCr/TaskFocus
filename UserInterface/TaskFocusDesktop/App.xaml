@@ -2,7 +2,7 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:TaskFocusDesktop"
-             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes" >
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes" xmlns:utilities="clr-namespace:TaskFocusDesktop.Utilities">
 
     <Application.Resources>
         <ResourceDictionary>
@@ -18,7 +18,11 @@
                 <ResourceDictionary Source="Styles/Fonts.xaml" />
                 <ResourceDictionary Source="Styles/Buttons.xaml" />
                 <ResourceDictionary Source="Styles/Texts.xaml" />
+                <ResourceDictionary Source="Styles/ContentViews.xaml" />
                 <ResourceDictionary Source="Styles/Windows.xaml" />
+                
+                <!-- custom user control templates -->
+                <ResourceDictionary Source="Templates/NavMenu.xaml" />
                 
                 <!-- material design styling base -->
                 <materialDesign:CustomColorTheme BaseTheme="Dark" PrimaryColor="#776be7" SecondaryColor="Red" />
@@ -27,6 +31,7 @@
             </ResourceDictionary.MergedDictionaries>
 
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+            <utilities:ActiveMainViewToVisibilityConverter x:Key="ActiveMainViewToVisibilityConverter" />
 
             <!-- app-level styling -->
 

@@ -3,12 +3,42 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:local="clr-namespace:TaskFocusDesktop.Views.TopPanel"
              mc:Ignorable="d" 
              d:DesignHeight="75" d:DesignWidth="1125">
     <Grid>
-        <TextBlock HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   >Authorized!</TextBlock>
+
+        <StackPanel Orientation="Horizontal" 
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    Margin="0 0 50 0">
+
+            <TextBlock HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       Margin="0 0 20 0">
+                Authorized!
+            </TextBlock>
+
+            <materialDesign:PackIcon Kind="Logout"
+                                     Grid.Column="1" 
+                                     VerticalAlignment="Center"
+                                     Margin="0 0 10 0"
+                                     />
+
+            <Button x:Name="LogOut"
+                    Grid.Column="2" 
+                    VerticalAlignment="Center"
+                    Foreground="{StaticResource ForegroundMainBrush}"
+                    >
+                Log Out
+            </Button>
+            
+                
+ 
+        </StackPanel>
+
+
+
     </Grid>
 </UserControl>

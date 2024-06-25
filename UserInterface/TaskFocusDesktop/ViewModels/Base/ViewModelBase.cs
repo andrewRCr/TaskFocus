@@ -11,11 +11,13 @@ namespace TaskFocusDesktop.ViewModels.Base
     {
         protected enum ViewModelChildren
         {
+            HomeVM,
             InboxVM,
             TodayVM,
             ProjectsVM,
             ContextsVM,
-            LoginVM
+            CompletedVM,
+            SettingsVM
         }
 
         protected ViewModelChildren ActiveViewModel;

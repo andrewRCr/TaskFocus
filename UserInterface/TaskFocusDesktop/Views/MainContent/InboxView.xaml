@@ -7,8 +7,9 @@
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors" 
              xmlns:viewmodels="clr-namespace:TaskFocusDesktop.ViewModels.MainContent" 
              d:DataContext="{d:DesignInstance Type=viewmodels:InboxViewModel}"
-             mc:Ignorable="d" Background="White" FontSize="14" FontFamily="Bahnschrift"
-             d:DesignHeight="450" d:DesignWidth="800">
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800"
+             Style="{StaticResource BaseMainContentViewStyle}" >
 
     <UserControl.Resources>
 
