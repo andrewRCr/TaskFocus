@@ -76,7 +76,8 @@ namespace TaskFocusDesktop
                 .Singleton<IEventAggregator, EventAggregator>()
                 .Singleton<ILoggedInUserModel, LoggedInUserModel>()
                 .Singleton<IAPIHelper, APIHelper>()
-                .Singleton<IDataHelper, DataHelper>();
+                .Singleton<IDataHelper, DataHelper>()
+                .Singleton<AppState>();
 
             // register view models - create new instance each time one is requested
             GetType().Assembly.GetTypes()

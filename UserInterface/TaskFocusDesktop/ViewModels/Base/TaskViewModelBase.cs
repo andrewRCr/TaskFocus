@@ -24,7 +24,7 @@ namespace TaskFocusDesktop.ViewModels.Base
         public RelayCommand DeleteTaskCommand => new RelayCommand(async execute => await DeleteTask());
 
         public TaskViewModelBase(IAPIHelper apiHelper, IUserEndpoint userEndpoint, ITaskEndpoint taskEndpoint, IProjectEndpoint projectEndpoint,
-            IContextEndpoint contextEndpoint, IMapper mapper, IDataHelper dataHelper, IWindowManager windowManager)
+            IContextEndpoint contextEndpoint, IMapper mapper, IDataHelper dataHelper, IWindowManager windowManager, IEventAggregator events, AppState appState) : base(events, appState)
         {
             _apiHelper = apiHelper;
             _userEndpoint = userEndpoint;

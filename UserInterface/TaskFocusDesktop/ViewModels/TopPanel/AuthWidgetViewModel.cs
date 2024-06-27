@@ -7,17 +7,22 @@ using System.Threading.Tasks;
 using TaskFocusDesktop.EventModels;
 using TaskFocusDesktop.ViewModels.Base;
 using TaskFocusUI.Library.API;
+using TaskFocusUI.Library.Models;
 
 namespace TaskFocusDesktop.ViewModels.TopPanel
 {
     public class AuthWidgetViewModel : ViewModelBase
     {
-        private IEventAggregator _events;
+        private IAPIHelper _apiHelper;
+        private ILoggedInUserModel _loggedInUser;
+        //private IEventAggregator _events;
         private string _errorMessage;
 
-        public AuthWidgetViewModel(IEventAggregator events)
+        public AuthWidgetViewModel(IAPIHelper aPIHelper, ILoggedInUserModel loggedInUser, IEventAggregator events, AppState appState) : base(events, appState)
         {
-            _events = events;
+            _apiHelper = aPIHelper;
+            _loggedInUser = loggedInUser;
+            //_events = events;
         }
 
         public bool IsErrorMsgVisible
@@ -44,6 +49,11 @@ namespace TaskFocusDesktop.ViewModels.TopPanel
             try
             {
                 ErrorMessage = null;
+
+                _apiHelper.LogOutUser();
+                _loggedInUser.ResetUserModel();
+
+                // raise log off event for shell view to handle
                 await _events.PublishOnUIThreadAsync(new LogOffEvent());
             }
             catch (Exception ex)

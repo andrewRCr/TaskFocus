@@ -6,13 +6,13 @@ using System.Text;
 using System.Threading.Tasks;
 using TaskFocusDesktop.ViewModels.Base;
 
-namespace TaskFocusDesktop.ViewModels.MainContent
+namespace TaskFocusDesktop.ViewModels.SidePanel
 {
-    public class HomeViewModel : ViewModelBase
+    public class SubNavMenuViewModel : ViewModelBase
     {
-        public HomeViewModel(IEventAggregator events, AppState appState) : base(events, appState)
+        public SubNavMenuViewModel(IEventAggregator events, AppState appState) : base(events, appState)
         {
-
+            
         }
     }
 }

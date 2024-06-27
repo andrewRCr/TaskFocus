@@ -1,28 +1,27 @@
 ﻿using Caliburn.Micro;
-using MudBlazor;
-using MudBlazor.Extensions.Options;
 using System;
-using System.Linq;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Automation;
-using System.Windows.Controls;
 using System.Windows.Input;
 using TaskFocusDesktop.Commands;
 using TaskFocusDesktop.EventModels;
 using TaskFocusDesktop.ViewModels.MainContent;
+using TaskFocusDesktop.ViewModels.SidePanel;
 using TaskFocusDesktop.ViewModels.TopPanel;
 using TaskFocusUI.Library.API;
 using TaskFocusUI.Library.Models;
+using static TaskFocusDesktop.AppState;
 
 namespace TaskFocusDesktop.ViewModels
 {
-    public class ShellViewModel : Conductor<object>.Collection.AllActive, IHandle<LogOnEvent>
+    public class ShellViewModel : Conductor<object>.Collection.AllActive, IHandle<LogOnEvent>, IHandle<LogOffEvent>, IHandle<MainContentViewSwitchEvent>
     {
         private IAPIHelper _apiHelper;
         private ILoggedInUserModel _loggedInUser;
         private IEventAggregator _events;
+        private AppState _appState;
 
         private WindowState _shellWindowState;
         public WindowState ShellWindowState
@@ -38,6 +37,84 @@ namespace TaskFocusDesktop.ViewModels
                 NotifyOfPropertyChange(() => WindowRadius);
                 NotifyOfPropertyChange(() => WindowCornerRadius);
                 NotifyOfPropertyChange(() => WindowMaxRestoreIcon);
+            }
+        }
+
+        // margin around window, to allow a drop shadow
+        private int _outerMarginSize = 10;
+        public int OuterMarginSize
+        {
+            get { return Borderless ? 0 : _outerMarginSize; }
+            set { _outerMarginSize = value; }
+        }
+
+        // radius of the edges of the window
+        private int _windowRadius = 10;
+        public int WindowRadius
+        {
+            get { return Borderless ? 0 : _windowRadius; }
+            set { _windowRadius = value; }
+        }
+
+        private Screen _topWidgetPanel;
+        public Screen TopWidgetPanel
+        {
+            get { return _topWidgetPanel; }
+            set
+            {
+                _topWidgetPanel = value;
+                NotifyOfPropertyChange(() => TopWidgetPanel);
+            }
+        }
+
+        private Screen _sideMenuPanel;
+        public Screen SideMenuPanel
+        {
+            get { return _sideMenuPanel; }
+            set
+            {
+                _sideMenuPanel = value;
+                NotifyOfPropertyChange(() => SideMenuPanel);
+            }
+        }
+
+        private Screen _mainContentPanel;
+        public Screen MainContentPanel
+        {
+            get { return _mainContentPanel; }
+            set
+            {
+                _mainContentPanel = value;
+                NotifyOfPropertyChange(() => MainContentPanel);
+            }
+        }
+
+        public AppState.MainContentView ActiveAppStateMainContentView { get { return _appState.ActiveMainContentView; } }
+
+        private MainContentView _activeMainContentView;
+        public MainContentView ActiveMainContentView
+        {
+            get { return _activeMainContentView; }
+            set
+            {
+                _activeMainContentView = value;
+                NotifyOfPropertyChange(() => ActiveMainContentView);
+            }
+        }
+
+        public string WindowMaxRestoreIcon
+        {
+            get
+            {
+                return ShellWindowState == WindowState.Maximized ? "WindowRestore" : "WindowMaximize";
+            }
+        }
+
+        public bool IsUserLoggedIn
+        {
+            get
+            {
+                return !string.IsNullOrWhiteSpace(_loggedInUser.Token);
             }
         }
 
@@ -68,108 +145,38 @@ namespace TaskFocusDesktop.ViewModels
 
         public ICommand TitleBarMenuCommand => new RelayCommand(execute => SystemCommands.ShowSystemMenu(Application.Current.MainWindow, GetSystemMenuPosition()));
 
-        public ICommand SwitchToInboxViewCommand => new RelayCommand(async execute => await SwitchToInboxView());
+        //public ICommand SwitchToInboxViewCommand => new RelayCommand(async execute => await SwitchMainContentView(MainContentView.Inbox));
 
-        public ICommand SwitchToTodayViewCommand => new RelayCommand(async execute => await SwitchToTodayView());
+        //public ICommand SwitchToTodayViewCommand => new RelayCommand(async execute => await SwitchMainContentView(MainContentView.Today));
 
-        public ICommand SwitchToProjectsViewCommand => new RelayCommand(async execute => await SwitchToProjectsView());
+        //public ICommand SwitchToProjectsViewCommand => new RelayCommand(async execute => await SwitchMainContentView(MainContentView.Projects));
 
-        public ICommand SwitchToContextsViewCommand => new RelayCommand(async execute => await SwitchToContextsView());
+        //public ICommand SwitchToContextsViewCommand => new RelayCommand(async execute => await SwitchMainContentView(MainContentView.Contexts));
 
-        public ICommand SwitchToCompletedViewCommand => new RelayCommand(async execute => await SwitchToCompletedView());
+        //public ICommand SwitchToCompletedViewCommand => new RelayCommand(async execute => await SwitchMainContentView(MainContentView.Completed));
 
-        public ICommand SwitchToSettingsViewCommand => new RelayCommand(async execute => await SwitchToSettingsView());
+        public ICommand SwitchToSettingsViewCommand => new RelayCommand(async execute => await RequestSwitchToSettingsView());
 
-        public enum MainContentView
-        {
-            Home,
-            Inbox,
-            Today,
-            Projects,
-            Contexts,
-            Completed,
-            Settings
-        }
-
-        private MainContentView _activeMainContentView = MainContentView.Inbox;
-        public MainContentView ActiveMainContentView
-        {
-            get { return _activeMainContentView; }
-            set
-            {
-                _activeMainContentView = value;
-                NotifyOfPropertyChange(() => ActiveMainContentView);
-            }
-        }
-
-        public string WindowMaxRestoreIcon
-        {
-            get
-            {
-                return ShellWindowState == WindowState.Maximized ? "WindowRestore" : "WindowMaximize";
-            }
-        }
-
-        // margin around window, to allow a drop shadow
-        private int _outerMarginSize = 10;
-        public int OuterMarginSize
-        {
-            get { return Borderless ? 0 : _outerMarginSize; }
-            set { _outerMarginSize = value; }
-        }
-
-        // radius of the edges of the window
-        private int _windowRadius = 10;
-        public int WindowRadius
-        {
-            get { return Borderless ? 0 : _windowRadius; }
-            set { _windowRadius = value; }
-        }
-
-
-        private MenuItem _inboxNavMenuItem;
-        public MenuItem InboxNavMenuItem
-        {
-            get { return _inboxNavMenuItem; }
-            set { _inboxNavMenuItem = value; }
-        }
-
-        private MenuItem _todayNavMenuItem;
-        public MenuItem TodayNavMenuItem
-        {
-            get { return _todayNavMenuItem; }
-            set { _todayNavMenuItem = value; }
-        }
-
-        private Screen _topWidgetPanel;
-        public Screen TopWidgetPanel
-        {
-            get { return _topWidgetPanel; }
-            set 
-            { 
-                _topWidgetPanel = value; 
-                NotifyOfPropertyChange(() => TopWidgetPanel); 
-            }
-        }
-
-        private Screen _mainContentPanel;
-        public Screen MainContentPanel
-        {
-            get { return _mainContentPanel; }
-            set
-            {
-                _mainContentPanel = value;
-                NotifyOfPropertyChange(() => MainContentPanel);
-            }
-        }
+        //public enum MainContentView
+        //{
+        //    Home,
+        //    Inbox,
+        //    Today,
+        //    Projects,
+        //    Contexts,
+        //    Completed,
+        //    Settings
+        //}
 
         public ShellViewModel(IAPIHelper apiHelper,
                               ILoggedInUserModel loggedInUser,
-                              IEventAggregator events)
+                              IEventAggregator events,
+                              AppState appState)
         {
             _apiHelper = apiHelper;
             _loggedInUser = loggedInUser;
             _events = events;
+            _appState = appState;
 
             _events.SubscribeOnPublishedThread(this);
 
@@ -179,21 +186,34 @@ namespace TaskFocusDesktop.ViewModels
             TopWidgetPanel = IsUserLoggedIn ? IoC.Get<AuthWidgetViewModel>() : IoC.Get<LoginWidgetViewModel>();
             ActivateItemAsync(TopWidgetPanel, new CancellationToken());
 
+            // side menu panel
+            SideMenuPanel = IoC.Get<NavMenuViewModel>();
+            ActivateItemAsync(SideMenuPanel, new CancellationToken());
+
             // main content panel
             MainContentPanel = IsUserLoggedIn ? IoC.Get<InboxViewModel>() : IoC.Get<HomeViewModel>();
             ActivateItemAsync(MainContentPanel, new CancellationToken());
 
             // set current main content view enum to default
-            ActiveMainContentView = IsUserLoggedIn ? MainContentView.Inbox : MainContentView.Home;
+            //ActiveMainContentView = IsUserLoggedIn ? MainContentView.Inbox : MainContentView.Home;
+            _appState.ActiveMainContentView = IsUserLoggedIn ? AppState.MainContentView.Inbox : AppState.MainContentView.Home;
         }
 
-        public bool IsUserLoggedIn
-        {
-            get
-            {
-                return !string.IsNullOrWhiteSpace(_loggedInUser.Token);
-            }
-        }
+        //protected override bool HandleAppStateChanged(string propertyName, AppState appState)
+        //{
+        //    if (!appRefreshTriggers.Contains(propertyName)) { return false; }
+        //    if (AppState.CanRefresh) { LoadAlertMessage(); }
+
+        //    return AppState.CanRefresh;
+        //}
+
+        //private bool HandleAppStateChanged(string propertyName, AppState appState)
+        //{
+        //    if (!appRefreshTriggers.Contains(propertyName)) { return false; }
+        //    if (appState.CanRefresh) { Async( SwitchMainContentView(); }
+
+        //    return appState.CanRefresh;
+        //}
 
         private Point GetSystemMenuPosition()
         {
@@ -221,22 +241,12 @@ namespace TaskFocusDesktop.ViewModels
             await TryCloseAsync();
         }
 
-        public async Task LogOut()
+        public async Task HandleAsync(LogOnEvent message, CancellationToken cancellationToken)
         {
-            _apiHelper.LogOutUser();
-            _loggedInUser.ResetUserModel();
-
-            TopWidgetPanel = IoC.Get<LoginWidgetViewModel>();
-            await ActivateItemAsync(TopWidgetPanel, new CancellationToken());
-
-            MainContentPanel = IoC.Get<HomeViewModel>();
-            await ActivateItemAsync(MainContentPanel, new CancellationToken());
-            ActiveMainContentView = MainContentView.Home;
-
-            NotifyOfPropertyChange(() => IsUserLoggedIn);
+            await HandleLogIn();
         }
 
-        public async Task HandleAsync(LogOnEvent message, CancellationToken cancellationToken)
+        public async Task HandleLogIn()
         {
             NotifyOfPropertyChange(() => IsUserLoggedIn);
 
@@ -245,60 +255,72 @@ namespace TaskFocusDesktop.ViewModels
 
             MainContentPanel = IoC.Get<InboxViewModel>();
             await ActivateItemAsync(MainContentPanel, new CancellationToken());
-            ActiveMainContentView = MainContentView.Inbox;
+            //ActiveMainContentView = MainContentView.Inbox;
+            _appState.ActiveMainContentView = MainContentView.Inbox;
         }
 
         public async Task HandleAsync(LogOffEvent message, CancellationToken cancellationToken)
         {
-            await LogOut();
+            await HandleLogOut();
         }
 
-        public async Task SwitchToInboxView()
+        public async Task HandleLogOut()
         {
-            ActiveMainContentView = MainContentView.Inbox;
+            NotifyOfPropertyChange(() => IsUserLoggedIn);
 
-            MainContentPanel = IoC.Get<InboxViewModel>();
+            TopWidgetPanel = IoC.Get<LoginWidgetViewModel>();
+            await ActivateItemAsync(TopWidgetPanel, new CancellationToken());
+
+            MainContentPanel = IoC.Get<HomeViewModel>();
             await ActivateItemAsync(MainContentPanel, new CancellationToken());
+            //ActiveMainContentView = MainContentView.Home;
+            _appState.ActiveMainContentView = MainContentView.Home;
         }
 
-        public async Task SwitchToTodayView() 
+        public async Task HandleAsync(MainContentViewSwitchEvent message, CancellationToken cancellationToken)
         {
-            ActiveMainContentView = MainContentView.Today;
-
-            MainContentPanel = IoC.Get<TodayViewModel>();
-            await ActivateItemAsync(MainContentPanel, new CancellationToken());
+            await SwitchMainContentView();
         }
 
-        public async Task SwitchToProjectsView()
+        public async Task SwitchMainContentView()
         {
-            ActiveMainContentView = MainContentView.Projects;
+            switch (_appState.ActiveMainContentView)
+            {
+                case AppState.MainContentView.Home:
+                    MainContentPanel = IoC.Get<HomeViewModel>();
+                    break;
+                case AppState.MainContentView.Inbox:
+                    MainContentPanel = IoC.Get<InboxViewModel>();
+                    break;
+                case AppState.MainContentView.Today:
+                    MainContentPanel = IoC.Get<TodayViewModel>();
+                    break;
+                case AppState.MainContentView.Projects:
+                    MainContentPanel = IoC.Get<ProjectsViewModel>();
+                    break;
+                case AppState.MainContentView.Contexts:
+                    MainContentPanel = IoC.Get<ContextsViewModel>();
+                    break;
+                case AppState.MainContentView.Completed:
+                    MainContentPanel = IoC.Get<CompletedViewModel>();
+                    break;
+                case AppState.MainContentView.Settings:
+                    MainContentPanel = IoC.Get<SettingsViewModel>();
+                    break;
+                default:
+                    MainContentPanel = IoC.Get<HomeViewModel>();
+                    break;
+            }
 
-            MainContentPanel = IoC.Get<ProjectsViewModel>();
             await ActivateItemAsync(MainContentPanel, new CancellationToken());
+            //ActiveMainContentView = mainContentView;
         }
 
-        public async Task SwitchToContextsView()
+        private async Task RequestSwitchToSettingsView()
         {
-            ActiveMainContentView = MainContentView.Contexts;
-
-            MainContentPanel = IoC.Get<ContextsViewModel>();
-            await ActivateItemAsync(MainContentPanel, new CancellationToken());
-        }
-
-        public async Task SwitchToCompletedView()
-        {
-            ActiveMainContentView = MainContentView.Completed;
-
-            MainContentPanel = IoC.Get<CompletedViewModel>();
-            await ActivateItemAsync(MainContentPanel, new CancellationToken());
-        }
-
-        public async Task SwitchToSettingsView()
-        {
-            ActiveMainContentView = MainContentView.Settings;
-
-            MainContentPanel = IoC.Get<SettingsViewModel>();
-            await ActivateItemAsync(MainContentPanel, new CancellationToken());
+            ActiveMainContentView = AppState.MainContentView.Settings;
+            NotifyOfPropertyChange(()=> ActiveAppStateMainContentView);
+            await SwitchMainContentView();
         }
     }
 }

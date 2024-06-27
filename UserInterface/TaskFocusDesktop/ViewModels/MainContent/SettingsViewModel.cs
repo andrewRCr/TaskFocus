@@ -24,7 +24,9 @@ namespace TaskFocusDesktop.ViewModels.MainContent
                       IContextEndpoint contextEndpoint,
                       IMapper mapper,
                       IDataHelper dataHelper,
-                      IWindowManager window) : base(apiHelper, userEndpoint, taskEndpoint, projectEndpoint, contextEndpoint, mapper, dataHelper, window)
+                      IWindowManager window,
+                      IEventAggregator events,
+                      AppState appState) : base(apiHelper, userEndpoint, taskEndpoint, projectEndpoint, contextEndpoint, mapper, dataHelper, window, events, appState)
         {
         }
 

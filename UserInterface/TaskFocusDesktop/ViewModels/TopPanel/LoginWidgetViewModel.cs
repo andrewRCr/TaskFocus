@@ -1,9 +1,11 @@
 ﻿using Caliburn.Micro;
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using TaskFocusDesktop.EventModels;
 using TaskFocusDesktop.ViewModels.Base;
 using TaskFocusUI.Library.API;
@@ -15,13 +17,15 @@ namespace TaskFocusDesktop.ViewModels.TopPanel
         private string _username = "andrew.creekmore@me.com";
         private string _password = "pWd123.";
         private IAPIHelper _apiHelper;
-        private IEventAggregator _events;
+        //private IEventAggregator _events;
+        protected IWindowManager _window;
         private string _errorMessage;
 
-        public LoginWidgetViewModel(IAPIHelper aPIHelper, IEventAggregator events)
+        public LoginWidgetViewModel(IAPIHelper aPIHelper, IWindowManager window, IEventAggregator events, AppState appState) : base(events, appState)
         {
             _apiHelper = aPIHelper;
-            _events = events;
+            //_events = events;
+            _window = window;
         }
 
         public string Username
@@ -82,12 +86,35 @@ namespace TaskFocusDesktop.ViewModels.TopPanel
 
                 // capture user info
                 await _apiHelper.GetLoggedInUserInfoAsync(result.AccessToken);
-
+                // raise log on event for shell view to handle
                 await _events.PublishOnUIThreadAsync(new LogOnEvent());
             }
             catch (Exception ex)
             {
                 ErrorMessage = ex.Message;
+            }
+        }
+
+        // TEMP / DEV ONLY
+        protected override async void OnViewLoaded(object view)
+        {
+            base.OnViewLoaded(view);
+
+            try
+            {
+                await LogIn();
+            }
+            catch (Exception ex)
+            {
+                dynamic settings = new ExpandoObject();
+                settings.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+                settings.ResizeMode = ResizeMode.NoResize;
+                settings.Title = "Exception!";
+
+                var status = IoC.Get<StatusInfoViewModel>();
+                status.UpdateMessage($"{ex.Source} threw an exception:", ex.Message);
+                await _window.ShowDialogAsync(status, null, settings);
+                await TryCloseAsync();
             }
         }
     }
