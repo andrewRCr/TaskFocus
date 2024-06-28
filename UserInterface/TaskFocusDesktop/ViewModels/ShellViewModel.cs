@@ -7,21 +7,20 @@ using System.Windows;
 using System.Windows.Input;
 using TaskFocusDesktop.Commands;
 using TaskFocusDesktop.EventModels;
+using TaskFocusDesktop.Utilities;
 using TaskFocusDesktop.ViewModels.MainContent;
 using TaskFocusDesktop.ViewModels.SidePanel;
 using TaskFocusDesktop.ViewModels.TopPanel;
 using TaskFocusUI.Library.API;
 using TaskFocusUI.Library.Models;
-using static TaskFocusDesktop.AppState;
 
 namespace TaskFocusDesktop.ViewModels
 {
-    public class ShellViewModel : Conductor<object>.Collection.AllActive, IHandle<LogOnEvent>, IHandle<LogOffEvent>, IHandle<MainContentViewSwitchEvent>
+    public class ShellViewModel : Conductor<object>.Collection.AllActive, IHandle<AuthStatusChangedEvent>, IHandle<RequestViewSwitchEvent>
     {
         private IAPIHelper _apiHelper;
         private ILoggedInUserModel _loggedInUser;
         private IEventAggregator _events;
-        private AppState _appState;
 
         private WindowState _shellWindowState;
         public WindowState ShellWindowState
@@ -89,16 +88,25 @@ namespace TaskFocusDesktop.ViewModels
             }
         }
 
-        public AppState.MainContentView ActiveAppStateMainContentView { get { return _appState.ActiveMainContentView; } }
-
-        private MainContentView _activeMainContentView;
-        public MainContentView ActiveMainContentView
+        private ViewCatalog.MainContentView _activeMainContentView;
+        public ViewCatalog.MainContentView ActiveMainContentView
         {
             get { return _activeMainContentView; }
             set
             {
                 _activeMainContentView = value;
                 NotifyOfPropertyChange(() => ActiveMainContentView);
+            }
+        }
+
+        private ViewCatalog.SidePanelView _activeSidePanelView;
+        public ViewCatalog.SidePanelView ActiveSidePanelView
+        {
+            get { return _activeSidePanelView; }
+            set
+            {
+                _activeSidePanelView = value;
+                NotifyOfPropertyChange(() => ActiveSidePanelView);
             }
         }
 
@@ -145,38 +153,25 @@ namespace TaskFocusDesktop.ViewModels
 
         public ICommand TitleBarMenuCommand => new RelayCommand(execute => SystemCommands.ShowSystemMenu(Application.Current.MainWindow, GetSystemMenuPosition()));
 
-        //public ICommand SwitchToInboxViewCommand => new RelayCommand(async execute => await SwitchMainContentView(MainContentView.Inbox));
+        public ICommand SwitchToInboxViewCommand => new RelayCommand(async execute => await SwitchMainContentView(ViewCatalog.MainContentView.Inbox));
 
-        //public ICommand SwitchToTodayViewCommand => new RelayCommand(async execute => await SwitchMainContentView(MainContentView.Today));
+        public ICommand SwitchToTodayViewCommand => new RelayCommand(async execute => await SwitchMainContentView(ViewCatalog.MainContentView.Today));
 
-        //public ICommand SwitchToProjectsViewCommand => new RelayCommand(async execute => await SwitchMainContentView(MainContentView.Projects));
+        public ICommand SwitchToProjectsViewCommand => new RelayCommand(async execute => await SwitchMainContentView(ViewCatalog.MainContentView.Projects));
 
-        //public ICommand SwitchToContextsViewCommand => new RelayCommand(async execute => await SwitchMainContentView(MainContentView.Contexts));
+        public ICommand SwitchToContextsViewCommand => new RelayCommand(async execute => await SwitchMainContentView(ViewCatalog.MainContentView.Contexts));
 
-        //public ICommand SwitchToCompletedViewCommand => new RelayCommand(async execute => await SwitchMainContentView(MainContentView.Completed));
+        public ICommand SwitchToCompletedViewCommand => new RelayCommand(async execute => await SwitchMainContentView(ViewCatalog.MainContentView.Completed));
 
-        public ICommand SwitchToSettingsViewCommand => new RelayCommand(async execute => await RequestSwitchToSettingsView());
-
-        //public enum MainContentView
-        //{
-        //    Home,
-        //    Inbox,
-        //    Today,
-        //    Projects,
-        //    Contexts,
-        //    Completed,
-        //    Settings
-        //}
+        public ICommand SwitchToSettingsViewCommand => new RelayCommand(async execute => await SwitchMainContentView(ViewCatalog.MainContentView.Settings));
 
         public ShellViewModel(IAPIHelper apiHelper,
                               ILoggedInUserModel loggedInUser,
-                              IEventAggregator events,
-                              AppState appState)
+                              IEventAggregator events)
         {
             _apiHelper = apiHelper;
             _loggedInUser = loggedInUser;
             _events = events;
-            _appState = appState;
 
             _events.SubscribeOnPublishedThread(this);
 
@@ -195,25 +190,8 @@ namespace TaskFocusDesktop.ViewModels
             ActivateItemAsync(MainContentPanel, new CancellationToken());
 
             // set current main content view enum to default
-            //ActiveMainContentView = IsUserLoggedIn ? MainContentView.Inbox : MainContentView.Home;
-            _appState.ActiveMainContentView = IsUserLoggedIn ? AppState.MainContentView.Inbox : AppState.MainContentView.Home;
+            ActiveMainContentView = IsUserLoggedIn ? ViewCatalog.MainContentView.Inbox : ViewCatalog.MainContentView.Home;
         }
-
-        //protected override bool HandleAppStateChanged(string propertyName, AppState appState)
-        //{
-        //    if (!appRefreshTriggers.Contains(propertyName)) { return false; }
-        //    if (AppState.CanRefresh) { LoadAlertMessage(); }
-
-        //    return AppState.CanRefresh;
-        //}
-
-        //private bool HandleAppStateChanged(string propertyName, AppState appState)
-        //{
-        //    if (!appRefreshTriggers.Contains(propertyName)) { return false; }
-        //    if (appState.CanRefresh) { Async( SwitchMainContentView(); }
-
-        //    return appState.CanRefresh;
-        //}
 
         private Point GetSystemMenuPosition()
         {
@@ -241,9 +219,18 @@ namespace TaskFocusDesktop.ViewModels
             await TryCloseAsync();
         }
 
-        public async Task HandleAsync(LogOnEvent message, CancellationToken cancellationToken)
+        public async Task HandleAsync(AuthStatusChangedEvent message, CancellationToken cancellationToken)
         {
-            await HandleLogIn();
+            switch (message.NewAuthStatus)
+            {
+                case true:
+                    await HandleLogIn();
+                    break;
+
+                case false:
+                    await HandleLogOut();
+                    break;
+            }
         }
 
         public async Task HandleLogIn()
@@ -255,13 +242,7 @@ namespace TaskFocusDesktop.ViewModels
 
             MainContentPanel = IoC.Get<InboxViewModel>();
             await ActivateItemAsync(MainContentPanel, new CancellationToken());
-            //ActiveMainContentView = MainContentView.Inbox;
-            _appState.ActiveMainContentView = MainContentView.Inbox;
-        }
-
-        public async Task HandleAsync(LogOffEvent message, CancellationToken cancellationToken)
-        {
-            await HandleLogOut();
+            ActiveMainContentView = ViewCatalog.MainContentView.Inbox;
         }
 
         public async Task HandleLogOut()
@@ -273,38 +254,49 @@ namespace TaskFocusDesktop.ViewModels
 
             MainContentPanel = IoC.Get<HomeViewModel>();
             await ActivateItemAsync(MainContentPanel, new CancellationToken());
-            //ActiveMainContentView = MainContentView.Home;
-            _appState.ActiveMainContentView = MainContentView.Home;
+            ActiveMainContentView = ViewCatalog.MainContentView.Home;
         }
 
-        public async Task HandleAsync(MainContentViewSwitchEvent message, CancellationToken cancellationToken)
+        public async Task HandleAsync(RequestViewSwitchEvent message, CancellationToken cancellationToken)
         {
-            await SwitchMainContentView();
-        }
-
-        public async Task SwitchMainContentView()
-        {
-            switch (_appState.ActiveMainContentView)
+            switch (message.RequestedContentPanel)
             {
-                case AppState.MainContentView.Home:
+                case ViewCatalog.ContentPanel.MainContent:
+                    await SwitchMainContentView(message.RequestedMainContentView);
+                    break;
+
+                case ViewCatalog.ContentPanel.SidePanel:
+                    await SwitchSidePanelView(message.RequestedSidePanelView);
+                    break;
+
+                case ViewCatalog.ContentPanel.TopPanel:
+                    break;
+            }
+        }
+
+        public async Task SwitchMainContentView(ViewCatalog.MainContentView requestedMainContentView)
+        {
+            switch (requestedMainContentView)
+            {
+                case ViewCatalog.MainContentView.Home:
                     MainContentPanel = IoC.Get<HomeViewModel>();
                     break;
-                case AppState.MainContentView.Inbox:
+                case ViewCatalog.MainContentView.Inbox:
                     MainContentPanel = IoC.Get<InboxViewModel>();
                     break;
-                case AppState.MainContentView.Today:
+                case ViewCatalog.MainContentView.Today:
                     MainContentPanel = IoC.Get<TodayViewModel>();
                     break;
-                case AppState.MainContentView.Projects:
+                case ViewCatalog.MainContentView.Projects:
                     MainContentPanel = IoC.Get<ProjectsViewModel>();
                     break;
-                case AppState.MainContentView.Contexts:
+                case ViewCatalog.MainContentView.Contexts:
                     MainContentPanel = IoC.Get<ContextsViewModel>();
                     break;
-                case AppState.MainContentView.Completed:
+                case ViewCatalog.MainContentView.Completed:
                     MainContentPanel = IoC.Get<CompletedViewModel>();
                     break;
-                case AppState.MainContentView.Settings:
+                case ViewCatalog.MainContentView.Settings:
                     MainContentPanel = IoC.Get<SettingsViewModel>();
                     break;
                 default:
@@ -313,14 +305,32 @@ namespace TaskFocusDesktop.ViewModels
             }
 
             await ActivateItemAsync(MainContentPanel, new CancellationToken());
-            //ActiveMainContentView = mainContentView;
+
+            ActiveMainContentView = requestedMainContentView;
+            var switchedEvent = new ViewSwitchedEvent(ViewCatalog.ContentPanel.MainContent, ActiveMainContentView);
+            await _events.PublishOnUIThreadAsync(switchedEvent);
         }
 
-        private async Task RequestSwitchToSettingsView()
+        public async Task SwitchSidePanelView(ViewCatalog.SidePanelView requestedSidePanelView)
         {
-            ActiveMainContentView = AppState.MainContentView.Settings;
-            NotifyOfPropertyChange(()=> ActiveAppStateMainContentView);
-            await SwitchMainContentView();
+            switch (requestedSidePanelView)
+            {
+                case ViewCatalog.SidePanelView.NavMenu:
+                    SideMenuPanel = IoC.Get<NavMenuViewModel>();
+                    break;
+                case ViewCatalog.SidePanelView.SubNavMenu:
+                    SideMenuPanel = IoC.Get<SubNavMenuViewModel>();
+                    break;
+                default:
+                    SideMenuPanel = IoC.Get<NavMenuViewModel>();
+                    break;
+            }
+
+            await ActivateItemAsync(SideMenuPanel, new CancellationToken());
+
+            ActiveSidePanelView = requestedSidePanelView;
+            var switchedEvent = new ViewSwitchedEvent(ViewCatalog.ContentPanel.SidePanel, ActiveSidePanelView);
+            await _events.PublishOnUIThreadAsync(switchedEvent);
         }
     }
 }

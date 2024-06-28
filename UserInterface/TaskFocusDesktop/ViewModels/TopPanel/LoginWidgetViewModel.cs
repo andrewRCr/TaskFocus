@@ -17,14 +17,12 @@ namespace TaskFocusDesktop.ViewModels.TopPanel
         private string _username = "andrew.creekmore@me.com";
         private string _password = "pWd123.";
         private IAPIHelper _apiHelper;
-        //private IEventAggregator _events;
         protected IWindowManager _window;
         private string _errorMessage;
 
-        public LoginWidgetViewModel(IAPIHelper aPIHelper, IWindowManager window, IEventAggregator events, AppState appState) : base(events, appState)
+        public LoginWidgetViewModel(IAPIHelper aPIHelper, IWindowManager window, IEventAggregator events) : base(events)
         {
             _apiHelper = aPIHelper;
-            //_events = events;
             _window = window;
         }
 
@@ -87,7 +85,7 @@ namespace TaskFocusDesktop.ViewModels.TopPanel
                 // capture user info
                 await _apiHelper.GetLoggedInUserInfoAsync(result.AccessToken);
                 // raise log on event for shell view to handle
-                await _events.PublishOnUIThreadAsync(new LogOnEvent());
+                await _events.PublishOnUIThreadAsync(new AuthStatusChangedEvent(true));
             }
             catch (Exception ex)
             {

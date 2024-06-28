@@ -19,6 +19,8 @@ namespace TaskFocusDesktop
             Settings
         }
 
+        public string TestString { get; set; } = "test A";
+
         private MainContentView _activeMainContentView;
         public MainContentView ActiveMainContentView
         {

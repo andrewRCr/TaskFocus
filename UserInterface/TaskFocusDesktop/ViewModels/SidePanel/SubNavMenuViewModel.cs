@@ -10,7 +10,7 @@ namespace TaskFocusDesktop.ViewModels.SidePanel
 {
     public class SubNavMenuViewModel : ViewModelBase
     {
-        public SubNavMenuViewModel(IEventAggregator events, AppState appState) : base(events, appState)
+        public SubNavMenuViewModel(IEventAggregator events) : base(events)
         {
             
         }

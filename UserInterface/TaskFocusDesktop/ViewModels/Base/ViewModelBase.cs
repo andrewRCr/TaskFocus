@@ -1,56 +1,79 @@
 ﻿using Caliburn.Micro;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Input;
+using TaskFocusDesktop.Commands;
+using TaskFocusDesktop.EventModels;
+using TaskFocusDesktop.Utilities;
+
 
 namespace TaskFocusDesktop.ViewModels.Base
 {
-    public abstract class ViewModelBase : Screen
+    public abstract class ViewModelBase : Screen, IHandle<ViewSwitchedEvent>
     {
         protected IEventAggregator _events;
-        protected AppState _appState;
 
-        //protected List<string> appRefreshTriggers = new List<string> {};
-
-        public AppState.MainContentView ActiveAppStateMainContentView { get { return _appState.ActiveMainContentView; } }
-
-        protected ViewModelBase(IEventAggregator events, AppState appState)
+        protected ViewModelBase(IEventAggregator events)
         {
             _events = events;
-            _appState = appState;
-
-            //_appState.AppStateChanged += AppStateChanged;
         }
 
-        // TODO: this enum is old and any references to it need to be migrated to app state's enum instead
-        protected enum ViewModelChildren
+        protected ViewCatalog.MainContentView ActiveMainContentView { get; set; }
+
+        protected ViewCatalog.SidePanelView ActiveSidePanelView { get; set; }
+
+        public ICommand SwitchToInboxViewCommand => new RelayCommand(
+            async execute => await RequestMainContentViewSwitch(ViewCatalog.MainContentView.Inbox));
+
+        public ICommand SwitchToTodayViewCommand => new RelayCommand(
+            async execute => await RequestMainContentViewSwitch(ViewCatalog.MainContentView.Today));
+
+        public ICommand SwitchToProjectsViewCommand => new RelayCommand(
+            async execute => await RequestMainContentViewSwitch(ViewCatalog.MainContentView.Projects));
+
+        public ICommand SwitchToContextsViewCommand => new RelayCommand(
+            async execute => await RequestMainContentViewSwitch(ViewCatalog.MainContentView.Contexts));
+
+        public ICommand SwitchToCompletedViewCommand => new RelayCommand(
+            async execute => await RequestMainContentViewSwitch(ViewCatalog.MainContentView.Completed));
+
+        public ICommand SwitchToSettingsViewCommand => new RelayCommand(
+                async execute => await RequestMainContentViewSwitch(ViewCatalog.MainContentView.Settings));
+
+        protected async Task RequestMainContentViewSwitch(ViewCatalog.MainContentView requestedMainContentView)
         {
-            HomeVM,
-            InboxVM,
-            TodayVM,
-            ProjectsVM,
-            ContextsVM,
-            CompletedVM,
-            SettingsVM
+            var requestEvent = new RequestViewSwitchEvent(
+                ViewCatalog.ContentPanel.MainContent, requestedMainContentView);
+            await _events.PublishOnUIThreadAsync(requestEvent);
         }
 
-        protected ViewModelChildren ActiveViewModel;
+        protected async Task RequestSidePanelViewSwitch(ViewCatalog.SidePanelView requestedSidePanelView)
+        {
+            var requestEvent = new RequestViewSwitchEvent(
+                ViewCatalog.ContentPanel.SidePanel, requestedSidePanelView);
+            await _events.PublishOnUIThreadAsync(requestEvent);
+        }
 
-        // to be defined in child components as needed
-        //protected virtual bool HandleAppStateChanged(String propertyName, AppState appState)
-        //{
-        //    return false;
-        //}
+        public async Task HandleAsync(ViewSwitchedEvent message, CancellationToken cancellationToken)
+        {
+            switch (message.SwitchedContentPanel)
+            {
+                case ViewCatalog.ContentPanel.MainContent:
+                    ActiveMainContentView = message.NewMainContentView;
+                    break;
 
-        //private void AppStateChanged(String propertyName, AppState appState)
-        //{
-        //    bool changesOccured = HandleAppStateChanged(propertyName, appState);
-        //    //if (changesOccured)
-        //    //{
-        //    //    await InvokeAsync(StateHasChanged);
-        //    //}
-        //}
+                case ViewCatalog.ContentPanel.SidePanel:
+                    ActiveSidePanelView = message.NewSidePanelView;
+                    break;
+
+                case ViewCatalog.ContentPanel.TopPanel:
+                    break;
+
+                default:
+                    break;
+            }
+
+            await Task.CompletedTask;
+        }
     }
 }

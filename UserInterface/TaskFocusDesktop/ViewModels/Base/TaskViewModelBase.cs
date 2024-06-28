@@ -24,7 +24,7 @@ namespace TaskFocusDesktop.ViewModels.Base
         public RelayCommand DeleteTaskCommand => new RelayCommand(async execute => await DeleteTask());
 
         public TaskViewModelBase(IAPIHelper apiHelper, IUserEndpoint userEndpoint, ITaskEndpoint taskEndpoint, IProjectEndpoint projectEndpoint,
-            IContextEndpoint contextEndpoint, IMapper mapper, IDataHelper dataHelper, IWindowManager windowManager, IEventAggregator events, AppState appState) : base(events, appState)
+            IContextEndpoint contextEndpoint, IMapper mapper, IDataHelper dataHelper, IWindowManager windowManager, IEventAggregator events) : base(events)
         {
             _apiHelper = apiHelper;
             _userEndpoint = userEndpoint;
@@ -123,40 +123,40 @@ namespace TaskFocusDesktop.ViewModels.Base
         {
             Task<List<TaskModel>> loadTaskToCall = null;
 
-            switch (ActiveViewModel)
-            {
-                case ViewModelChildren.InboxVM:
-                    loadTaskToCall = _taskEndpoint.GetInboxTasksForUser();
-                    break;
-                default:
-                    loadTaskToCall = _taskEndpoint.GetAllTasksForUser();
-                    break;
-            }
+            //switch (ActiveViewModel)
+            //{
+            //    case ViewModelChildren.InboxVM:
+            //        loadTaskToCall = _taskEndpoint.GetInboxTasksForUser();
+            //        break;
+            //    default:
+            //        loadTaskToCall = _taskEndpoint.GetAllTasksForUser();
+            //        break;
+            //}
 
-            var taskList = await loadTaskToCall;
-            TasksLastFetch = taskList; // store for comparison
+            //var taskList = await loadTaskToCall;
+            //TasksLastFetch = taskList; // store for comparison
 
-            var displayTaskList = _mapper.Map<List<TaskDisplayModel>>(taskList);
-            Tasks = new BindingList<TaskDisplayModel>(displayTaskList);
+            //var displayTaskList = _mapper.Map<List<TaskDisplayModel>>(taskList);
+            //Tasks = new BindingList<TaskDisplayModel>(displayTaskList);
 
-            foreach (TaskDisplayModel displayTask in Tasks)
-            {
-                displayTask.PropertyChanged += OnExistingTaskPropertyChanged; // subscribe to property changed event
-            }
+            //foreach (TaskDisplayModel displayTask in Tasks)
+            //{
+            //    displayTask.PropertyChanged += OnExistingTaskPropertyChanged; // subscribe to property changed event
+            //}
 
-            var projectList = await _projectEndpoint.GetAllProjectsForUser();
-            Projects = new BindingList<ProjectModel>(projectList);
+            //var projectList = await _projectEndpoint.GetAllProjectsForUser();
+            //Projects = new BindingList<ProjectModel>(projectList);
 
-            var contextList = await _contextEndpoint.GetAllContextsForUser();
-            Contexts = new BindingList<ContextModel>(contextList);
+            //var contextList = await _contextEndpoint.GetAllContextsForUser();
+            //Contexts = new BindingList<ContextModel>(contextList);
 
-            // new task input placeholder
-            List<TaskDisplayModel> newTaskList = new List<TaskDisplayModel>();
-            TaskDisplayModel newTaskPlaceholder = new TaskDisplayModel();
-            NewTask = newTaskPlaceholder;
-            NewTask.PropertyChanged += OnNewTaskPropertyChanged; // subscribe to property changed event
-            newTaskList.Add(newTaskPlaceholder);
-            NewTaskList = new BindingList<TaskDisplayModel>(newTaskList);
+            //// new task input placeholder
+            //List<TaskDisplayModel> newTaskList = new List<TaskDisplayModel>();
+            //TaskDisplayModel newTaskPlaceholder = new TaskDisplayModel();
+            //NewTask = newTaskPlaceholder;
+            //NewTask.PropertyChanged += OnNewTaskPropertyChanged; // subscribe to property changed event
+            //newTaskList.Add(newTaskPlaceholder);
+            //NewTaskList = new BindingList<TaskDisplayModel>(newTaskList);
         }
 
         public async Task AssignProjectIdFromProjectName(TaskModel task)

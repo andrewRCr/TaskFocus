@@ -18,7 +18,7 @@ namespace TaskFocusDesktop.ViewModels.TopPanel
         //private IEventAggregator _events;
         private string _errorMessage;
 
-        public AuthWidgetViewModel(IAPIHelper aPIHelper, ILoggedInUserModel loggedInUser, IEventAggregator events, AppState appState) : base(events, appState)
+        public AuthWidgetViewModel(IAPIHelper aPIHelper, ILoggedInUserModel loggedInUser, IEventAggregator events) : base(events)
         {
             _apiHelper = aPIHelper;
             _loggedInUser = loggedInUser;
@@ -54,7 +54,7 @@ namespace TaskFocusDesktop.ViewModels.TopPanel
                 _loggedInUser.ResetUserModel();
 
                 // raise log off event for shell view to handle
-                await _events.PublishOnUIThreadAsync(new LogOffEvent());
+                await _events.PublishOnUIThreadAsync(new AuthStatusChangedEvent(false));
             }
             catch (Exception ex)
             {

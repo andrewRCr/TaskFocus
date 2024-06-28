@@ -53,7 +53,7 @@
                             <Rectangle.Visibility>
                                 <MultiBinding Converter="{StaticResource ActiveMainViewToVisibilityConverter}">
                                     <Binding Path="Header" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type MenuItem}}"/>
-                                    <Binding Path="ActiveAppStateMainContentView"/>
+                                    <Binding Path="DataContext.ActiveMainContentView" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}"/>
                                 </MultiBinding>
                             </Rectangle.Visibility>
                         </Rectangle>
@@ -70,7 +70,7 @@
                             <Border.Visibility>
                                 <MultiBinding Converter="{StaticResource ActiveMainViewToVisibilityConverter}">
                                     <Binding Path="Header" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type MenuItem}}"/>
-                                    <Binding Path="ActiveAppStateMainContentView" />
+                                    <Binding Path="DataContext.ActiveMainContentView" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}" />
                                 </MultiBinding>
                             </Border.Visibility>
                         </Border>

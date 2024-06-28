@@ -24,8 +24,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
                                   IMapper mapper,
                                   IDataHelper dataHelper,
                                   IWindowManager window,
-                                  IEventAggregator events,
-                                  AppState appState) : base(apiHelper, userEndpoint, taskEndpoint, projectEndpoint, contextEndpoint, mapper, dataHelper, window, events, appState)
+                                  IEventAggregator events) : base(apiHelper, userEndpoint, taskEndpoint, projectEndpoint, contextEndpoint, mapper, dataHelper, window, events)
         {
         }
 
@@ -35,7 +34,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
 
             try
             {
-                ActiveViewModel = ViewModelChildren.CompletedVM;
+                //ActiveViewModel = ViewModelChildren.CompletedVM;
                 await LoadTasks();
             }
             catch (Exception ex)

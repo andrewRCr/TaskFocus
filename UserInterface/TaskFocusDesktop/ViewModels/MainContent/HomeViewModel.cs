@@ -10,7 +10,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
 {
     public class HomeViewModel : ViewModelBase
     {
-        public HomeViewModel(IEventAggregator events, AppState appState) : base(events, appState)
+        public HomeViewModel(IEventAggregator events) : base(events)
         {
 
         }

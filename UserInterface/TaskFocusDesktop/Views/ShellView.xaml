@@ -153,10 +153,8 @@
                                 FontSize="24"
                                 Style="{StaticResource textBlockPrimaryStyle}"
                                 FontWeight="Bold"
-                                ><Run Text="TaskFocus"/></TextBlock>
-
+                                >TaskFocus</TextBlock>
                 </StackPanel>
-
 
                 <!-- Column 0, Row 2  -->
                 <!-- // Mini Navigation menu (icons) // -->
@@ -165,7 +163,7 @@
                             Grid.Column="0"
                             Grid.Row="2">
 
-                    <!--<Menu Template="{StaticResource MiniNavMenu_Template}" />-->
+                    <Menu Template="{StaticResource MiniNavMenu_Template}" />
 
                 </StackPanel>
 
@@ -211,7 +209,7 @@
                       Converter={StaticResource BooleanToVisibilityConverter}, 
                       FallbackValue=Visible}">
 
-                    <!--<MenuItem Header="Settings" 
+                    <MenuItem Header="Settings" 
                               Command="{Binding SwitchToSettingsViewCommand}"
                               Template="{StaticResource MiniNavMenuItem_Template}">
                         <MenuItem.Icon>
@@ -221,7 +219,7 @@
                                                      Foreground="{StaticResource ForegroundMainBrush}"
                                                      />
                         </MenuItem.Icon>
-                    </MenuItem>-->
+                    </MenuItem>
 
                 </Menu>
 
