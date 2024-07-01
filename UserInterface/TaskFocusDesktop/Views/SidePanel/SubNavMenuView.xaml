@@ -3,10 +3,76 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:utilities="clr-namespace:TaskFocusDesktop.Utilities"
              xmlns:local="clr-namespace:TaskFocusDesktop.Views.SidePanel"
+             xmlns:sidepanel="clr-namespace:TaskFocusDesktop.ViewModels.SidePanel" 
+             d:DataContext="{d:DesignInstance Type=sidepanel:SubNavMenuViewModel}"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="600" d:DesignWidth="250">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+            <utilities:ActiveMainViewToVisibilityConverter x:Key="ActiveMainViewToVisibilityConverter" />
+        </ResourceDictionary>
+    </UserControl.Resources>
+    
     <Grid>
-            
+        <StackPanel Orientation="Vertical" VerticalAlignment="Stretch">
+
+
+                
+                <!-- 'back' button -->
+                <Button Command="{Binding SwitchToMainNavMenuCommand}" 
+                        Background="Transparent"
+                        HorizontalAlignment="Left"
+                        HorizontalContentAlignment="Left"
+                        Margin="-10 0 0 0"
+                        Width="150" 
+                        BorderThickness="0"  >
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+
+                    <materialDesign:PackIcon Kind="ChevronLeft"
+                                             Foreground="{StaticResource ForegroundMainBrush}"
+                                             Height="32"
+                                             Width="32"
+                                             VerticalAlignment="Center"
+                                             HorizontalAlignment="Left"
+                                             />
+
+                    <TextBlock Text="{Binding HeaderText}"
+                               Style="{StaticResource HeaderTextStyle}"
+                               VerticalAlignment="Center"
+                               Margin="6 0 0 0"
+                               />
+
+                </StackPanel>
+
+            </Button>
+
+                <!--<Button Command="{Binding SwitchToMainNavMenuCommand}" 
+                        Background="Transparent"
+                        BorderThickness="0" >
+
+
+                </Button>-->
+
+            <!--</StackPanel>-->
+ 
+            <Menu>
+
+                <Menu.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <VirtualizingStackPanel Orientation="Vertical"/>
+                    </ItemsPanelTemplate>
+                </Menu.ItemsPanel>
+
+            </Menu>
+
+        </StackPanel>
+        
     </Grid>
+    
 </UserControl>

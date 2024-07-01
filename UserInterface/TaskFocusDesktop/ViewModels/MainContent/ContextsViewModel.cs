@@ -34,7 +34,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
 
             try
             {
-                //ActiveViewModel = ViewModelChildren.ContextsVM;
+                //ActiveMainContentView = Utilities.ViewCatalog.MainContentView.Contexts;
                 await LoadTasks();
             }
             catch (Exception ex)

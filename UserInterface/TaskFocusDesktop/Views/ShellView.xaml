@@ -13,7 +13,7 @@
         MinHeight="{Binding WindowMinimumHeight}"
         MinWidth="{Binding WindowMinimumWidth}"
         WindowStartupLocation="CenterScreen"
-        Icon="../Images/favicon-32x32.png"
+        Icon="../Resources/Images/favicon-32x32.png"
         WindowState="{Binding ShellWindowState, Mode=TwoWay}"
         WindowStyle="None"
         SourceInitialized="Window_SourceInitialized"

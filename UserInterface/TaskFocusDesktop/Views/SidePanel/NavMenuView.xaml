@@ -5,7 +5,9 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:utilities="clr-namespace:TaskFocusDesktop.Utilities"
-             xmlns:local="clr-namespace:TaskFocusDesktop.Views.SidePanel" xmlns:sidepanel="clr-namespace:TaskFocusDesktop.ViewModels.SidePanel" d:DataContext="{d:DesignInstance Type=sidepanel:NavMenuViewModel}"
+             xmlns:local="clr-namespace:TaskFocusDesktop.Views.SidePanel" 
+             xmlns:sidepanel="clr-namespace:TaskFocusDesktop.ViewModels.SidePanel" 
+             d:DataContext="{d:DesignInstance Type=sidepanel:NavMenuViewModel}"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="250">
     
@@ -13,89 +15,12 @@
         <ResourceDictionary>
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
             <utilities:ActiveMainViewToVisibilityConverter x:Key="ActiveMainViewToVisibilityConverter" />
-
-            <ControlTemplate x:Key="NavMenuItem_Template"
-                       TargetType="{x:Type MenuItem}">
-
-                <Border x:Name="MenuItemBorder"
-                  Background="Transparent"
-                  BorderThickness="0"
-                  Height="50"
-                  Width="250">
-
-                    <Grid>
-
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-
-                        <!-- menu text -->
-                        <ContentPresenter x:Name="HeaderText" 
-                                    ContentSource="Header"
-                                    Grid.Column="0"
-                                    HorizontalAlignment="Left"
-                                    RecognizesAccessKey="True"
-                                    Margin="20,0,0,0"
-                                    VerticalAlignment="Center" />
-                        
-                        <!-- selected indicator (highlight vertical strip on right side) -->
-                        <Rectangle x:Name="SelectedIndicator" 
-                             Tag="{Binding Path=Header}"
-                             Grid.Column="1"
-                             VerticalAlignment="Stretch" 
-                             HorizontalAlignment="Right"
-                             Width="3" 
-                             Margin="0"
-                             Stroke="{StaticResource ForegroundHighlightBrush}"
-                             Fill="{StaticResource ForegroundHighlightBrush}" >
-
-                            <Rectangle.Visibility>
-                                <MultiBinding Converter="{StaticResource ActiveMainViewToVisibilityConverter}">
-                                    <Binding Path="Header" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type MenuItem}}"/>
-                                    <Binding Path="DataContext.ActiveMainContentView" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}"/>
-                                </MultiBinding>
-                            </Rectangle.Visibility>
-                        </Rectangle>
-
-                        <!-- selected indicator (background) -->
-                        <Border x:Name="SelectedIndicatorBorder" 
-                          Panel.ZIndex="-1"
-                          Grid.ColumnSpan="2"
-                          Height="50"
-                          Width="250" 
-                          Margin="0"
-                          Background="{StaticResource BackgroundMidGreyBrush}" >
-
-                            <Border.Visibility>
-                                <MultiBinding Converter="{StaticResource ActiveMainViewToVisibilityConverter}">
-                                    <Binding Path="Header" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type MenuItem}}"/>
-                                    <Binding Path="DataContext.ActiveMainContentView" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}" />
-                                </MultiBinding>
-                            </Border.Visibility>
-                        </Border>
-
-                    </Grid>
-                </Border>
-
-                <ControlTemplate.Triggers>
-
-                    <Trigger Property="IsHighlighted"
-                       Value="True">
-                        <Setter TargetName="MenuItemBorder"
-                          Property="Background"
-                          Value="{StaticResource BackgroundMidGreyBrush}" />
-
-                    </Trigger>
-
-                </ControlTemplate.Triggers>
-            </ControlTemplate>
         </ResourceDictionary>
     </UserControl.Resources>
     
     <Grid>
 
-        <StackPanel Orientation="Horizontal" VerticalAlignment="Stretch">
+        <StackPanel Orientation="Vertical" VerticalAlignment="Stretch">
 
             <Menu>
 

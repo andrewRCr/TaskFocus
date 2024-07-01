@@ -304,9 +304,21 @@ namespace TaskFocusDesktop.ViewModels
                     break;
             }
 
-            await ActivateItemAsync(MainContentPanel, new CancellationToken());
+            // activate appropriate side panel view first so it can consume ViewSwitchedEvent
+            if (requestedMainContentView == ViewCatalog.MainContentView.Projects ||
+                requestedMainContentView == ViewCatalog.MainContentView.Contexts)
+            {
+                await SwitchSidePanelView(ViewCatalog.SidePanelView.SubNavMenu);
+            }
+            else if (ActiveSidePanelView != ViewCatalog.SidePanelView.NavMenu)
+            {
+                await SwitchSidePanelView(ViewCatalog.SidePanelView.NavMenu);
+            }
 
+            await ActivateItemAsync(MainContentPanel, new CancellationToken());
             ActiveMainContentView = requestedMainContentView;
+
+            // notify other views
             var switchedEvent = new ViewSwitchedEvent(ViewCatalog.ContentPanel.MainContent, ActiveMainContentView);
             await _events.PublishOnUIThreadAsync(switchedEvent);
         }
@@ -327,8 +339,9 @@ namespace TaskFocusDesktop.ViewModels
             }
 
             await ActivateItemAsync(SideMenuPanel, new CancellationToken());
-
             ActiveSidePanelView = requestedSidePanelView;
+
+            // notify other views
             var switchedEvent = new ViewSwitchedEvent(ViewCatalog.ContentPanel.SidePanel, ActiveSidePanelView);
             await _events.PublishOnUIThreadAsync(switchedEvent);
         }

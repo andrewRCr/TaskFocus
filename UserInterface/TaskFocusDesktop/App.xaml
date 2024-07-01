@@ -5,14 +5,24 @@
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes" xmlns:utilities="clr-namespace:TaskFocusDesktop.Utilities">
 
     <Application.Resources>
-        <ResourceDictionary>
 
+        <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                
+             
                 <ResourceDictionary>
                     <local:Bootstrapper x:Key="Bootstrapper" />
                 </ResourceDictionary>
-                
+
+                <!-- font .ttfs -->
+                <ResourceDictionary>
+                    <FontFamily x:Key="RobotoBlack">pack://application:,,,Resources/Fonts/Roboto-Black.ttf#Roboto</FontFamily>
+                    <FontFamily x:Key="RobotoBold">pack://application:,,,Resources/Fonts/Roboto-Bold.ttf#Roboto</FontFamily>
+                    <FontFamily x:Key="RobotoMedium">pack://application:,,,Resources/Fonts/Roboto-Medium.ttf#Roboto</FontFamily>
+                    <FontFamily x:Key="RobotoRegular">pack://application:,,,Resources/Fonts/Roboto-Regular.ttf#Roboto</FontFamily>
+                    <FontFamily x:Key="RobotoLight">pack://application:,,,Resources/Fonts/Roboto-Light.ttf#Roboto</FontFamily>
+                    <FontFamily x:Key="RobotoThin">pack://application:,,,Resources/Fonts/Roboto-Thin.ttf#Roboto</FontFamily>
+                </ResourceDictionary>
+
                 <!-- custom styling (order matters) -->
                 <ResourceDictionary Source="Styles/Colors.xaml" />
                 <ResourceDictionary Source="Styles/Fonts.xaml" />
@@ -67,8 +77,6 @@
             <Style x:Key="textBlockPrimaryStyle">
                 <Setter Property="TextBlock.Foreground" Value="#776be7" />
             </Style>
-
-
 
         </ResourceDictionary>
     </Application.Resources>

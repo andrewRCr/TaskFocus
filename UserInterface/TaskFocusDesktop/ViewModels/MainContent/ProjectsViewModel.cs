@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Dynamic;
 using System.Windows;
 using TaskFocusDesktop.ViewModels.Base;
+using TaskFocusDesktop.Utilities;
 using TaskFocusUI.Library.API;
 using TaskFocusUI.Library.Utilities;
 
@@ -30,7 +31,9 @@ namespace TaskFocusDesktop.ViewModels.MainContent
 
             try
             {
-                //ActiveViewModel = ViewModelChildren.ProjectsVM;
+                //ActiveMainContentView = ViewCatalog.MainContentView.Projects;
+                //await RequestSidePanelViewSwitch(ViewCatalog.SidePanelView.SubNavMenu);
+
                 await LoadTasks();
             }
             catch (Exception ex)
