@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Dynamic;
 using System.Windows;
 using TaskFocusDesktop.ViewModels.Base;
+using TaskFocusUI.Library;
 using TaskFocusUI.Library.API;
 using TaskFocusUI.Library.Utilities;
 
@@ -12,15 +13,11 @@ namespace TaskFocusDesktop.ViewModels.MainContent
 {
     public class InboxViewModel : TaskViewModelBase, INotifyPropertyChanged
     {
-        public InboxViewModel(IAPIHelper apiHelper,
-                              IUserEndpoint userEndpoint,
-                              ITaskEndpoint taskEndpoint,
-                              IProjectEndpoint projectEndpoint,
-                              IContextEndpoint contextEndpoint,
-                              IMapper mapper,
+        public InboxViewModel(IDataState dataState,
+                              IDataService dataService,
                               IDataHelper dataHelper,
-                              IWindowManager window,
-                              IEventAggregator events) : base(apiHelper, userEndpoint, taskEndpoint, projectEndpoint, contextEndpoint, mapper, dataHelper, window, events)
+                              IEventAggregator events,
+                              IWindowManager window) : base(dataState, dataService, dataHelper, events, window)
         {
         }
 
@@ -30,8 +27,15 @@ namespace TaskFocusDesktop.ViewModels.MainContent
 
             try
             {
+                if (!_dataState.IsDataLoaded())
+                {
+                    await _dataService.FetchRemoteTaskData();
+                }
+
+                LoadLocalTaskData();
+
                 //ActiveViewModel = ViewModelChildren.InboxVM;
-                await LoadTasks();
+                //await LoadTasks();
             }
             catch (Exception ex)
             {

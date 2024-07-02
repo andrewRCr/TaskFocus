@@ -12,6 +12,7 @@ using TaskFocusUI.Library.Logging;
 using TaskFocusUI.Library.Models;
 using TaskFocusUI.Library.Utilities;
 using TaskFocusWeb.Authentication;
+using TaskFocusUI.Library;
 
 namespace TaskFocusWeb
 {
@@ -45,9 +46,9 @@ namespace TaskFocusWeb
             builder.Services.AddTransient<IProjectEndpoint, ProjectEndpoint>();
             builder.Services.AddTransient<IContextEndpoint, ContextEndpoint>();
             builder.Services.AddSingleton(new AppState());
-            builder.Services.AddSingleton(new DataState());
-            builder.Services.AddSingleton<IDataHelper, DataHelper>();
+            builder.Services.AddSingleton<IDataState, DataState>();
             builder.Services.AddScoped<IDataService, DataService>();
+            builder.Services.AddSingleton<IDataHelper, DataHelper>();
 
             IMapper ConfigureAutomapper()
             {

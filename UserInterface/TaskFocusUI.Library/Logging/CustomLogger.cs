@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using System.Xml.Linq;
 
@@ -34,6 +35,7 @@ namespace TaskFocusUI.Library.Logging
             {
                 // console logging
                 Console.WriteLine($"[{eventId.Id,2}: {logLevel,-12}] {_name} - {formatter(state, exception)}");
+                Debug.WriteLine($"[{eventId.Id,2}: {logLevel,-12}] {_name} - {formatter(state, exception)}");
 
                 // in-memory logging
                 if (logLevel >= _config.InMemoryMinLogLevel)

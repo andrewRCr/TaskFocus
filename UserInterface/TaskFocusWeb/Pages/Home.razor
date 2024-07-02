@@ -175,7 +175,7 @@
         }
     }
 
-    protected override bool HandleDataStateChanged(string propertyName, DataState dataState)
+    protected override bool HandleDataStateChanged(string propertyName, IDataState dataState)
     {
         if (!dataRefreshTriggers.Contains(propertyName))
         {

@@ -1,6 +1,7 @@
-﻿using TaskFocusUI.Library.Models;
+﻿using System.Threading.Tasks;
+using TaskFocusUI.Library.Models;
 
-namespace TaskFocusWeb
+namespace TaskFocusUI.Library.Utilities
 {
     public interface IDataService
     {
@@ -9,9 +10,9 @@ namespace TaskFocusWeb
         Task HandleTaskContextChanged(TaskModel task);
         Task HandleTaskProjectChanged(TaskModel task);
         Task FetchAllRemoteData();
-        Task FetchRemoteContextData();
-        Task FetchRemoteProjectData();
         Task FetchRemoteTaskData();
+        Task FetchRemoteProjectData();
+        Task FetchRemoteContextData();
         Task UpdateContextData(ContextDisplayModel displayContext);
         Task UpdateProjectData(ProjectDisplayModel displayProject);
         Task UpdateTaskData(TaskDisplayModel displayTask, bool forceUpdate = false);

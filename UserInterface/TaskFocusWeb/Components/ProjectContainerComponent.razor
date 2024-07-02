@@ -70,7 +70,7 @@
         }
     }
 
-    protected override bool HandleDataStateChanged(string propertyName, DataState dataState)
+    protected override bool HandleDataStateChanged(string propertyName, IDataState dataState)
     {
         if (propertyName != nameof(DataState.Projects))
         {

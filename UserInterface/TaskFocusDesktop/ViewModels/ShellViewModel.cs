@@ -21,6 +21,7 @@ namespace TaskFocusDesktop.ViewModels
         private IAPIHelper _apiHelper;
         private ILoggedInUserModel _loggedInUser;
         private IEventAggregator _events;
+        private ILog _logger = LogManager.GetLog(typeof(ShellViewModel));
 
         private WindowState _shellWindowState;
         public WindowState ShellWindowState

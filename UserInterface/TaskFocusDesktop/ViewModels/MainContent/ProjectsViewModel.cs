@@ -8,20 +8,17 @@ using TaskFocusDesktop.ViewModels.Base;
 using TaskFocusDesktop.Utilities;
 using TaskFocusUI.Library.API;
 using TaskFocusUI.Library.Utilities;
+using TaskFocusUI.Library;
 
 namespace TaskFocusDesktop.ViewModels.MainContent
 {
     public class ProjectsViewModel : TaskViewModelBase, INotifyPropertyChanged
     {
-        public ProjectsViewModel(IAPIHelper apiHelper,
-                      IUserEndpoint userEndpoint,
-                      ITaskEndpoint taskEndpoint,
-                      IProjectEndpoint projectEndpoint,
-                      IContextEndpoint contextEndpoint,
-                      IMapper mapper,
-                      IDataHelper dataHelper,
-                      IWindowManager window,
-                      IEventAggregator events) : base(apiHelper, userEndpoint, taskEndpoint, projectEndpoint, contextEndpoint, mapper, dataHelper, window, events)
+        public ProjectsViewModel(IDataState dataState,
+                                 IDataService dataService,
+                                 IDataHelper dataHelper,
+                                 IEventAggregator events,
+                                 IWindowManager window) : base(dataState, dataService, dataHelper, events, window)
         {
         }
 
@@ -34,7 +31,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
                 //ActiveMainContentView = ViewCatalog.MainContentView.Projects;
                 //await RequestSidePanelViewSwitch(ViewCatalog.SidePanelView.SubNavMenu);
 
-                await LoadTasks();
+                //await LoadTasks();
             }
             catch (Exception ex)
             {

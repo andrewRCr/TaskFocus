@@ -49,7 +49,7 @@
     protected AppState AppState { get; private set; } = default!;
 
     [Inject]
-    protected DataState DataState { get; private set; } = default!;
+    protected IDataState DataState { get; private set; } = default!;
 
     protected bool _drawerOpen = true;
     private bool _isDarkMode = true;

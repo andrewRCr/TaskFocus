@@ -1,10 +1,16 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using TaskFocusUI.Library.API;
+using TaskFocusUI.Library.Logging;
 using TaskFocusUI.Library.Models;
-using TaskFocusUI.Library.Utilities;
 
-namespace TaskFocusWeb
+namespace TaskFocusUI.Library.Utilities
 {
     public class DataService : IDataService
     {
@@ -16,7 +22,7 @@ namespace TaskFocusWeb
         private IUserEndpoint _userEndpoint;
         private IMapper _mapper;
         private IDataHelper _dataHelper;
-        private DataState _dataState;
+        private IDataState _dataState;
 
         private int _taskUpdateEntered = 0;
         private int _projectUpdateEntered = 0;
@@ -24,7 +30,7 @@ namespace TaskFocusWeb
         private int _settingsUpdateEntered = 0;
 
         public DataService(IAPIHelper apiHelper, ILogger<DataService> logger, ITaskEndpoint taskEndpoint, IProjectEndpoint projectEndpoint,
-            IContextEndpoint contextEndpoint, IUserEndpoint userEndpoint, IMapper mapper, IDataHelper dataHelper, DataState dataState)
+            IContextEndpoint contextEndpoint, IUserEndpoint userEndpoint, IMapper mapper, IDataHelper dataHelper, IDataState dataState)
         {
             _apiHelper = apiHelper;
             _logger = logger;
@@ -37,6 +43,20 @@ namespace TaskFocusWeb
             _dataState = dataState;
         }
 
+        // wrapper for info logging when used in desktop UI w/ caliburn micro
+        private void LogInformation(string message)
+        {
+            if (_logger != null) { _logger.LogInformation(message);}
+            else { Debug.WriteLine($"DesktopUI - INFO: {message}");}
+        }
+
+        // wrapper for error logging when used in desktop UI w/ caliburn micro
+        private void LogError(string message)
+        {
+            if (_logger != null) { _logger.LogError(message); }
+            else { Debug.WriteLine($"DesktopUI - ERROR: {message}"); }
+        }
+
         public async Task FetchAllRemoteData()
         {
             try
@@ -46,11 +66,11 @@ namespace TaskFocusWeb
                 await FetchRemoteTaskData();
                 await FetchRemoteProjectData();
                 await FetchRemoteContextData();
-                _logger.LogInformation("FetchAllRemoteData call processed successfully.");
+                LogInformation("FetchAllRemoteData call processed successfully.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                LogError(ex.Message);
                 throw;
             }
         }
@@ -62,6 +82,8 @@ namespace TaskFocusWeb
 
             var displayTaskList = _mapper.Map<List<TaskDisplayModel>>(taskList);
             _dataState.Tasks = new List<TaskDisplayModel>(displayTaskList);
+
+            LogInformation("FetchRemoteTaskData call processed successfully.");
         }
 
         public async Task FetchRemoteProjectData()
@@ -124,10 +146,10 @@ namespace TaskFocusWeb
                 }
 
                 // if has both project and context, task is no longer in inbox
-                if (task.InboxIndex != null && ((task.ProjectId != null && task.ContextId != null) || (task.CleanedUp))) 
+                if (task.InboxIndex != null && ((task.ProjectId != null && task.ContextId != null) || (task.CleanedUp)))
                 {
                     ShiftTaskCollectionSourceIndices(task, "InboxIndex");
-                    task.InboxIndex = null; 
+                    task.InboxIndex = null;
                 }
 
                 // no longer in Today view
@@ -140,7 +162,7 @@ namespace TaskFocusWeb
                     task.TodayIndex = null;
                 }
 
-                if (task.ProjectIndex != null && task.CleanedUp) 
+                if (task.ProjectIndex != null && task.CleanedUp)
                 {
                     ShiftTaskCollectionSourceIndices(task, "ProjectIndex");
                     task.ProjectIndex = null;
@@ -156,7 +178,7 @@ namespace TaskFocusWeb
                 if (task.TodayIndex == null && (task.Starred || _dataHelper.IsTaskDueOrOverDue(task)) &&
                     !(task.Completed && task.DateCompleted != DateTime.Now.Date))
                 {
-                    //Console.WriteLine($"passed TodayIndex == null check! TodayIndex value: {task.TodayIndex}");
+                    //LogInformation($"passed TodayIndex == null check! TodayIndex value: {task.TodayIndex}");
 
                     List<TaskDisplayModel> starredTasks = _dataState.Tasks!
                         .Where(x => x.Starred).ToList();
@@ -168,7 +190,7 @@ namespace TaskFocusWeb
                     todayTasks = todayTasks.DistinctBy(x => x.Id).ToList();
 
                     task.TodayIndex = todayTasks.Count > 1 ? (todayTasks.Count - 1) : 0;
-                    //Console.WriteLine($"{task.TaskName}: new TodayIndex is {task.TodayIndex}");
+                    //LogInformation($"{task.TaskName}: new TodayIndex is {task.TodayIndex}");
                 }
 
                 await _taskEndpoint.UpdateTask(task);
@@ -187,10 +209,10 @@ namespace TaskFocusWeb
 
             if (_dataHelper.HasProjectDataChanged(project))
             {
-                if (!_dataHelper.IsUpdatedProjectNameUnique(project)) 
+                if (!_dataHelper.IsUpdatedProjectNameUnique(project))
                 {
-                    _logger.LogError("Unable to update project: project names must be unique.");
-                    return; 
+                    LogError("Unable to update project: project names must be unique.");
+                    return;
                 }
 
                 // lock
@@ -214,7 +236,7 @@ namespace TaskFocusWeb
             {
                 if (!_dataHelper.IsUpdatedContextNameUnique(context))
                 {
-                    _logger.LogError("Unable to update context: context names must be unique.");
+                    LogError("Unable to update context: context names must be unique.");
                     return;
                 }
 
@@ -249,7 +271,7 @@ namespace TaskFocusWeb
         }
 
         // for use when removing a project/context
-        public void ShiftCollectionOrderIndices<T>(T collectionDisplayModel, List<T> collectionSource) where T: ICollectionDisplayModel
+        public void ShiftCollectionOrderIndices<T>(T collectionDisplayModel, List<T> collectionSource) where T : ICollectionDisplayModel
         {
             int? previouslyAssignedCollectionIndex = collectionDisplayModel.OrderIndex;
 
@@ -282,7 +304,7 @@ namespace TaskFocusWeb
                     break;
 
                 case "ProjectIndex": // task is being moved out of an existing project
-                    if (task.ProjectId != null || task.ContextId != null) 
+                    if (task.ProjectId != null || task.ContextId != null)
                     {
                         previouslyAssignedCollectionIndex = task.ProjectIndex;
                         previouslyAssignedCollectionId = task.ProjectId;
@@ -338,7 +360,7 @@ namespace TaskFocusWeb
             ShiftTaskCollectionSourceIndices(task, "ProjectIndex");
 
             if (task.ProjectName == null) // project was unassigned
-            { 
+            {
                 task.ProjectId = null;
                 task.ProjectIndex = null;
 
@@ -349,7 +371,7 @@ namespace TaskFocusWeb
                         .Where(x => x.ProjectId == null || x.ContextId == null).ToList();
 
                     task.InboxIndex = inboxTasks.Count > 0 ? inboxTasks.Count : 0;
-                    //Console.WriteLine($"{task.TaskName}: new InboxIndex is {task.InboxIndex}");
+                    //LogInformation($"{task.TaskName}: new InboxIndex is {task.InboxIndex}");
                 }
             }
             else // has new assigned project
@@ -378,7 +400,7 @@ namespace TaskFocusWeb
                         .Where(x => x.ProjectId == assignedProject.Id).ToList();
 
                     task.ProjectIndex = projectTasks.Count > 0 ? projectTasks.Count : 0;
-                    //Console.WriteLine($"{task.TaskName}: new ProjectIndex is {task.ProjectIndex}");
+                    //LogInformation($"{task.TaskName}: new ProjectIndex is {task.ProjectIndex}");
                 }
 
                 task.ProjectId = assignedProject!.Id;
@@ -390,7 +412,7 @@ namespace TaskFocusWeb
             ShiftTaskCollectionSourceIndices(task, "ContextIndex");
 
             if (task.ContextName == null)  // context was unassigned
-            { 
+            {
                 task.ContextId = null;
                 task.ContextIndex = null;
 
@@ -401,7 +423,7 @@ namespace TaskFocusWeb
                         .Where(x => x.ProjectId == null || x.ContextId == null).ToList();
 
                     task.InboxIndex = inboxTasks.Count > 0 ? inboxTasks.Count : 0;
-                    //Console.WriteLine($"{task.TaskName}: new InboxIndex is {task.InboxIndex}");
+                    //LogInformation($"{task.TaskName}: new InboxIndex is {task.InboxIndex}");
                 }
             }
             else // has new assigned context
@@ -430,7 +452,7 @@ namespace TaskFocusWeb
                         .Where(x => x.ContextId == assignedContext.Id).ToList();
 
                     task.ContextIndex = contextTasks.Count > 0 ? contextTasks.Count : 0;
-                    //Console.WriteLine($"{task.TaskName}: new ContextIndex is {task.ContextIndex}");
+                    //LogInformation($"{task.TaskName}: new ContextIndex is {task.ContextIndex}");
                 }
 
                 task.ContextId = assignedContext!.Id;
@@ -443,7 +465,7 @@ namespace TaskFocusWeb
 
             if (!_dataHelper.IsNewProjectNameUnique(newProject.ProjectName))
             {
-                _logger.LogError("Unable to create project: project names must be unique.");
+                LogError("Unable to create project: project names must be unique.");
                 return;
             }
 
@@ -488,7 +510,7 @@ namespace TaskFocusWeb
 
             if (!_dataHelper.IsNewContextNameUnique(newContext.ContextName))
             {
-                _logger.LogError("Unable to create context: context names must be unique.");
+                LogError("Unable to create context: project names must be unique.");
                 return;
             }
 
@@ -541,7 +563,7 @@ namespace TaskFocusWeb
                     .Where(x => x.ProjectId == null || x.ContextId == null).ToList();
 
                 task.InboxIndex = inboxTasks.Count > 0 ? inboxTasks.Count : 0;
-                //Console.WriteLine($"{task.TaskName}: new InboxIndex is {task.InboxIndex}");
+                //LogInformation($"{task.TaskName}: new InboxIndex is {task.InboxIndex}");
             }
 
             if (task.ProjectName != null)
@@ -566,19 +588,16 @@ namespace TaskFocusWeb
             // map from TaskDisplayModel to TaskModel
             TaskModel task = _mapper.Map<TaskModel>(displayTask);
 
-            if (task.ProjectId == null || task.ContextId == null) 
-            { 
-                //ShiftInboxSourceIndices(task);
+            if (task.ProjectId == null || task.ContextId == null)
+            {
                 ShiftTaskCollectionSourceIndices(task, "InboxIndex");
             }
-            if (task.ProjectId != null) 
+            if (task.ProjectId != null)
             {
-                //ShiftProjectSourceIndices(task);
                 ShiftTaskCollectionSourceIndices(task, "ProjectIndex");
             }
-            if (task.ContextId != null) 
+            if (task.ContextId != null)
             {
-                //ShiftContextSourceIndices(task);
                 ShiftTaskCollectionSourceIndices(task, "ContextIndex");
             }
             if (task.Starred)

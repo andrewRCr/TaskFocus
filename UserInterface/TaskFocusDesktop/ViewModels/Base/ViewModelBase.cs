@@ -1,16 +1,20 @@
 ﻿using Caliburn.Micro;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using TaskFocusDesktop.Commands;
 using TaskFocusDesktop.EventModels;
 using TaskFocusDesktop.Utilities;
+using TaskFocusUI.Library.Models;
+using TaskFocusUI.Library;
 
 namespace TaskFocusDesktop.ViewModels.Base
 {
     public abstract class ViewModelBase : Screen, IHandle<ViewSwitchedEvent>
     {
         protected IEventAggregator _events;
+        private ILog _logger = LogManager.GetLog(typeof(ViewModelBase));
 
         protected ViewModelBase(IEventAggregator events)
         {

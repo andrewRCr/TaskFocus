@@ -109,7 +109,7 @@ else
         }
     }
 
-    protected override bool HandleDataStateChanged(String propertyName, DataState dataState)
+    protected override bool HandleDataStateChanged(String propertyName, IDataState dataState)
     {
         if (IsProjectsSubMenu && propertyName != nameof(dataState.Projects) || 
             !IsProjectsSubMenu && propertyName != nameof(dataState.Contexts))

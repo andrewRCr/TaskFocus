@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using TaskFocusDesktop.ViewModels.Base;
+using TaskFocusUI.Library;
 using TaskFocusUI.Library.API;
 using TaskFocusUI.Library.Utilities;
 
@@ -17,15 +18,11 @@ namespace TaskFocusDesktop.ViewModels.MainContent
     public class SettingsViewModel : TaskViewModelBase, INotifyPropertyChanged
     {
 
-        public SettingsViewModel(IAPIHelper apiHelper,
-                      IUserEndpoint userEndpoint,
-                      ITaskEndpoint taskEndpoint,
-                      IProjectEndpoint projectEndpoint,
-                      IContextEndpoint contextEndpoint,
-                      IMapper mapper,
-                      IDataHelper dataHelper,
-                      IWindowManager window,
-                      IEventAggregator events) : base(apiHelper, userEndpoint, taskEndpoint, projectEndpoint, contextEndpoint, mapper, dataHelper, window, events)
+        public SettingsViewModel(IDataState dataState,
+                                 IDataService dataService,
+                                 IDataHelper dataHelper,
+                                 IEventAggregator events,
+                                 IWindowManager window) : base(dataState, dataService, dataHelper, events, window)
         {
         }
 
@@ -36,7 +33,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             try
             {
                 //ActiveViewModel = ViewModelChildren.SettingsVM;
-                await LoadTasks();
+                //await LoadTasks();
             }
             catch (Exception ex)
             {

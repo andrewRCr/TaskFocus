@@ -1,30 +1,21 @@
-﻿using AutoMapper;
-using Caliburn.Micro;
+﻿using Caliburn.Micro;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Dynamic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using TaskFocusDesktop.ViewModels.Base;
-using TaskFocusUI.Library.API;
+using TaskFocusUI.Library;
 using TaskFocusUI.Library.Utilities;
 
 namespace TaskFocusDesktop.ViewModels.MainContent
 {
     public class CompletedViewModel : TaskViewModelBase, INotifyPropertyChanged
     {
-        public CompletedViewModel(IAPIHelper apiHelper,
-                                  IUserEndpoint userEndpoint,
-                                  ITaskEndpoint taskEndpoint,
-                                  IProjectEndpoint projectEndpoint,
-                                  IContextEndpoint contextEndpoint,
-                                  IMapper mapper,
+        public CompletedViewModel(IDataState dataState, 
+                                  IDataService dataService,
                                   IDataHelper dataHelper,
-                                  IWindowManager window,
-                                  IEventAggregator events) : base(apiHelper, userEndpoint, taskEndpoint, projectEndpoint, contextEndpoint, mapper, dataHelper, window, events)
+                                  IEventAggregator events,
+                                  IWindowManager window) : base(dataState, dataService, dataHelper, events, window)
         {
         }
 
@@ -35,7 +26,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             try
             {
                 //ActiveViewModel = ViewModelChildren.CompletedVM;
-                await LoadTasks();
+                //await LoadTasks();
             }
             catch (Exception ex)
             {

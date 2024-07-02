@@ -1,18 +1,19 @@
 ﻿using AutoMapper;
 using Caliburn.Micro;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using TaskFocusUI.Library.API;
-using TaskFocusUI.Library.Models;
 using TaskFocusDesktop.Utilities;
 using TaskFocusDesktop.ViewModels;
+using TaskFocusUI.Library;
+using TaskFocusUI.Library.API;
+using TaskFocusUI.Library.Logging;
+using TaskFocusUI.Library.Models;
 using TaskFocusUI.Library.Utilities;
 
 namespace TaskFocusDesktop
@@ -57,18 +58,28 @@ namespace TaskFocusDesktop
 
         protected override void Configure()
         {
+            // configure logging
+            var loggerConfig = new CustomLoggerConfiguration()
+            {
+                ConsoleMinLogLevel = LogLevel.Information,
+                InMemoryMinLogLevel = LogLevel.Warning
+            };
+
+            // custom caliburn-specific logging (ILog)
+            LogManager.GetLog = type => new CaliburnLogger(type, loggerConfig);
+
             // dependency injection
             // ====================
 
             _container.Instance(ConfigureAutomapper());
-
             _container.RegisterInstance(typeof(IConfiguration), "IConfiguration", AddConfiguration());
 
             _container.Instance(_container)
                 .PerRequest<IUserEndpoint, UserEndpoint>()
                 .PerRequest<ITaskEndpoint, TaskEndpoint>()
                 .PerRequest<IProjectEndpoint, ProjectEndpoint>()
-                .PerRequest<IContextEndpoint, ContextEndpoint>();
+                .PerRequest<IContextEndpoint, ContextEndpoint>()
+                .PerRequest<IDataService, DataService>();
 
             // use these singular instances
             _container
@@ -77,7 +88,7 @@ namespace TaskFocusDesktop
                 .Singleton<ILoggedInUserModel, LoggedInUserModel>()
                 .Singleton<IAPIHelper, APIHelper>()
                 .Singleton<IDataHelper, DataHelper>()
-                .Singleton<DataState>();
+                .Singleton<IDataState, DataState>();
 
             // register view models - create new instance each time one is requested
             GetType().Assembly.GetTypes()

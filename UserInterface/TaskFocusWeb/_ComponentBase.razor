@@ -14,7 +14,7 @@
     protected AppState AppState { get; private set; } = default!;
 
     [Inject]
-    protected DataState DataState { get; private set; } = default!;
+    protected IDataState DataState { get; private set; } = default!;
 
     [CascadingParameter]
     public Task<AuthenticationState> AuthState { get; set; } = default!;
@@ -83,12 +83,12 @@
     }
 
     // to be defined in child components as needed
-    protected virtual bool HandleDataStateChanged(String propertyName, DataState dataState)
+    protected virtual bool HandleDataStateChanged(String propertyName, IDataState dataState)
     {
         return false;
     }
 
-    private async void DataStateChanged(String propertyName, DataState dataState)
+    private async void DataStateChanged(String propertyName, IDataState dataState)
     {
         bool changesOccured = HandleDataStateChanged(propertyName, dataState);
         if (changesOccured)

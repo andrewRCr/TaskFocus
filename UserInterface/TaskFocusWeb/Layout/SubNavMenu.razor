@@ -38,7 +38,7 @@
 <MudDialog @bind-IsVisible="_newCollectionDialogVisible" 
            Options="dialogOptions" 
            Style="background-color: #27272f"
-           @onfocusout="()=> _newCollectionName = string.Empty">
+           >
     <TitleContent>
         <MudIcon Icon="@Icons.Material.Filled.Add" Class="mr-1 mb-1" />
         <MudText Typo="Typo.button" >
@@ -247,7 +247,7 @@
         }
     }
 
-    protected override bool HandleDataStateChanged(String propertyName, DataState dataState)
+    protected override bool HandleDataStateChanged(String propertyName, IDataState dataState)
     {
         if (!dataRefreshTriggers.Contains(propertyName))
         {
