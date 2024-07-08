@@ -14,37 +14,42 @@ namespace TaskFocusDesktop.ViewModels.MainContent
 {
     public class ProjectsViewModel : TaskViewModelBase, INotifyPropertyChanged
     {
-        public ProjectsViewModel(IDataState dataState,
+        public ProjectsViewModel(IEventAggregator events,
+                                 IWindowManager window,
+                                 IDataState dataState,
                                  IDataService dataService,
-                                 IDataHelper dataHelper,
-                                 IEventAggregator events,
-                                 IWindowManager window) : base(dataState, dataService, dataHelper, events, window)
+                                 IDataHelper dataHelper) : base(events, window, dataState, dataService, dataHelper)
         {
+            OrderingIndex = "ProjectIndex";
         }
 
-        protected override async void OnViewLoaded(object view)
+        private BindingList<string>? _projectNames;
+        public BindingList<string>? ProjectNames
+        {
+            get { return _projectNames; }
+            set 
+            { 
+                _projectNames = value; 
+                NotifyOfPropertyChange(() => ProjectNames);
+            }
+        }
+
+        protected override void OnViewLoaded(object view)
         {
             base.OnViewLoaded(view);
 
-            try
+            if (IsLocalDataLoaded())
             {
-                //ActiveMainContentView = ViewCatalog.MainContentView.Projects;
-                //await RequestSidePanelViewSwitch(ViewCatalog.SidePanelView.SubNavMenu);
+                ProjectNames = new BindingList<string>();
 
-                //await LoadTasks();
-            }
-            catch (Exception ex)
-            {
-                dynamic settings = new ExpandoObject();
-                settings.WindowStartupLocation = WindowStartupLocation.CenterOwner;
-                settings.ResizeMode = ResizeMode.NoResize;
-                settings.Title = "Exception!";
+                foreach (var item in LocalProjects!)
+                {
+                    ProjectNames!.Add(item.ProjectName);
+                }
 
-                var status = IoC.Get<StatusInfoViewModel>();
-                status.UpdateMessage($"{ex.Source} threw an exception:", ex.Message);
-                await _window.ShowDialogAsync(status, null, settings);
-                await TryCloseAsync();
+                NotifyOfPropertyChange(() => ProjectNames);
             }
         }
+
     }
 }

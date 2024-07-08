@@ -18,11 +18,11 @@ namespace TaskFocusDesktop.ViewModels.MainContent
     public class SettingsViewModel : TaskViewModelBase, INotifyPropertyChanged
     {
 
-        public SettingsViewModel(IDataState dataState,
+        public SettingsViewModel(IEventAggregator events,
+                                 IWindowManager window,
+                                 IDataState dataState,
                                  IDataService dataService,
-                                 IDataHelper dataHelper,
-                                 IEventAggregator events,
-                                 IWindowManager window) : base(dataState, dataService, dataHelper, events, window)
+                                 IDataHelper dataHelper) : base(events, window, dataState, dataService, dataHelper)
         {
         }
 

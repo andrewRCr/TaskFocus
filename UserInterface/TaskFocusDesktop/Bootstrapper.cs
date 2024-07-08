@@ -38,6 +38,12 @@ namespace TaskFocusDesktop
             {
                 cfg.CreateMap<TaskModel, TaskDisplayModel>();
                 cfg.CreateMap<TaskDisplayModel, TaskModel>();
+                cfg.CreateMap<ProjectModel, ProjectDisplayModel>();
+                cfg.CreateMap<ProjectDisplayModel, ProjectModel>();
+                cfg.CreateMap<ContextModel, ContextDisplayModel>();
+                cfg.CreateMap<ContextDisplayModel, ContextModel>();
+                cfg.CreateMap<UserSettingsModel, UserSettingsDisplayModel>();
+                cfg.CreateMap<UserSettingsDisplayModel, UserSettingsModel>();
             });
 
             return config.CreateMapper();

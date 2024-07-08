@@ -3,7 +3,6 @@
 
     <!-- base style -->
     <Style TargetType="{x:Type UserControl}" x:Key="BaseMainContentViewStyle">
-        <Setter Property="Margin" Value="20 20 0 0" />
         <Setter Property="Background" Value="{StaticResource BackgroundDarkGreyBrush}" />
         <Setter Property="TextElement.Foreground" Value="{StaticResource ForegroundMainBrush}" />
     </Style>

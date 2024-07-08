@@ -14,7 +14,7 @@ namespace TaskFocusDesktop.ViewModels.Base
     public abstract class ViewModelBase : Screen, IHandle<ViewSwitchedEvent>
     {
         protected IEventAggregator _events;
-        private ILog _logger = LogManager.GetLog(typeof(ViewModelBase));
+        protected ILog _logger = LogManager.GetLog(typeof(ViewModelBase));
 
         protected ViewModelBase(IEventAggregator events)
         {

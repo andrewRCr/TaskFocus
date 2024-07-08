@@ -17,34 +17,40 @@ namespace TaskFocusDesktop.ViewModels.MainContent
 {
     public class ContextsViewModel : TaskViewModelBase, INotifyPropertyChanged
     {
-        public ContextsViewModel(IDataState dataState,
+        public ContextsViewModel(IEventAggregator events,
+                                 IWindowManager window,
+                                 IDataState dataState,
                                  IDataService dataService,
-                                 IDataHelper dataHelper,
-                                 IEventAggregator events,
-                                 IWindowManager window) : base(dataState, dataService, dataHelper, events, window)
+                                 IDataHelper dataHelper) : base(events, window, dataState, dataService, dataHelper)
         {
+            OrderingIndex = "ContextIndex";
         }
 
-        protected override async void OnViewLoaded(object view)
+        private BindingList<string>? _contextNames;
+        public BindingList<string>? ContextNames
+        {
+            get { return _contextNames; }
+            set
+            {
+                _contextNames = value;
+                NotifyOfPropertyChange(() => ContextNames);
+            }
+        }
+
+        protected override void OnViewLoaded(object view)
         {
             base.OnViewLoaded(view);
 
-            try
+            if (IsLocalDataLoaded())
             {
-                //ActiveMainContentView = Utilities.ViewCatalog.MainContentView.Contexts;
-                //await LoadTasks();
-            }
-            catch (Exception ex)
-            {
-                dynamic settings = new ExpandoObject();
-                settings.WindowStartupLocation = WindowStartupLocation.CenterOwner;
-                settings.ResizeMode = ResizeMode.NoResize;
-                settings.Title = "Exception!";
+                ContextNames = new BindingList<string>();
 
-                var status = IoC.Get<StatusInfoViewModel>();
-                status.UpdateMessage($"{ex.Source} threw an exception:", ex.Message);
-                await _window.ShowDialogAsync(status, null, settings);
-                await TryCloseAsync();
+                foreach (var item in LocalContexts!)
+                {
+                    ContextNames!.Add(item.ContextName);
+                }
+
+                NotifyOfPropertyChange(() => ContextNames);
             }
         }
     }

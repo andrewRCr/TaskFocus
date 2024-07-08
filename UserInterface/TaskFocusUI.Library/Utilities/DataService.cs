@@ -82,8 +82,6 @@ namespace TaskFocusUI.Library.Utilities
 
             var displayTaskList = _mapper.Map<List<TaskDisplayModel>>(taskList);
             _dataState.Tasks = new List<TaskDisplayModel>(displayTaskList);
-
-            LogInformation("FetchRemoteTaskData call processed successfully.");
         }
 
         public async Task FetchRemoteProjectData()
@@ -199,6 +197,20 @@ namespace TaskFocusUI.Library.Utilities
                 // unlock
                 Interlocked.Exchange(ref _taskUpdateEntered, 0);
             }
+        }
+
+        // alternate update method - updates entire collection prior to remote fetch
+        public async Task UpdateCollectionOrderingIndices(List<TaskDisplayModel> displayTasks)
+        {
+            foreach (TaskDisplayModel displayTask in displayTasks)
+            {
+                // map from TaskDisplayModel to TaskModel
+                TaskModel task = _mapper.Map<TaskModel>(displayTask);
+
+                await _taskEndpoint.UpdateTask(task);
+            }
+
+            await FetchAllRemoteData();
         }
 
         // post updated project data to API for a single project

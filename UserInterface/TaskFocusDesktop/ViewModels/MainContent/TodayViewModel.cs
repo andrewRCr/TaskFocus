@@ -1,19 +1,99 @@
 ﻿using Caliburn.Micro;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using TaskFocusDesktop.ViewModels.Base;
 using TaskFocusUI.Library;
+using TaskFocusUI.Library.Models;
 using TaskFocusUI.Library.Utilities;
 
 namespace TaskFocusDesktop.ViewModels.MainContent
 {
     public class TodayViewModel : TaskViewModelBase, INotifyPropertyChanged
     {
-        public TodayViewModel(IDataState dataState,
-                      IDataService dataService,
-                      IDataHelper dataHelper,
-                      IEventAggregator events,
-                      IWindowManager window) : base(dataState, dataService, dataHelper, events, window)
+        public TodayViewModel(IEventAggregator events,
+                              IWindowManager window,
+                              IDataState dataState,
+                              IDataService dataService,
+                              IDataHelper dataHelper) : base(events, window, dataState, dataService, dataHelper)
         {
+            OrderingIndex = "TodayIndex";
+        }
+
+        private BindingList<string>? _todayTaskNames;
+        public BindingList<string>? TodayTaskNames
+        {
+            get { return _todayTaskNames; }
+            set
+            {
+                _todayTaskNames = value;
+                NotifyOfPropertyChange(() => TodayTaskNames);
+            }
+        }
+
+        protected override void OnViewLoaded(object view)
+        {
+            base.OnViewLoaded(view);
+
+            if (IsLocalDataLoaded())
+            {
+                TodayTaskNames = new BindingList<string>();
+
+                foreach (var item in LocalTasks!)
+                {
+                    TodayTaskNames!.Add(item.TaskName);
+                }
+
+                NotifyOfPropertyChange(() => TodayTaskNames);
+            }
+        }
+
+        protected override async Task OnInitializeAsync(CancellationToken cancellationToken)
+        {
+            await base.OnInitializeAsync(cancellationToken);
+
+            // remove TodayIndex from any completed (but not CleanedUp) tasks from view if completed > 1 day ago
+            var oldCompletedTodayTasks = _dataState.Tasks!.Where(x => x.TodayIndex != null && x.Completed && (x.DateCompleted < DateTime.Now.Date)).ToList();
+            foreach (TaskDisplayModel task in oldCompletedTodayTasks)
+            {
+                // force update: will detect and remove TodayIndex, as well as shift other task indices accordingly if needed
+                await _dataService.UpdateTaskData(task, true);
+            }
+        }
+
+        protected override void LoadLocalTaskData()
+        {
+            if (_dataState.IsDataLoaded())
+            {
+                List<TaskDisplayModel> dueTasks = _dataState.Tasks!.Where(x =>
+                    (x.DueDate <= DateTime.Now.Date) && !x.CleanedUp && (x.DateCompleted == null || x.DateCompleted == DateTime.Now.Date)).ToList();
+                List<TaskDisplayModel> starredTasks = _dataState.Tasks!.Where(x =>
+                    (x.Starred == true) && !x.CleanedUp && (x.DateCompleted == null || x.DateCompleted == DateTime.Now.Date)).ToList();
+                List<TaskDisplayModel> todayTasks = dueTasks.Concat(starredTasks).ToList();
+
+                // ensure any newly due/overdue tasks have a TodayIndex
+                int todayTasksWithTodayIndexCount = todayTasks.Where(x => x.TodayIndex != null).ToList().Count();
+                foreach (TaskDisplayModel task in todayTasks)
+                {
+                    if (task.DueDate <= DateTime.Now.Date && task.TodayIndex == null)
+                    {
+                        task.TodayIndex = todayTasksWithTodayIndexCount;
+                        todayTasksWithTodayIndexCount++;
+                    }
+                }
+
+                todayTasks = todayTasks.OrderBy(x => x.TodayIndex).ToList();
+                //LocalTasks = new BindingList<TaskDisplayModel>(todayTasks);
+                LocalTasks = new ObservableCollection<TaskDisplayModel>(todayTasks);
+                foreach (TaskDisplayModel task in LocalTasks!)
+                {
+                    task.PropertyChanged += OnExistingTaskPropertyChanged!; // subscribe to property changed event
+                }
+            }
         }
     }
 }

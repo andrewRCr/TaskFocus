@@ -13,6 +13,7 @@ using TaskFocusDesktop.ViewModels.SidePanel;
 using TaskFocusDesktop.ViewModels.TopPanel;
 using TaskFocusUI.Library.API;
 using TaskFocusUI.Library.Models;
+using TaskFocusUI.Library.Utilities;
 
 namespace TaskFocusDesktop.ViewModels
 {
@@ -21,6 +22,7 @@ namespace TaskFocusDesktop.ViewModels
         private IAPIHelper _apiHelper;
         private ILoggedInUserModel _loggedInUser;
         private IEventAggregator _events;
+        protected IDataService _dataService;
         private ILog _logger = LogManager.GetLog(typeof(ShellViewModel));
 
         private WindowState _shellWindowState;
@@ -56,8 +58,8 @@ namespace TaskFocusDesktop.ViewModels
             set { _windowRadius = value; }
         }
 
-        private Screen _topWidgetPanel;
-        public Screen TopWidgetPanel
+        private Screen? _topWidgetPanel;
+        public Screen? TopWidgetPanel
         {
             get { return _topWidgetPanel; }
             set
@@ -67,8 +69,8 @@ namespace TaskFocusDesktop.ViewModels
             }
         }
 
-        private Screen _sideMenuPanel;
-        public Screen SideMenuPanel
+        private Screen? _sideMenuPanel;
+        public Screen? SideMenuPanel
         {
             get { return _sideMenuPanel; }
             set
@@ -78,8 +80,8 @@ namespace TaskFocusDesktop.ViewModels
             }
         }
 
-        private Screen _mainContentPanel;
-        public Screen MainContentPanel
+        private Screen? _mainContentPanel;
+        public Screen? MainContentPanel
         {
             get { return _mainContentPanel; }
             set
@@ -168,11 +170,12 @@ namespace TaskFocusDesktop.ViewModels
 
         public ShellViewModel(IAPIHelper apiHelper,
                               ILoggedInUserModel loggedInUser,
-                              IEventAggregator events)
+                              IEventAggregator events, IDataService dataService)
         {
             _apiHelper = apiHelper;
             _loggedInUser = loggedInUser;
             _events = events;
+            _dataService = dataService;
 
             _events.SubscribeOnPublishedThread(this);
 
@@ -237,6 +240,7 @@ namespace TaskFocusDesktop.ViewModels
         public async Task HandleLogIn()
         {
             NotifyOfPropertyChange(() => IsUserLoggedIn);
+            await _dataService.FetchAllRemoteData();
 
             TopWidgetPanel = IoC.Get<AuthWidgetViewModel>();
             await ActivateItemAsync(TopWidgetPanel, new CancellationToken());

@@ -5,137 +5,51 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:TaskFocusDesktop.Views.MainContent" 
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors" 
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:components="clr-namespace:TaskFocusDesktop.Views.Components"
              xmlns:viewmodels="clr-namespace:TaskFocusDesktop.ViewModels.MainContent" 
              d:DataContext="{d:DesignInstance Type=viewmodels:InboxViewModel}"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800"
              Style="{StaticResource BaseMainContentViewStyle}" >
 
-    <UserControl.Resources>
-
-        <DataTemplate x:Key="TaskItem">
-            <StackPanel Orientation="Horizontal" Margin="5 5 5 5"
-                        >
-
-                <!-- completion checkbox -->
-                <CheckBox IsChecked="{Binding Completed}" Padding="3" Margin="10 0 0 3" VerticalAlignment="Center" />
-
-                <!-- task Name value-->
-                <TextBox Text="{Binding TaskName}" Margin="15 5 5 5" MinWidth="200" MaxWidth="250" VerticalAlignment="Center"
-                         TextWrapping="Wrap" BorderThickness="0"/>
-
-                <!-- project dropdown -->
-                <ComboBox Text="{Binding ProjectName}" 
-                      Margin="5 5 5 5" MinWidth="150" VerticalAlignment="Center"
-                      IsEditable="True"
-                      ItemsSource="{Binding DataContext.Projects, RelativeSource={RelativeSource AncestorType=ListBox}}"
-                      DisplayMemberPath="ProjectName"
-                      SelectedItem="{Binding ProjectName}"
-                          >
-                </ComboBox>
-
-                <!-- context dropdown -->
-                <ComboBox Text="{Binding ContextName}" 
-                      Margin="5 5 5 5" MinWidth="150" VerticalAlignment="Center"
-                      IsEditable="True"
-                      ItemsSource="{Binding DataContext.Contexts, RelativeSource={RelativeSource AncestorType=ListBox}}"
-                      DisplayMemberPath="ContextName"
-                      SelectedItem="{Binding ContextName}"
-                          >
-                </ComboBox>
-
-                <!-- due date datepicker -->
-                <DatePicker Text="Due" Margin="10 5 5 4" VerticalAlignment="Center" BorderThickness="0" />
-
-                <!-- delete task button-->
-                <Button Content="Delete" Command="{Binding RelativeSource={RelativeSource AncestorType=ListBox}, Path=DataContext.DeleteTaskCommand}" />
-
-            </StackPanel>
-        </DataTemplate>
-
-        <DataTemplate x:Key="NewTaskItem">
-            <StackPanel Orientation="Horizontal" Margin="5 5 5 5"
-                        >
-
-                <!-- completion checkbox -->
-                <CheckBox IsChecked="{Binding Completed}" Padding="3" Margin="10 0 0 3" VerticalAlignment="Center" />
-
-                <!-- task Name value-->
-                <TextBox Text="{Binding TaskName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="15 5 5 5" MinWidth="200" MaxWidth="250" VerticalAlignment="Center"
-                         TextWrapping="Wrap" BorderThickness="0"/>
-
-                <!-- project dropdown -->
-                <ComboBox Text="{Binding ProjectName}" 
-                      Margin="5 5 5 5" MinWidth="150" VerticalAlignment="Center"
-                      IsEditable="True"
-                      ItemsSource="{Binding DataContext.Projects, RelativeSource={RelativeSource AncestorType=ListBox}}"
-                      DisplayMemberPath="ProjectName"
-                      SelectedItem="{Binding ProjectName}"
-                          >
-                </ComboBox>
-
-                <!-- context dropdown -->
-                <ComboBox Text="{Binding ContextName}" 
-                      Margin="5 5 5 5" MinWidth="150" VerticalAlignment="Center"
-                      IsEditable="True"
-                      ItemsSource="{Binding DataContext.Contexts, RelativeSource={RelativeSource AncestorType=ListBox}}"
-                      DisplayMemberPath="ContextName"
-                      SelectedItem="{Binding ContextName}"
-                          >
-                </ComboBox>
-
-                <!-- due date datepicker -->
-                <DatePicker Text="Due" Margin="10 5 5 4" VerticalAlignment="Center" BorderThickness="0" />
-
-            </StackPanel>
-        </DataTemplate>
-
-    </UserControl.Resources>
-
     <Grid>
 
         <Grid.RowDefinitions>
-            <RowDefinition Height="auto" />
-            <RowDefinition Height="auto" />
-            <RowDefinition Height="auto" />
-            <RowDefinition Height="auto" />
-            <RowDefinition Height="auto" />
-            <RowDefinition Height="auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="auto" />
-            <ColumnDefinition Width="auto" />
-            <ColumnDefinition Width="auto" />
-        </Grid.ColumnDefinitions>
-
         <!-- view title -->
-        <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Margin="5,5,0,50" 
-                   Grid.RowSpan="1" FontSize="18">Inbox</TextBlock>
-        
+        <StackPanel Grid.Row="0"
+                    Orientation="Horizontal"
+                    Margin="10 10 0 15"
+                    >
+
+            <materialDesign:PackIcon Kind="Inbox"
+                                     VerticalAlignment="Center"
+                                     Margin="10 0 10 0"
+                                     Foreground="{StaticResource ForegroundMainBrush}"
+                                     Height="24"
+                                     Width="24"
+                                     />
+
+            <TextBlock FontSize="14" Style="{StaticResource HeaderTextStyle}"
+                       VerticalAlignment="Center" Margin="0 2 0 0"
+                       Text="INBOX" />
+
+        </StackPanel>
+
+
         <!-- inbox tasks -->
-        <ListBox ItemsSource="{Binding Path=LocalTasks}"
-                 ItemTemplate="{StaticResource TaskItem}"
-                 SelectedItem="{Binding SelectedTask}"
-                 Grid.Row="1" Grid.Column="0"
-                 Grid.ColumnSpan="2"
-                 ScrollViewer.HorizontalScrollBarVisibility="Disabled" >
-
-            <ListBox.Resources>
-                <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding IsMouseOver,RelativeSource={RelativeSource Self}}" 
-                             Value="True">
-                            <Setter Property="IsSelected" Value="True" />
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-            </ListBox.Resources>
-
-        </ListBox>
+        <components:TaskItemContainerView Grid.Row="1"
+                                          Margin="15 0 0 0"
+                                          CanReorder="True"
+                                          OrderingIndex="{Binding OrderingIndex}"
+                                          />
 
         <!-- new task entry -->
-        <ListBox 
+        <!--<ListBox 
                  ItemsSource="{Binding Path=NewTaskList}"
                  ItemTemplate="{StaticResource NewTaskItem}"
                  SelectedItem="{Binding NewTask }"
@@ -143,12 +57,12 @@
                  Grid.ColumnSpan="2"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled" />
 
-        <Button Grid.Row="4" x:Name="AddTask" Content="Add" />
+        <Button Grid.Row="4" x:Name="AddTask" Content="Add" />-->
 
         <!-- manually call update of all view task data to API -->
         <!--<Button Grid.Row="5" Grid.Column="2" x:Name="UpdateAllPendingTaskData" Content="Sync" />-->
 
 
     </Grid>
-    
+
 </UserControl>

@@ -9,12 +9,21 @@
              Style="{StaticResource BaseMainContentViewStyle}"
              >
     <Grid>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
      
         <!-- view title -->
-        <TextBlock  Margin="5,5,0,50" 
+        <TextBlock  Grid.Row="0"
+                    Margin="5,5,0,50" 
                     FontSize="18">
             Projects
         </TextBlock>
 
-        </Grid>
+        <ListBox Grid.Row="1"
+                 ItemsSource="{Binding ProjectNames}" />
+
+    </Grid>
 </UserControl>

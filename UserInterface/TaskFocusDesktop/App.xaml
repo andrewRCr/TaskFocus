@@ -34,6 +34,7 @@
                 <!-- custom user control templates -->
                 <ResourceDictionary Source="Templates/MiniNavMenuTemplate.xaml" />
                 <ResourceDictionary Source="Templates/NavMenuItemTemplate.xaml" />
+                <ResourceDictionary Source="Templates/TaskItemTemplate.xaml" />
 
                 <!-- material design styling base -->
                 <materialDesign:CustomColorTheme BaseTheme="Dark" PrimaryColor="#776be7" SecondaryColor="Red" />

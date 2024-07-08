@@ -184,6 +184,10 @@
         if (DataState.IsDataLoaded())
         {
             LocalContexts = DataState.Contexts;
+            foreach (ContextDisplayModel context in LocalContexts!)
+            {
+                context.PropertyChanged += OnExistingContextPropertyChanged!; // subscribe to property changed event
+            }
         }
     }
 

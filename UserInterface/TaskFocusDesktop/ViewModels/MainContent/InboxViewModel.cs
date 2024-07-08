@@ -1,54 +1,62 @@
-﻿using AutoMapper;
-using Caliburn.Micro;
-using System;
+﻿using Caliburn.Micro;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Dynamic;
-using System.Windows;
+using System.Linq;
+using System.Threading.Tasks;
 using TaskFocusDesktop.ViewModels.Base;
 using TaskFocusUI.Library;
-using TaskFocusUI.Library.API;
+using TaskFocusUI.Library.Models;
 using TaskFocusUI.Library.Utilities;
 
 namespace TaskFocusDesktop.ViewModels.MainContent
 {
     public class InboxViewModel : TaskViewModelBase, INotifyPropertyChanged
     {
-        public InboxViewModel(IDataState dataState,
+        public InboxViewModel(IEventAggregator events,
+                              IWindowManager window, IDataState dataState,
                               IDataService dataService,
-                              IDataHelper dataHelper,
-                              IEventAggregator events,
-                              IWindowManager window) : base(dataState, dataService, dataHelper, events, window)
+                              IDataHelper dataHelper) : base(events, window, dataState, dataService, dataHelper)
         {
+            OrderingIndex = "InboxIndex";
         }
 
-        protected override async void OnViewLoaded(object view)
+        protected override void LoadLocalTaskData()
         {
-            base.OnViewLoaded(view);
-
-            try
+            if (_dataState.IsDataLoaded())
             {
-                if (!_dataState.IsDataLoaded())
+                List<TaskDisplayModel> inboxTasks = _dataState.Tasks!.Where(x => (x.ProjectId == null || x.ContextId == null) && !x.CleanedUp).ToList();
+                var orderedInboxTasks = inboxTasks.OrderBy(x => x.InboxIndex);
+                inboxTasks = orderedInboxTasks.ToList();
+                //LocalTasks = new BindingList<TaskDisplayModel>(inboxTasks);
+                LocalTasks = new ObservableCollection<TaskDisplayModel>(inboxTasks);
+
+                foreach (TaskDisplayModel task in LocalTasks!)
                 {
-                    await _dataService.FetchRemoteTaskData();
+                    task.PropertyChanged += OnExistingTaskPropertyChanged!; // subscribe to property changed event
                 }
-
-                LoadLocalTaskData();
-
-                //ActiveViewModel = ViewModelChildren.InboxVM;
-                //await LoadTasks();
             }
-            catch (Exception ex)
+        }
+
+        // saves updated task data to server on property change
+        protected override async void OnExistingTaskPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            string? changedProperty = e.PropertyName;
+            TaskDisplayModel senderTask = (TaskDisplayModel)sender;
+            _logger.Info($"{senderTask.TaskName}'s property {changedProperty} was changed.");
+
+            // if a reorder update, need to prevent a remote data fetch until after the entire collection
+            // has been updated. CanUpdateOrderIndices will only be true on the final task in collection
+            if (changedProperty!.Contains("Index"))
             {
-                dynamic settings = new ExpandoObject();
-                settings.WindowStartupLocation = WindowStartupLocation.CenterOwner;
-                settings.ResizeMode = ResizeMode.NoResize;
-                settings.Title = "Exception!";
-
-                var status = IoC.Get<StatusInfoViewModel>();
-                status.UpdateMessage($"{ex.Source} threw an exception:", ex.Message);
-                await _window.ShowDialogAsync(status, null, settings);
-                await TryCloseAsync();
+                if (!CanUpdateOrderingIndices) { return; }
+                else
+                {
+                    List<TaskDisplayModel> tasksToUpdate = LocalTasks!.ToList();
+                    await _dataService.UpdateCollectionOrderingIndices(tasksToUpdate);
+                }
             }
+            else { await _dataService.UpdateTaskData(senderTask); }
         }
     }
 }

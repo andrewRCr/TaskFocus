@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using TaskFocusUI.Library.Models;
 
 namespace TaskFocusUI.Library.Utilities
@@ -23,5 +24,6 @@ namespace TaskFocusUI.Library.Utilities
         Task UpdateSettingsData(UserSettingsDisplayModel displaySettings);
         TaskModel MapToRawTask(TaskDisplayModel displayTask);
         void ShiftTaskCollectionSourceIndices(TaskModel task, string indexType);
+        Task UpdateCollectionOrderingIndices(List<TaskDisplayModel> displayTasks);
     }
 }
