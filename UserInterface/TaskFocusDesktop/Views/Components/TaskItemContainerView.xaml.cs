@@ -1,7 +1,7 @@
 ﻿using MaterialDesignThemes.Wpf;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -19,6 +19,17 @@ namespace TaskFocusDesktop.Views.Components
     {
         private bool _isPreviousLocalOrderStored = false;
         private Dictionary<TaskDisplayModel, int> _previousLocalOrder;
+
+        private object? _lastSelection;
+
+        public static readonly DependencyProperty IsDraggingProperty =
+            DependencyProperty.Register("IsDragging", typeof(bool), typeof(TaskItemContainerView), new PropertyMetadata(false));
+
+        public bool IsDragging
+        {
+            get { return (bool)GetValue(IsDraggingProperty); }
+            set { SetValue(IsDraggingProperty, value); }
+        }
 
         public static readonly DependencyProperty CanReorderProperty =
             DependencyProperty.Register("CanReorder", typeof(bool), typeof(TaskItemContainerView), new PropertyMetadata(false));
@@ -69,6 +80,10 @@ namespace TaskFocusDesktop.Views.Components
                     return;
                 }
 
+                // flag for highlighting
+                IsDragging = true;
+                //Debug.WriteLine("MOUSE DOWN - DRAGGING");
+
                 object taskItem = frameworkElement.DataContext;
                 DragDropEffects dragDropResult =  DragDrop.DoDragDrop(frameworkElement, 
                     new DataObject(DataFormats.Serializable, taskItem), DragDropEffects.Move);
@@ -76,6 +91,8 @@ namespace TaskFocusDesktop.Views.Components
                 if (dragDropResult == DragDropEffects.None)
                 {
                     UndoPreviewInsertTaskItem();
+                    IsDragging = false;
+                    //Debug.WriteLine("MOUSE UP - DRAGGING STOPPED");
                 }
             }
         }
@@ -84,21 +101,15 @@ namespace TaskFocusDesktop.Views.Components
         {
             if (sender is FrameworkElement frameworkElement && CanReorder)
             {
-                var targetTaskItem = (TaskDisplayModel)frameworkElement.DataContext;
-                var insertedTaskItem = (TaskDisplayModel)e.Data.GetData(DataFormats.Serializable);
-
-                //Debug.WriteLine($"Dropped task: {insertedTaskItem.TaskName}; Target task: {targetTaskItem.TaskName}");
+                var targetTaskItem = (TaskDisplayModel)frameworkElement.DataContext; // task dropped onto
+                var insertedTaskItem = (TaskDisplayModel)e.Data.GetData(DataFormats.Serializable); // dropped task
 
                 if (!_isPreviousLocalOrderStored)
                 {
                     _previousLocalOrder.Clear();
 
                     var vm = (TaskViewModelBase)TaskContainerListBox.DataContext;
-                    foreach (var task in vm.LocalTasks!)
-                    {
-                        _previousLocalOrder.Add(task, vm.LocalTasks!.IndexOf(task));
-                    }
-
+                    foreach (var task in vm.LocalTasks!) { _previousLocalOrder.Add(task, vm.LocalTasks!.IndexOf(task)); }
                     _isPreviousLocalOrderStored = true;
                 }
 
@@ -113,7 +124,7 @@ namespace TaskFocusDesktop.Views.Components
             if (result == null) 
             { 
                 // if dragged out of container entirely, revert local order
-                UndoPreviewInsertTaskItem(); 
+                UndoPreviewInsertTaskItem();
             }
         }
 
@@ -121,8 +132,17 @@ namespace TaskFocusDesktop.Views.Components
         {
             if (sender is FrameworkElement frameworkElement && CanReorder)
             {
+                // remove visual highlighting flag
+                IsDragging = false;
+                //Debug.WriteLine("DRAGGING STOPPED");
+
                 // drag/drop action was fully completed; update remote order accordingly
-                UpdateRemoteOrder();
+                var vm = (TaskViewModelBase)TaskContainerListBox.DataContext;
+                var insertedTaskItem = (TaskDisplayModel)e.Data.GetData(DataFormats.Serializable);
+                int previousIndex = _previousLocalOrder[insertedTaskItem];
+
+                bool orderChanged = previousIndex != vm.LocalTasks!.IndexOf(insertedTaskItem);
+                if (orderChanged) { UpdateRemoteOrder(); }
             }
         }
 
@@ -154,23 +174,6 @@ namespace TaskFocusDesktop.Views.Components
             _isPreviousLocalOrderStored = false;
         }
 
-        public void InsertTaskItem(TaskDisplayModel insertedTaskItem, TaskDisplayModel targetTaskItem)
-        {
-            if (insertedTaskItem == targetTaskItem) { return; }
-
-            var vm = (TaskViewModelBase)TaskContainerListBox.DataContext;
-            int oldIndex = vm.LocalTasks!.IndexOf(insertedTaskItem);
-            int nextIndex = vm.LocalTasks!.IndexOf(targetTaskItem);
-
-            if (oldIndex != -1 && nextIndex != -1)
-            {
-                // update local order
-                vm.LocalTasks.Move(oldIndex, nextIndex);
-
-                UpdateRemoteOrder();
-            }
-        }
-
         private void UpdateRemoteOrder()
         {
             var vm = (TaskViewModelBase)TaskContainerListBox.DataContext;
@@ -187,6 +190,19 @@ namespace TaskFocusDesktop.Views.Components
                 // will trigger a DataService.UpdateCollectionOrderingIndices call
                 item[OrderingIndex] = vm.LocalTasks.IndexOf(item);
                 //Debug.WriteLine($"{item.TaskName} OrderingIndex({OrderingIndex}): {item[OrderingIndex]}");
+            }
+        }
+
+        // when the observable collection LocalTasks is reordered via its Move method (in PreviewInsertTaskItem),
+        // moved items are temporarily removed before being re-inserted. when these are also the selected item, WPF
+        // will "prematurely" set the SelectedItem to null and selection will not be preserved once the item is
+        // re-added at its new index. this workaround preserves that selection.
+        private void TaskContainerListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (e.RemovedItems != null && (e.AddedItems == null || e.AddedItems.Count == 0))
+            {
+                _lastSelection = e.RemovedItems.OfType<object>().FirstOrDefault()!;
+                TaskContainerListBox.SelectedItem = _lastSelection;
             }
         }
     }

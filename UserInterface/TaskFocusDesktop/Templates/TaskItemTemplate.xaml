@@ -9,9 +9,7 @@
 
     <!-- // TaskItem data template // -->
 
-    <DataTemplate x:Key="TaskItem_Template" >
-
-        <!--<components:TaskItemView />-->
+    <DataTemplate x:Key="TaskItem_Template" DataType="ListBoxItem" >
 
         <DataTemplate.Resources>
             <Size x:Key="iconSize" Height="24" Width="24" />
