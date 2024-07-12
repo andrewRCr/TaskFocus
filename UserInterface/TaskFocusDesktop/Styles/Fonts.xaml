@@ -1,6 +1,13 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
+    <FontFamily x:Key="RobotoBlack">pack://application:,,,Resources/Fonts/Roboto-Black.ttf#Roboto</FontFamily>
+    <FontFamily x:Key="RobotoBold">pack://application:,,,Resources/Fonts/Roboto-Bold.ttf#Roboto</FontFamily>
+    <FontFamily x:Key="RobotoMedium">pack://application:,,,Resources/Fonts/Roboto-Medium.ttf#Roboto</FontFamily>
+    <FontFamily x:Key="RobotoRegular">pack://application:,,,Resources/Fonts/Roboto-Regular.ttf#Roboto</FontFamily>
+    <FontFamily x:Key="RobotoLight">pack://application:,,,Resources/Fonts/Roboto-Light.ttf#Roboto</FontFamily>
+    <FontFamily x:Key="RobotoThin">pack://application:,,,Resources/Fonts/Roboto-Thin.ttf#Roboto</FontFamily>
+
     <!-- base style -->
     <Style TargetType="{x:Type Control}" x:Key="BaseStyle">
         <Setter Property="FontFamily" Value="Helvetica Neue" />

@@ -34,7 +34,7 @@
                                      Width="24"
                                      />
 
-            <TextBlock FontSize="14" Style="{StaticResource HeaderTextStyle}"
+            <TextBlock Style="{StaticResource HeaderTextStyle}"
                        VerticalAlignment="Center" Margin="0 2 0 0"
                        Text="INBOX" />
 

@@ -151,7 +151,7 @@
                                                 Foreground="{StaticResource ForegroundHighlightBrush}" />
                     <TextBlock
                                 FontSize="24"
-                                Style="{StaticResource textBlockPrimaryStyle}"
+                                Foreground="{StaticResource ForegroundHighlightBrush}"
                                 FontWeight="Bold"
                                 >TaskFocus</TextBlock>
                 </StackPanel>

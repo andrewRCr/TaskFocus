@@ -70,7 +70,8 @@ namespace TaskFocusDesktop.Views.Components
             if (e.LeftButton == MouseButtonState.Pressed && sender is FrameworkElement frameworkElement)
             {
                 List<Type> typesToIgnore = new() { 
-                    typeof(CheckBox), typeof(ComboBox), typeof(PackIcon), typeof(DatePicker), typeof(Button) };
+                    typeof(CheckBox), typeof(TextBox), typeof(ComboBox), typeof(PackIcon), typeof(DatePicker), typeof(Button), 
+                    typeof(CustomControls.CircularButton), typeof(CustomControls.CheckBoxButton) };
                 string textBoxViewStr = "System.Windows.Controls.TextBoxView"; // internal WPF component; no public API
 
                 // ignore drag if clicked on any controls

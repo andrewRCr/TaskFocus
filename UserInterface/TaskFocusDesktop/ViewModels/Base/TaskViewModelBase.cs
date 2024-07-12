@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Dynamic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -32,6 +33,8 @@ namespace TaskFocusDesktop.ViewModels.Base
             _dataState = dataState;
             _dataService = dataService;
             _dataHelper = dataHelper;
+
+            _dataState.DataStateChanged += DataStateChanged;
         }
 
         public string? OrderingIndex { get; set; }
@@ -43,11 +46,37 @@ namespace TaskFocusDesktop.ViewModels.Base
             set { _canUpdateOrderingIndices = value; }
         }
 
-
         //public RelayCommand DeleteTaskCommand => new RelayCommand(async execute => await Task.CompletedTask);
+
+        public RelayCommand ClearSelectedTaskProjectCommand => new RelayCommand(execute => ClearSelectedTaskProject());
+
+        protected void ClearSelectedTaskProject()
+        {
+            if (SelectedTaskItem != null)
+            {
+                // will trigger an API remote data update call
+                SelectedTaskItem.ProjectName = null;
+            }
+        }
 
         protected List<string> dataRefreshTriggers = new List<string> {
         nameof(IDataState.Tasks), nameof(IDataState.Projects), nameof(IDataState.Contexts) };
+
+        // to be defined in child components as needed
+        protected virtual bool HandleDataStateChanged(string propertyName, IDataState dataState)
+        {
+            return false;
+        }
+
+        private async void DataStateChanged(string propertyName, IDataState dataState)
+        {
+            bool changesOccured = HandleDataStateChanged(propertyName, dataState);
+            //if (changesOccured)
+            //{
+            //    //await InvokeAsync(StateHasChanged);
+            //    Refresh();
+            //}
+        }
 
         private ObservableCollection<TaskDisplayModel>? _localTasks;
         public ObservableCollection<TaskDisplayModel>? LocalTasks
@@ -60,8 +89,8 @@ namespace TaskFocusDesktop.ViewModels.Base
             }
         }
 
-        private BindingList<ProjectDisplayModel>? _localProjects;
-        public BindingList<ProjectDisplayModel>? LocalProjects
+        private ObservableCollection<ProjectDisplayModel>? _localProjects;
+        public ObservableCollection<ProjectDisplayModel>? LocalProjects
         {
             get { return _localProjects; }
             set
@@ -90,6 +119,10 @@ namespace TaskFocusDesktop.ViewModels.Base
             {
                 _selectedTaskItem = value;
                 NotifyOfPropertyChange(() => SelectedTaskItem);
+
+                // debug
+                //string selectedTaskItemText = SelectedTaskItem != null ? SelectedTaskItem.TaskName : "NULL";
+                //Debug.WriteLine($"SelectedTaskItem: {selectedTaskItemText}");
             }
         }
 
@@ -181,7 +214,8 @@ namespace TaskFocusDesktop.ViewModels.Base
         {
             if (_dataState.IsDataLoaded())
             {
-                LocalProjects = new BindingList<ProjectDisplayModel>(_dataState.Projects!);
+                //LocalProjects = new BindingList<ProjectDisplayModel>(_dataState.Projects!);
+                LocalProjects = new ObservableCollection<ProjectDisplayModel>(_dataState.Projects!);
                 foreach (ProjectDisplayModel project in LocalProjects!)
                 {
                     project.PropertyChanged += OnExistingProjectPropertyChanged!; // subscribe to property changed event
@@ -230,7 +264,6 @@ namespace TaskFocusDesktop.ViewModels.Base
 
             await _dataService.UpdateContextData(senderContext);
         }
-
 
         //private BindingList<TaskDisplayModel> _newTaskList;
         //public BindingList<TaskDisplayModel> NewTaskList

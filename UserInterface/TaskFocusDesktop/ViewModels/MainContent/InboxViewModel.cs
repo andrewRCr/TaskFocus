@@ -1,7 +1,9 @@
 ﻿using Caliburn.Micro;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using TaskFocusDesktop.ViewModels.Base;
@@ -14,7 +16,8 @@ namespace TaskFocusDesktop.ViewModels.MainContent
     public class InboxViewModel : TaskViewModelBase, INotifyPropertyChanged
     {
         public InboxViewModel(IEventAggregator events,
-                              IWindowManager window, IDataState dataState,
+                              IWindowManager window, 
+                              IDataState dataState,
                               IDataService dataService,
                               IDataHelper dataHelper) : base(events, window, dataState, dataService, dataHelper)
         {
@@ -57,6 +60,29 @@ namespace TaskFocusDesktop.ViewModels.MainContent
                 }
             }
             else { await _dataService.UpdateTaskData(senderTask); }
+        }
+
+        protected override bool HandleDataStateChanged(string propertyName, IDataState dataState)
+        {
+            if (!dataRefreshTriggers.Contains(propertyName))
+            {
+                return false;
+            }
+
+            //if (AppState.CanRefresh)
+            //{
+            //    //Console.WriteLine("InboxTaskPage: returned true on HandleDataStateChanged!");
+            //    LoadAllLocalData();
+            //}
+
+            //LoadAllLocalData();
+            //Refresh();
+            //_events.PublishOnUIThreadAsync()
+            //SwitchToInboxViewCommand.Execute(null);
+
+            //return AppState.CanRefresh;
+            Debug.WriteLine("InboxViewModel: returned true on HandleDataStateChanged!");
+            return true;
         }
     }
 }

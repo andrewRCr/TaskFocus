@@ -16,23 +16,18 @@
                  AllowDrop="True" 
                  SelectionChanged="TaskContainerListBox_SelectionChanged"
                 
-                 ItemTemplate="{StaticResource TaskItem_Template}"
+                 ItemTemplate="{StaticResource TaskItem_Template2}"
                  SelectedItem="{Binding DataContext.SelectedTaskItem, RelativeSource={RelativeSource AncestorType=UserControl}}"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled" >
 
             <ListBox.ItemContainerStyle>
                 <Style TargetType="ListBoxItem">
 
-                 
-
                     <!-- handle drag/drop events -->
                     <EventSetter Event="PreviewMouseMove" Handler="TaskItem_MouseMove" />
                     <EventSetter Event="PreviewDrop" Handler="TaskItem_Drop"/>
                     <EventSetter Event="PreviewDragEnter" Handler="TaskItem_DragEnter" />
                     <EventSetter Event="PreviewDragLeave" Handler="TaskItem_DragLeave" />
-                    <!--<EventSetter Event="PreviewMouseLeftButtonDown" Handler="TaskItem_PreviewMouseLeftButtonDown" />
-                    <EventSetter Event="PreviewMouseLeftButtonUp" Handler="TaskItem_PreviewMouseLeftButtonUp"  />-->
-         
 
                     <Setter Property="Template">
                         <Setter.Value>
@@ -48,6 +43,7 @@
 
                                     <Trigger Property="IsMouseOver" Value="true">
                                         <Setter TargetName="_Border" Property="Background" Value="{StaticResource BackgroundLightestGreyBrush}"/>
+                                        <Setter Property="IsSelected" Value="True"/>
                                     </Trigger>
 
                                     <!-- drag/drop visual highlighting -->

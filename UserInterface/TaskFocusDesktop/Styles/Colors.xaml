@@ -25,4 +25,10 @@
     <Color x:Key="ForegroundHighlight">#776be7</Color>
     <SolidColorBrush x:Key="ForegroundHighlightBrush" Color="{StaticResource ForegroundHighlight}" />
 
+    <Color x:Key="ErrorRed">#f64e62</Color>
+    <SolidColorBrush x:Key="ErrorRedBrush" Color="{StaticResource ErrorRed}" />
+
+    <Color x:Key="ErrorRedSecondary">#543c44</Color>
+    <SolidColorBrush x:Key="ErrorRedSecondaryBrush" Color="{StaticResource ErrorRedSecondary}" />
+
 </ResourceDictionary>
