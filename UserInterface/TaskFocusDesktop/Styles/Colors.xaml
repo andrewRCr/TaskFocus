@@ -22,6 +22,9 @@
     <Color x:Key="ForegroundSecondary">#939397</Color>
     <SolidColorBrush x:Key="ForegroundSecondaryBrush" Color="{StaticResource ForegroundSecondary}" />
 
+    <Color x:Key="ForegroundTertiary">#737379</Color>
+    <SolidColorBrush x:Key="ForegroundTertiaryBrush" Color="{StaticResource ForegroundTertiary}" />
+
     <Color x:Key="ForegroundHighlight">#776be7</Color>
     <SolidColorBrush x:Key="ForegroundHighlightBrush" Color="{StaticResource ForegroundHighlight}" />
 

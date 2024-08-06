@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -68,14 +69,28 @@ namespace TaskFocusDesktop.Views.Components
             return null;
         }
 
-        private void projectComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void CollectionComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (sender is DependencyObject dependencyObject)
             {
-                TextBox dummyTB = FindDescendant<TextBox>(dependencyObject);
-                dummyTB.Focus();
+                this.MainTaskItemGrid.Focus();
             }
+        }
 
+        private void CollectionComboBox_DropDownClosed(object sender, EventArgs e)
+        {
+            if (sender is DependencyObject dependencyObject)
+            {
+                this.MainTaskItemGrid.Focus();
+            }
+        }
+
+        private void DatePicker_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (sender is DependencyObject dependencyObject)
+            {
+                this.MainTaskItemGrid.Focus();
+            }
         }
     }
 }

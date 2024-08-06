@@ -14,9 +14,8 @@
         <ListBox x:Name="TaskContainerListBox" 
                  ItemsSource="{Binding DataContext.LocalTasks, RelativeSource={RelativeSource AncestorType=UserControl}}"
                  AllowDrop="True" 
-                 SelectionChanged="TaskContainerListBox_SelectionChanged"
-                
-                 ItemTemplate="{StaticResource TaskItem_Template2}"
+                 SelectionChanged="TaskContainerListBox_SelectionChanged"           
+                 ItemTemplate="{StaticResource TaskItem_Template}"
                  SelectedItem="{Binding DataContext.SelectedTaskItem, RelativeSource={RelativeSource AncestorType=UserControl}}"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled" >
 
