@@ -70,7 +70,7 @@
 
                 </MenuItem>
 
-                <MenuItem Header="Completed" 
+                <MenuItem Header="[ Completed ]" 
                           Template="{StaticResource NavMenuItem_Template}"
                           Command="{Binding SwitchToCompletedViewCommand}">
 

@@ -67,7 +67,7 @@ namespace TaskFocusDesktop.Views.Components
 
         private void TaskItem_MouseMove(object sender, MouseEventArgs e)
         {
-            if (e.LeftButton == MouseButtonState.Pressed && sender is FrameworkElement frameworkElement)
+            if (e.LeftButton == MouseButtonState.Pressed && sender is FrameworkElement frameworkElement && CanReorder)
             {
                 List<Type> typesToIgnore = new() { 
                     typeof(CheckBox), typeof(TextBox), typeof(ComboBox), typeof(PackIcon), typeof(DatePicker), typeof(Button), 

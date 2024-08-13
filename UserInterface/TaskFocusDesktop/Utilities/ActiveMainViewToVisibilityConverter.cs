@@ -17,6 +17,8 @@ namespace TaskFocusDesktop.Utilities
             Enum activeMainContentViewEnum = (Enum)values[1];
             string activeMainContentViewEnumStr = activeMainContentViewEnum.ToString();
 
+            if (sendingMenuItemStr == "[ Completed ]") { sendingMenuItemStr = "Completed"; }
+
             return sendingMenuItemStr == activeMainContentViewEnumStr ? Visibility.Visible : Visibility.Collapsed;
         }
 

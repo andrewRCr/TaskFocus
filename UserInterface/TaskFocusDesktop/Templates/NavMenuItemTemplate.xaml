@@ -31,8 +31,8 @@
 
                 <!-- menu text -->
 
-                <ContentPresenter x:Name="HeaderText" 
-                                  ContentSource="Header"
+                <ContentPresenter x:Name="HeaderText"
+                                  ContentSource="Header" 
                                   Grid.Column="0"
                                   HorizontalAlignment="Left"
                                   RecognizesAccessKey="True"
@@ -80,14 +80,18 @@
 
         <ControlTemplate.Triggers>
 
+            <Trigger Property="Content" SourceName="HeaderText" Value="[ Completed ]">
+                <Setter Property="TextBlock.FontStyle" Value="Italic" />
+                <Setter Property="TextBlock.Foreground" Value="{StaticResource ForegroundSecondaryBrush}" />
+            </Trigger>
+
             <Trigger Property="IsHighlighted"
                      Value="True">
                 <Setter TargetName="MenuItemBorder"
                         Property="Background"
                         Value="{StaticResource BackgroundMidGreyBrush}" />
-
+                <Setter Property="TextBlock.Foreground" Value="{StaticResource ForegroundHighlightBrush}" />
             </Trigger>
-           
 
         </ControlTemplate.Triggers>
     </ControlTemplate>

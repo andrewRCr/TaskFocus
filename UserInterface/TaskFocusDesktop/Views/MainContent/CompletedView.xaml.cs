@@ -24,5 +24,10 @@ namespace TaskFocusDesktop.Views.MainContent
         {
             InitializeComponent();
         }
+
+        private void MainGridBackground_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            this.MainGridBackground.Focus();
+        }
     }
 }
