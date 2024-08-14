@@ -6,7 +6,9 @@
              xmlns:local="clr-namespace:TaskFocusDesktop.Views.MainContent" 
              xmlns:utilities="clr-namespace:TaskFocusDesktop.Utilities" 
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes" 
-             xmlns:components="clr-namespace:TaskFocusDesktop.Views.Components" xmlns:maincontent="clr-namespace:TaskFocusDesktop.ViewModels.MainContent" d:DataContext="{d:DesignInstance Type=maincontent:CompletedViewModel}"
+             xmlns:components="clr-namespace:TaskFocusDesktop.Views.Components" 
+             xmlns:maincontent="clr-namespace:TaskFocusDesktop.ViewModels.MainContent" 
+             d:DataContext="{d:DesignInstance Type=maincontent:CompletedViewModel}"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800"
              Style="{StaticResource BaseMainContentViewStyle}">

@@ -4,8 +4,30 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:TaskFocusDesktop.Views.TopPanel"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes" 
              mc:Ignorable="d" 
              d:DesignHeight="75" d:DesignWidth="1125">
+
+    <UserControl.Resources>
+        <Style x:Key="usernameInputFieldStyle" TargetType="{x:Type TextBox}" BasedOn="{StaticResource MaterialDesignTextBox}">
+            <Setter Property="Foreground" Value="{StaticResource ForegroundMainBrush}" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding EnableLoginFormControls}" Value="False">
+                    <Setter Property="materialDesign:TextFieldAssist.HasFilledTextField" Value="True" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="passwordInputFieldStyle" TargetType="{x:Type PasswordBox}" BasedOn="{StaticResource MaterialDesignPasswordBox}">
+            <Setter Property="Foreground" Value="{StaticResource ForegroundMainBrush}" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding EnableLoginFormControls}" Value="False">
+                    <Setter Property="materialDesign:TextFieldAssist.HasFilledTextField" Value="True" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+    
     <Grid>
 
         <StackPanel Orientation="Horizontal" 
@@ -14,28 +36,37 @@
                     Margin="0 0 50 0">
 
             <TextBox x:Name="Username" 
+                     Style="{StaticResource usernameInputFieldStyle}"
                      Grid.Column="0" 
                      MinWidth="250"
                      Margin="10 0 0 10" 
                      Padding="2" 
                      FontSize="14"
-                     Text="Username"
-                 />
+                     Text="Username"                    
+                     IsEnabled="{Binding EnableLoginFormControls}"
+                     
+                 >
+
+
+            </TextBox>
 
             <PasswordBox x:Name="Password" 
+                         Style="{StaticResource passwordInputFieldStyle}"
                          Grid.Column="1" 
                          MinWidth="250" 
                          Margin="10 0 0 10" 
                          Padding="2" 
                          FontSize="14"
-                     
+                         IsEnabled="{Binding EnableLoginFormControls}"
                      />
 
             <Button x:Name="Login" 
                     Grid.Column="1"                     
-                    Margin="10 0 0 0" 
+                    Margin="10 0 0 10" 
                     Padding="5 5 5 5"
-                    HorizontalAlignment="Center" >
+                    HorizontalAlignment="Center" 
+                    Foreground="{StaticResource ForegroundMainBrush}"
+                    IsEnabled="{Binding EnableLoginFormControls}" >
                 Log In
             </Button>
 

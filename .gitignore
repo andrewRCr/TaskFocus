@@ -7,6 +7,9 @@
 appsettings.Development.json
 API/TaskFocusAPI/appsettings.Development.json
 
+# Development notes
+*.txt
+
 # User-specific files
 *.rsuser
 *.suo
