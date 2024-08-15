@@ -21,8 +21,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
                                   IDataState dataState,
                                   IDataService dataService,
                                   IDataHelper dataHelper) : base(events, window, dataState, dataService, dataHelper)
-        {
-     
+        {   
         }
 
         private bool _showEmptyTaskListTutorialText = false;
@@ -58,31 +57,12 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             }
         }
 
-        private BindingList<string>? _completedTaskNames;
-        public BindingList<string>? CompletedTaskNames
-        {
-            get { return _completedTaskNames; }
-            set
-            {
-                _completedTaskNames = value;
-                NotifyOfPropertyChange(() => CompletedTaskNames);
-            }
-        }
-
         protected override void OnViewLoaded(object view)
         {
             base.OnViewLoaded(view);
 
             if (IsLocalDataLoaded())
             {
-                CompletedTaskNames = new BindingList<string>();
-
-                foreach (var item in LocalTasks!)
-                {
-                    CompletedTaskNames!.Add(item.TaskName);
-                }
-
-                NotifyOfPropertyChange(() => CompletedTaskNames);
                 LoadCurrentSettingsStrings();
             }
         }
@@ -127,6 +107,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
                 return false;
             }
 
+            LoadAllLocalData();
             Debug.WriteLine("CompletedViewModel: returned true on HandleDataStateChanged!");
             return true;
         }

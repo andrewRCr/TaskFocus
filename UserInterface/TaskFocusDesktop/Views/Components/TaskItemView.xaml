@@ -234,6 +234,7 @@
 
                             <DataTrigger Binding="{Binding Completed}" Value="True">
                                 <Setter TargetName="placeholderText" Property="FontStyle" Value="Italic"/>
+                                <Setter TargetName="placeholderText" Property="Foreground" Value="{StaticResource ForegroundTertiaryBrush}"/>
                             </DataTrigger>
 
                         </ControlTemplate.Triggers>
@@ -287,6 +288,7 @@
 
                             <DataTrigger Binding="{Binding Completed}" Value="True">
                                 <Setter TargetName="placeholderText" Property="FontStyle" Value="Italic"/>
+                                <Setter TargetName="placeholderText" Property="Foreground" Value="{StaticResource ForegroundTertiaryBrush}"/>
                             </DataTrigger>
 
                         </ControlTemplate.Triggers>
@@ -296,29 +298,64 @@
         </Style>
 
         <Style x:Key="dueDatePickerTemplate" TargetType="DatePicker" BasedOn="{StaticResource MaterialDesignDatePicker}">
-            <Setter Property="Text" Value="Due" />
-            <Setter Property="SelectedDate" Value="{Binding DueDate}" />
-            <Setter Property="Margin" Value="10 8 5 5" />
+            <Setter Property="Margin" Value="10 9 5 5" />
             <Setter Property="materialDesign:TextFieldAssist.TextBoxViewMargin" Value="0 0 0 2" />
             <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="BorderBrush" Value="{StaticResource ForegroundTertiaryBrush}" />
             <Setter Property="MinWidth" Value="80" />
-            <EventSetter Event="SelectedDateChanged" Handler="DatePicker_SelectedDateChanged" />
+            
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="DatePicker">
+                        <Grid>
 
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="BorderBrush" Value="{StaticResource ForegroundHighlightBrush}" />
-                </Trigger>
+                            <DatePicker x:Name="dueDatePicker"
+                                        Text="Due"
+                                        SelectedDate="{Binding DueDate}"
+                                        BorderBrush="{StaticResource ForegroundTertiaryBrush}"
+                                        SelectedDateChanged="DatePicker_SelectedDateChanged"
+                                        />
 
-                <DataTrigger Binding="{Binding Completed}" Value="True">
-                    <Setter Property="FontStyle" Value="Italic" />
-                    <Setter Property="Foreground" Value="{StaticResource ForegroundSecondaryBrush}" />
-                    <Setter Property="IsEnabled" Value="False" />
-                    <Setter Property="materialDesign:TextFieldAssist.HasFilledTextField" Value="True" />
-                    <Setter Property="Background" Value="Transparent" />
-                </DataTrigger>
-            </Style.Triggers>
-                
+                            <TextBlock x:Name="placeholderText" 
+                                          IsHitTestVisible="False"
+                                          Text="Due" 
+                                          FontSize="14"
+                                          Foreground="{StaticResource ForegroundSecondaryBrush}"
+                                          Visibility="Hidden"
+                                          Padding="0 1 0 0"
+                                          Margin="5 0 5 0" />
+
+                        </Grid>
+                        
+                        <ControlTemplate.Triggers>
+
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="BorderBrush" Value="{StaticResource ForegroundHighlightBrush}" />
+                            </Trigger>
+
+                            <DataTrigger Binding="{Binding Completed}" Value="True">
+                                <Setter Property="FontStyle" Value="Italic" />
+                                <Setter Property="Foreground" Value="{StaticResource ForegroundSecondaryBrush}" />
+                                <Setter TargetName="dueDatePicker" Property="IsEnabled" Value="False" />
+                                <Setter TargetName="dueDatePicker" Property="materialDesign:TextFieldAssist.HasFilledTextField" Value="True" />
+                                <Setter TargetName="dueDatePicker" Property="Background" Value="Transparent" />
+                                <Setter TargetName="placeholderText" Property="FontStyle" Value="Italic"/>
+                                <Setter TargetName="placeholderText" Property="Foreground" Value="{StaticResource ForegroundTertiaryBrush}"/>
+                            </DataTrigger>
+
+                            <MultiDataTrigger >
+                                <MultiDataTrigger.Conditions>
+                                    <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=DataContext.DueDate, Converter={StaticResource IsNullConverterInstance}}" Value="True" />
+                                    <Condition Binding="{Binding ElementName=dueDatePicker, Path=IsKeyboardFocusWithin}" Value="False" />
+                                </MultiDataTrigger.Conditions>
+                                <MultiDataTrigger.Setters>
+                                    <Setter TargetName="placeholderText" Property="Visibility" Value="Visible"/>
+                                </MultiDataTrigger.Setters>
+                            </MultiDataTrigger>
+
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
     </UserControl.Resources>
@@ -365,8 +402,6 @@
                                 <Setter Property="CheckBox.IsHitTestVisible" Value="False" />
                             </DataTrigger>
 
-
-                            
                         </Style.Triggers>
                     </Style>
                 </customControls:CheckBoxButton>
@@ -395,6 +430,7 @@
 
                 <!--due date datepicker-->
                 <DatePicker Style="{StaticResource dueDatePickerTemplate}" />
+
 
                 <!--delete task button-->
                 <customControls:CircularButton Command="{Binding RelativeSource={RelativeSource AncestorType=ListBox}, Path=DataContext.DeleteTaskCommand}"

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,31 +25,14 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             OrderingIndex = "TodayIndex";
         }
 
-        private BindingList<string>? _todayTaskNames;
-        public BindingList<string>? TodayTaskNames
+        private bool _showEmptyTaskListTutorialText = false;
+        public bool ShowEmptyTaskListTutorialText
         {
-            get { return _todayTaskNames; }
+            get { return _showEmptyTaskListTutorialText; }
             set
             {
-                _todayTaskNames = value;
-                NotifyOfPropertyChange(() => TodayTaskNames);
-            }
-        }
-
-        protected override void OnViewLoaded(object view)
-        {
-            base.OnViewLoaded(view);
-
-            if (IsLocalDataLoaded())
-            {
-                TodayTaskNames = new BindingList<string>();
-
-                foreach (var item in LocalTasks!)
-                {
-                    TodayTaskNames!.Add(item.TaskName);
-                }
-
-                NotifyOfPropertyChange(() => TodayTaskNames);
+                _showEmptyTaskListTutorialText = value;
+                NotifyOfPropertyChange(() => ShowEmptyTaskListTutorialText);
             }
         }
 
@@ -87,13 +71,26 @@ namespace TaskFocusDesktop.ViewModels.MainContent
                 }
 
                 todayTasks = todayTasks.OrderBy(x => x.TodayIndex).ToList();
-                //LocalTasks = new BindingList<TaskDisplayModel>(todayTasks);
                 LocalTasks = new ObservableCollection<TaskDisplayModel>(todayTasks);
                 foreach (TaskDisplayModel task in LocalTasks!)
                 {
                     task.PropertyChanged += OnExistingTaskPropertyChanged!; // subscribe to property changed event
                 }
+
+                ShowEmptyTaskListTutorialText = LocalTasks.Count == 0;
             }
+        }
+
+        protected override bool HandleDataStateChanged(string propertyName, IDataState dataState)
+        {
+            if (!dataRefreshTriggers.Contains(propertyName))
+            {
+                return false;
+            }
+
+            LoadAllLocalData();
+            Debug.WriteLine("TodayViewModel: returned true on HandleDataStateChanged!");
+            return true;
         }
     }
 }

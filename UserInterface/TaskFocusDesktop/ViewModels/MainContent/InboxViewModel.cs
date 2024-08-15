@@ -24,6 +24,17 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             OrderingIndex = "InboxIndex";
         }
 
+        private bool _showEmptyTaskListTutorialText = false;
+        public bool ShowEmptyTaskListTutorialText
+        {
+            get { return _showEmptyTaskListTutorialText; }
+            set
+            {
+                _showEmptyTaskListTutorialText = value;
+                NotifyOfPropertyChange(() => ShowEmptyTaskListTutorialText);
+            }
+        }
+
         protected override void LoadLocalTaskData()
         {
             if (_dataState.IsDataLoaded())
@@ -31,13 +42,14 @@ namespace TaskFocusDesktop.ViewModels.MainContent
                 List<TaskDisplayModel> inboxTasks = _dataState.Tasks!.Where(x => (x.ProjectId == null || x.ContextId == null) && !x.CleanedUp).ToList();
                 var orderedInboxTasks = inboxTasks.OrderBy(x => x.InboxIndex);
                 inboxTasks = orderedInboxTasks.ToList();
-                //LocalTasks = new BindingList<TaskDisplayModel>(inboxTasks);
                 LocalTasks = new ObservableCollection<TaskDisplayModel>(inboxTasks);
 
                 foreach (TaskDisplayModel task in LocalTasks!)
                 {
                     task.PropertyChanged += OnExistingTaskPropertyChanged!; // subscribe to property changed event
                 }
+
+                ShowEmptyTaskListTutorialText = LocalTasks.Count == 0;
             }
         }
 
@@ -69,18 +81,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
                 return false;
             }
 
-            //if (AppState.CanRefresh)
-            //{
-            //    //Console.WriteLine("InboxTaskPage: returned true on HandleDataStateChanged!");
-            //    LoadAllLocalData();
-            //}
-
-            //LoadAllLocalData();
-            //Refresh();
-            //_events.PublishOnUIThreadAsync()
-            //SwitchToInboxViewCommand.Execute(null);
-
-            //return AppState.CanRefresh;
+            LoadAllLocalData();
             Debug.WriteLine("InboxViewModel: returned true on HandleDataStateChanged!");
             return true;
         }

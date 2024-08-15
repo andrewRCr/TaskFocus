@@ -8,6 +8,7 @@
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:components="clr-namespace:TaskFocusDesktop.Views.Components"
              xmlns:viewmodels="clr-namespace:TaskFocusDesktop.ViewModels.MainContent" 
+             xmlns:utilities="clr-namespace:TaskFocusDesktop.Utilities" 
              d:DataContext="{d:DesignInstance Type=viewmodels:InboxViewModel}"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800"
@@ -43,6 +44,34 @@
 
         </StackPanel>
 
+        <WrapPanel Grid.Row="1" 
+                   Margin="60 0 0 0"
+                   Visibility="{Binding ShowEmptyTaskListTutorialText, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" >
+
+            <materialDesign:Card  
+                             materialDesign:ElevationAssist.Elevation="Dp6"
+                             Width="800"
+                             Padding="12"
+                             Background="{StaticResource BackgroundLightGreyBrush}"
+                             >
+                <TextBlock TextWrapping="Wrap"
+                           FontSize="16" 
+                           HorizontalAlignment="Center" 
+                           TextAlignment="Center"
+                           utilities:TextBlockHelper.TrimRuns="True" >
+
+                    <TextBlock.Inlines>
+                        <Run Text="Tasks that have not yet been assigned  "/>
+                        <Run FontWeight="Bold" Text="both" />
+                        <Run Text="  a Project  " />
+                        <Run FontWeight="Bold" Text="and" />
+                        <Run Text="  Context will appear here." />
+                    </TextBlock.Inlines>
+                </TextBlock>
+
+            </materialDesign:Card>
+
+        </WrapPanel>
 
         <!-- inbox tasks -->
         <components:TaskItemContainerView Grid.Row="1"
