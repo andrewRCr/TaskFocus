@@ -15,6 +15,9 @@ namespace TaskFocusUI.Library.Utilities
         public List<ContextModel> ContextsLastFetch { get; set; }
         public UserSettingsModel UserSettingsLastFetch { get; set; }
 
+        public ProjectDisplayModel FocusedProject { get; set; }
+        public List<TaskDisplayModel> FocusedProjectTasks { get; set; }
+
         public bool HasTaskDataChanged(TaskModel frontEndTask)
         {
             TaskModel taskLastFetch = TasksLastFetch.Find(x => x.Id == frontEndTask.Id);

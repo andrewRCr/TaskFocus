@@ -46,8 +46,13 @@ namespace TaskFocusDesktop.ViewModels.Base
         public ICommand SwitchToMainNavMenuCommand => new RelayCommand(
                 async execute => await RequestSidePanelViewSwitch(ViewCatalog.SidePanelView.NavMenu));
 
-        public ICommand SwitchToSubNavMenuCommand => new RelayCommand(
-        async execute => await RequestSidePanelViewSwitch(ViewCatalog.SidePanelView.SubNavMenu));
+        public ICommand SwitchToProjectSubNavMenuCommand => new RelayCommand(
+                async execute => await RequestSidePanelViewSwitch(ViewCatalog.SidePanelView.ProjectSubNavMenu));
+
+        public ICommand SwitchToContextSubNavMenuCommand => new RelayCommand(
+                async execute => await RequestSidePanelViewSwitch(ViewCatalog.SidePanelView.ContextSubNavMenu));
+
+        public ICommand ExitSubNavMenuCommand => new RelayCommand(async execute => await RequestExitSubNavMenu());
 
         protected async Task RequestMainContentViewSwitch(ViewCatalog.MainContentView requestedMainContentView)
         {
@@ -76,6 +81,12 @@ namespace TaskFocusDesktop.ViewModels.Base
             }
 
             await Task.CompletedTask;
+        }
+
+        protected async Task RequestExitSubNavMenu()
+        {
+            await RequestSidePanelViewSwitch(ViewCatalog.SidePanelView.NavMenu);
+            await RequestMainContentViewSwitch(ViewCatalog.MainContentView.Home);
         }
     }
 }

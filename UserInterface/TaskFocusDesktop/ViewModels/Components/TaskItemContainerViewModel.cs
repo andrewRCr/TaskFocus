@@ -1,15 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Input;
-using TaskFocusDesktop.Commands;
-using TaskFocusUI.Library.Models;
+﻿using System.Windows.Controls;
 
 namespace TaskFocusDesktop.ViewModels.Components
 {
@@ -20,7 +9,7 @@ namespace TaskFocusDesktop.ViewModels.Components
         public string OrderingIndex => string.Empty;
 
         public TaskItemContainerViewModel()
-        { 
+        {
         }
     }
 }

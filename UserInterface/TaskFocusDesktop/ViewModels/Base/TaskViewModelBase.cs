@@ -126,6 +126,21 @@ namespace TaskFocusDesktop.ViewModels.Base
             }
         }
 
+        private ProjectDisplayModel? _selectedProject;
+        public ProjectDisplayModel? SelectedProject
+        {
+            get { return _selectedProject; }
+            set
+            {
+                _selectedProject = value;
+                NotifyOfPropertyChange(() => SelectedProject);
+
+                // debug
+                string selectedProjectText = SelectedProject != null ? SelectedProject.ProjectName : "NULL";
+                Debug.WriteLine($"SelectedProject: {selectedProjectText}");
+            }
+        }
+
         protected override async void OnViewLoaded(object view)
         {
             // nothing local, currently.

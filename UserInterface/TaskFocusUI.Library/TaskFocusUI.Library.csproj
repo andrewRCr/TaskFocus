@@ -3,6 +3,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <IncludeSymbols>True</IncludeSymbols>
     <Nullable>enable</Nullable>
+    <Platforms>AnyCPU;x86</Platforms>
     <!--<OutputType>Library</OutputType>-->
   </PropertyGroup>
   <ItemGroup>

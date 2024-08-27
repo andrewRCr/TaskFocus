@@ -11,5 +11,6 @@ namespace TaskFocusAPI.Library.DataAccess
         void AddTask(TaskModel newTask, string userId);
         void DeleteTask(TaskModel taskToDelete);
         void UpdateTaskData(TaskModel frontEndTask);
+        List<TaskModel> GetAllProjectTasksById(int projectId);
     }
 }

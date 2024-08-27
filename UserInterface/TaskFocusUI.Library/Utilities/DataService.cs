@@ -93,6 +93,17 @@ namespace TaskFocusUI.Library.Utilities
             _dataState.Projects = new List<ProjectDisplayModel>(displayProjectList);
         }
 
+        public async Task FetchRemoteProjectAndTasksById(int id)
+        {
+            var project = await _projectEndpoint.GetProjectById(id);
+            var displayProject = _mapper.Map<ProjectDisplayModel>(project);
+            _dataHelper.FocusedProject = displayProject;
+
+            var projectTasks = await _taskEndpoint.GetAllProjectTasksById(id);
+            var displayProjectTasks = _mapper.Map<List<TaskDisplayModel>>(projectTasks);
+            _dataHelper.FocusedProjectTasks = displayProjectTasks;
+        }
+
         public async Task FetchRemoteContextData()
         {
             var contextList = await _contextEndpoint.GetAllContextsForUser();

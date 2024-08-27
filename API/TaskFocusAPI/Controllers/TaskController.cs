@@ -39,6 +39,12 @@ namespace TaskFocusAPI.Controllers
             return _taskData.GetInboxTasksForUser(userId);
         }
 
+        [HttpGet("{projectId}")]
+        public List<TaskModel> GetAllProjectTasksById(int projectId)
+        {
+            return _taskData.GetAllProjectTasksById(projectId);
+        }
+
         [HttpPost]
         public void Post(TaskModel newTask)
         {

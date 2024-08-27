@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using TaskFocusUI.Library.Models;
 
 namespace TaskFocusDesktop.Views.MainContent
 {
@@ -24,5 +25,16 @@ namespace TaskFocusDesktop.Views.MainContent
         {
             InitializeComponent();
         }
+
+        private void MainGridBackground_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            this.MainGridBackground.Focus();
+        }
+
+        //private void CollectionViewSource_Filter(object sender, FilterEventArgs e)
+        //{
+        //    var task = e.Item as TaskDisplayModel;
+        //    e.Accepted = task.ProjectId == e.;
+        //}
     }
 }

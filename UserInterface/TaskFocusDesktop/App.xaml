@@ -25,6 +25,7 @@
                 <ResourceDictionary Source="Styles/Buttons.xaml" />
                 <ResourceDictionary Source="Styles/Texts.xaml" />
                 <ResourceDictionary Source="Styles/ContentViews.xaml" />
+                <ResourceDictionary Source="Styles/ListBoxes.xaml" />
                 <ResourceDictionary Source="Styles/Windows.xaml" />
                 
                 <!-- custom user control templates -->
@@ -35,6 +36,7 @@
             </ResourceDictionary.MergedDictionaries>
 
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+            <utilities:InvertableBooleanToVisibilityConverter x:Key="InvertableBooleanToVisibilityConverter" />
             <utilities:ActiveMainViewToVisibilityConverter x:Key="ActiveMainViewToVisibilityConverter" />
 
             <!-- app-level styling -->

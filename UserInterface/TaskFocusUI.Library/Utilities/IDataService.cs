@@ -25,5 +25,6 @@ namespace TaskFocusUI.Library.Utilities
         TaskModel MapToRawTask(TaskDisplayModel displayTask);
         void ShiftTaskCollectionSourceIndices(TaskModel task, string indexType);
         Task UpdateCollectionOrderingIndices(List<TaskDisplayModel> displayTasks);
+        Task FetchRemoteProjectAndTasksById(int id);
     }
 }

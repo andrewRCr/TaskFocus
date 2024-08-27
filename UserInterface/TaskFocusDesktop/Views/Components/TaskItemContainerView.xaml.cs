@@ -1,6 +1,7 @@
 ﻿using MaterialDesignThemes.Wpf;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -17,6 +18,15 @@ namespace TaskFocusDesktop.Views.Components
     /// </summary>
     public partial class TaskItemContainerView : UserControl
     {
+        //public static readonly DependencyProperty ContainerTasksProperty =
+        //    DependencyProperty.Register("ContainerTasks", typeof(ObservableCollection<TaskDisplayModel>), typeof(TaskItemContainerView), new PropertyMetadata(null));
+
+        //public ObservableCollection<TaskDisplayModel> ContainerTasks
+        //{
+        //    get { return (ObservableCollection<TaskDisplayModel>)GetValue(ContainerTasksProperty); }
+        //    set { SetValue(ContainerTasksProperty, value); }
+        //}
+
         private bool _isPreviousLocalOrderStored = false;
         private Dictionary<TaskDisplayModel, int> _previousLocalOrder;
 

@@ -13,5 +13,6 @@ namespace TaskFocusUI.Library.API
         Task DeleteTask(TaskModel task);
         Task UpdateTask(TaskModel task);
         Task<TaskModel> GetTaskById(int taskId);
+        Task<List<TaskModel>> GetAllProjectTasksById(int projectId);
     }
 }

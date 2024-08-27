@@ -24,7 +24,8 @@ namespace TaskFocusDesktop.Utilities
         public enum SidePanelView
         {
             NavMenu,
-            SubNavMenu
+            ProjectSubNavMenu,
+            ContextSubNavMenu
         }
     }
 }

@@ -5,25 +5,129 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:TaskFocusDesktop.Views.MainContent"
              mc:Ignorable="d" 
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:components="clr-namespace:TaskFocusDesktop.Views.Components"
+             xmlns:utilities="clr-namespace:TaskFocusDesktop.Utilities" 
+             xmlns:maincontent="clr-namespace:TaskFocusDesktop.ViewModels.MainContent" 
+             d:DataContext="{d:DesignInstance Type=maincontent:ProjectsViewModel}"
              d:DesignHeight="450" d:DesignWidth="800"
              Style="{StaticResource BaseMainContentViewStyle}"
              >
-    <Grid>
+    
+    <Grid x:Name="MainGridBackground" 
+          Focusable="True" 
+          Background="Transparent" 
+          PreviewMouseDown="MainGridBackground_PreviewMouseDown">
 
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-     
-        <!-- view title -->
-        <TextBlock  Grid.Row="0"
-                    Margin="5,5,0,50" 
-                    FontSize="18">
-            Projects
-        </TextBlock>
 
-        <ListBox Grid.Row="1"
-                 ItemsSource="{Binding ProjectNames}" />
+        <!-- view title -->
+        <StackPanel Grid.Row="0"
+                    Orientation="Horizontal"
+                    Margin="10 10 0 15"
+                    >
+
+            <materialDesign:PackIcon Kind="ClipboardText"
+                                     VerticalAlignment="Center"
+                                     Margin="10 0 10 0"
+                                     Foreground="{StaticResource ForegroundMainBrush}"
+                                     Height="24"
+                                     Width="24"
+                                     />
+
+            <TextBlock Style="{StaticResource HeaderTextStyle}"
+                       VerticalAlignment="Center" Margin="0 2 0 0"
+                       Text="PROJECTS" />
+        </StackPanel>
+
+        <WrapPanel Grid.Row="1" 
+           Margin="60 0 0 0"
+           Visibility="{Binding ShowNoFocusedProjectTutorialText, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" >
+
+            <materialDesign:Card  
+                     materialDesign:ElevationAssist.Elevation="Dp6"
+                     Width="800"
+                     Padding="12"
+                     Background="{StaticResource BackgroundLightGreyBrush}"
+                     >
+                <TextBlock TextWrapping="Wrap"
+                   FontSize="16" 
+                   HorizontalAlignment="Center" 
+                   TextAlignment="Center"
+                   utilities:TextBlockHelper.TrimRuns="True" >
+
+                    <TextBlock.Inlines>
+                        <Run Text="Group related or dependent tasks by creating and assigning  "/>
+                        <Run FontWeight="Bold" Text="Projects" />
+                        <Run Text=", which will appear here." />
+                    </TextBlock.Inlines>
+                </TextBlock>
+
+            </materialDesign:Card>
+
+        </WrapPanel>
+
+        <!-- focused/selected project display -->
+        <components:TaskCollectionView Grid.Row="1"
+                                       Visibility="{Binding ShowNoFocusedProjectTutorialText, 
+                                                    Converter={StaticResource InvertableBooleanToVisibilityConverter}, 
+                                                    ConverterParameter=Inverted, FallbackValue=Collapsed}"
+                                       CollectionId="{Binding FocusedProjectId}" 
+                                       IsProjectCollection="True"
+                                       CollectionName="{Binding FocusedProjectName}"
+                                       CollectionTasks="{Binding FocusedProjectTasks}" />
+
+
+        <!-- all projects display (?) -->
+        <!--<ListBox Grid.Row="1"
+                      ItemsSource="{Binding LocalProjects}" 
+                      ScrollViewer.VerticalScrollBarVisibility="Auto"
+                     
+                      >
+
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="{x:Type ListBoxItem}">
+
+
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ListBoxItem">
+                                <Grid Background="{TemplateBinding Background}">
+                                    <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalAlignment}"
+                    />
+                                </Grid>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+
+
+
+                </Style>
+            </ListBox.ItemContainerStyle>
+
+            <ListBox.ItemTemplate>
+                
+                
+                    <DataTemplate >
+
+                        <components:TaskCollectionView CollectionId="{Binding Id}" 
+                                                   IsProjectCollection="True"
+                                                   CollectionName="{Binding ProjectName}"
+                                                   CollectionTasks="{Binding DataContext.LocalTasks, 
+                                                                     RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" />
+
+                    </DataTemplate>
+                
+                
+                
+                </ListBox.ItemTemplate>
+            </ListBox>-->
+
+    
+
 
     </Grid>
 </UserControl>

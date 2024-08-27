@@ -41,6 +41,14 @@ namespace TaskFocusAPI.Library.DataAccess
             return userInboxTasks;
         }
 
+        public List<TaskModel> GetAllProjectTasksById(int projectId)
+        {
+            var p = new { Id = projectId };
+            var allProjectTasks = _sqlDataAccess.LoadData<TaskModel, dynamic>("dbo.spTask_GetAllForProjectId", p, "TaskFocusData");
+
+            return allProjectTasks;
+        }
+
         public void AddTask(TaskModel newTask, string userId)
         {
             newTask.UserId = userId;

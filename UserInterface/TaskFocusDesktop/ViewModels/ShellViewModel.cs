@@ -310,10 +310,13 @@ namespace TaskFocusDesktop.ViewModels
             }
 
             // activate appropriate side panel view first so it can consume ViewSwitchedEvent
-            if (requestedMainContentView == ViewCatalog.MainContentView.Projects ||
-                requestedMainContentView == ViewCatalog.MainContentView.Contexts)
+            if (requestedMainContentView == ViewCatalog.MainContentView.Projects)
             {
-                await SwitchSidePanelView(ViewCatalog.SidePanelView.SubNavMenu);
+                await SwitchSidePanelView(ViewCatalog.SidePanelView.ProjectSubNavMenu);
+            }
+            else if (requestedMainContentView == ViewCatalog.MainContentView.Contexts)
+            {
+                await SwitchSidePanelView(ViewCatalog.SidePanelView.ContextSubNavMenu);
             }
             else if (ActiveSidePanelView != ViewCatalog.SidePanelView.NavMenu)
             {
@@ -335,8 +338,11 @@ namespace TaskFocusDesktop.ViewModels
                 case ViewCatalog.SidePanelView.NavMenu:
                     SideMenuPanel = IoC.Get<NavMenuViewModel>();
                     break;
-                case ViewCatalog.SidePanelView.SubNavMenu:
-                    SideMenuPanel = IoC.Get<SubNavMenuViewModel>();
+                case ViewCatalog.SidePanelView.ProjectSubNavMenu:
+                    SideMenuPanel = IoC.Get<ProjectSubNavMenuViewModel>();
+                    break;
+                case ViewCatalog.SidePanelView.ContextSubNavMenu:
+                    SideMenuPanel = IoC.Get<ContextSubNavMenuViewModel>();
                     break;
                 default:
                     SideMenuPanel = IoC.Get<NavMenuViewModel>();

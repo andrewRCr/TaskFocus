@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Nextended.Core.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -62,6 +63,21 @@ namespace TaskFocusUI.Library.API
                     var result = await response.Content.ReadAsAsync<List<TaskModel>>();
                     return result;
 
+                }
+                else { throw new Exception(response.ReasonPhrase); }
+            }
+        }
+
+        public async Task<List<TaskModel>> GetAllProjectTasksById(int projectId)
+        {
+            string projectIdStr = projectId.ToString();
+            string requestUri = "/api/task/GetAllProjectTasksById/" + projectIdStr;
+            using (HttpResponseMessage response = await _apiHelper.APIClient.GetAsync(requestUri))
+            {
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsAsync<List<TaskModel>>();
+                    return result;
                 }
                 else { throw new Exception(response.ReasonPhrase); }
             }

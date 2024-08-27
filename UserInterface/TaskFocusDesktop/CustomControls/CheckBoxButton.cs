@@ -12,7 +12,7 @@ namespace TaskFocusDesktop.CustomControls
     class CheckBoxButton : CheckBox
     {
         public static readonly DependencyProperty FocusEllipseHoverColorProperty =
-            DependencyProperty.Register("CheckBoxFocusEllipseHoverColor", typeof(SolidColorBrush), typeof(CircularButton), new FrameworkPropertyMetadata(null));
+            DependencyProperty.Register("CheckBoxFocusEllipseHoverColor", typeof(SolidColorBrush), typeof(CheckBoxButton), new FrameworkPropertyMetadata(null));
 
         public SolidColorBrush CheckBoxFocusEllipseHoverColor
         {
@@ -21,7 +21,7 @@ namespace TaskFocusDesktop.CustomControls
         }
 
         public static readonly DependencyProperty FocusEllipsePressedColorProperty =
-            DependencyProperty.Register("CheckBoxFocusEllipsePressedColor", typeof(SolidColorBrush), typeof(CircularButton), new FrameworkPropertyMetadata(null));
+            DependencyProperty.Register("CheckBoxFocusEllipsePressedColor", typeof(SolidColorBrush), typeof(CheckBoxButton), new FrameworkPropertyMetadata(null));
 
         public SolidColorBrush CheckBoxFocusEllipsePressedColor
         {

@@ -61,13 +61,20 @@
 
             <!--</StackPanel>-->
  
-            <Menu>
+            <Menu ItemsSource="{Binding LocalProjects}">
 
                 <Menu.ItemsPanel>
                     <ItemsPanelTemplate>
                         <VirtualizingStackPanel Orientation="Vertical"/>
                     </ItemsPanelTemplate>
                 </Menu.ItemsPanel>
+
+                <Menu.ItemTemplate>
+                    <DataTemplate>
+                        <MenuItem Header="{Binding ProjectName}" />
+
+                    </DataTemplate>
+                </Menu.ItemTemplate>
 
             </Menu>
 

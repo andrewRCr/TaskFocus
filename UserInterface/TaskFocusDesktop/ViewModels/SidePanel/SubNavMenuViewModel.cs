@@ -4,18 +4,29 @@ using System.Threading.Tasks;
 using TaskFocusDesktop.EventModels;
 using TaskFocusDesktop.Utilities;
 using TaskFocusDesktop.ViewModels.Base;
+using TaskFocusUI.Library;
+using TaskFocusUI.Library.Models;
+using TaskFocusUI.Library.Utilities;
 
 namespace TaskFocusDesktop.ViewModels.SidePanel
 {
-    public class SubNavMenuViewModel : ViewModelBase
+    public class SubNavMenuViewModel : TaskViewModelBase
     {
         public bool IsProjectsSubMenu { get { return ActiveMainContentView == ViewCatalog.MainContentView.Projects; } }
 
         public string HeaderText { get { return IsProjectsSubMenu ? "PROJECTS" : "CONTEXTS"; } }
 
-        public SubNavMenuViewModel(IEventAggregator events) : base(events)
+        //public IObservableCollection<ProjectDisplayModel>? Projects { get; set; }
+
+        //public IObservableCollection<ContextDisplayModel>? Contexts { get; set; }
+
+        public SubNavMenuViewModel(IEventAggregator events,
+                                   IWindowManager window,
+                                   IDataState dataState,
+                                   IDataService dataService,
+                                   IDataHelper dataHelper) : base(events, window, dataState, dataService, dataHelper)
         {
-            _events = events;
+            //_events = events;
         }
 
         public override async Task HandleAsync(ViewSwitchedEvent message, CancellationToken cancellationToken)
@@ -25,5 +36,7 @@ namespace TaskFocusDesktop.ViewModels.SidePanel
             // header text may now be different
             NotifyOfPropertyChange(() => HeaderText);
         }
+
+
     }
 }

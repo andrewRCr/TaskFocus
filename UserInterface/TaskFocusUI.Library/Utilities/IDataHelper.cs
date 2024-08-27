@@ -9,6 +9,8 @@ namespace TaskFocusUI.Library.Utilities
         List<ProjectModel> ProjectsLastFetch { get; set; }
         List<ContextModel> ContextsLastFetch { get; set; }
         UserSettingsModel UserSettingsLastFetch { get; set; }
+        ProjectDisplayModel FocusedProject { get; set; }
+        List<TaskDisplayModel> FocusedProjectTasks { get; set; }
 
         bool HasContextDataChanged(ContextModel frontEndContext);
         bool HasProjectDataChanged(ProjectModel frontEndProject);

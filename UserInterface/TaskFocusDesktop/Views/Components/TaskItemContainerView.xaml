@@ -40,7 +40,7 @@
                                 </Border>
                                 <ControlTemplate.Triggers>
 
-                                    <Trigger Property="IsMouseOver" Value="true">
+                                    <Trigger Property="IsMouseOver" Value="True">
                                         <Setter TargetName="_Border" Property="Background" Value="{StaticResource BackgroundLightestGreyBrush}"/>
                                         <Setter Property="IsSelected" Value="True"/>
                                     </Trigger>
