@@ -54,7 +54,6 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             }
         }
 
-
         private ObservableCollection<TaskDisplayModel>?   _focusedProjectTasks;
         public ObservableCollection<TaskDisplayModel>? FocusedProjectTasks
         {
@@ -65,7 +64,6 @@ namespace TaskFocusDesktop.ViewModels.MainContent
                 NotifyOfPropertyChange(() => FocusedProjectTasks);
             }
         }
-
 
         public ProjectsViewModel(IEventAggregator events,
                                  IWindowManager window,

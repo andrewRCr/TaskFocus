@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="TaskFocusDesktop.Views.SidePanel.ProjectSubNavMenuView"
+﻿<UserControl x:Class="TaskFocusDesktop.Views.SidePanel.ContextSubNavMenuView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -8,10 +8,10 @@
              xmlns:local="clr-namespace:TaskFocusDesktop.Views.SidePanel"
              xmlns:sidepanel="clr-namespace:TaskFocusDesktop.ViewModels.SidePanel" 
              xmlns:Behaviors="http://schemas.microsoft.com/xaml/behaviors"
-             d:DataContext="{d:DesignInstance Type=sidepanel:ProjectSubNavMenuViewModel}"
+             d:DataContext="{d:DesignInstance Type=sidepanel:ContextSubNavMenuViewModel}"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="250">
-  
+
     <UserControl.Resources>
         <ResourceDictionary>
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
@@ -22,67 +22,68 @@
 
     <Grid x:Name="mainSubNavMenuGrid">
         <StackPanel Orientation="Vertical" 
-                    VerticalAlignment="Stretch" 
-                    HorizontalAlignment="Left"
-                    Width="250">
+                VerticalAlignment="Stretch" 
+                HorizontalAlignment="Left"
+                Width="250">
 
             <!-- 'back' button -->
             <Button Command="{Binding ExitSubNavMenuCommand}" 
-                    Background="Transparent"
-                    HorizontalAlignment="Left"
-                    HorizontalContentAlignment="Left"
-                    Margin="-10 10 0 10"
-                    Width="150" 
-                    BorderThickness="0"  >
+                Background="Transparent"
+                HorizontalAlignment="Left"
+                HorizontalContentAlignment="Left"
+                Margin="-10 10 0 10"
+                Width="150" 
+                BorderThickness="0"  >
 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
 
                     <materialDesign:PackIcon Kind="ChevronLeft"
-                                        Foreground="{StaticResource ForegroundMainBrush}"
-                                        Height="32"
-                                        Width="32"
-                                        VerticalAlignment="Center"
-                                        HorizontalAlignment="Left"
-                                        />
+                                    Foreground="{StaticResource ForegroundMainBrush}"
+                                    Height="32"
+                                    Width="32"
+                                    VerticalAlignment="Center"
+                                    HorizontalAlignment="Left"
+                                    />
 
-                    <TextBlock Text="PROJECTS"
-                        Style="{StaticResource HeaderTextStyle}"
-                        Foreground="{StaticResource ForegroundMainBrush}"
-                        VerticalAlignment="Center"
-                        Margin="6 1 0 0"
-                        />
+                    <TextBlock Text="CONTEXTS"
+                    Style="{StaticResource HeaderTextStyle}"
+                    Foreground="{StaticResource ForegroundMainBrush}"
+                    VerticalAlignment="Center"
+                    Margin="6 1 0 0"
+                    />
 
                 </StackPanel>
 
             </Button>
-            
+
             <!-- actual menu items -->
             <ListBox x:Name="subNavMenuListBox"
-                 ItemsSource="{Binding LocalProjects}" 
-                 SelectedItem="{Binding SelectedProject}"             
-                 Style="{StaticResource NavigationListBoxStyle}"
-                 >
+                ItemsSource="{Binding LocalContexts}" 
+                SelectedItem="{Binding SelectedContext}"             
+                Style="{StaticResource NavigationListBoxStyle}"
+                >
 
                 <Behaviors:Interaction.Triggers>
                     <Behaviors:EventTrigger EventName="SelectionChanged">
-                        <Behaviors:InvokeCommandAction Command="{Binding SelectedProjectChangedCommand}" />
+                        <Behaviors:InvokeCommandAction Command="{Binding SelectedContextChangedCommand}" />
                     </Behaviors:EventTrigger>
                 </Behaviors:Interaction.Triggers>
 
 
                 <ListBox.ItemTemplate>
                     <DataTemplate>
+                        
                         <ListBoxItem x:Name="listItem" Style="{StaticResource NavigationListBoxItemStyle}">
-                            <TextBlock Text="{Binding ProjectName}" />
+                            <TextBlock Text="{Binding ContextName}" />
                         </ListBoxItem>
 
                     </DataTemplate>
                 </ListBox.ItemTemplate>
-                
+
             </ListBox>
 
         </StackPanel>
-       
+
     </Grid>
 
 </UserControl>

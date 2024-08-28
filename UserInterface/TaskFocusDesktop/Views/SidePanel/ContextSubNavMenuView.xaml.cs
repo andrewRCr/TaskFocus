@@ -13,21 +13,16 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace TaskFocusDesktop.Views.MainContent
+namespace TaskFocusDesktop.Views.SidePanel
 {
     /// <summary>
-    /// Interaction logic for ContextsView.xaml
+    /// Interaction logic for ContextSubNavMenu.xaml
     /// </summary>
-    public partial class ContextsView : UserControl
+    public partial class ContextSubNavMenuView : UserControl
     {
-        public ContextsView()
+        public ContextSubNavMenuView()
         {
             InitializeComponent();
-        }
-
-        private void MainGridBackground_PreviewMouseDown(object sender, MouseButtonEventArgs e)
-        {
-            this.MainGridBackground.Focus();
         }
     }
 }

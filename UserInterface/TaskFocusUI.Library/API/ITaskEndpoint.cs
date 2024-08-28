@@ -14,5 +14,6 @@ namespace TaskFocusUI.Library.API
         Task UpdateTask(TaskModel task);
         Task<TaskModel> GetTaskById(int taskId);
         Task<List<TaskModel>> GetAllProjectTasksById(int projectId);
+        Task<List<TaskModel>> GetAllContextTasksById(int contextId);
     }
 }

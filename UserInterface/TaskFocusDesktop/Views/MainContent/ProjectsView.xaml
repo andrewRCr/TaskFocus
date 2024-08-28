@@ -72,6 +72,7 @@
 
         <!-- focused/selected project display -->
         <components:TaskCollectionView Grid.Row="1"
+                                       Margin="15 0 0 0"
                                        Visibility="{Binding ShowNoFocusedProjectTutorialText, 
                                                     Converter={StaticResource InvertableBooleanToVisibilityConverter}, 
                                                     ConverterParameter=Inverted, FallbackValue=Collapsed}"

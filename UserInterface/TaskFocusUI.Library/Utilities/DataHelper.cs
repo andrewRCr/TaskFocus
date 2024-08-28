@@ -17,6 +17,8 @@ namespace TaskFocusUI.Library.Utilities
 
         public ProjectDisplayModel FocusedProject { get; set; }
         public List<TaskDisplayModel> FocusedProjectTasks { get; set; }
+        public ContextDisplayModel FocusedContext { get; set; }
+        public List<TaskDisplayModel> FocusedContextTasks { get; set; }
 
         public bool HasTaskDataChanged(TaskModel frontEndTask)
         {

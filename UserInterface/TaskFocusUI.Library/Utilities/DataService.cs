@@ -113,6 +113,17 @@ namespace TaskFocusUI.Library.Utilities
             _dataState.Contexts = new List<ContextDisplayModel>(displayContextList);
         }
 
+        public async Task FetchRemoteContextAndTasksById(int id)
+        {
+            var context = await _contextEndpoint.GetContextById(id);
+            var displayContext = _mapper.Map<ContextDisplayModel>(context);
+            _dataHelper.FocusedContext = displayContext;
+
+            var contextTasks = await _taskEndpoint.GetAllContextTasksById(id);
+            var displayContextTasks = _mapper.Map<List<TaskDisplayModel>>(contextTasks);
+            _dataHelper.FocusedContextTasks = displayContextTasks;
+        }
+
         public async Task FetchRemoteSettingsData()
         {
             var userSettings = await _userEndpoint.GetCurrentUserSettings();

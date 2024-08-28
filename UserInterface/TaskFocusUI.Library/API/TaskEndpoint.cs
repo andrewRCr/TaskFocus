@@ -83,6 +83,21 @@ namespace TaskFocusUI.Library.API
             }
         }
 
+        public async Task<List<TaskModel>> GetAllContextTasksById(int contextId)
+        {
+            string contextIdStr = contextId.ToString();
+            string requestUri = "/api/task/GetAllContextTasksById/" + contextIdStr;
+            using (HttpResponseMessage response = await _apiHelper.APIClient.GetAsync(requestUri))
+            {
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsAsync<List<TaskModel>>();
+                    return result;
+                }
+                else { throw new Exception(response.ReasonPhrase); }
+            }
+        }
+
         public async Task AddTask(TaskModel task, string userId)
         {
             task.UserId = userId;

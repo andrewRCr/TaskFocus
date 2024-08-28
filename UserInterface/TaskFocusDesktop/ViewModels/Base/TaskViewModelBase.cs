@@ -136,8 +136,23 @@ namespace TaskFocusDesktop.ViewModels.Base
                 NotifyOfPropertyChange(() => SelectedProject);
 
                 // debug
-                string selectedProjectText = SelectedProject != null ? SelectedProject.ProjectName : "NULL";
-                Debug.WriteLine($"SelectedProject: {selectedProjectText}");
+                //string selectedProjectText = SelectedProject != null ? SelectedProject.ProjectName : "NULL";
+                //Debug.WriteLine($"SelectedProject: {selectedProjectText}");
+            }
+        }
+
+        private ContextDisplayModel? _selectedContext;
+        public ContextDisplayModel? SelectedContext
+        {
+            get { return _selectedContext; }
+            set
+            {
+                _selectedContext = value;
+                NotifyOfPropertyChange(() => SelectedContext);
+
+                // debug
+                //string selectedContextText = SelectedContext != null ? SelectedContext.ContextName : "NULL";
+                //Debug.WriteLine($"SelectedContext: { selectedContextText}");
             }
         }
 

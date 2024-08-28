@@ -30,11 +30,5 @@ namespace TaskFocusDesktop.Views.MainContent
         {
             this.MainGridBackground.Focus();
         }
-
-        //private void CollectionViewSource_Filter(object sender, FilterEventArgs e)
-        //{
-        //    var task = e.Item as TaskDisplayModel;
-        //    e.Accepted = task.ProjectId == e.;
-        //}
     }
 }
