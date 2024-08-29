@@ -76,7 +76,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
 
         protected override bool HandleDataStateChanged(string propertyName, IDataState dataState)
         {
-            if (!dataRefreshTriggers.Contains(propertyName))
+            if (!dataRefreshTriggers.Contains(propertyName) || ActiveMainContentView != Utilities.ViewCatalog.MainContentView.Inbox)
             {
                 return false;
             }

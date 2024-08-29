@@ -82,6 +82,7 @@
         <components:TaskItemContainerView Grid.Row="1"
                                           Margin="15 0 0 0"
                                           CanReorder="False"
+                                          ContainerTasks="{Binding LocalTasks}"
                                           />
 
     </Grid>

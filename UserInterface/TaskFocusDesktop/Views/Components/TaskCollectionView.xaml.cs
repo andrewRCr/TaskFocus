@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MaterialDesignThemes.Wpf;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -29,6 +30,15 @@ namespace TaskFocusDesktop.Views.Components
         {
             get { return (string)GetValue(CollectionNameProperty); }
             set { SetValue(CollectionNameProperty, value); }
+        }
+
+        public static readonly DependencyProperty CollectionIconKindProperty =
+            DependencyProperty.Register("CollectionIconKind", typeof(PackIconKind), typeof(TaskCollectionView), new PropertyMetadata(null));
+
+        public PackIconKind CollectionIconKind  
+        {
+            get { return (PackIconKind)GetValue(CollectionIconKindProperty); }
+            set { SetValue(CollectionIconKindProperty, value); }
         }
 
         public static readonly DependencyProperty CollectionIdProperty =

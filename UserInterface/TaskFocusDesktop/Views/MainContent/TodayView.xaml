@@ -76,6 +76,7 @@
                                           Margin="15 0 0 0"
                                           CanReorder="True"
                                           OrderingIndex="{Binding OrderingIndex}"
+                                          ContainerTasks="{Binding LocalTasks}"
                                           />
 
     </Grid>

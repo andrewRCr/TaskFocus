@@ -16,6 +16,9 @@ using TaskFocusDesktop.EventModels;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using Microsoft.Xaml.Behaviors;
+using System.Windows.Threading;
 
 namespace TaskFocusDesktop.ViewModels.MainContent
 {
@@ -91,21 +94,66 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             }
         }
 
+        protected override async void LoadLocalTaskData()
+        {
+            // do not invoke base method; only load relevant project tasks
+            await SetFocusedProjectProperties();
+        }
+
         private async Task SetFocusedProjectProperties()
         {
             if (FocusedProjectId != null)
             {
                 ShowNoFocusedProjectTutorialText = false;
                 await _dataService.FetchRemoteProjectAndTasksById((int)FocusedProjectId);
-                FocusedProjectName = _dataHelper.FocusedProject.ProjectName;
+                FocusedProjectName = _dataHelper.FocusedProject.ProjectName.ToUpper();
                 var projectTasks = _dataHelper.FocusedProjectTasks;
                 FocusedProjectTasks = new ObservableCollection<TaskDisplayModel>(projectTasks);
+                //LocalTasks = FocusedProjectTasks;
+
+                foreach (TaskDisplayModel task in FocusedProjectTasks!)
+                {
+                    task.PropertyChanged += OnExistingTaskPropertyChanged!; // subscribe to property changed event
+                }
             }
             else
             {
                 FocusedProjectName = null;
                 FocusedProjectTasks = null;
             }
+        }
+
+        // saves updated task data to server on property change
+        protected override async void OnExistingTaskPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            string? changedProperty = e.PropertyName;
+            TaskDisplayModel senderTask = (TaskDisplayModel)sender;
+            _logger.Info($"{senderTask.TaskName}'s property {changedProperty} was changed.");
+
+            // if a reorder update, need to prevent a remote data fetch until after the entire collection
+            // has been updated. CanUpdateOrderIndices will only be true on the final task in collection
+            if (changedProperty!.Contains("Index"))
+            {
+                if (!CanUpdateOrderingIndices) { return; }
+                else
+                {
+                    List<TaskDisplayModel> tasksToUpdate = FocusedProjectTasks!.ToList();
+                    await _dataService.UpdateCollectionOrderingIndices(tasksToUpdate);
+                }
+            }
+            else { await _dataService.UpdateTaskData(senderTask); }
+        }
+
+        protected override bool HandleDataStateChanged(string propertyName, IDataState dataState)
+        {
+            if (!dataRefreshTriggers.Contains(propertyName) || ActiveMainContentView != Utilities.ViewCatalog.MainContentView.Projects)
+            {
+                return false;
+            }
+
+            LoadLocalTaskData();
+            Debug.WriteLine("ProjectsViewModel: returned true on HandleDataStateChanged!");
+            return true;
         }
     }
 }

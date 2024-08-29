@@ -17,7 +17,8 @@
     <Grid x:Name="MainGridBackground" 
           Focusable="True" 
           Background="Transparent" 
-          PreviewMouseDown="MainGridBackground_PreviewMouseDown">
+          PreviewMouseDown="MainGridBackground_PreviewMouseDown"
+          >
 
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -78,6 +79,7 @@
                                           Margin="15 0 0 0"
                                           CanReorder="True"
                                           OrderingIndex="{Binding OrderingIndex}"
+                                          ContainerTasks="{Binding LocalTasks}"
                                           />
 
         <!-- new task entry -->

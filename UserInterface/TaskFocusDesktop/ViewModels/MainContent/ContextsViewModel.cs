@@ -97,7 +97,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             {
                 ShowNoFocusedContextTutorialText = false;
                 await _dataService.FetchRemoteContextAndTasksById((int)FocusedContextId);
-                FocusedContextName = _dataHelper.FocusedContext.ContextName;
+                FocusedContextName = _dataHelper.FocusedContext.ContextName.ToUpper();
                 var contextTasks = _dataHelper.FocusedContextTasks;
                 FocusedContextTasks = new ObservableCollection<TaskDisplayModel>(contextTasks);
             }

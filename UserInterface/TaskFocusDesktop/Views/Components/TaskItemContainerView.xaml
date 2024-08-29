@@ -12,7 +12,9 @@
 
         <!-- task container -->
         <ListBox x:Name="TaskContainerListBox" 
-                 ItemsSource="{Binding DataContext.LocalTasks, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                 Margin="15 0 15 0"
+                 ItemsSource="{Binding ContainerTasks, RelativeSource={RelativeSource 
+                                           AncestorType={x:Type local:TaskItemContainerView}}}"
                  AllowDrop="True" 
                  SelectionChanged="TaskContainerListBox_SelectionChanged"           
                  ItemTemplate="{StaticResource TaskItem_Template}"

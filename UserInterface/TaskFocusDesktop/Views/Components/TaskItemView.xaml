@@ -360,7 +360,9 @@
 
     </UserControl.Resources>
     
-    <Grid x:Name="MainTaskItemGrid" Focusable="True">
+    <Grid x:Name="MainTaskItemGrid" 
+          Focusable="True" 
+          Margin="0 0 0 0">
         
         <Border Background="{StaticResource BackgroundLightGreyBrush}" 
                 CornerRadius="5" 
@@ -424,9 +426,7 @@
                 <!--context dropdown-->
                 <ComboBox Text="{Binding ContextName}" 
                           Style="{StaticResource contextComboBoxTemplate}"
-                          ItemsSource="{Binding DataContext.LocalContexts, RelativeSource={RelativeSource AncestorType=ListBox}}"
-                          DisplayMemberPath="ContextName"
-                          SelectedItem="{Binding ContextName}" />
+                          />
 
                 <!--due date datepicker-->
                 <DatePicker Style="{StaticResource dueDatePickerTemplate}" />

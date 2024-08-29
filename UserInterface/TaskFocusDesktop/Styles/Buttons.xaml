@@ -128,4 +128,32 @@
         </Style.Triggers>
     </Style>
 
+
+    <Style x:Key="addNewCollectionIconButtonTemplate" BasedOn="{StaticResource CircularButtonTemplate}" TargetType="{x:Type customControls:CircularButton}" >
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type customControls:CircularButton}">
+                    <Grid x:Name="buttonGrid" Visibility="Visible">
+                        <Ellipse x:Name="focusEllipse" Fill="Transparent"/>
+                        <ContentPresenter Content="{TemplateBinding Content}" HorizontalAlignment="Stretch" VerticalAlignment="Center"  />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+
+                        <!--<DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True">
+                            <Setter TargetName="buttonGrid" Property="Visibility" Value="Visible" />
+                        </DataTrigger>-->
+
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="focusEllipse" Property="Fill" Value="{Binding FocusEllipseHoverColor, RelativeSource={RelativeSource TemplatedParent}}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="focusEllipse" Property="Fill" Value="{Binding FocusEllipsePressedColor, RelativeSource={RelativeSource TemplatedParent}}"/>
+                        </Trigger>
+
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
 </ResourceDictionary>

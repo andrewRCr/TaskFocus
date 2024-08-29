@@ -13,7 +13,7 @@
              d:DesignHeight="450" d:DesignWidth="800"
              Style="{StaticResource BaseMainContentViewStyle}"
              >
-    
+
     <Grid x:Name="MainGridBackground" 
           Focusable="True" 
           Background="Transparent" 
@@ -24,28 +24,33 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!-- view title -->
+        <!-- tutorialTextShown view title -->
         <StackPanel Grid.Row="0"
+                    Visibility="{Binding ShowNoFocusedProjectTutorialText, 
+                                         Converter={StaticResource BooleanToVisibilityConverter}, 
+                                         FallbackValue=Collapsed}"
                     Orientation="Horizontal"
                     Margin="10 10 0 15"
                     >
 
-            <materialDesign:PackIcon Kind="ClipboardText"
+            <!--<materialDesign:PackIcon Kind="ClipboardText"
                                      VerticalAlignment="Center"
-                                     Margin="10 0 10 0"
+                                     Margin="10 2 10 0"
                                      Foreground="{StaticResource ForegroundMainBrush}"
                                      Height="24"
                                      Width="24"
-                                     />
+                                     />-->
 
-            <TextBlock Style="{StaticResource HeaderTextStyle}"
+            <!--<TextBlock Style="{StaticResource HeaderTextStyle}"
                        VerticalAlignment="Center" Margin="0 2 0 0"
-                       Text="PROJECTS" />
+                       Text="PROJECTS" />-->
         </StackPanel>
 
-        <WrapPanel Grid.Row="1" 
-           Margin="60 0 0 0"
-           Visibility="{Binding ShowNoFocusedProjectTutorialText, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" >
+        <WrapPanel Grid.Row="1"
+                   Margin="60 0 0 0"
+                   Visibility="{Binding ShowNoFocusedProjectTutorialText, 
+                                        Converter={StaticResource BooleanToVisibilityConverter}, 
+                                        FallbackValue=Collapsed}" >
 
             <materialDesign:Card  
                      materialDesign:ElevationAssist.Elevation="Dp6"
@@ -71,64 +76,51 @@
         </WrapPanel>
 
         <!-- focused/selected project display -->
-        <components:TaskCollectionView Grid.Row="1"
-                                       Margin="15 0 0 0"
+        <!--<components:TaskCollectionView Grid.Row="0"
+                                       Margin="0 0 0 0"
                                        Visibility="{Binding ShowNoFocusedProjectTutorialText, 
                                                     Converter={StaticResource InvertableBooleanToVisibilityConverter}, 
                                                     ConverterParameter=Inverted, FallbackValue=Collapsed}"
                                        CollectionId="{Binding FocusedProjectId}" 
                                        IsProjectCollection="True"
                                        CollectionName="{Binding FocusedProjectName}"
-                                       CollectionTasks="{Binding FocusedProjectTasks}" />
+                                       CollectionIconKind="ClipboardText"
+                                       CollectionTasks="{Binding FocusedProjectTasks}" />-->
+
+        <Expander IsExpanded="True" Margin="0" 
+                 Background="Transparent"
+                  Visibility="{Binding ShowNoFocusedProjectTutorialText, 
+             Converter={StaticResource InvertableBooleanToVisibilityConverter}, 
+             ConverterParameter=Inverted, FallbackValue=Collapsed}"
+                 >
+
+            <Expander.Header>
+
+                <StackPanel Orientation="Horizontal">
+                    <materialDesign:PackIcon Kind="ClipboardText"
+                                    VerticalAlignment="Center"
+                                    Margin="0 0 0 0"
+                                    Foreground="{StaticResource ForegroundMainBrush}"
+                                    Height="24"
+                                    Width="24"
+                                    />
+
+                    <TextBlock Text="{Binding FocusedProjectName}" 
+                              Style="{StaticResource HeaderTextStyle}"
+                              VerticalAlignment="Center"
+                              Margin="10 0 0 0"
+                              />
+                </StackPanel>
 
 
-        <!-- all projects display (?) -->
-        <!--<ListBox Grid.Row="1"
-                      ItemsSource="{Binding LocalProjects}" 
-                      ScrollViewer.VerticalScrollBarVisibility="Auto"
-                     
-                      >
+            </Expander.Header>
 
-            <ListBox.ItemContainerStyle>
-                <Style TargetType="{x:Type ListBoxItem}">
-
-
-                    <Setter Property="Template">
-                        <Setter.Value>
-                            <ControlTemplate TargetType="ListBoxItem">
-                                <Grid Background="{TemplateBinding Background}">
-                                    <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalAlignment}"
-                    />
-                                </Grid>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-
-
-
-                </Style>
-            </ListBox.ItemContainerStyle>
-
-            <ListBox.ItemTemplate>
-                
-                
-                    <DataTemplate >
-
-                        <components:TaskCollectionView CollectionId="{Binding Id}" 
-                                                   IsProjectCollection="True"
-                                                   CollectionName="{Binding ProjectName}"
-                                                   CollectionTasks="{Binding DataContext.LocalTasks, 
-                                                                     RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" />
-
-                    </DataTemplate>
-                
-                
-                
-                </ListBox.ItemTemplate>
-            </ListBox>-->
-
-    
-
+            <components:TaskItemContainerView ContainerTasks="{Binding FocusedProjectTasks}" 
+                                              IsProjectContainer="True"
+                                              CanReorder="True"
+                                              OrderingIndex="{Binding OrderingIndex}"
+                                        />
+        </Expander>
 
     </Grid>
 </UserControl>

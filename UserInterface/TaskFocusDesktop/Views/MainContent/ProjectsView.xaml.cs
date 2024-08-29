@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using TaskFocusDesktop.Views.Components;
 using TaskFocusUI.Library.Models;
 
 namespace TaskFocusDesktop.Views.MainContent
@@ -28,6 +29,13 @@ namespace TaskFocusDesktop.Views.MainContent
 
         private void MainGridBackground_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
+            List<Type> typesToIgnore = new()
+            {
+                typeof(TaskItemContainerView),
+            };
+
+            if (typesToIgnore.Contains(e.Source.GetType())) { return; }
+
             this.MainGridBackground.Focus();
         }
     }
