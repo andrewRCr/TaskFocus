@@ -156,4 +156,30 @@
         </Setter>
     </Style>
 
+    <Style x:Key="dialogSubmitButtonStyle" BasedOn="{StaticResource MaterialDesignOutlinedButton}" TargetType="Button">
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="Background" Value="{StaticResource ForegroundHighlightBrush}" />
+        <Setter Property="FontFamily" Value="RobotoMedium" />
+        <Setter Property="FontStretch" Value="Condensed" />
+
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource BackgroundMidGreyBrush}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+
+    <Style x:Key="dialogCancelButtonStyle" BasedOn="{StaticResource MaterialDesignOutlinedButton}" TargetType="Button">
+        <Setter Property="Foreground" Value="{StaticResource ForegroundMainBrush}" />
+        <Setter Property="FontFamily" Value="RobotoMedium" />
+        <Setter Property="FontStretch" Value="Condensed" />
+
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource BackgroundMidGreyBrush}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
 </ResourceDictionary>

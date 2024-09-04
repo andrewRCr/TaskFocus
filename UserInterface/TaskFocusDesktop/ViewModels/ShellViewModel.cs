@@ -1,4 +1,5 @@
 ﻿using Caliburn.Micro;
+using MaterialDesignThemes.Wpf;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -8,6 +9,7 @@ using System.Windows.Input;
 using TaskFocusDesktop.Commands;
 using TaskFocusDesktop.EventModels;
 using TaskFocusDesktop.Utilities;
+using TaskFocusDesktop.ViewModels.Dialogs;
 using TaskFocusDesktop.ViewModels.MainContent;
 using TaskFocusDesktop.ViewModels.SidePanel;
 using TaskFocusDesktop.ViewModels.TopPanel;
@@ -17,13 +19,15 @@ using TaskFocusUI.Library.Utilities;
 
 namespace TaskFocusDesktop.ViewModels
 {
-    public class ShellViewModel : Conductor<object>.Collection.AllActive, IHandle<AuthStatusChangedEvent>, IHandle<RequestViewSwitchEvent>
+    public class ShellViewModel : Conductor<object>.Collection.AllActive, IHandle<AuthStatusChangedEvent>, IHandle<RequestViewSwitchEvent>, IHandle<RequestShowDialogEvent>
     {
         private IAPIHelper _apiHelper;
         private ILoggedInUserModel _loggedInUser;
         private IEventAggregator _events;
         protected IDataService _dataService;
+        protected IDataHelper _dataHelper;
         private ILog _logger = LogManager.GetLog(typeof(ShellViewModel));
+        private const string _dialogIdentifier = "ShellDialogHost";
 
         private WindowState _shellWindowState;
         public WindowState ShellWindowState
@@ -170,12 +174,13 @@ namespace TaskFocusDesktop.ViewModels
 
         public ShellViewModel(IAPIHelper apiHelper,
                               ILoggedInUserModel loggedInUser,
-                              IEventAggregator events, IDataService dataService)
+                              IEventAggregator events, IDataService dataService, IDataHelper dataHelper)
         {
             _apiHelper = apiHelper;
             _loggedInUser = loggedInUser;
             _events = events;
             _dataService = dataService;
+            _dataHelper = dataHelper;
 
             _events.SubscribeOnPublishedThread(this);
 
@@ -355,6 +360,31 @@ namespace TaskFocusDesktop.ViewModels
             // notify other views
             var switchedEvent = new ViewSwitchedEvent(ViewCatalog.ContentPanel.SidePanel, ActiveSidePanelView);
             await _events.PublishOnUIThreadAsync(switchedEvent);
+        }
+
+        public async Task ShowAddNewProjectDialog()
+        {
+            var vm = new NewProjectDialogViewModel(_events, _dataService, _dataHelper);
+            await DialogHost.Show(vm, _dialogIdentifier);
+        }
+
+        public async Task HandleAsync(RequestShowDialogEvent message, CancellationToken cancellationToken)
+        {
+            switch (message.RequestedDialogView)
+            {
+                case ViewCatalog.DialogView.AddNewProjectDialog:
+                    await ShowAddNewProjectDialog();
+                    break;
+
+                case ViewCatalog.DialogView.AddNewContextDialog:
+                    break;
+
+                case ViewCatalog.DialogView.AddNewTaskDialog:
+                    break;
+
+                default:
+                    break;
+            }
         }
     }
 }

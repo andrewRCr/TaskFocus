@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,6 +15,7 @@ using TaskFocusDesktop.ViewModels.Base;
 using TaskFocusUI.Library;
 using TaskFocusUI.Library.Models;
 using TaskFocusUI.Library.Utilities;
+using Windows.System;
 
 namespace TaskFocusDesktop.ViewModels.SidePanel
 {
@@ -29,6 +31,8 @@ namespace TaskFocusDesktop.ViewModels.SidePanel
 
         public RelayCommand SelectedProjectChangedCommand => new RelayCommand(async execute => await OnSelectedProjectChanged());
 
+        public RelayCommand RequestAddNewProjectDialogCommand => new RelayCommand(async execute => await RequestAddNewProjectDialog());
+
         private async Task OnSelectedProjectChanged()
         {
 
@@ -36,6 +40,24 @@ namespace TaskFocusDesktop.ViewModels.SidePanel
                 var focusedProjectChangedEvent = new FocusedProjectChangedEvent((int)SelectedProject.Id!);
                 await _events.PublishOnUIThreadAsync(focusedProjectChangedEvent);
             }
+        }
+
+        private async Task RequestAddNewProjectDialog()
+        {
+            var requestShowDialogEvent = new RequestShowDialogEvent(ViewCatalog.DialogView.AddNewProjectDialog);
+            await _events.PublishOnUIThreadAsync(requestShowDialogEvent);
+        }
+
+        protected override bool HandleDataStateChanged(string propertyName, IDataState dataState)
+        {
+            if (!dataRefreshTriggers.Contains(propertyName) || ActiveMainContentView != Utilities.ViewCatalog.MainContentView.Projects)
+            {
+                return false;
+            }
+
+            LoadAllLocalData();
+            Debug.WriteLine("ProjectsSubNavMenuViewModel: returned true on HandleDataStateChanged!");
+            return true;
         }
     }
 }

@@ -87,7 +87,7 @@
                             Margin="20,0,0,0"
                             Width="200" >
 
-                <customControls:CircularButton Command=""
+                <customControls:CircularButton Command="{Binding RequestAddNewProjectDialogCommand}"
                                            FocusEllipseHoverColor="{StaticResource ForegroundHighlightSecondaryBrush}"
                                            FocusEllipsePressedColor="{StaticResource BackgroundLightestGreyBrush}"
                                            Style="{StaticResource addNewCollectionIconButtonTemplate}"
@@ -105,7 +105,7 @@
                 </customControls:CircularButton>
                     
                 <TextBlock Style="{StaticResource HeaderTextStyle}"
-                               Margin="3 2 0 0"
+                               Margin="5 2 0 0"
                                FontSize="15"
                                Text="ADD NEW PROJECT"
                                VerticalAlignment="Center"

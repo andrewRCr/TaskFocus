@@ -27,5 +27,12 @@ namespace TaskFocusDesktop.Utilities
             ProjectSubNavMenu,
             ContextSubNavMenu
         }
+
+        public enum DialogView
+        {
+            AddNewProjectDialog,
+            AddNewContextDialog,
+            AddNewTaskDialog
+        }
     }
 }

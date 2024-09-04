@@ -5,6 +5,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
         xmlns:viewmodels="clr-namespace:TaskFocusDesktop.ViewModels"
+        xmlns:vmBase="clr-namespace:TaskFocusDesktop.ViewModels.Base"
+        xmlns:dialogs="clr-namespace:TaskFocusDesktop.ViewModels.Dialogs" xmlns:system="clr-namespace:System;assembly=netstandard"
         d:DataContext="{d:DesignInstance Type=viewmodels:ShellViewModel}"
         mc:Ignorable="d"
         Title="TaskFocus" 
@@ -30,7 +32,6 @@
             />
     </WindowChrome.WindowChrome>
 
-
     <!-- transparent outer window border for resizing -->
     <Border BorderThickness="2" Padding="{Binding OuterMarginSizeThickness, FallbackValue=10}" >
 
@@ -50,212 +51,224 @@
                 </Border.Effect>
             </Border>
 
-            <!-- main window content -->
-            <Grid>
+            <!-- handling dialog content across app -->
+            <materialDesign:DialogHost Identifier="ShellDialogHost"
+                                       CloseOnClickAway="True" >
 
-                <!-- corner clipping, to round edges of window -->
-                <Grid.OpacityMask>
-                    <VisualBrush Visual="{Binding ElementName=Container}" />
-                </Grid.OpacityMask>
+                <!-- individual templates are referenced implicity using the DataType property -->
+                <materialDesign:DialogHost.DialogContentTemplate>
+                    <DataTemplate>
+                        <ContentControl Content="{Binding}"  />
+                    </DataTemplate>
+                </materialDesign:DialogHost.DialogContentTemplate>
+                    
+                <!-- main window content -->
+                <Grid>
 
-                <!-- main window grid defs -->
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="60" />
-                    <ColumnDefinition Width="250" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <!-- Title bar -->
-                    <RowDefinition Height="{Binding TitleBarHeightGridLength, FallbackValue=32}" />
+                    <!-- corner clipping, to round edges of window -->
+                    <Grid.OpacityMask>
+                        <VisualBrush Visual="{Binding ElementName=Container}" />
+                    </Grid.OpacityMask>
 
-                    <!-- Window content-->
-                    <RowDefinition Height="75" />
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="50" />
-                </Grid.RowDefinitions>
-
-                <!-- Column 0-1, Row 0  -->
-                <!-- Title bar  -->
-                <Grid Grid.Column="0"
-                      Grid.Row="0"
-                      Grid.ColumnSpan="3"
-                      Background="Transparent" >
-
+                    <!-- main window grid defs -->
                     <Grid.ColumnDefinitions>
-                        <!-- Icon -->
-                        <ColumnDefinition Width="Auto" />
-                        <!-- Title (empty, spacer) -->
+                        <ColumnDefinition Width="60" />
+                        <ColumnDefinition Width="250" />
                         <ColumnDefinition Width="*" />
-                        <!-- Windows button -->
-                        <ColumnDefinition Width="Auto" />
-
                     </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <!-- Title bar -->
+                        <RowDefinition Height="{Binding TitleBarHeightGridLength, FallbackValue=32}" />
 
-                    <!-- Icon -->
-                    <Button Style="{StaticResource WindowControlButton}"
-                            Command="{Binding TitleBarMenuCommand}">
-                        <materialDesign:PackIcon Kind="Menu"
-                                                 VerticalAlignment="Center"
-                                                 HorizontalAlignment="Center"
-                                                 Foreground="{StaticResource ForegroundMainBrush}" />
-                    </Button>
+                        <!-- Window content-->
+                        <RowDefinition Height="75" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="50" />
+                    </Grid.RowDefinitions>
 
-                    <!-- Window Buttons -->
-                    <StackPanel Grid.Column="3" Orientation="Horizontal">
+                    <!-- Column 0-1, Row 0  -->
+                    <!-- Title bar  -->
+                    <Grid Grid.Column="0"
+                            Grid.Row="0"
+                            Grid.ColumnSpan="3"
+                            Background="Transparent" >
 
-                        <Button Command="{Binding MinimizeCommand}"
-                                Style="{StaticResource WindowControlButton}">
-                            <materialDesign:PackIcon Kind="WindowMinimize"
-                                                     VerticalAlignment="Center"
-                                                     HorizontalAlignment="Center"
-                                                     Foreground="{StaticResource ForegroundMainBrush}" />
+                        <Grid.ColumnDefinitions>
+                            <!-- Icon -->
+                            <ColumnDefinition Width="Auto" />
+                            <!-- Title (empty, spacer) -->
+                            <ColumnDefinition Width="*" />
+                            <!-- Windows button -->
+                            <ColumnDefinition Width="Auto" />
+
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Icon -->
+                        <Button Style="{StaticResource WindowControlButton}"
+                                Command="{Binding TitleBarMenuCommand}">
+                            <materialDesign:PackIcon Kind="Menu"
+                                                        VerticalAlignment="Center"
+                                                        HorizontalAlignment="Center"
+                                                        Foreground="{StaticResource ForegroundMainBrush}" />
                         </Button>
 
-                        <Button Command="{Binding MaximizeCommand}"
-                                Style="{StaticResource WindowControlButton}">
-                            <materialDesign:PackIcon Kind="{Binding WindowMaxRestoreIcon}"
-                                                     VerticalAlignment="Center"
-                                                     HorizontalAlignment="Center"
-                                                     Foreground="{StaticResource ForegroundMainBrush}" />
+                        <!-- Window Buttons -->
+                        <StackPanel Grid.Column="3" Orientation="Horizontal">
 
-                        </Button>
+                            <Button Command="{Binding MinimizeCommand}"
+                                    Style="{StaticResource WindowControlButton}">
+                                <materialDesign:PackIcon Kind="WindowMinimize"
+                                                            VerticalAlignment="Center"
+                                                            HorizontalAlignment="Center"
+                                                            Foreground="{StaticResource ForegroundMainBrush}" />
+                            </Button>
 
-                        <Button Command="{Binding CloseCommand}"
-                                Style="{StaticResource WindowCloseButton}">
-                            <materialDesign:PackIcon Kind="WindowClose"
-                                                     VerticalAlignment="Center"
-                                                     HorizontalAlignment="Center"
-                                                     Foreground="{StaticResource ForegroundMainBrush}" />
-                        </Button>
+                            <Button Command="{Binding MaximizeCommand}"
+                                    Style="{StaticResource WindowControlButton}">
+                                <materialDesign:PackIcon Kind="{Binding WindowMaxRestoreIcon}"
+                                                            VerticalAlignment="Center"
+                                                            HorizontalAlignment="Center"
+                                                            Foreground="{StaticResource ForegroundMainBrush}" />
+
+                            </Button>
+
+                            <Button Command="{Binding CloseCommand}"
+                                    Style="{StaticResource WindowCloseButton}">
+                                <materialDesign:PackIcon Kind="WindowClose"
+                                                            VerticalAlignment="Center"
+                                                            HorizontalAlignment="Center"
+                                                            Foreground="{StaticResource ForegroundMainBrush}" />
+                            </Button>
+
+                        </StackPanel>
+
+                    </Grid>
+
+                    <!-- Column 0, Row 2  -->
+                    <!-- Logo header -->
+                    <StackPanel Grid.Column="0"
+                                Grid.ColumnSpan="2"
+                                Grid.Row="1"
+                                Margin="0 0 50 0"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Center"
+                                Orientation="Horizontal">
+
+                        <materialDesign:PackIcon Kind="CheckUnderlineCircle"
+                                                    Height="23"
+                                                    Width="23"
+                                                    Margin="3 6 3 3" 
+                                                    VerticalAlignment="Center"
+                                                    HorizontalAlignment="Center"
+                                                    Foreground="{StaticResource ForegroundHighlightBrush}" />
+                        <TextBlock
+                                    FontSize="24"
+                                    Foreground="{StaticResource ForegroundHighlightBrush}"
+                                    FontWeight="Bold"
+                                    >TaskFocus</TextBlock>
+                    </StackPanel>
+
+                    <!-- Column 0, Row 2  -->
+                    <!-- // Mini Navigation menu (icons) // -->
+
+                    <StackPanel Orientation="Vertical" 
+                                Grid.Column="0"
+                                Grid.Row="2">
+
+                        <Menu Template="{StaticResource MiniNavMenu_Template}" />
 
                     </StackPanel>
 
-                </Grid>
+                    <Rectangle Grid.Column="0" 
+                                Grid.Row="2"
+                                Grid.RowSpan="2"
+                                StrokeThickness="1" 
+                                Width="1"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Stretch"
+                                Stroke="{StaticResource BackgroundSeparatorGreyBrush}"
+                                Fill="{StaticResource BackgroundSeparatorGreyBrush}" />
 
-                <!-- Column 0, Row 2  -->
-                <!-- Logo header -->
-                <StackPanel Grid.Column="0"
-                            Grid.ColumnSpan="2"
-                            Grid.Row="1"
-                            Margin="0 0 50 0"
-                            VerticalAlignment="Center"
-                            HorizontalAlignment="Center"
-                            Orientation="Horizontal">
+                    <!-- Column 1, Row 2  -->
+                    <!-- // SidePanel: full NavMenu (text) + SubNavMenu // -->
+                    <StackPanel Orientation="Vertical"
+                                Grid.Column="1" 
+                                Grid.Row="2"
+                                Visibility="{
+                                Binding IsUserLoggedIn, 
+                                Converter={StaticResource BooleanToVisibilityConverter}, 
+                                FallbackValue=Visible}">
 
-                    <materialDesign:PackIcon Kind="CheckUnderlineCircle"
-                                                Height="23"
-                                                Width="23"
-                                                Margin="3 6 3 3" 
-                                                VerticalAlignment="Center"
-                                                HorizontalAlignment="Center"
-                                                Foreground="{StaticResource ForegroundHighlightBrush}" />
-                    <TextBlock
-                                FontSize="24"
-                                Foreground="{StaticResource ForegroundHighlightBrush}"
-                                FontWeight="Bold"
-                                >TaskFocus</TextBlock>
-                </StackPanel>
+                        <ContentControl x:Name="SideMenuPanel"  />
 
-                <!-- Column 0, Row 2  -->
-                <!-- // Mini Navigation menu (icons) // -->
+                    </StackPanel>
 
-                <StackPanel Orientation="Vertical" 
-                            Grid.Column="0"
-                            Grid.Row="2">
+                    <!-- // separator // -->
+                    <Rectangle Grid.Column="1" 
+                                Grid.Row="2" 
+                                Grid.RowSpan="2"
+                                Width="1" 
+                                Stroke="{StaticResource BackgroundSeparatorGreyBrush}" 
+                                VerticalAlignment="Stretch"
+                                HorizontalAlignment="Right" />
 
-                    <Menu Template="{StaticResource MiniNavMenu_Template}" />
-
-                </StackPanel>
-
-                <Rectangle Grid.Column="0" 
-                           Grid.Row="2"
-                           Grid.RowSpan="2"
-                           StrokeThickness="1" 
-                           Width="1"
-                           HorizontalAlignment="Right"
-                           VerticalAlignment="Stretch"
-                           Stroke="{StaticResource BackgroundSeparatorGreyBrush}"
-                           Fill="{StaticResource BackgroundSeparatorGreyBrush}" />
-
-                <!-- Column 1, Row 2  -->
-                <!-- // SidePanel: full NavMenu (text) + SubNavMenu // -->
-                <StackPanel Orientation="Vertical"
-                            Grid.Column="1" 
-                            Grid.Row="2"
+                    <!-- Column 0, Row 3  -->
+                    <!-- // Bottom-sticky MiniNavMenu: Settings // -->
+                    <Menu Grid.Column="0"
+                            Grid.Row="3" 
                             Visibility="{
                             Binding IsUserLoggedIn, 
                             Converter={StaticResource BooleanToVisibilityConverter}, 
                             FallbackValue=Visible}">
 
-                    <ContentControl x:Name="SideMenuPanel"  />
+                        <MenuItem Header="Settings" 
+                                    Command="{Binding SwitchToSettingsViewCommand}"
+                                    Template="{StaticResource MiniNavMenuItem_Template}">
+                            <MenuItem.Icon>
+                                <materialDesign:PackIcon Kind="AccountCog" 
+                                                            Height="24" 
+                                                            Width="24"
+                                                            Foreground="{StaticResource ForegroundMainBrush}"
+                                                            />
+                            </MenuItem.Icon>
+                        </MenuItem>
 
-                </StackPanel>
+                    </Menu>
 
-                <!-- // separator // -->
-                <Rectangle Grid.Column="1" 
-                           Grid.Row="2" 
-                           Grid.RowSpan="2"
-                           Width="1" 
-                           Stroke="{StaticResource BackgroundSeparatorGreyBrush}" 
-                           VerticalAlignment="Stretch"
-                           HorizontalAlignment="Right" />
-
-                <!-- Column 0, Row 3  -->
-                <!-- // Bottom-sticky MiniNavMenu: Settings // -->
-                <Menu Grid.Column="0"
-                      Grid.Row="3" 
-                      Visibility="{
-                      Binding IsUserLoggedIn, 
-                      Converter={StaticResource BooleanToVisibilityConverter}, 
-                      FallbackValue=Visible}">
-
-                    <MenuItem Header="Settings" 
-                              Command="{Binding SwitchToSettingsViewCommand}"
-                              Template="{StaticResource MiniNavMenuItem_Template}">
-                        <MenuItem.Icon>
-                            <materialDesign:PackIcon Kind="AccountCog" 
-                                                     Height="24" 
-                                                     Width="24"
-                                                     Foreground="{StaticResource ForegroundMainBrush}"
-                                                     />
-                        </MenuItem.Icon>
-                    </MenuItem>
-
-                </Menu>
-
-                <!-- Column 1, Row 3  -->
-                <!-- // Bottom-sticky full (text) navigation menu: Settings // -->
-                <Menu Grid.Column="1"
-                      Grid.Row="3" 
-                      Visibility="{
-                      Binding IsUserLoggedIn, 
-                      Converter={StaticResource BooleanToVisibilityConverter}, 
-                      FallbackValue=Visible}">
+                    <!-- Column 1, Row 3  -->
+                    <!-- // Bottom-sticky full (text) navigation menu: Settings // -->
+                    <Menu Grid.Column="1"
+                            Grid.Row="3" 
+                            Visibility="{
+                            Binding IsUserLoggedIn, 
+                            Converter={StaticResource BooleanToVisibilityConverter}, 
+                            FallbackValue=Visible}">
                     
-                    <MenuItem Header="Settings"
-                              Command="{Binding SwitchToSettingsViewCommand}"
-                              Template="{StaticResource NavMenuItem_Template}">
+                        <MenuItem Header="Settings"
+                                    Command="{Binding SwitchToSettingsViewCommand}"
+                                    Template="{StaticResource NavMenuItem_Template}">
             
-                    </MenuItem>
+                        </MenuItem>
                     
-                </Menu>
+                    </Menu>
 
-                <!-- Column 1, Row 2  -->
-                <ContentControl x:Name="TopWidgetPanel"  
-                                Grid.Column="2" 
-                                Grid.Row="1"
-                                />
-
-                <!-- Column 1, Row 2  -->
-                <ContentControl x:Name="MainContentPanel"
-                                Grid.Column="2" 
-                                Grid.Row="2"
+                    <!-- Column 1, Row 2  -->
+                    <ContentControl x:Name="TopWidgetPanel"  
+                                    Grid.Column="2" 
+                                    Grid.Row="1"
                                     />
 
-            </Grid>
+                    <!-- Column 1, Row 2  -->
+                    <ContentControl x:Name="MainContentPanel"
+                                    Grid.Column="2" 
+                                    Grid.Row="2"
+                                        />
 
-        </Grid>
+                </Grid>
+
+            </materialDesign:DialogHost>
             
+        </Grid>
     </Border>
 
 </Window>

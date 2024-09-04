@@ -29,6 +29,7 @@
                 <ResourceDictionary Source="Styles/Windows.xaml" />
                 
                 <!-- custom user control templates -->
+                <ResourceDictionary Source="Templates/DialogTemplates.xaml" />
                 <ResourceDictionary Source="Templates/MiniNavMenuTemplate.xaml" />
                 <ResourceDictionary Source="Templates/NavMenuItemTemplate.xaml" />
                 <ResourceDictionary Source="Templates/TaskItemTemplate.xaml" />
