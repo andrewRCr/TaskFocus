@@ -1,11 +1,5 @@
 ﻿using Caliburn.Micro;
 using MaterialDesignThemes.Wpf;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using TaskFocusDesktop.Commands;
 using TaskFocusUI.Library.Utilities;
@@ -17,6 +11,8 @@ namespace TaskFocusDesktop.ViewModels.Base
         protected IDataService _dataService;
         protected IDataHelper _dataHelper;
         protected const string _dialogIdentifier = "ShellDialogHost";
+
+        public RelayCommand ProcessSubmitActionCommand => new RelayCommand(async execute => await ProcessSubmitAction());
 
         private string? _feedbackMessage;
         public string? FeedbackMessage
@@ -40,6 +36,39 @@ namespace TaskFocusDesktop.ViewModels.Base
             }
         }
 
+        private string? _newCollectionPlaceholderText;
+        public string? NewCollectionPlaceholderText
+        {
+            get { return _newCollectionPlaceholderText; }
+            set 
+            { 
+                _newCollectionPlaceholderText = value; 
+                NotifyOfPropertyChange(() => NewCollectionPlaceholderText);
+            }
+        }
+
+        private string? _newCollectionName;
+        public string? NewCollectionName
+        {
+            get { return _newCollectionName; }
+            set
+            {
+                _newCollectionName = value;
+                NotifyOfPropertyChange(() => NewCollectionName);
+            }
+        }
+
+        private string? _headerText;
+        public string? HeaderText
+        {
+            get { return _headerText; }
+            set
+            {
+                _headerText = value;
+                NotifyOfPropertyChange(() => HeaderText);
+            }
+        }
+
         public RelayCommand CloseDialogCommand => new RelayCommand(execute =>  CloseDialog());
 
         public DialogViewModelBase(IEventAggregator events, IDataService dataService, IDataHelper dataHelper) : base(events)
@@ -54,6 +83,11 @@ namespace TaskFocusDesktop.ViewModels.Base
             FeedbackMessage = null;
             IsFeedbackError = false;
             DialogHost.Close(_dialogIdentifier);
+        }
+
+        protected async virtual Task ProcessSubmitAction()
+        {
+            await Task.CompletedTask;
         }
     }
 }

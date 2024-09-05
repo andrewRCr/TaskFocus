@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Dynamic;
 using System.Linq;
 using System.Text;
@@ -84,11 +85,13 @@ namespace TaskFocusDesktop.ViewModels.MainContent
         protected override void OnViewLoaded(object view)
         {
             base.OnViewLoaded(view);
+            ShowNoFocusedContextTutorialText = FocusedContextId == null;
+        }
 
-            if (IsLocalDataLoaded())
-            {
-                ShowNoFocusedContextTutorialText = FocusedContextId == null;
-            }
+        protected override async void LoadLocalTaskData()
+        {
+            // do not invoke base method; only load relevant context tasks
+            await SetFocusedContextProperties();
         }
 
         private async Task SetFocusedContextProperties()
@@ -100,12 +103,50 @@ namespace TaskFocusDesktop.ViewModels.MainContent
                 FocusedContextName = _dataHelper.FocusedContext.ContextName.ToUpper();
                 var contextTasks = _dataHelper.FocusedContextTasks;
                 FocusedContextTasks = new ObservableCollection<TaskDisplayModel>(contextTasks);
+
+                foreach (TaskDisplayModel task in FocusedContextTasks!)
+                {
+                    task.PropertyChanged += OnExistingTaskPropertyChanged!; // subscribe to property changed event
+                }
             }
             else
             {
                 FocusedContextName = null;
                 FocusedContextTasks = null;
             }
+        }
+
+        // saves updated task data to server on property change
+        protected override async void OnExistingTaskPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            string? changedProperty = e.PropertyName;
+            TaskDisplayModel senderTask = (TaskDisplayModel)sender;
+            _logger.Info($"{senderTask.TaskName}'s property {changedProperty} was changed.");
+
+            // if a reorder update, need to prevent a remote data fetch until after the entire collection
+            // has been updated. CanUpdateOrderIndices will only be true on the final task in collection
+            if (changedProperty!.Contains("Index"))
+            {
+                if (!CanUpdateOrderingIndices) { return; }
+                else
+                {
+                    List<TaskDisplayModel> tasksToUpdate = FocusedContextTasks!.ToList();
+                    await _dataService.UpdateCollectionOrderingIndices(tasksToUpdate);
+                }
+            }
+            else { await _dataService.UpdateTaskData(senderTask); }
+        }
+
+        protected override bool HandleDataStateChanged(string propertyName, IDataState dataState)
+        {
+            if (!dataRefreshTriggers.Contains(propertyName) || ActiveMainContentView != Utilities.ViewCatalog.MainContentView.Contexts)
+            {
+                return false;
+            }
+
+            LoadLocalTaskData();
+            Debug.WriteLine("ContextsViewModel: returned true on HandleDataStateChanged!");
+            return true;
         }
     }
 }

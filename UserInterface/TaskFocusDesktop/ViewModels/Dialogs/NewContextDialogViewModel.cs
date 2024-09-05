@@ -9,12 +9,12 @@ using TaskFocusUI.Library.Utilities;
 
 namespace TaskFocusDesktop.ViewModels.Dialogs
 {
-    public class NewProjectDialogViewModel : DialogViewModelBase
+    public class NewContextDialogViewModel : DialogViewModelBase
     {
-        public NewProjectDialogViewModel(IEventAggregator events, IDataService dataService, IDataHelper dataHelper) : base(events, dataService, dataHelper)
+        public NewContextDialogViewModel(IEventAggregator events, IDataService dataService, IDataHelper dataHelper) : base(events, dataService, dataHelper)
         {
-            NewCollectionPlaceholderText = "Project Name";
-            HeaderText = "ADD NEW PROJECT";
+            NewCollectionPlaceholderText = "Context Name";
+            HeaderText = "ADD NEW CONTEXT";
         }
 
         protected override void CloseDialog()
@@ -28,23 +28,23 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
             if (NewCollectionName.IsNullOrWhiteSpace())
             {
                 IsFeedbackError = true;
-                FeedbackMessage = "Project name cannot be empty; please try again.";
+                FeedbackMessage = "Context name cannot be empty; please try again.";
             }
 
-            else if (!_dataHelper.IsNewProjectNameUnique(NewCollectionName!))
+            else if (!_dataHelper.IsNewContextNameUnique(NewCollectionName!))
             {
                 IsFeedbackError = true;
-                FeedbackMessage = "Project names must be unique; please try again.";
+                FeedbackMessage = "Context names must be unique; please try again.";
             }
             else
             {
                 IsFeedbackError = false;
                 FeedbackMessage = null;
 
-                var newProject = new ProjectModel { ProjectName = NewCollectionName! };
-                await _dataService.AddProject(newProject);
+                var newContext = new ContextModel { ContextName = NewCollectionName! };
+                await _dataService.AddContext(newContext);
 
-                FeedbackMessage = "Project added!";
+                FeedbackMessage = "Context added!";
                 await Task.Delay(TimeSpan.FromSeconds(1));
 
                 // close dialog

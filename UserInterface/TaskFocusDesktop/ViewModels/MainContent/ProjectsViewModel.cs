@@ -87,11 +87,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
         protected override void OnViewLoaded(object view)
         {
             base.OnViewLoaded(view);
-
-            if (IsLocalDataLoaded())
-            {
-                ShowNoFocusedProjectTutorialText = FocusedProjectId == null;
-            }
+            ShowNoFocusedProjectTutorialText = FocusedProjectId == null;
         }
 
         protected override async void LoadLocalTaskData()

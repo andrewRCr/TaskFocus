@@ -362,29 +362,34 @@ namespace TaskFocusDesktop.ViewModels
             await _events.PublishOnUIThreadAsync(switchedEvent);
         }
 
-        public async Task ShowAddNewProjectDialog()
-        {
-            var vm = new NewProjectDialogViewModel(_events, _dataService, _dataHelper);
-            await DialogHost.Show(vm, _dialogIdentifier);
-        }
-
         public async Task HandleAsync(RequestShowDialogEvent message, CancellationToken cancellationToken)
         {
-            switch (message.RequestedDialogView)
+            await ShowDialog(message.RequestedDialogView);
+        }
+
+        public async Task ShowDialog(ViewCatalog.DialogView requestedDialogView)
+        {
+            object? dialogVM = null;
+
+            switch (requestedDialogView)
             {
                 case ViewCatalog.DialogView.AddNewProjectDialog:
-                    await ShowAddNewProjectDialog();
+                    dialogVM = new NewProjectDialogViewModel(_events, _dataService, _dataHelper);
                     break;
-
                 case ViewCatalog.DialogView.AddNewContextDialog:
+                    dialogVM = new NewContextDialogViewModel(_events, _dataService, _dataHelper);
                     break;
-
                 case ViewCatalog.DialogView.AddNewTaskDialog:
                     break;
-
                 default:
                     break;
             }
+
+            if (dialogVM != null)
+            {
+                await DialogHost.Show(dialogVM, _dialogIdentifier);
+            }
+            else { return; }
         }
     }
 }

@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:utilities="clr-namespace:TaskFocusDesktop.Utilities"
+             xmlns:customControls="clr-namespace:TaskFocusDesktop.CustomControls"
              xmlns:local="clr-namespace:TaskFocusDesktop.Views.SidePanel"
              xmlns:sidepanel="clr-namespace:TaskFocusDesktop.ViewModels.SidePanel" 
              xmlns:Behaviors="http://schemas.microsoft.com/xaml/behaviors"
@@ -81,6 +82,38 @@
                 </ListBox.ItemTemplate>
 
             </ListBox>
+
+            <!-- add new context control -->
+            <StackPanel Orientation="Horizontal" 
+                            HorizontalAlignment="Left" 
+                            Margin="20,0,0,0"
+                            Width="200" >
+
+                <customControls:CircularButton Command="{Binding RequestAddNewContextDialogCommand}"
+                                           FocusEllipseHoverColor="{StaticResource ForegroundHighlightSecondaryBrush}"
+                                           FocusEllipsePressedColor="{StaticResource BackgroundLightestGreyBrush}"
+                                           Style="{StaticResource addNewCollectionIconButtonTemplate}"
+                                           Height="32"
+                                           Width="32"    
+                                               >
+
+                    <materialDesign:PackIcon Kind="Plus" 
+                                             Height="22"
+                                             Width="22"
+                                             HorizontalAlignment="Center"
+                                             VerticalAlignment="Center"
+                                             Foreground="{StaticResource ForegroundHighlightBrush}"  />
+
+                </customControls:CircularButton>
+
+                <TextBlock Style="{StaticResource HeaderTextStyle}"
+                               Margin="5 2 0 0"
+                               FontSize="15"
+                               Text="ADD NEW CONTEXT"
+                               VerticalAlignment="Center"
+                               />
+
+            </StackPanel>
 
         </StackPanel>
 

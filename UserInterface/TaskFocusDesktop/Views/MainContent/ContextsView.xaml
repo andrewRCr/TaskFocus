@@ -66,7 +66,9 @@
                     <TextBlock.Inlines>
                         <Run Text="Group tasks that will be performed in similar conditions by creating and assigning  "/>
                         <Run FontWeight="Bold" Text="Contexts" />
-                        <Run Text=", which will appear here." />
+                        <Run Text="," />
+                        <LineBreak />
+                        <Run Text="  which will appear here." />
                     </TextBlock.Inlines>
                 </TextBlock>
 
