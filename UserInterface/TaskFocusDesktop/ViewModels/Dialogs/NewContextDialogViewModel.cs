@@ -4,6 +4,7 @@ using Nextended.Core.Extensions;
 using System;
 using System.Threading.Tasks;
 using TaskFocusDesktop.ViewModels.Base;
+using TaskFocusUI.Library;
 using TaskFocusUI.Library.Models;
 using TaskFocusUI.Library.Utilities;
 
@@ -11,7 +12,11 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
 {
     public class NewContextDialogViewModel : DialogViewModelBase
     {
-        public NewContextDialogViewModel(IEventAggregator events, IDataService dataService, IDataHelper dataHelper) : base(events, dataService, dataHelper)
+        public NewContextDialogViewModel(IEventAggregator events,
+                                         IWindowManager window,
+                                         IDataState dataState,
+                                         IDataService dataService,
+                                         IDataHelper dataHelper) : base(events, window, dataState, dataService, dataHelper)
         {
             NewCollectionPlaceholderText = "Context Name";
             HeaderText = "ADD NEW CONTEXT";

@@ -4,6 +4,7 @@ using Nextended.Core.Extensions;
 using System;
 using System.Threading.Tasks;
 using TaskFocusDesktop.ViewModels.Base;
+using TaskFocusUI.Library;
 using TaskFocusUI.Library.Models;
 using TaskFocusUI.Library.Utilities;
 
@@ -11,7 +12,11 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
 {
     public class NewProjectDialogViewModel : DialogViewModelBase
     {
-        public NewProjectDialogViewModel(IEventAggregator events, IDataService dataService, IDataHelper dataHelper) : base(events, dataService, dataHelper)
+        public NewProjectDialogViewModel(IEventAggregator events,
+                                         IWindowManager window,
+                                         IDataState dataState,
+                                         IDataService dataService,
+                                         IDataHelper dataHelper) : base(events, window, dataState, dataService, dataHelper)
         {
             NewCollectionPlaceholderText = "Project Name";
             HeaderText = "ADD NEW PROJECT";

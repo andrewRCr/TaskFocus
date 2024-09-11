@@ -37,7 +37,7 @@ namespace TaskFocusDesktop.ViewModels.SidePanel
         {
 
             if (SelectedProject != null) {
-                var focusedProjectChangedEvent = new FocusedProjectChangedEvent((int)SelectedProject.Id!);
+                var focusedProjectChangedEvent = new FocusedProjectChangedEvent((int)SelectedProject.Id!, SelectedProject.ProjectName);
                 await _events.PublishOnUIThreadAsync(focusedProjectChangedEvent);
             }
         }

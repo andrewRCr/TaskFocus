@@ -33,7 +33,7 @@ namespace TaskFocusDesktop.ViewModels.SidePanel
 
             if (SelectedContext != null)
             {
-                var focusedContextChangedEvent = new FocusedContextChangedEvent((int)SelectedContext.Id!);
+                var focusedContextChangedEvent = new FocusedContextChangedEvent((int)SelectedContext.Id!, SelectedContext.ContextName);
                 await _events.PublishOnUIThreadAsync(focusedContextChangedEvent);
             }
         }

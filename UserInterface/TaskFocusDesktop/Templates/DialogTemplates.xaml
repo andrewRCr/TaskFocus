@@ -4,7 +4,8 @@
                     xmlns:dialogs="clr-namespace:TaskFocusDesktop.ViewModels.Dialogs"
                     xmlns:vmBase="clr-namespace:TaskFocusDesktop.ViewModels.Base"
                     xmlns:system="clr-namespace:System;assembly=netstandard" 
-                    xmlns:utilities="clr-namespace:TaskFocusDesktop.Utilities" >
+                    xmlns:utilities="clr-namespace:TaskFocusDesktop.Utilities" 
+                    xmlns:components="clr-namespace:TaskFocusDesktop.Views.Components" >
 
     <utilities:IsNullConverter x:Key="IsNullConverterInstance"/>
 
@@ -27,11 +28,7 @@
             </Style>
         </TextBlock.Style>
     </TextBlock>
-    
-    <!-- AddNewTask dialog -->
 
-
-    
     <!-- AddNewProject dialog -->
     <DataTemplate DataType="{x:Type dialogs:NewProjectDialogViewModel}"  >
 

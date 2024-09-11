@@ -2,14 +2,16 @@
 using MaterialDesignThemes.Wpf;
 using System.Threading.Tasks;
 using TaskFocusDesktop.Commands;
+using TaskFocusUI.Library;
 using TaskFocusUI.Library.Utilities;
 
 namespace TaskFocusDesktop.ViewModels.Base
 {
-    public class DialogViewModelBase : ViewModelBase
+    public class DialogViewModelBase : TaskViewModelBase
     {
-        protected IDataService _dataService;
-        protected IDataHelper _dataHelper;
+        //protected IDataService _dataService;
+        //protected IDataHelper _dataHelper;
+        
         protected const string _dialogIdentifier = "ShellDialogHost";
 
         public RelayCommand ProcessSubmitActionCommand => new RelayCommand(async execute => await ProcessSubmitAction());
@@ -71,9 +73,14 @@ namespace TaskFocusDesktop.ViewModels.Base
 
         public RelayCommand CloseDialogCommand => new RelayCommand(execute =>  CloseDialog());
 
-        public DialogViewModelBase(IEventAggregator events, IDataService dataService, IDataHelper dataHelper) : base(events)
+        public DialogViewModelBase(IEventAggregator events,
+                              IWindowManager window,
+                              IDataState dataState,
+                              IDataService dataService,
+                              IDataHelper dataHelper) : base(events, window, dataState, dataService, dataHelper)
         {
             _events = events;
+            _window = window;
             _dataService = dataService;
             _dataHelper = dataHelper;
         }

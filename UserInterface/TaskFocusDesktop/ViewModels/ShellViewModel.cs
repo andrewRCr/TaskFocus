@@ -1,5 +1,6 @@
 ﻿using Caliburn.Micro;
 using MaterialDesignThemes.Wpf;
+using MudBlazor.Extensions.Components;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -13,21 +14,32 @@ using TaskFocusDesktop.ViewModels.Dialogs;
 using TaskFocusDesktop.ViewModels.MainContent;
 using TaskFocusDesktop.ViewModels.SidePanel;
 using TaskFocusDesktop.ViewModels.TopPanel;
+using TaskFocusUI.Library;
 using TaskFocusUI.Library.API;
 using TaskFocusUI.Library.Models;
 using TaskFocusUI.Library.Utilities;
+using Windows.System;
 
 namespace TaskFocusDesktop.ViewModels
 {
-    public class ShellViewModel : Conductor<object>.Collection.AllActive, IHandle<AuthStatusChangedEvent>, IHandle<RequestViewSwitchEvent>, IHandle<RequestShowDialogEvent>
+    public class ShellViewModel : Conductor<object>.Collection.AllActive, 
+                                  IHandle<AuthStatusChangedEvent>, 
+                                  IHandle<RequestViewSwitchEvent>, 
+                                  IHandle<RequestShowDialogEvent>, 
+                                  IHandle<FocusedProjectChangedEvent>, 
+                                  IHandle<FocusedContextChangedEvent>
     {
         private IAPIHelper _apiHelper;
         private ILoggedInUserModel _loggedInUser;
         private IEventAggregator _events;
+        protected IWindowManager _window;
         protected IDataService _dataService;
         protected IDataHelper _dataHelper;
+        protected IDataState _dataState;
         private ILog _logger = LogManager.GetLog(typeof(ShellViewModel));
         private const string _dialogIdentifier = "ShellDialogHost";
+        private string? _focusedProjectName;
+        private string? _focusedContextName;
 
         private WindowState _shellWindowState;
         public WindowState ShellWindowState
@@ -172,15 +184,18 @@ namespace TaskFocusDesktop.ViewModels
 
         public ICommand SwitchToSettingsViewCommand => new RelayCommand(async execute => await SwitchMainContentView(ViewCatalog.MainContentView.Settings));
 
+        public ICommand OpenNewTaskDialogCommand => new RelayCommand(async execute => await ShowDialog(ViewCatalog.DialogView.AddNewTaskDialog));
+
         public ShellViewModel(IAPIHelper apiHelper,
                               ILoggedInUserModel loggedInUser,
-                              IEventAggregator events, IDataService dataService, IDataHelper dataHelper)
+                              IEventAggregator events, IDataService dataService, IDataHelper dataHelper, IDataState dataState)
         {
             _apiHelper = apiHelper;
             _loggedInUser = loggedInUser;
             _events = events;
             _dataService = dataService;
             _dataHelper = dataHelper;
+            _dataState = dataState;
 
             _events.SubscribeOnPublishedThread(this);
 
@@ -338,6 +353,10 @@ namespace TaskFocusDesktop.ViewModels
 
         public async Task SwitchSidePanelView(ViewCatalog.SidePanelView requestedSidePanelView)
         {
+            // clear UI collection focus record, for NewTask dialogs
+            _focusedProjectName = null;
+            _focusedContextName = null;
+
             switch (requestedSidePanelView)
             {
                 case ViewCatalog.SidePanelView.NavMenu:
@@ -370,16 +389,23 @@ namespace TaskFocusDesktop.ViewModels
         public async Task ShowDialog(ViewCatalog.DialogView requestedDialogView)
         {
             object? dialogVM = null;
+            IWindowManager dummyWindow = new WindowManager();
 
             switch (requestedDialogView)
             {
                 case ViewCatalog.DialogView.AddNewProjectDialog:
-                    dialogVM = new NewProjectDialogViewModel(_events, _dataService, _dataHelper);
+                    dialogVM = new NewProjectDialogViewModel(_events, dummyWindow, _dataState, _dataService, _dataHelper);
                     break;
                 case ViewCatalog.DialogView.AddNewContextDialog:
-                    dialogVM = new NewContextDialogViewModel(_events, _dataService, _dataHelper);
+                    dialogVM = new NewContextDialogViewModel(_events, dummyWindow, _dataState, _dataService, _dataHelper);
                     break;
                 case ViewCatalog.DialogView.AddNewTaskDialog:
+                    // manually binding as AddNewTask has additional data requirements
+                    var viewModel = new NewTaskDialogViewModel(
+                        _events, dummyWindow, _dataState, _dataService, _dataHelper, _focusedProjectName, _focusedContextName);
+                    UIElement uiElement = ViewLocator.LocateForModel(viewModel, null, null);
+                    ViewModelBinder.Bind(viewModel, uiElement, null);
+                    await DialogHost.Show(uiElement, _dialogIdentifier);
                     break;
                 default:
                     break;
@@ -390,6 +416,18 @@ namespace TaskFocusDesktop.ViewModels
                 await DialogHost.Show(dialogVM, _dialogIdentifier);
             }
             else { return; }
+        }
+
+        public Task HandleAsync(FocusedProjectChangedEvent message, CancellationToken cancellationToken)
+        {
+            _focusedProjectName = message.NewFocusedProjectName;
+            return Task.CompletedTask;
+        }
+
+        public Task HandleAsync(FocusedContextChangedEvent message, CancellationToken cancellationToken)
+        {
+            _focusedContextName = message.NewFocusedContextName;
+            return Task.CompletedTask;
         }
     }
 }
