@@ -22,11 +22,16 @@
     </UserControl.Resources>
 
     <Grid x:Name="mainSubNavMenuGrid">
-        <StackPanel Orientation="Vertical" 
-                    VerticalAlignment="Stretch" 
-                    HorizontalAlignment="Left"
-                    Width="250">
 
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="50" />
+        </Grid.RowDefinitions>
+
+        <!-- header row (0); contains back button and header text -->
+        <Grid Grid.Row="0" >
+                
             <!-- 'back' button -->
             <Button Command="{Binding ExitSubNavMenuCommand}" 
                     Background="Transparent"
@@ -56,38 +61,118 @@
                 </StackPanel>
 
             </Button>
-            
-            <!-- actual menu items -->
+
+        </Grid>
+
+        <!-- menu content, row 1. 2 columns (one for collection name, one for corresponding edit button)-->
+        <Grid Grid.Row="1" >
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="15" />
+            </Grid.ColumnDefinitions>
+
+            <Behaviors:Interaction.Triggers>
+                <Behaviors:EventTrigger EventName="MouseLeave">
+                    <Behaviors:InvokeCommandAction Command="{Binding NoHoveredProjectsCommand}" />
+                </Behaviors:EventTrigger>
+
+            </Behaviors:Interaction.Triggers>
+
+            <!-- collection name menu items, row 1 -> column 0 -->
             <ListBox x:Name="subNavMenuListBox"
+                 Grid.Column="0"
                  ItemsSource="{Binding LocalProjects}" 
                  SelectedItem="{Binding SelectedProject}"             
-                 Style="{StaticResource NavigationListBoxStyle}"
-                 >
+                 Style="{StaticResource NavigationListBoxStyle}" >
 
                 <Behaviors:Interaction.Triggers>
                     <Behaviors:EventTrigger EventName="SelectionChanged">
                         <Behaviors:InvokeCommandAction Command="{Binding SelectedProjectChangedCommand}" />
                     </Behaviors:EventTrigger>
+
                 </Behaviors:Interaction.Triggers>
 
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <ListBoxItem x:Name="listItem" Style="{StaticResource NavigationListBoxItemStyle}">
+
                             <TextBlock Text="{Binding ProjectName}" />
+
+                            <Behaviors:Interaction.Triggers>
+                                <Behaviors:EventTrigger EventName="MouseEnter">
+                                    <Behaviors:InvokeCommandAction Command="{Binding DataContext.NewHoveredProjectCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" 
+                                                               CommandParameter="{Binding}" />
+                                </Behaviors:EventTrigger>
+                            </Behaviors:Interaction.Triggers>
+
                         </ListBoxItem>
 
                     </DataTemplate>
                 </ListBox.ItemTemplate>
-                
-            </ListBox>
-            
-            <!-- add new project control -->
-            <StackPanel Orientation="Horizontal" 
-                            HorizontalAlignment="Left" 
-                            Margin="20,0,0,0"
-                            Width="200" >
 
-                <customControls:CircularButton Command="{Binding RequestAddNewProjectDialogCommand}"
+            </ListBox>
+
+            <!-- rename / delete contextual menu control for each project, row 1 -> column 1 -->
+            <ListBox x:Name="subNavMenuEditButtonsListBox" 
+                     Grid.Column="1"
+                     ItemsSource="{Binding LocalProjects}"              
+                     Style="{StaticResource PlainListBoxStyle}" >
+
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+
+                        <Button Style="{StaticResource MaterialDesignToolButton}"
+                            Command="{Binding DataContext.OpenSelectedProjectEditMenuCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                            CommandParameter="{Binding}"
+                            Height="24" Width="20"
+                            Margin="0 3 0 0"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Center" >
+
+                            <Button.Visibility>
+                                <MultiBinding>
+                                    <MultiBinding.Converter>
+                                        <utilities:DictionaryItemBooleanToVisibilityConverter />
+                                    </MultiBinding.Converter>
+
+                                    <Binding Path="DataContext.ShowProjectEditMenuDictionary" RelativeSource="{RelativeSource AncestorType=ListBox}" />
+                                    <!-- binding Key to ProjectDisplayModel, i.e., current source -->
+                                    <Binding Path="" />
+                                </MultiBinding>
+
+
+                            </Button.Visibility>
+
+                            <materialDesign:PackIcon Kind="DotsVertical" 
+                                                         
+                                                         Foreground="{StaticResource ForegroundSecondaryBrush}"
+                                                         Height="20" 
+                                                         Width="20" 
+                                                         HorizontalAlignment="Center"
+                                                         VerticalAlignment="Center"
+                                                         Margin="0 0 0 0"
+                                                         />
+                        </Button>
+
+
+                    </DataTemplate>
+
+                </ListBox.ItemTemplate>
+
+            </ListBox>
+
+
+        </Grid>
+
+        <!-- add new project control, row 2 -->
+        <StackPanel Grid.Row="2"
+                    Orientation="Horizontal" 
+                    HorizontalAlignment="Left"                       
+                    Margin="20,0,0,0"
+                    Width="200" >
+
+            <customControls:CircularButton Command="{Binding RequestAddNewProjectDialogCommand}"
                                            FocusEllipseHoverColor="{StaticResource ForegroundHighlightSecondaryBrush}"
                                            FocusEllipsePressedColor="{StaticResource BackgroundLightestGreyBrush}"
                                            Style="{StaticResource addNewCollectionIconButtonTemplate}"
@@ -95,26 +180,24 @@
                                            Width="32"    
                                                >
 
-                    <materialDesign:PackIcon Kind="Plus" 
+                <materialDesign:PackIcon Kind="Plus" 
                                              Height="22"
                                              Width="22"
                                              HorizontalAlignment="Center"
                                              VerticalAlignment="Center"
                                              Foreground="{StaticResource ForegroundHighlightBrush}"  />
-                    
-                </customControls:CircularButton>
-                    
-                <TextBlock Style="{StaticResource HeaderTextStyle}"
+
+            </customControls:CircularButton>
+
+            <TextBlock Style="{StaticResource HeaderTextStyle}"
                                Margin="5 2 0 0"
                                FontSize="15"
                                Text="ADD NEW PROJECT"
                                VerticalAlignment="Center"
                                />
 
-            </StackPanel>
-                
         </StackPanel>
-       
+
     </Grid>
 
 </UserControl>

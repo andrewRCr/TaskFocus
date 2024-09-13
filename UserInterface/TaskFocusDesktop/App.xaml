@@ -39,6 +39,7 @@
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
             <utilities:InvertableBooleanToVisibilityConverter x:Key="InvertableBooleanToVisibilityConverter" />
             <utilities:ActiveMainViewToVisibilityConverter x:Key="ActiveMainViewToVisibilityConverter" />
+            <utilities:DictionaryItemBooleanToVisibilityConverter x:Key="DictionaryItemBooleanToVisibilityConverter" />
 
             <!-- app-level styling -->
 

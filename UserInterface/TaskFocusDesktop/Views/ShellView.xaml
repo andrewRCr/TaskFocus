@@ -282,8 +282,6 @@
                         <materialDesign:PackIcon Kind="Plus" />
                     </customControls:CircularButton>
 
-
-
                 </Grid>
 
             </materialDesign:DialogHost>
