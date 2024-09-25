@@ -13,7 +13,7 @@
         <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
         <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
-        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
         <!--<Setter Property="SelectedIndex" Value="0"/>-->
         <Setter Property="Width" Value="Auto"/>
         <Setter Property="Template">
@@ -37,7 +37,7 @@
     <Style x:Key="NavigationListBoxItemStyle" TargetType="{x:Type ListBoxItem}">
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="Foreground" Value="{StaticResource ForegroundMainBrush}"/>
-        <Setter Property="Margin" Value="15 0 0 0"/>
+        <Setter Property="Margin" Value="0 0 0 0"/>
         <Setter Property="FontFamily" Value="{StaticResource MaterialDesignFont}" />
         <Setter Property="FontSize" Value="14" />
         <Setter Property="Height" Value="20" />
@@ -49,6 +49,8 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                    
+                    
                     
                     <Border x:Name="Bd"
                                 BorderBrush="{TemplateBinding BorderBrush}"
@@ -64,7 +66,7 @@
 
                     <ControlTemplate.Triggers>
 
-                        <Trigger Property="IsSelected" Value="true">
+                        <!--<Trigger Property="IsSelected" Value="true">
                             <Setter TargetName="Bd" Property="Background" Value="{StaticResource BackgroundLightGreyBrush}"/>
                         </Trigger>
                         
@@ -75,7 +77,7 @@
                             </MultiTrigger.Conditions>
                             <Setter Property="Background" TargetName="Bd" Value="{StaticResource BackgroundDarkGreyBrush}"/>
         
-                        </MultiTrigger>
+                        </MultiTrigger>-->
                         
                         <Trigger Property="IsEnabled" Value="false">
                             <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>

@@ -39,7 +39,9 @@ namespace TaskFocusDesktop.ViewModels
         private ILog _logger = LogManager.GetLog(typeof(ShellViewModel));
         private const string _dialogIdentifier = "ShellDialogHost";
         private string? _focusedProjectName;
+        private int? _focusedProjectId;
         private string? _focusedContextName;
+        private int? _focusedContextId;
 
         private WindowState _shellWindowState;
         public WindowState ShellWindowState
@@ -390,43 +392,79 @@ namespace TaskFocusDesktop.ViewModels
         {
             object? dialogVM = null;
             IWindowManager dummyWindow = new WindowManager();
+            object? extendedDialogVM = null;
 
             switch (requestedDialogView)
             {
                 case ViewCatalog.DialogView.AddNewProjectDialog:
                     dialogVM = new NewProjectDialogViewModel(_events, dummyWindow, _dataState, _dataService, _dataHelper);
                     break;
+
                 case ViewCatalog.DialogView.AddNewContextDialog:
                     dialogVM = new NewContextDialogViewModel(_events, dummyWindow, _dataState, _dataService, _dataHelper);
                     break;
+
                 case ViewCatalog.DialogView.AddNewTaskDialog:
-                    // manually binding as AddNewTask has additional data requirements
-                    var viewModel = new NewTaskDialogViewModel(
+                    extendedDialogVM = new NewTaskDialogViewModel(
                         _events, dummyWindow, _dataState, _dataService, _dataHelper, _focusedProjectName, _focusedContextName);
-                    UIElement uiElement = ViewLocator.LocateForModel(viewModel, null, null);
-                    ViewModelBinder.Bind(viewModel, uiElement, null);
-                    await DialogHost.Show(uiElement, _dialogIdentifier);
                     break;
+
+                case ViewCatalog.DialogView.RenameProjectDialog:
+                    if (_focusedProjectId != null && _focusedProjectName != null)
+                    {
+                        extendedDialogVM = new RenameCollectionDialogViewModel(_events, dummyWindow, _dataState, _dataService, _dataHelper,
+                            true, (int)_focusedProjectId, _focusedProjectName);
+                    }
+                    break;
+
+                case ViewCatalog.DialogView.RenameContextDialog:
+                    if (_focusedContextId != null && _focusedContextName != null)
+                    {
+                        extendedDialogVM = new RenameCollectionDialogViewModel(_events, dummyWindow, _dataState, _dataService, _dataHelper, 
+                            false, (int)_focusedContextId, _focusedContextName);
+                    }
+                    break;
+
+                case ViewCatalog.DialogView.DeleteProjectDialog:
+                    if (_focusedProjectId != null && _focusedProjectName != null)
+                    {
+                        extendedDialogVM = new DeleteCollectionDialogViewModel( _events, dummyWindow, _dataState, _dataService, _dataHelper, 
+                            true, (int)_focusedProjectId, _focusedProjectName);
+                    }
+                    break;
+
+                case ViewCatalog.DialogView.DeleteContextDialog:
+                    if (_focusedContextId != null && _focusedContextName != null)
+                    {
+                        extendedDialogVM = new DeleteCollectionDialogViewModel( _events, dummyWindow, _dataState, _dataService, _dataHelper, 
+                            false, (int)_focusedContextId, _focusedContextName);
+                    }
+                    break;
+
                 default:
                     break;
             }
 
-            if (dialogVM != null)
+            if (dialogVM != null) { await DialogHost.Show(dialogVM, _dialogIdentifier); }
+            else if (extendedDialogVM != null) // non-templated dialogs w/ additional data requirements
             {
-                await DialogHost.Show(dialogVM, _dialogIdentifier);
+                UIElement uiElement = ViewLocator.LocateForModel(extendedDialogVM, null, null);
+                ViewModelBinder.Bind(extendedDialogVM, uiElement, null);
+                await DialogHost.Show(uiElement, _dialogIdentifier);
             }
-            else { return; }
         }
 
         public Task HandleAsync(FocusedProjectChangedEvent message, CancellationToken cancellationToken)
         {
             _focusedProjectName = message.NewFocusedProjectName;
+            _focusedProjectId = message.NewFocusedProjectId;
             return Task.CompletedTask;
         }
 
         public Task HandleAsync(FocusedContextChangedEvent message, CancellationToken cancellationToken)
         {
             _focusedContextName = message.NewFocusedContextName;
+            _focusedProjectId = message.NewFocusedContextId;
             return Task.CompletedTask;
         }
     }

@@ -97,9 +97,11 @@ namespace TaskFocusDesktop.ViewModels.MainContent
         private async Task SetFocusedContextProperties()
         {
             if (FocusedContextId != null)
+            { await _dataService.FetchRemoteContextAndTasksById((int)FocusedContextId); }
+
+            if (_dataHelper.FocusedContext != null)
             {
                 ShowNoFocusedContextTutorialText = false;
-                await _dataService.FetchRemoteContextAndTasksById((int)FocusedContextId);
                 FocusedContextName = _dataHelper.FocusedContext.ContextName.ToUpper();
                 var contextTasks = _dataHelper.FocusedContextTasks;
                 FocusedContextTasks = new ObservableCollection<TaskDisplayModel>(contextTasks);
@@ -111,6 +113,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             }
             else
             {
+                FocusedContextId = null; // may have been deleted
                 FocusedContextName = null;
                 FocusedContextTasks = null;
             }

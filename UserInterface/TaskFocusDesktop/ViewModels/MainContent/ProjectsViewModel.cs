@@ -99,13 +99,14 @@ namespace TaskFocusDesktop.ViewModels.MainContent
         private async Task SetFocusedProjectProperties()
         {
             if (FocusedProjectId != null)
+            { await _dataService.FetchRemoteProjectAndTasksById((int)FocusedProjectId); }
+
+            if (_dataHelper.FocusedProject != null)
             {
                 ShowNoFocusedProjectTutorialText = false;
-                await _dataService.FetchRemoteProjectAndTasksById((int)FocusedProjectId);
                 FocusedProjectName = _dataHelper.FocusedProject.ProjectName.ToUpper();
                 var projectTasks = _dataHelper.FocusedProjectTasks;
                 FocusedProjectTasks = new ObservableCollection<TaskDisplayModel>(projectTasks);
-                //LocalTasks = FocusedProjectTasks;
 
                 foreach (TaskDisplayModel task in FocusedProjectTasks!)
                 {
@@ -114,6 +115,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             }
             else
             {
+                FocusedProjectId = null; // may have been deleted
                 FocusedProjectName = null;
                 FocusedProjectTasks = null;
             }

@@ -60,6 +60,29 @@ namespace TaskFocusDesktop.ViewModels.Base
             }
         }
 
+        private string? _updatedCollectionName;
+        public string? UpdatedCollectionName
+        {
+            get { return _updatedCollectionName; }
+            set 
+            { 
+                _updatedCollectionName = value; 
+                NotifyOfPropertyChange(() => UpdatedCollectionName);
+            }
+        }
+
+        private string? _currentCollectionName;
+        public string? CurrentCollectionName
+        {
+            get { return _currentCollectionName; }
+            set 
+            { 
+                _currentCollectionName = value; 
+                NotifyOfPropertyChange(() => CurrentCollectionName);
+            }
+        }
+
+
         private string? _headerText;
         public string? HeaderText
         {

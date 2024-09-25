@@ -32,7 +32,11 @@ namespace TaskFocusDesktop.Utilities
         {
             AddNewProjectDialog,
             AddNewContextDialog,
-            AddNewTaskDialog
+            AddNewTaskDialog,
+            RenameProjectDialog,
+            DeleteProjectDialog,
+            RenameContextDialog,
+            DeleteContextDialog
         }
     }
 }

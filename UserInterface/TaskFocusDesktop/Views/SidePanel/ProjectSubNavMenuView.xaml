@@ -17,6 +17,15 @@
         <ResourceDictionary>
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
             <utilities:ActiveMainViewToVisibilityConverter x:Key="ActiveMainViewToVisibilityConverter" />
+
+            <ContextMenu x:Key="collectionEditContextMenu" materialDesign:MenuAssist.TopLevelMenuItemHeight="1">
+                <MenuItem Header="Rename" Command="{Binding DataContext.RequestRenameSelectedProjectDialogCommand, 
+                                                    RelativeSource={RelativeSource AncestorType={x:Type local:ProjectSubNavMenuView}}}" />
+                <MenuItem Header="Delete" Command="{Binding DataContext.RequestDeleteSelectedProjectDialogCommand,
+                                                    RelativeSource={RelativeSource AncestorType={x:Type local:ProjectSubNavMenuView}}}" >
+                </MenuItem>
+            </ContextMenu>
+
         </ResourceDictionary>
 
     </UserControl.Resources>
@@ -67,11 +76,6 @@
         <!-- menu content, row 1. 2 columns (one for collection name, one for corresponding edit button)-->
         <Grid Grid.Row="1" >
 
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="15" />
-            </Grid.ColumnDefinitions>
-
             <Behaviors:Interaction.Triggers>
                 <Behaviors:EventTrigger EventName="MouseLeave">
                     <Behaviors:InvokeCommandAction Command="{Binding NoHoveredProjectsCommand}" />
@@ -80,10 +84,9 @@
             </Behaviors:Interaction.Triggers>
 
             <!-- collection name menu items, row 1 -> column 0 -->
-            <ListBox x:Name="subNavMenuListBox"
-                 Grid.Column="0"
+            <ListBox x:Name="subNavMenuListBox"          
                  ItemsSource="{Binding LocalProjects}" 
-                 SelectedItem="{Binding SelectedProject}"             
+                 SelectedItem="{Binding SelectedProject}"        
                  Style="{StaticResource NavigationListBoxStyle}" >
 
                 <Behaviors:Interaction.Triggers>
@@ -93,18 +96,22 @@
 
                 </Behaviors:Interaction.Triggers>
 
+
                 <ListBox.ItemTemplate>
+                          
                     <DataTemplate>
-                        <ListBoxItem x:Name="listItem" Style="{StaticResource NavigationListBoxItemStyle}">
 
-                            <TextBlock Text="{Binding ProjectName}" />
+                        <ListBoxItem x:Name="ListItem" 
+                                     Style="{StaticResource NavigationListBoxItemStyle}" 
+                                     PreviewMouseRightButtonDown="ListItem_PreviewMouseRightButtonDown"
+                                     PreviewMouseLeftButtonDown="ListItem_PreviewMouseLeftButtonDown" 
+                                     HorizontalAlignment="Stretch"
+                                     HorizontalContentAlignment="Stretch" >
 
-                            <Behaviors:Interaction.Triggers>
-                                <Behaviors:EventTrigger EventName="MouseEnter">
-                                    <Behaviors:InvokeCommandAction Command="{Binding DataContext.NewHoveredProjectCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" 
-                                                               CommandParameter="{Binding}" />
-                                </Behaviors:EventTrigger>
-                            </Behaviors:Interaction.Triggers>
+                            <TextBlock x:Name="ListItemTextBlock" DockPanel.Dock="Left"
+                                       Text="{Binding ProjectName}"
+                                       Margin="15 0 0 0"
+                                       PreviewMouseLeftButtonDown="ListItemTextBlock_SelectParentListBoxItem" />
 
                         </ListBoxItem>
 
@@ -112,56 +119,6 @@
                 </ListBox.ItemTemplate>
 
             </ListBox>
-
-            <!-- rename / delete contextual menu control for each project, row 1 -> column 1 -->
-            <ListBox x:Name="subNavMenuEditButtonsListBox" 
-                     Grid.Column="1"
-                     ItemsSource="{Binding LocalProjects}"              
-                     Style="{StaticResource PlainListBoxStyle}" >
-
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-
-                        <Button Style="{StaticResource MaterialDesignToolButton}"
-                            Command="{Binding DataContext.OpenSelectedProjectEditMenuCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
-                            CommandParameter="{Binding}"
-                            Height="24" Width="20"
-                            Margin="0 3 0 0"
-                            VerticalAlignment="Center"
-                            HorizontalAlignment="Center" >
-
-                            <Button.Visibility>
-                                <MultiBinding>
-                                    <MultiBinding.Converter>
-                                        <utilities:DictionaryItemBooleanToVisibilityConverter />
-                                    </MultiBinding.Converter>
-
-                                    <Binding Path="DataContext.ShowProjectEditMenuDictionary" RelativeSource="{RelativeSource AncestorType=ListBox}" />
-                                    <!-- binding Key to ProjectDisplayModel, i.e., current source -->
-                                    <Binding Path="" />
-                                </MultiBinding>
-
-
-                            </Button.Visibility>
-
-                            <materialDesign:PackIcon Kind="DotsVertical" 
-                                                         
-                                                         Foreground="{StaticResource ForegroundSecondaryBrush}"
-                                                         Height="20" 
-                                                         Width="20" 
-                                                         HorizontalAlignment="Center"
-                                                         VerticalAlignment="Center"
-                                                         Margin="0 0 0 0"
-                                                         />
-                        </Button>
-
-
-                    </DataTemplate>
-
-                </ListBox.ItemTemplate>
-
-            </ListBox>
-
 
         </Grid>
 
