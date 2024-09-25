@@ -464,7 +464,7 @@ namespace TaskFocusDesktop.ViewModels
         public Task HandleAsync(FocusedContextChangedEvent message, CancellationToken cancellationToken)
         {
             _focusedContextName = message.NewFocusedContextName;
-            _focusedProjectId = message.NewFocusedContextId;
+            _focusedContextId = message.NewFocusedContextId;
             return Task.CompletedTask;
         }
     }

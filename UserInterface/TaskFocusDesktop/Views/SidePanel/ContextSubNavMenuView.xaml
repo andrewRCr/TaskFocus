@@ -17,65 +17,101 @@
         <ResourceDictionary>
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
             <utilities:ActiveMainViewToVisibilityConverter x:Key="ActiveMainViewToVisibilityConverter" />
+
+            <ContextMenu x:Key="collectionEditContextMenu" materialDesign:MenuAssist.TopLevelMenuItemHeight="1">
+                <MenuItem Header="Rename" Command="{Binding DataContext.RequestRenameSelectedContextDialogCommand, 
+                                                    RelativeSource={RelativeSource AncestorType={x:Type local:ContextSubNavMenuView}}}" />
+                <MenuItem Header="Delete" Command="{Binding DataContext.RequestDeleteSelectedContextDialogCommand,
+                                                    RelativeSource={RelativeSource AncestorType={x:Type local:ContextSubNavMenuView}}}" >
+                </MenuItem>
+            </ContextMenu>
         </ResourceDictionary>
 
     </UserControl.Resources>
 
     <Grid x:Name="mainSubNavMenuGrid">
-        <StackPanel Orientation="Vertical" 
-                VerticalAlignment="Stretch" 
-                HorizontalAlignment="Left"
-                Width="250">
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="50" />
+        </Grid.RowDefinitions>
+
+        <!-- header row (0); contains back button and header text -->
+        <Grid Grid.Row="0" >
 
             <!-- 'back' button -->
             <Button Command="{Binding ExitSubNavMenuCommand}" 
-                Background="Transparent"
-                HorizontalAlignment="Left"
-                HorizontalContentAlignment="Left"
-                Margin="-10 10 0 10"
-                Width="150" 
-                BorderThickness="0"  >
+                   Background="Transparent"
+                   HorizontalAlignment="Left"
+                   HorizontalContentAlignment="Left"
+                   Margin="-10 10 0 10"
+                   Width="150" 
+                   BorderThickness="0"  >
 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
 
                     <materialDesign:PackIcon Kind="ChevronLeft"
-                                    Foreground="{StaticResource ForegroundMainBrush}"
-                                    Height="32"
-                                    Width="32"
-                                    VerticalAlignment="Center"
-                                    HorizontalAlignment="Left"
-                                    />
+                                       Foreground="{StaticResource ForegroundMainBrush}"
+                                       Height="32"
+                                       Width="32"
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Left"
+                                       />
 
                     <TextBlock Text="CONTEXTS"
-                    Style="{StaticResource HeaderTextStyle}"
-                    Foreground="{StaticResource ForegroundMainBrush}"
-                    VerticalAlignment="Center"
-                    Margin="6 1 0 0"
-                    />
+                       Style="{StaticResource HeaderTextStyle}"
+                       Foreground="{StaticResource ForegroundMainBrush}"
+                       VerticalAlignment="Center"
+                       Margin="6 1 0 0"
+                       />
 
                 </StackPanel>
 
             </Button>
 
-            <!-- actual menu items -->
-            <ListBox x:Name="subNavMenuListBox"
+        </Grid>
+
+        <!-- menu content, row 1. 2 columns (one for collection name, one for corresponding edit button)-->
+        <Grid Grid.Row="1" >
+
+            <Behaviors:Interaction.Triggers>
+                <Behaviors:EventTrigger EventName="MouseLeave">
+                    <Behaviors:InvokeCommandAction Command="{Binding NoHoveredProjectsCommand}" />
+                </Behaviors:EventTrigger>
+
+            </Behaviors:Interaction.Triggers>
+
+            <!-- collection name menu items, row 1 -> column 0 -->
+            <ListBox x:Name="subNavMenuListBox"          
                 ItemsSource="{Binding LocalContexts}" 
-                SelectedItem="{Binding SelectedContext}"             
-                Style="{StaticResource NavigationListBoxStyle}"
-                >
+                SelectedItem="{Binding SelectedContext}"        
+                Style="{StaticResource NavigationListBoxStyle}" >
 
                 <Behaviors:Interaction.Triggers>
                     <Behaviors:EventTrigger EventName="SelectionChanged">
                         <Behaviors:InvokeCommandAction Command="{Binding SelectedContextChangedCommand}" />
                     </Behaviors:EventTrigger>
+
                 </Behaviors:Interaction.Triggers>
 
 
                 <ListBox.ItemTemplate>
+
                     <DataTemplate>
-                        
-                        <ListBoxItem x:Name="listItem" Style="{StaticResource NavigationListBoxItemStyle}">
-                            <TextBlock Text="{Binding ContextName}" />
+
+                        <ListBoxItem x:Name="ListItem" 
+                                    Style="{StaticResource NavigationListBoxItemStyle}" 
+                                    PreviewMouseRightButtonDown="ListItem_PreviewMouseRightButtonDown"
+                                    PreviewMouseLeftButtonDown="ListItem_PreviewMouseLeftButtonDown" 
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Stretch" >
+
+                            <TextBlock x:Name="ListItemTextBlock" DockPanel.Dock="Left"
+                                      Text="{Binding ContextName}"
+                                      Margin="15 0 0 0"
+                                      PreviewMouseLeftButtonDown="ListItemTextBlock_SelectParentListBoxItem" />
+
                         </ListBoxItem>
 
                     </DataTemplate>
@@ -83,37 +119,38 @@
 
             </ListBox>
 
-            <!-- add new context control -->
-            <StackPanel Orientation="Horizontal" 
-                            HorizontalAlignment="Left" 
-                            Margin="20,0,0,0"
-                            Width="200" >
+        </Grid>
 
-                <customControls:CircularButton Command="{Binding RequestAddNewContextDialogCommand}"
-                                           FocusEllipseHoverColor="{StaticResource ForegroundHighlightSecondaryBrush}"
-                                           FocusEllipsePressedColor="{StaticResource BackgroundLightestGreyBrush}"
-                                           Style="{StaticResource addNewCollectionIconButtonTemplate}"
-                                           Height="32"
-                                           Width="32"    
-                                               >
+        <!-- add new context control, row 2 -->
+        <StackPanel Grid.Row="2"
+                   Orientation="Horizontal" 
+                   HorizontalAlignment="Left"                       
+                   Margin="20,0,0,0"
+                   Width="200" >
 
-                    <materialDesign:PackIcon Kind="Plus" 
-                                             Height="22"
-                                             Width="22"
-                                             HorizontalAlignment="Center"
-                                             VerticalAlignment="Center"
-                                             Foreground="{StaticResource ForegroundHighlightBrush}"  />
+            <customControls:CircularButton Command="{Binding RequestAddNewContextDialogCommand}"
+                                          FocusEllipseHoverColor="{StaticResource ForegroundHighlightSecondaryBrush}"
+                                          FocusEllipsePressedColor="{StaticResource BackgroundLightestGreyBrush}"
+                                          Style="{StaticResource addNewCollectionIconButtonTemplate}"
+                                          Height="32"
+                                          Width="32"    
+                                              >
 
-                </customControls:CircularButton>
+                <materialDesign:PackIcon Kind="Plus" 
+                                            Height="22"
+                                            Width="22"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            Foreground="{StaticResource ForegroundHighlightBrush}"  />
 
-                <TextBlock Style="{StaticResource HeaderTextStyle}"
-                               Margin="5 2 0 0"
-                               FontSize="15"
-                               Text="ADD NEW CONTEXT"
-                               VerticalAlignment="Center"
-                               />
+            </customControls:CircularButton>
 
-            </StackPanel>
+            <TextBlock Style="{StaticResource HeaderTextStyle}"
+                              Margin="5 2 0 0"
+                              FontSize="15"
+                              Text="ADD NEW CONTEXT"
+                              VerticalAlignment="Center"
+                              />
 
         </StackPanel>
 

@@ -80,7 +80,7 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
                     await _dataService.AddTask(NewTask);
 
                     FeedbackMessage = "Task added!";
-                    await Task.Delay(TimeSpan.FromSeconds(1));
+                    await Task.Delay(TimeSpan.FromSeconds(_successMsgDisplaySec));
 
                     // close dialog
                     DialogHost.Close(_dialogIdentifier);

@@ -8,11 +8,9 @@ using TaskFocusUI.Library.Utilities;
 namespace TaskFocusDesktop.ViewModels.Base
 {
     public class DialogViewModelBase : TaskViewModelBase
-    {
-        //protected IDataService _dataService;
-        //protected IDataHelper _dataHelper;
-        
+    {       
         protected const string _dialogIdentifier = "ShellDialogHost";
+        protected const double _successMsgDisplaySec = 0.65;
 
         public RelayCommand ProcessSubmitActionCommand => new RelayCommand(async execute => await ProcessSubmitAction());
 

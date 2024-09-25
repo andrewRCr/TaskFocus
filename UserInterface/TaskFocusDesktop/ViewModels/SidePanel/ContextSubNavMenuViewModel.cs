@@ -28,6 +28,10 @@ namespace TaskFocusDesktop.ViewModels.SidePanel
 
         public RelayCommand RequestAddNewContextDialogCommand => new RelayCommand(async execute => await RequestAddNewContextDialog());
 
+        public RelayCommand RequestDeleteSelectedContextDialogCommand => new RelayCommand(async execute => await RequestDeleteSelectedContextDialog());
+
+        public RelayCommand RequestRenameSelectedContextDialogCommand => new RelayCommand(async execute => await RequestRenameSelectedContextDialog());
+
         private async Task OnSelectedContextChanged()
         {
 
@@ -41,6 +45,18 @@ namespace TaskFocusDesktop.ViewModels.SidePanel
         private async Task RequestAddNewContextDialog()
         {
             var requestShowDialogEvent = new RequestShowDialogEvent(ViewCatalog.DialogView.AddNewContextDialog);
+            await _events.PublishOnUIThreadAsync(requestShowDialogEvent);
+        }
+
+        private async Task RequestRenameSelectedContextDialog()
+        {
+            var requestShowDialogEvent = new RequestShowDialogEvent(ViewCatalog.DialogView.RenameContextDialog);
+            await _events.PublishOnUIThreadAsync(requestShowDialogEvent);
+        }
+
+        private async Task RequestDeleteSelectedContextDialog()
+        {
+            var requestShowDialogEvent = new RequestShowDialogEvent(ViewCatalog.DialogView.DeleteContextDialog);
             await _events.PublishOnUIThreadAsync(requestShowDialogEvent);
         }
 

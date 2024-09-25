@@ -10,7 +10,7 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
 {
     public class DeleteCollectionDialogViewModel : DialogViewModelBase
     {
-        private bool _isProjectCollection;
+        private bool _isProjectCollection;   
         private int _focusedCollectionId;
 
         private string? _focusedCollectionName;
@@ -62,7 +62,7 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
                 await _dataService.DeleteProject(SelectedProject);
 
                 FeedbackMessage = "Project deleted!";
-                await Task.Delay(TimeSpan.FromSeconds(1));
+                await Task.Delay(TimeSpan.FromSeconds(_successMsgDisplaySec));
 
                 // close dialog
                 DialogHost.Close(_dialogIdentifier);
@@ -81,7 +81,7 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
                 await _dataService.DeleteContext(SelectedContext);
 
                 FeedbackMessage = "Context deleted!";
-                await Task.Delay(TimeSpan.FromSeconds(1));
+                await Task.Delay(TimeSpan.FromSeconds(_successMsgDisplaySec));
 
                 // close dialog
                 DialogHost.Close(_dialogIdentifier);

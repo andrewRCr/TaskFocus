@@ -41,7 +41,7 @@ namespace TaskFocusDesktop.Views.SidePanel
             }
 
             var item = parent as ListBoxItem;
-            if (item != null) 
+            if (item != null)
             {
                 var project = (ProjectDisplayModel)item.DataContext;
                 var vm = (ProjectSubNavMenuViewModel)subNavMenuListBox.DataContext;
@@ -77,7 +77,7 @@ namespace TaskFocusDesktop.Views.SidePanel
                         cm.PlacementTarget = sender as ListBoxItem;
                         cm.IsOpen = true;
                     }
-                }  
+                }
                 else
                 {
                     vm.SelectedProject = project;
@@ -95,7 +95,8 @@ namespace TaskFocusDesktop.Views.SidePanel
                      typeof(PackIcon), typeof(Grid) };
 
                 // ignore if sent from editMenuButtonGrid (will be handled by its own event handler)
-                if (typesToIgnore.Contains(e.Source.GetType())) {
+                if (typesToIgnore.Contains(e.Source.GetType()))
+                {
                     return;
                 }
 

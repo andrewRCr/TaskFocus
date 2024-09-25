@@ -71,7 +71,7 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
                     await _dataService.UpdateProjectData(SelectedProject);
 
                     FeedbackMessage = "Project renamed!";
-                    await Task.Delay(TimeSpan.FromSeconds(1));
+                    await Task.Delay(TimeSpan.FromSeconds(_successMsgDisplaySec));
 
                     // close dialog
                     DialogHost.Close(_dialogIdentifier);
@@ -105,7 +105,7 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
                     await _dataService.UpdateContextData(SelectedContext);
 
                     FeedbackMessage = "Context renamed!";
-                    await Task.Delay(TimeSpan.FromSeconds(1));
+                    await Task.Delay(TimeSpan.FromSeconds(_successMsgDisplaySec));
 
                     // close dialog
                     DialogHost.Close(_dialogIdentifier);
