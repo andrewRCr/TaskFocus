@@ -12,11 +12,11 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
 {
     public class NewContextDialogViewModel : DialogViewModelBase
     {
-        public NewContextDialogViewModel(IEventAggregator events,
+        public NewContextDialogViewModel(IEventAggregator events, IAppState appState,
                                          IWindowManager window,
                                          IDataState dataState,
                                          IDataService dataService,
-                                         IDataHelper dataHelper) : base(events, window, dataState, dataService, dataHelper)
+                                         IDataHelper dataHelper) : base(events, appState, window, dataState, dataService, dataHelper)
         {
             NewCollectionPlaceholderText = "Context Name";
             HeaderText = "ADD NEW CONTEXT";

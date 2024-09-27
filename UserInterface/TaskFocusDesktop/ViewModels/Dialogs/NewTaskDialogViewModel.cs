@@ -25,13 +25,9 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
             }
         }
 
-        public NewTaskDialogViewModel(IEventAggregator events,
-                                      IWindowManager window,
-                                      IDataState dataState,
-                                      IDataService dataService,
-                                      IDataHelper dataHelper,
-                                      string? focusedProjectName = null,
-                                      string? focusedContextName = null) : base(events, window, dataState, dataService, dataHelper)
+        public NewTaskDialogViewModel(IEventAggregator events, IAppState appState, IWindowManager window,
+                                      IDataState dataState, IDataService dataService, IDataHelper dataHelper,
+                                      string? focusedProjectName = null, string? focusedContextName = null) : base(events, appState, window, dataState, dataService, dataHelper)
         {
             HeaderText = "ADD NEW TASK";
             NewTask = new TaskDisplayModel();

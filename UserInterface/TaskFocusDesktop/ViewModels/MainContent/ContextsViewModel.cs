@@ -66,11 +66,8 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             }
         }
 
-        public ContextsViewModel(IEventAggregator events,
-                                 IWindowManager window,
-                                 IDataState dataState,
-                                 IDataService dataService,
-                                 IDataHelper dataHelper) : base(events, window, dataState, dataService, dataHelper)
+        public ContextsViewModel(IEventAggregator events, IAppState appState, IWindowManager window,
+                                 IDataState dataState, IDataService dataService, IDataHelper dataHelper) : base(events, appState, window, dataState, dataService, dataHelper)
         {
             OrderingIndex = "ContextIndex";
             _events.SubscribeOnPublishedThread(this);

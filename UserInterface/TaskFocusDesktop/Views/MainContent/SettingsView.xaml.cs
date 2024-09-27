@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using TaskFocusDesktop.Views.Components;
 
 namespace TaskFocusDesktop.Views.MainContent
 {
@@ -23,6 +24,25 @@ namespace TaskFocusDesktop.Views.MainContent
         public SettingsView()
         {
             InitializeComponent();
+        }
+
+        private void MainGridBackground_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            //Debug.WriteLine($"SourceType = {e.Source.GetType()}");
+
+            List<Type> typesToIgnore = new()
+            {
+                typeof(TaskItemContainerView),
+            };
+
+            if (typesToIgnore.Contains(e.Source.GetType())) { return; }
+
+            this.MainGridBackground.Focus();
+        }
+
+        private void NumericUpDown_ValueChanged(object sender, RoutedPropertyChangedEventArgs<int> e)
+        {
+
         }
     }
 }

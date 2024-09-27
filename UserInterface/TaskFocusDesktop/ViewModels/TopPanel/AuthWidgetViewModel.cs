@@ -14,26 +14,21 @@ namespace TaskFocusDesktop.ViewModels.TopPanel
     public class AuthWidgetViewModel : ViewModelBase
     {
         private IAPIHelper _apiHelper;
-        private ILoggedInUserModel _loggedInUser;
-        //private IEventAggregator _events;
-        private string _errorMessage;
+        private ILoggedInUserModel? _loggedInUser;
 
-        public AuthWidgetViewModel(IAPIHelper aPIHelper, ILoggedInUserModel loggedInUser, IEventAggregator events) : base(events)
+        private string? _userEmailAddressStr;
+        public string? UserEmailAddressStr
         {
-            _apiHelper = aPIHelper;
-            _loggedInUser = loggedInUser;
-            //_events = events;
-        }
-
-        public bool IsErrorMsgVisible
-        {
-            get
-            {
-                return !string.IsNullOrEmpty(ErrorMessage);
+            get { return _userEmailAddressStr; }
+            set 
+            { 
+                _userEmailAddressStr = value;
+                NotifyOfPropertyChange(() => UserEmailAddressStr);
             }
         }
 
-        public string ErrorMessage
+        private string? _errorMessage;
+        public string? ErrorMessage
         {
             get { return _errorMessage; }
             set
@@ -44,6 +39,25 @@ namespace TaskFocusDesktop.ViewModels.TopPanel
             }
         }
 
+        public bool IsErrorMsgVisible
+        {
+            get
+            {
+                return !string.IsNullOrEmpty(ErrorMessage);
+            }
+        }
+
+        public AuthWidgetViewModel(IAPIHelper aPIHelper, ILoggedInUserModel loggedInUser, IEventAggregator events, IAppState appState) : base(events, appState)
+        {
+            _apiHelper = aPIHelper;
+            _loggedInUser = loggedInUser;
+
+            if (_loggedInUser != null)
+            {
+                UserEmailAddressStr = _loggedInUser.Email;
+            }
+        }
+
         public async Task LogOut()
         {
             try
@@ -51,9 +65,12 @@ namespace TaskFocusDesktop.ViewModels.TopPanel
                 ErrorMessage = null;
 
                 _apiHelper.LogOutUser();
-                _loggedInUser.ResetUserModel();
+                _loggedInUser!.ResetUserModel();
+                UserEmailAddressStr = null;
 
-                // raise log off event for shell view to handle
+                // raise logout event for LoginWidget to handle 
+                await _events.PublishOnUIThreadAsync(new LogoutNotifyEvent());
+                // raise auth status changed event for ShellView to handle
                 await _events.PublishOnUIThreadAsync(new AuthStatusChangedEvent(false));
             }
             catch (Exception ex)

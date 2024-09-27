@@ -16,10 +16,9 @@
 
             <TextBlock HorizontalAlignment="Center"
                        VerticalAlignment="Center"
-                       Margin="0 0 20 0">
-                Authorized!
-            </TextBlock>
-
+                       Margin="0 0 20 0" 
+                       Text="{Binding UserEmailAddressStr}" />
+           
             <materialDesign:PackIcon Kind="Logout"
                                      Grid.Column="1" 
                                      VerticalAlignment="Center"

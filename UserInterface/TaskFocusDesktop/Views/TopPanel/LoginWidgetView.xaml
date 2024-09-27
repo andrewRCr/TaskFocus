@@ -5,6 +5,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:TaskFocusDesktop.Views.TopPanel"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes" 
+             xmlns:toppanel="clr-namespace:TaskFocusDesktop.ViewModels.TopPanel" 
+             d:DataContext="{d:DesignInstance Type=toppanel:LoginWidgetViewModel}"
              mc:Ignorable="d" 
              d:DesignHeight="75" d:DesignWidth="1125">
 
@@ -15,6 +17,9 @@
                 <DataTrigger Binding="{Binding EnableLoginFormControls}" Value="False">
                     <Setter Property="materialDesign:TextFieldAssist.HasFilledTextField" Value="True" />
                 </DataTrigger>
+
+
+                
             </Style.Triggers>
         </Style>
 
@@ -35,30 +40,97 @@
                     VerticalAlignment="Center"
                     Margin="0 0 50 0">
 
-            <TextBox x:Name="Username" 
+            <Grid>
+
+                <TextBox x:Name="UsernameInputField" 
                      Style="{StaticResource usernameInputFieldStyle}"
                      Grid.Column="0" 
-                     MinWidth="250"
+                     MinWidth="200"
                      Margin="10 0 0 10" 
                      Padding="2" 
-                     FontSize="14"
-                     Text="Username"                    
-                     IsEnabled="{Binding EnableLoginFormControls}"
-                     
-                 >
+                     FontSize="14"         
+                     Text="{Binding Username}"
+                     IsEnabled="{Binding EnableLoginFormControls}" />
 
+                <TextBlock x:Name="UsernamePlaceholderText" 
+                           IsHitTestVisible="False"
+                           Text="Email Address" 
+                           FontSize="14"
+                           Foreground="{StaticResource ForegroundSecondaryBrush}"                           
+                           Padding="0 0 0 0"
+                           Margin="10 10 0 0" >
 
-            </TextBox>
+                    <TextBlock.Style>
+                        <Style>
+                            <Style.Triggers>
 
-            <PasswordBox x:Name="Password" 
+                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=DataContext.Username, 
+                                                             Converter={StaticResource IsNullConverterInstance}, 
+                                                             ConverterParameter=IsNullOrWhiteSpace}" Value="False" >
+                                    <DataTrigger.Setters>
+                                        <Setter Property="TextBlock.Visibility" Value="Hidden"/>
+                                    </DataTrigger.Setters>
+                                </DataTrigger>
+
+                                <DataTrigger Binding="{Binding ElementName=UsernameInputField, Path=IsKeyboardFocusWithin}" Value="True" >
+                                    <DataTrigger.Setters>
+                                        <Setter Property="TextBlock.Visibility" Value="Hidden"/>
+                                    </DataTrigger.Setters>
+                                </DataTrigger>
+
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+             
+                </TextBlock>
+
+            </Grid>
+
+            <Grid>
+
+                <PasswordBox x:Name="Password" 
                          Style="{StaticResource passwordInputFieldStyle}"
                          Grid.Column="1" 
-                         MinWidth="250" 
+                         MinWidth="200" 
                          Margin="10 0 0 10" 
                          Padding="2" 
                          FontSize="14"
                          IsEnabled="{Binding EnableLoginFormControls}"
                      />
+
+                <TextBlock x:Name="PasswordPlaceholderText" 
+                           IsHitTestVisible="False"
+                           Text="Password" 
+                           FontSize="14"
+                           Foreground="{StaticResource ForegroundSecondaryBrush}"         
+                           Padding="0 0 0 0"
+                           Margin="10 10 0 0" >
+
+                    <TextBlock.Style>
+                        <Style>
+                            <Style.Triggers>
+
+                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=DataContext.Password, 
+                                                             Converter={StaticResource IsNullConverterInstance}, 
+                                                             ConverterParameter=IsNullOrWhiteSpace}" Value="False" >
+                                    <DataTrigger.Setters>
+                                        <Setter Property="TextBlock.Visibility" Value="Hidden"/>
+                                    </DataTrigger.Setters>
+                                </DataTrigger>
+
+                                <DataTrigger Binding="{Binding ElementName=Password, Path=IsKeyboardFocusWithin}" Value="True" >
+                                    <DataTrigger.Setters>
+                                        <Setter Property="TextBlock.Visibility" Value="Hidden"/>
+                                    </DataTrigger.Setters>
+                                </DataTrigger>
+
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+
+                </TextBlock>
+
+            </Grid>
 
             <Button x:Name="Login" 
                     Grid.Column="1"                     

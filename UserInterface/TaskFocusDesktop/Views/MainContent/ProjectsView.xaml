@@ -30,20 +30,8 @@
                                          Converter={StaticResource BooleanToVisibilityConverter}, 
                                          FallbackValue=Collapsed}"
                     Orientation="Horizontal"
-                    Margin="10 10 0 15"
-                    >
-
-            <!--<materialDesign:PackIcon Kind="ClipboardText"
-                                     VerticalAlignment="Center"
-                                     Margin="10 2 10 0"
-                                     Foreground="{StaticResource ForegroundMainBrush}"
-                                     Height="24"
-                                     Width="24"
-                                     />-->
-
-            <!--<TextBlock Style="{StaticResource HeaderTextStyle}"
-                       VerticalAlignment="Center" Margin="0 2 0 0"
-                       Text="PROJECTS" />-->
+                    Margin="10 10 0 15" >
+            
         </StackPanel>
 
         <WrapPanel Grid.Row="1"
@@ -74,18 +62,6 @@
             </materialDesign:Card>
 
         </WrapPanel>
-
-        <!-- focused/selected project display -->
-        <!--<components:TaskCollectionView Grid.Row="0"
-                                       Margin="0 0 0 0"
-                                       Visibility="{Binding ShowNoFocusedProjectTutorialText, 
-                                                    Converter={StaticResource InvertableBooleanToVisibilityConverter}, 
-                                                    ConverterParameter=Inverted, FallbackValue=Collapsed}"
-                                       CollectionId="{Binding FocusedProjectId}" 
-                                       IsProjectCollection="True"
-                                       CollectionName="{Binding FocusedProjectName}"
-                                       CollectionIconKind="ClipboardText"
-                                       CollectionTasks="{Binding FocusedProjectTasks}" />-->
 
         <Expander IsExpanded="True" Margin="0" 
                  Background="Transparent"

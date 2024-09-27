@@ -22,11 +22,8 @@ namespace TaskFocusDesktop.ViewModels.SidePanel
 {
     public class ProjectSubNavMenuViewModel : TaskViewModelBase
     {
-        public ProjectSubNavMenuViewModel(IEventAggregator events,
-                                 IWindowManager window,
-                                 IDataState dataState,
-                                 IDataService dataService,
-                                 IDataHelper dataHelper) : base(events, window, dataState, dataService, dataHelper)
+        public ProjectSubNavMenuViewModel(IEventAggregator events, IAppState appState, IWindowManager window,
+                                          IDataState dataState, IDataService dataService, IDataHelper dataHelper) : base(events, appState, window, dataState, dataService, dataHelper)
         {
         }
 

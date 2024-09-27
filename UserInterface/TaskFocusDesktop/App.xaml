@@ -27,7 +27,7 @@
                 <ResourceDictionary Source="Styles/ContentViews.xaml" />
                 <ResourceDictionary Source="Styles/ListBoxes.xaml" />
                 <ResourceDictionary Source="Styles/Windows.xaml" />
-                
+
                 <!-- custom user control templates -->
                 <ResourceDictionary Source="Templates/DialogTemplates.xaml" />
                 <ResourceDictionary Source="Templates/MiniNavMenuTemplate.xaml" />
@@ -40,6 +40,7 @@
             <utilities:InvertableBooleanToVisibilityConverter x:Key="InvertableBooleanToVisibilityConverter" />
             <utilities:ActiveMainViewToVisibilityConverter x:Key="ActiveMainViewToVisibilityConverter" />
             <utilities:DictionaryItemBooleanToVisibilityConverter x:Key="DictionaryItemBooleanToVisibilityConverter" />
+            <utilities:InverseBooleanConverter x:Key="InverseBooleanConverter" />
 
             <!-- app-level styling -->
 

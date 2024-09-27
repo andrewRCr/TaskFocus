@@ -24,7 +24,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             }
         }
 
-        public HomeViewModel(IEventAggregator events) : base(events)
+        public HomeViewModel(IEventAggregator events, IAppState appState) : base(events, appState)
         {
             _events = events;
             _events.SubscribeOnPublishedThread(this);

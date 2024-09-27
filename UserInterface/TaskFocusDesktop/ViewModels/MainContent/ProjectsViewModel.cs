@@ -68,11 +68,8 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             }
         }
 
-        public ProjectsViewModel(IEventAggregator events,
-                                 IWindowManager window,
-                                 IDataState dataState,
-                                 IDataService dataService,
-                                 IDataHelper dataHelper) : base(events, window, dataState, dataService, dataHelper)
+        public ProjectsViewModel(IEventAggregator events, IAppState appState, IWindowManager window,
+                                 IDataState dataState, IDataService dataService, IDataHelper dataHelper) : base(events, appState, window, dataState, dataService, dataHelper)
         {
             OrderingIndex = "ProjectIndex";
             _events.SubscribeOnPublishedThread(this);

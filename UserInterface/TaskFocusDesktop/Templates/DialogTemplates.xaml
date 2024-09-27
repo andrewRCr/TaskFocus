@@ -80,9 +80,7 @@
                            Foreground="{StaticResource ForegroundSecondaryBrush}"
                            Visibility="Hidden"
                            Padding="0 1 0 0"
-                           Margin="5 12 5 0" >
-
-                    </TextBlock>
+                           Margin="5 12 5 0" />
 
                 </Grid>
 
@@ -212,6 +210,228 @@
                 </MultiDataTrigger.Conditions>
                 <MultiDataTrigger.Setters>
                     <Setter TargetName="placeholderText" Property="Visibility" Value="Visible"/>
+                </MultiDataTrigger.Setters>
+            </MultiDataTrigger>
+
+        </DataTemplate.Triggers>
+
+    </DataTemplate>
+
+    <!-- UpdateEmail address dialog -->
+    <DataTemplate DataType="{x:Type dialogs:UpdateEmailDialogViewModel}" >
+
+        <!--<ContentPresenter Content="{StaticResource AddNewCollectionContent}" />-->
+
+        <Grid Margin="10" Width="400" Height="150" >
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- header -->
+            <StackPanel Grid.Row="0" Orientation="Horizontal"   Margin="0,0,0,5">
+                <materialDesign:PackIcon Kind="ClipboardText" 
+                                     Width="22" 
+                                     Height="22" 
+                                     VerticalAlignment="Center"
+                                     Margin="0 0 10 0"
+                                     Foreground="{StaticResource ForegroundMainBrush}"/>
+
+                <TextBlock Text="{Binding HeaderText}"
+                               Style="{StaticResource HeaderTextStyle}" 
+                               FontSize="16"
+                               VerticalAlignment="Center"
+                               />
+
+            </StackPanel>
+
+            <!-- text input and feedback message -->
+            <StackPanel Grid.Row="1" 
+                        Margin="0 10 0 0"
+                        Orientation="Vertical" 
+                        HorizontalAlignment="Center" >
+
+                <Grid >
+
+                    <TextBox x:Name="updatedEmailInputField"
+                         Text="{Binding UpdatedEmailAddress}" 
+                         FontSize="14"
+                         Width="275"
+                         Margin="0 10 0 5"
+                         HorizontalAlignment="Center" />
+
+                    <TextBlock x:Name="placeholderText" 
+                           IsHitTestVisible="False"
+                           Text="Email address" 
+                           FontSize="14"
+                           Foreground="{StaticResource ForegroundSecondaryBrush}"
+                           Visibility="Hidden"
+                           Padding="0 1 0 0"
+                           Margin="5 12 5 0" >
+
+                    </TextBlock>
+
+                </Grid>
+
+                <ContentPresenter Margin="0 0 0 10"
+                              HorizontalAlignment="Center"                                    
+                              Content="{StaticResource FeedbackMessageContent}" />
+
+            </StackPanel>
+
+            <!-- submit / cancel buttons -->
+            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" >
+
+                <Button Content="_CANCEL"
+                        Command="{Binding CloseDialogCommand}" 
+                        Style="{StaticResource dialogCancelButtonStyle}"              
+                        Margin="0 0 15 0" />
+
+                <Button Content="_UPDATE" 
+                        Command="{Binding ProcessSubmitActionCommand}"
+                        Style="{StaticResource dialogSubmitButtonStyle}"  />
+
+            </StackPanel>
+
+        </Grid>
+
+        <DataTemplate.Triggers>
+
+            <MultiDataTrigger >
+                <MultiDataTrigger.Conditions>
+                    <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=DataContext.UpdatedEmailAddress, Converter={StaticResource IsNullConverterInstance}, ConverterParameter=IsNullOrWhiteSpace}" Value="True" />
+                    <Condition Binding="{Binding ElementName=updatedEmailInputField, Path=IsKeyboardFocusWithin}" Value="False" />
+                </MultiDataTrigger.Conditions>
+                <MultiDataTrigger.Setters>
+                    <Setter TargetName="placeholderText" Property="Visibility" Value="Visible"/>
+                </MultiDataTrigger.Setters>
+            </MultiDataTrigger>
+
+        </DataTemplate.Triggers>
+
+    </DataTemplate>
+
+    <!-- ChangePassword address dialog -->
+    <DataTemplate DataType="{x:Type dialogs:ChangePasswordDialogViewModel}" >
+
+        <!--<ContentPresenter Content="{StaticResource AddNewCollectionContent}" />-->
+
+        <Grid Margin="10" Width="400" Height="250" >
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- header -->
+            <StackPanel Grid.Row="0" Orientation="Horizontal"   Margin="0,0,0,5">
+                <materialDesign:PackIcon Kind="ClipboardText" 
+                                    Width="22" 
+                                    Height="22" 
+                                    VerticalAlignment="Center"
+                                    Margin="0 0 10 0"
+                                    Foreground="{StaticResource ForegroundMainBrush}"/>
+
+                <TextBlock Text="{Binding HeaderText}"
+                              Style="{StaticResource HeaderTextStyle}" 
+                              FontSize="16"
+                              VerticalAlignment="Center"
+                              />
+
+            </StackPanel>
+
+            <!-- text input and feedback message -->
+            <StackPanel Grid.Row="1" 
+                       Margin="0 10 0 0"
+                       Orientation="Vertical" 
+                       HorizontalAlignment="Center" >
+
+                <Grid >
+
+                    <TextBox x:Name="newPasswordInputField"
+                        Text="{Binding NewPassword}" 
+                        FontSize="14"
+                        Width="275"
+                        Margin="0 10 0 5"
+                        HorizontalAlignment="Center" />
+
+                    <TextBlock x:Name="placeholderText" 
+                          IsHitTestVisible="False"
+                          Text="Password" 
+                          FontSize="14"
+                          Foreground="{StaticResource ForegroundSecondaryBrush}"
+                          Visibility="Hidden"
+                          Padding="0 1 0 0"
+                          Margin="5 12 5 0" >
+
+                    </TextBlock>
+
+                </Grid>
+
+                <Grid >
+
+                    <TextBox x:Name="confirmNewPasswordInputField"
+                        Text="{Binding ConfirmNewPassword}" 
+                        FontSize="14"
+                        Width="275"
+                        Margin="0 10 0 5"
+                        HorizontalAlignment="Center" />
+
+                    <TextBlock x:Name="confirmPlaceholderText" 
+                          IsHitTestVisible="False"
+                          Text="Confirm password" 
+                          FontSize="14"
+                          Foreground="{StaticResource ForegroundSecondaryBrush}"
+                          Visibility="Hidden"
+                          Padding="0 1 0 0"
+                          Margin="5 12 5 0" >
+
+                    </TextBlock>
+
+                </Grid>
+
+                <ContentPresenter Margin="0 0 0 10"
+                             HorizontalAlignment="Center"                                    
+                             Content="{StaticResource FeedbackMessageContent}" />
+
+            </StackPanel>
+
+            <!-- submit / cancel buttons -->
+            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" >
+
+                <Button Content="_CANCEL"
+                       Command="{Binding CloseDialogCommand}" 
+                       Style="{StaticResource dialogCancelButtonStyle}"              
+                       Margin="0 0 15 0" />
+
+                <Button Content="_UPDATE" 
+                       Command="{Binding ProcessSubmitActionCommand}"
+                       Style="{StaticResource dialogSubmitButtonStyle}"  />
+
+            </StackPanel>
+
+        </Grid>
+
+        <DataTemplate.Triggers>
+
+            <MultiDataTrigger >
+                <MultiDataTrigger.Conditions>
+                    <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=DataContext.NewPassword, Converter={StaticResource IsNullConverterInstance}, ConverterParameter=IsNullOrWhiteSpace}" Value="True" />
+                    <Condition Binding="{Binding ElementName=newPasswordInputField, Path=IsKeyboardFocusWithin}" Value="False" />
+                </MultiDataTrigger.Conditions>
+                <MultiDataTrigger.Setters>
+                    <Setter TargetName="placeholderText" Property="Visibility" Value="Visible"/>
+                </MultiDataTrigger.Setters>
+            </MultiDataTrigger>
+
+            <MultiDataTrigger >
+                <MultiDataTrigger.Conditions>
+                    <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=DataContext.ConfirmNewPassword, Converter={StaticResource IsNullConverterInstance}, ConverterParameter=IsNullOrWhiteSpace}" Value="True" />
+                    <Condition Binding="{Binding ElementName=confirmNewPasswordInputField, Path=IsKeyboardFocusWithin}" Value="False" />
+                </MultiDataTrigger.Conditions>
+                <MultiDataTrigger.Setters>
+                    <Setter TargetName="confirmPlaceholderText" Property="Visibility" Value="Visible"/>
                 </MultiDataTrigger.Setters>
             </MultiDataTrigger>
 

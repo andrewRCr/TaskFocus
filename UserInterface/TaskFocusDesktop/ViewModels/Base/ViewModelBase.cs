@@ -13,12 +13,14 @@ namespace TaskFocusDesktop.ViewModels.Base
     public abstract class ViewModelBase : Screen, IHandle<ViewSwitchedEvent>, INotifyPropertyChanged
     {
         protected IEventAggregator _events;
+        protected IAppState _appState;
         protected ILog _logger = LogManager.GetLog(typeof(ViewModelBase));
 
-        protected ViewModelBase(IEventAggregator events)
+        protected ViewModelBase(IEventAggregator events, IAppState appState)
         {
             _events = events;
             _events.SubscribeOnPublishedThread(this);
+            _appState = appState;
         }
 
         protected ViewCatalog.MainContentView ActiveMainContentView { get; set; }

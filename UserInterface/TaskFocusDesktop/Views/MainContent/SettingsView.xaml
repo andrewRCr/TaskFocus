@@ -4,15 +4,218 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:TaskFocusDesktop.Views.MainContent"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:components="clr-namespace:TaskFocusDesktop.Views.Components"   
+             xmlns:customControls="clr-namespace:TaskFocusDesktop.CustomControls"
+             xmlns:utilities="clr-namespace:TaskFocusDesktop.Utilities" 
+             xmlns:maincontent="clr-namespace:TaskFocusDesktop.ViewModels.MainContent" 
+             d:DataContext="{d:DesignInstance Type=maincontent:SettingsViewModel}"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800"
              Style="{StaticResource BaseMainContentViewStyle}">
-    <Grid>
-     
-        <!-- view title -->
-        <TextBlock  Margin="5,5,0,50" 
-                Grid.RowSpan="1" FontSize="18">Settings
-        </TextBlock>
+
+    <Grid x:Name="MainGridBackground" 
+          Focusable="True" 
+          Background="Transparent" 
+          PreviewMouseDown="MainGridBackground_PreviewMouseDown"
+          >
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- preferences header  -->
+        <StackPanel Grid.Row="0"
+                    Orientation="Horizontal"
+                    Margin="10 10 0 15"
+                    >
+
+            <materialDesign:PackIcon Kind="Cog"
+                                     VerticalAlignment="Center"
+                                     Margin="10 0 10 0"
+                                     Foreground="{StaticResource ForegroundMainBrush}"
+                                     Height="24"
+                                     Width="24"
+                                     />
+
+            <TextBlock Style="{StaticResource HeaderTextStyle}"
+                       VerticalAlignment="Center" Margin="0 2 0 0"
+                       Text="PREFERENCES" />
+
+        </StackPanel>
+
+        <!-- PREFERENCE CONTROLS -->
+        <StackPanel Grid.Row="1" 
+                    Orientation="Vertical"
+                    Margin="55 0 0 0"
+                    >
+
+            <TextBlock TextWrapping="Wrap"
+                       FontSize="14" 
+                       HorizontalAlignment="Left" 
+                       VerticalAlignment="Center"
+                       utilities:TextBlockHelper.TrimRuns="True" >
+
+                <TextBlock.Inlines>
+                    <Run Text="Automatically  "/>
+                    <Run FontWeight="Bold" Text="clean up" />
+                    <Run Text="  completed tasks:" />
+                </TextBlock.Inlines>
+            </TextBlock>
+
+            <StackPanel Orientation="Horizontal">
+
+                <RadioButton 
+                             Margin="0 0 15 0"
+                             IsChecked="{Binding LocalSettings.CleanUpImmediately}" >
+                    <RadioButton.Content>
+                        <TextBlock Text="Immediately">
+
+                            <TextBlock.Style>
+                                <Style>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Path=LocalSettings.CleanUpImmediately}"
+                                                     Value="False" >
+                                            <DataTrigger.Setters>
+                                                <Setter Property="TextBlock.Foreground" Value="{StaticResource ForegroundTertiaryBrush}" />
+                                 
+                                            </DataTrigger.Setters>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+
+                        </TextBlock>
+                    </RadioButton.Content>
+                </RadioButton>
+
+                <RadioButton x:Name="nonImmediateCleanUpRadio"
+                             IsChecked="{Binding Path=LocalSettings.CleanUpImmediately,
+                                         Converter={StaticResource InverseBooleanConverter}}"
+                             />
+
+                <materialDesign:NumericUpDown Value="{Binding LocalSettings.CleanUpDelayDays}"
+                                              IsEnabled="{Binding LocalSettings.CleanUpImmediately,
+                                              Converter={StaticResource InverseBooleanConverter}}"
+                                              />
+
+
+                <TextBlock Text="{Binding CleanDaysTextStr}"
+                                       VerticalAlignment="Center"
+                                       />
+
+               
+
+
+            </StackPanel>
+
+           
+            <TextBlock TextWrapping="Wrap"
+                    FontSize="14" 
+                    HorizontalAlignment="Left" 
+                    VerticalAlignment="Center"
+                    utilities:TextBlockHelper.TrimRuns="True" >
+
+                <TextBlock.Inlines>
+                    <Run Text="Automatically  "/>
+                    <Run FontWeight="Bold" Text="delete" />
+                    <Run Text="  completed tasks:" />
+                </TextBlock.Inlines>
+            </TextBlock>
+
+
+            <StackPanel Orientation="Horizontal" >
+
+                <materialDesign:NumericUpDown Value="{Binding LocalSettings.DeleteDelayDays}" />
+
+                <TextBlock Text="{Binding DeleteDaysTextStr}"
+                           VerticalAlignment="Center"
+                                       />
+
+            </StackPanel>
+
+
+        </StackPanel>
+
+        <!-- account/profile header  -->
+        <StackPanel Grid.Row="2"
+                    Orientation="Horizontal"
+                    Margin="10 10 0 15"
+                    >
+
+            <materialDesign:PackIcon Kind="AccountCircle"
+                                     VerticalAlignment="Center"
+                                     Margin="10 0 10 0"
+                                     Foreground="{StaticResource ForegroundMainBrush}"
+                                     Height="24"
+                                     Width="24"
+                                     />
+
+            <TextBlock Style="{StaticResource HeaderTextStyle}"
+                       VerticalAlignment="Center" Margin="0 2 0 0"
+                       Text="PROFILE" />
+
+        </StackPanel>
+
+        <!-- ACCOUNT CONTROLS -->
+        <StackPanel Grid.Row="3" 
+                    Orientation="Vertical"
+                    Margin="55 0 0 0"
+                    >
+
+            <StackPanel Orientation="Horizontal">
+                
+                <TextBox x:Name="firstNameInput"
+                         Text="{Binding LocalCurrentUser.FirstName}"
+                         Margin="0 0 15 20"
+                         Width="100"
+                         materialDesign:HintAssist.HelperText="First Name"
+                     />
+                
+                <TextBox x:Name="lastNameInput"
+                         Text="{Binding LocalCurrentUser.LastName}"
+                         Margin="0 0 00 20"
+                         Width="100"
+                         materialDesign:HintAssist.HelperText="Last Name"
+                     />
+                
+            </StackPanel>
+
+
+            <TextBox x:Name="emailAddressPlaceholder"
+                     Text="{Binding LocalCurrentUser.Email}"
+                     IsReadOnly="True"
+                     Margin="0 0 00 20"
+                     Width="215"
+                     HorizontalAlignment="Left"
+                     materialDesign:HintAssist.HelperText="Email Address"
+                     />
+
+            <StackPanel Orientation="Horizontal">
+
+                <Button Content="UPDATE EMAIL"
+                        Command="{Binding RequestUpdateEmailDialogCommand}"
+                        Style="{StaticResource dialogSubmitButtonStyle}"
+                        Margin="0 0 15 0"
+                    />
+
+
+
+                <Button Content="CHANGE PASSWORD"
+                        Command="{Binding RequestChangePasswordDialogCommand}"
+                        Style="{StaticResource dialogSubmitButtonStyle}"
+                    />
+
+
+            </StackPanel>
+
+                
+        </StackPanel>
 
     </Grid>
+
 </UserControl>

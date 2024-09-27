@@ -26,7 +26,8 @@ namespace TaskFocusDesktop.ViewModels.Base
         protected IDataService _dataService;
         protected IDataHelper _dataHelper;
 
-        public TaskViewModelBase(IEventAggregator events, IWindowManager window, IDataState dataState, IDataService dataService, IDataHelper dataHelper) : base(events)
+        public TaskViewModelBase(IEventAggregator events, IAppState appState, IWindowManager window,
+                                 IDataState dataState, IDataService dataService, IDataHelper dataHelper) : base(events, appState)
         {
             _events = events;
             _window = window;

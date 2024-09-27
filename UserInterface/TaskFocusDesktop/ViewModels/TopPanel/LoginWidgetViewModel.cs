@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using TaskFocusDesktop.EventModels;
@@ -24,7 +25,7 @@ namespace TaskFocusDesktop.ViewModels.TopPanel
         private string? _defaultUserName;
         private bool _storedCredentialsWereFound = false;
 
-        public LoginWidgetViewModel(IAPIHelper aPIHelper, IWindowManager window, IEventAggregator events) : base(events)
+        public LoginWidgetViewModel(IAPIHelper aPIHelper, IWindowManager window, IEventAggregator events, IAppState appState) : base(events, appState)
         {
             _apiHelper = aPIHelper;
             _window = window;
@@ -125,8 +126,6 @@ namespace TaskFocusDesktop.ViewModels.TopPanel
         {
             base.OnViewLoaded(view);
 
-            EnableLoginFormControls = false;
-
             try
             {
                 // check for stored credentials
@@ -138,13 +137,10 @@ namespace TaskFocusDesktop.ViewModels.TopPanel
                     _storedCredentialsWereFound = true;
                     loginCredential.RetrievePassword();
                     Username = loginCredential.UserName;
-                    Password = loginCredential.Password;
-                    await LogIn();
+                    Password = loginCredential.Password;                       
                 }
-                else // allow manual UI login
-                {
-                    EnableLoginFormControls = true;
-                }
+                if (_appState.ShouldAutoLogin) { await LogIn(); }
+                else { EnableLoginFormControls = true; }
             }
             catch (Exception ex)
             {
@@ -157,7 +153,7 @@ namespace TaskFocusDesktop.ViewModels.TopPanel
                 status.UpdateMessage($"{ex.Source} threw an exception:", ex.Message);
                 await _window.ShowDialogAsync(status, null, settings);
                 await TryCloseAsync();
-            }
+            }           
         }
 
         private Windows.Security.Credentials.PasswordCredential? GetCredentialFromLocker()

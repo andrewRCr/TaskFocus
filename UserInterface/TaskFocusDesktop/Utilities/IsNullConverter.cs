@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Nextended.Core.Extensions;
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,8 +11,23 @@ namespace TaskFocusDesktop.Utilities
 {
     class IsNullConverter : IValueConverter
     {
-        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        enum Parameters
         {
+            Normal, IsNullOrWhiteSpace
+        }
+
+        public object Convert(object value, Type targetType, 
+                              object parameter, CultureInfo culture)
+        {
+            if (parameter != null)
+            {
+                var direction = (Parameters)Enum.Parse(typeof(Parameters), (string)parameter);
+                if (direction == Parameters.IsNullOrWhiteSpace)
+                {
+                    string valueStr = (string)value;
+                    return valueStr.IsNullOrWhiteSpace();
+                }
+            }
 
             return value == null;
         }

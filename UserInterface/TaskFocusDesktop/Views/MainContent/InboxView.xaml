@@ -82,21 +82,6 @@
                                           ContainerTasks="{Binding LocalTasks}"
                                           />
 
-        <!-- new task entry -->
-        <!--<ListBox 
-                 ItemsSource="{Binding Path=NewTaskList}"
-                 ItemTemplate="{StaticResource NewTaskItem}"
-                 SelectedItem="{Binding NewTask }"
-                 Grid.Row="3" Grid.Column="0"
-                 Grid.ColumnSpan="2"
-                 ScrollViewer.HorizontalScrollBarVisibility="Disabled" />
-
-        <Button Grid.Row="4" x:Name="AddTask" Content="Add" />-->
-
-        <!-- manually call update of all view task data to API -->
-        <!--<Button Grid.Row="5" Grid.Column="2" x:Name="UpdateAllPendingTaskData" Content="Sync" />-->
-
-
     </Grid>
 
 </UserControl>

@@ -16,17 +16,10 @@ namespace TaskFocusDesktop.ViewModels.SidePanel
 
         public string HeaderText { get { return IsProjectsSubMenu ? "PROJECTS" : "CONTEXTS"; } }
 
-        //public IObservableCollection<ProjectDisplayModel>? Projects { get; set; }
 
-        //public IObservableCollection<ContextDisplayModel>? Contexts { get; set; }
-
-        public SubNavMenuViewModel(IEventAggregator events,
-                                   IWindowManager window,
-                                   IDataState dataState,
-                                   IDataService dataService,
-                                   IDataHelper dataHelper) : base(events, window, dataState, dataService, dataHelper)
+        public SubNavMenuViewModel(IEventAggregator events, IAppState appState, IWindowManager window,
+                                   IDataState dataState, IDataService dataService, IDataHelper dataHelper) : base(events, appState, window, dataState, dataService, dataHelper)
         {
-            //_events = events;
         }
 
         public override async Task HandleAsync(ViewSwitchedEvent message, CancellationToken cancellationToken)
@@ -36,7 +29,5 @@ namespace TaskFocusDesktop.ViewModels.SidePanel
             // header text may now be different
             NotifyOfPropertyChange(() => HeaderText);
         }
-
-
     }
 }

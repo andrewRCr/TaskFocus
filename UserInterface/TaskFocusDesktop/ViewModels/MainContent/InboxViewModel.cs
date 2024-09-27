@@ -15,11 +15,8 @@ namespace TaskFocusDesktop.ViewModels.MainContent
 {
     public class InboxViewModel : TaskViewModelBase, INotifyPropertyChanged
     {
-        public InboxViewModel(IEventAggregator events,
-                              IWindowManager window, 
-                              IDataState dataState,
-                              IDataService dataService,
-                              IDataHelper dataHelper) : base(events, window, dataState, dataService, dataHelper)
+        public InboxViewModel(IEventAggregator events, IAppState appState, IWindowManager window, IDataState dataState,
+                              IDataService dataService, IDataHelper dataHelper) : base(events, appState, window, dataState, dataService, dataHelper)
         {
             OrderingIndex = "InboxIndex";
         }

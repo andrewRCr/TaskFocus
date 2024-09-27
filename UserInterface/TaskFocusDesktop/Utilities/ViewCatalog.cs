@@ -36,7 +36,9 @@ namespace TaskFocusDesktop.Utilities
             RenameProjectDialog,
             DeleteProjectDialog,
             RenameContextDialog,
-            DeleteContextDialog
+            DeleteContextDialog,
+            UpdateEmailDialog,
+            ChangePasswordDialog
         }
     }
 }

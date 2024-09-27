@@ -128,7 +128,6 @@
         </Style.Triggers>
     </Style>
 
-
     <Style x:Key="addNewCollectionIconButtonTemplate" BasedOn="{StaticResource CircularButtonTemplate}" TargetType="{x:Type customControls:CircularButton}" >
         <Setter Property="Template">
             <Setter.Value>
@@ -168,7 +167,6 @@
             </Trigger>
         </Style.Triggers>
     </Style>
-
 
     <Style x:Key="dialogCancelButtonStyle" BasedOn="{StaticResource MaterialDesignOutlinedButton}" TargetType="Button">
         <Setter Property="Foreground" Value="{StaticResource ForegroundMainBrush}" />

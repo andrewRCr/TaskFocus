@@ -36,6 +36,8 @@ namespace TaskFocusDesktop.ViewModels
         protected IDataService _dataService;
         protected IDataHelper _dataHelper;
         protected IDataState _dataState;
+        protected IAppState _appState;
+        protected IUserEndpoint _userEndpoint;
         private ILog _logger = LogManager.GetLog(typeof(ShellViewModel));
         private const string _dialogIdentifier = "ShellDialogHost";
         private string? _focusedProjectName;
@@ -190,7 +192,12 @@ namespace TaskFocusDesktop.ViewModels
 
         public ShellViewModel(IAPIHelper apiHelper,
                               ILoggedInUserModel loggedInUser,
-                              IEventAggregator events, IDataService dataService, IDataHelper dataHelper, IDataState dataState)
+                              IEventAggregator events,
+                              IDataService dataService,
+                              IDataHelper dataHelper,
+                              IDataState dataState,
+                              IAppState appState,
+                              IUserEndpoint userEndpoint)
         {
             _apiHelper = apiHelper;
             _loggedInUser = loggedInUser;
@@ -198,6 +205,8 @@ namespace TaskFocusDesktop.ViewModels
             _dataService = dataService;
             _dataHelper = dataHelper;
             _dataState = dataState;
+            _appState = appState;
+            _userEndpoint = userEndpoint;
 
             _events.SubscribeOnPublishedThread(this);
 
@@ -217,6 +226,8 @@ namespace TaskFocusDesktop.ViewModels
 
             // set current main content view enum to default
             ActiveMainContentView = IsUserLoggedIn ? ViewCatalog.MainContentView.Inbox : ViewCatalog.MainContentView.Home;
+            _appState = appState;
+            _userEndpoint = userEndpoint;
         }
 
         private Point GetSystemMenuPosition()
@@ -275,6 +286,7 @@ namespace TaskFocusDesktop.ViewModels
         public async Task HandleLogOut()
         {
             NotifyOfPropertyChange(() => IsUserLoggedIn);
+            _appState.ShouldAutoLogin = false;
 
             TopWidgetPanel = IoC.Get<LoginWidgetViewModel>();
             await ActivateItemAsync(TopWidgetPanel, new CancellationToken());
@@ -397,22 +409,22 @@ namespace TaskFocusDesktop.ViewModels
             switch (requestedDialogView)
             {
                 case ViewCatalog.DialogView.AddNewProjectDialog:
-                    dialogVM = new NewProjectDialogViewModel(_events, dummyWindow, _dataState, _dataService, _dataHelper);
+                    dialogVM = new NewProjectDialogViewModel(_events, _appState, dummyWindow, _dataState, _dataService, _dataHelper);
                     break;
 
                 case ViewCatalog.DialogView.AddNewContextDialog:
-                    dialogVM = new NewContextDialogViewModel(_events, dummyWindow, _dataState, _dataService, _dataHelper);
+                    dialogVM = new NewContextDialogViewModel(_events, _appState, dummyWindow, _dataState, _dataService, _dataHelper);
                     break;
 
                 case ViewCatalog.DialogView.AddNewTaskDialog:
                     extendedDialogVM = new NewTaskDialogViewModel(
-                        _events, dummyWindow, _dataState, _dataService, _dataHelper, _focusedProjectName, _focusedContextName);
+                        _events, _appState, dummyWindow, _dataState, _dataService, _dataHelper, _focusedProjectName, _focusedContextName);
                     break;
 
                 case ViewCatalog.DialogView.RenameProjectDialog:
                     if (_focusedProjectId != null && _focusedProjectName != null)
                     {
-                        extendedDialogVM = new RenameCollectionDialogViewModel(_events, dummyWindow, _dataState, _dataService, _dataHelper,
+                        extendedDialogVM = new RenameCollectionDialogViewModel(_events, _appState, dummyWindow, _dataState, _dataService, _dataHelper,
                             true, (int)_focusedProjectId, _focusedProjectName);
                     }
                     break;
@@ -420,7 +432,7 @@ namespace TaskFocusDesktop.ViewModels
                 case ViewCatalog.DialogView.RenameContextDialog:
                     if (_focusedContextId != null && _focusedContextName != null)
                     {
-                        extendedDialogVM = new RenameCollectionDialogViewModel(_events, dummyWindow, _dataState, _dataService, _dataHelper, 
+                        extendedDialogVM = new RenameCollectionDialogViewModel(_events, _appState, dummyWindow, _dataState, _dataService, _dataHelper, 
                             false, (int)_focusedContextId, _focusedContextName);
                     }
                     break;
@@ -428,7 +440,7 @@ namespace TaskFocusDesktop.ViewModels
                 case ViewCatalog.DialogView.DeleteProjectDialog:
                     if (_focusedProjectId != null && _focusedProjectName != null)
                     {
-                        extendedDialogVM = new DeleteCollectionDialogViewModel( _events, dummyWindow, _dataState, _dataService, _dataHelper, 
+                        extendedDialogVM = new DeleteCollectionDialogViewModel( _events, _appState, dummyWindow, _dataState, _dataService, _dataHelper, 
                             true, (int)_focusedProjectId, _focusedProjectName);
                     }
                     break;
@@ -436,9 +448,19 @@ namespace TaskFocusDesktop.ViewModels
                 case ViewCatalog.DialogView.DeleteContextDialog:
                     if (_focusedContextId != null && _focusedContextName != null)
                     {
-                        extendedDialogVM = new DeleteCollectionDialogViewModel( _events, dummyWindow, _dataState, _dataService, _dataHelper, 
+                        extendedDialogVM = new DeleteCollectionDialogViewModel( _events, _appState, dummyWindow, _dataState, _dataService, _dataHelper, 
                             false, (int)_focusedContextId, _focusedContextName);
                     }
+                    break;
+
+                case ViewCatalog.DialogView.UpdateEmailDialog:
+                    dialogVM = new UpdateEmailDialogViewModel(
+                        _events, _appState, dummyWindow, _dataState, _dataService, _dataHelper, _userEndpoint);
+                    break;
+
+                case ViewCatalog.DialogView.ChangePasswordDialog:
+                    dialogVM = new ChangePasswordDialogViewModel(
+                        _events, _appState, dummyWindow, _dataState, _dataService, _dataHelper, _userEndpoint, _apiHelper, _loggedInUser);
                     break;
 
                 default:
