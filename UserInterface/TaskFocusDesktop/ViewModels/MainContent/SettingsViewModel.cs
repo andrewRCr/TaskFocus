@@ -43,8 +43,8 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             }
         }
 
-        private string _cleanDaysTextStr;
-        public string CleanDaysTextStr
+        private string? _cleanDaysTextStr;
+        public string? CleanDaysTextStr
         {
             get { return _cleanDaysTextStr; }
             set 
@@ -54,8 +54,8 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             }
         }
 
-        private string _deleteDaysTextStr;
-        public string DeleteDaysTextStr
+        private string? _deleteDaysTextStr;
+        public string? DeleteDaysTextStr
         {
             get { return _deleteDaysTextStr; }
             set 
@@ -114,7 +114,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             {
                 LocalSettings = _dataState.UserSettings;
                 LocalSettings.PropertyChanged += OnExistingSettingsPropertyChanged!; // subscribe to property changed event
-                //SetRadioTextColor();
+
                 CleanDaysTextStr = LocalSettings.CleanUpDelayDays > 1 ? "days after completion" : "day after completion";
                 DeleteDaysTextStr = LocalSettings.DeleteDelayDays > 1 ? "days after completion" : "day after completion";
             }
@@ -125,14 +125,6 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             if (_dataState.IsDataLoaded() && _dataState.CurrentUser != null)
             {
                 LocalCurrentUser = _dataState.CurrentUser;
-
-                //_userModel.Id = LocalCurrentUser.Id;
-                //_userModel.FirstName = LocalCurrentUser.FirstName;
-                //_userModel.LastName = LocalCurrentUser.LastName;
-                //_userModel.Email = LocalCurrentUser.Email;
-                //_authUserModel.FirstName = LocalCurrentUser.FirstName;
-                //_authUserModel.LastName = LocalCurrentUser.LastName;
-                //_authUserModel.Email = LocalCurrentUser.Email;
             }
         }
 
@@ -148,7 +140,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
 
         protected override bool HandleDataStateChanged(string propertyName, IDataState dataState)
         {
-            if (!dataRefreshTriggers.Contains(propertyName))
+            if (!dataRefreshTriggers.Contains(propertyName) || ActiveMainContentView != Utilities.ViewCatalog.MainContentView.Settings)
             {
                 return false;
             }

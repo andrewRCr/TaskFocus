@@ -273,6 +273,7 @@ namespace TaskFocusDesktop.ViewModels
         public async Task HandleLogIn()
         {
             NotifyOfPropertyChange(() => IsUserLoggedIn);
+            _appState.IsAuthenticated = true;
             await _dataService.FetchAllRemoteData();
 
             TopWidgetPanel = IoC.Get<AuthWidgetViewModel>();
@@ -286,6 +287,7 @@ namespace TaskFocusDesktop.ViewModels
         public async Task HandleLogOut()
         {
             NotifyOfPropertyChange(() => IsUserLoggedIn);
+            _appState.IsAuthenticated = false;
             _appState.ShouldAutoLogin = false;
 
             TopWidgetPanel = IoC.Get<LoginWidgetViewModel>();

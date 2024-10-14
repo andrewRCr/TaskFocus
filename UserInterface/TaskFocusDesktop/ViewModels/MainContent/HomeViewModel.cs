@@ -24,10 +24,23 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             }
         }
 
+        private bool _showNotAuthenticatedMessage;
+        public bool ShowNotAuthenticatedMessage
+        {
+            get { return _showNotAuthenticatedMessage; }
+            set 
+            { 
+                _showNotAuthenticatedMessage = value; 
+                NotifyOfPropertyChange(() => ShowNotAuthenticatedMessage);
+            }
+        }
+
         public HomeViewModel(IEventAggregator events, IAppState appState) : base(events, appState)
         {
             _events = events;
             _events.SubscribeOnPublishedThread(this);
+
+            ShowNotAuthenticatedMessage = !_appState.IsAuthenticated;
         }
 
         Task IHandle<LoginNotifyEvent>.HandleAsync(LoginNotifyEvent message, CancellationToken cancellationToken)

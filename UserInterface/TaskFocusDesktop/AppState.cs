@@ -22,5 +22,16 @@ namespace TaskFocusDesktop
                 AppStateChanged?.Invoke(nameof(ShouldAutoLogin), this);
             }
         }
+
+        private bool _isAuthenticated;
+        public bool IsAuthenticated
+        {
+            get { return _isAuthenticated; }
+            set 
+            { 
+                _isAuthenticated = value;
+                AppStateChanged?.Invoke(nameof(IsAuthenticated), this);
+            }
+        }
     }
 }

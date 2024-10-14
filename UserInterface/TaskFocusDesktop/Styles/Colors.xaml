@@ -37,4 +37,7 @@
     <Color x:Key="ErrorRedSecondary">#543c44</Color>
     <SolidColorBrush x:Key="ErrorRedSecondaryBrush" Color="{StaticResource ErrorRedSecondary}" />
 
+    <Color x:Key="WindowsFrame">#646464</Color>
+    <SolidColorBrush x:Key="WindowsFrameBrush" Color="{StaticResource WindowsFrame}" />
+
 </ResourceDictionary>
