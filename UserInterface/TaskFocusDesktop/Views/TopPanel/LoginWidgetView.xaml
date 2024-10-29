@@ -135,11 +135,15 @@
             <Button x:Name="Login" 
                     Grid.Column="1"                     
                     Margin="10 0 0 10" 
-                    Padding="5 5 5 5"
+                    Padding="8 8 8 8"
+                    FontSize="12"
                     HorizontalAlignment="Center" 
+                    VerticalAlignment="Center"
+                    Background="{StaticResource ForegroundHighlightBrush}"
+                    Style="{StaticResource MaterialDesignFlatButton}"
                     Foreground="{StaticResource ForegroundMainBrush}"
                     IsEnabled="{Binding EnableLoginFormControls}" >
-                Log In
+                LOGIN
             </Button>
 
         </StackPanel>

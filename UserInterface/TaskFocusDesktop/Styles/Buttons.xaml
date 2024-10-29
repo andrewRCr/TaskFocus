@@ -82,6 +82,39 @@
         </Setter>
     </Style>
 
+    <!-- hyperlink-style text button -->
+    <Style TargetType="Button" x:Key="HyperlinkStyleButton">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    
+                    <Border Padding="{TemplateBinding Padding}" Background="{TemplateBinding Background}">
+                        <TextBlock x:Name="textBlock" FontSize="14">
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center" />
+                        </TextBlock>
+                    </Border>
+
+                    <ControlTemplate.Triggers>
+
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="textBlock" Property="TextDecorations" Value="Underline"/>
+                            <Setter TargetName="textBlock" Property="Foreground" Value="{StaticResource ForegroundSecondaryBrush}" />
+                        </Trigger>
+
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="textBlock" Property="Foreground" Value="{StaticResource ForegroundMainBrush}"/>
+                        </Trigger>
+
+                    </ControlTemplate.Triggers>
+
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- menu/min/max title bar buttons -->
     <Style TargetType="Button" x:Key="WindowControlButton" BasedOn="{StaticResource BaseStyle}">
         <Setter Property="WindowChrome.IsHitTestVisibleInChrome" Value="True" />

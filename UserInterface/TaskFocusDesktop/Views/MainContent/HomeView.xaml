@@ -68,12 +68,14 @@
 
                 <StackPanel Orientation="Vertical"
                             Visibility="{Binding ShowPleaseWaitLoginMessage, 
-                            Converter={StaticResource InvertableBooleanToVisibilityConverter}, 
-                            ConverterParameter=Inverted, FallbackValue=Collapsed}" >
+                                         Converter={StaticResource InvertableBooleanToVisibilityConverter}, 
+                                         ConverterParameter=Inverted, FallbackValue=Collapsed}" >
 
                     <TextBlock FontSize="14"                
                                Margin="0 4 0 0"
-                               Visibility="{Binding ShowNotAuthenticatedMessage, FallbackValue=Collapsed}"
+                               Visibility="{Binding ShowNotAuthenticatedMessage, 
+                                            Converter={StaticResource BooleanToVisibilityConverter},
+                                            FallbackValue=Collapsed}"
                                HorizontalAlignment="Center"
                                VerticalAlignment="Center" 
                                utilities:TextBlockHelper.TrimRuns="True">

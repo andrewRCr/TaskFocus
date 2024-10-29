@@ -14,30 +14,35 @@
                     VerticalAlignment="Center"
                     Margin="0 0 50 0">
 
-            <TextBlock HorizontalAlignment="Center"
-                       VerticalAlignment="Center"
-                       Margin="0 0 20 0" 
-                       Text="{Binding UserEmailAddressStr}" />
-           
+            <Button HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Margin="0 0 15 0"
+                    Style="{StaticResource HyperlinkStyleButton}"
+                    Foreground="{StaticResource ForegroundHighlightBrush}"
+                    Content="{Binding UserEmailAddressStr}"
+                    Command="{Binding SwitchToSettingsViewCommand}"                   
+                    />
+
             <materialDesign:PackIcon Kind="Logout"
                                      Grid.Column="1" 
+                                     Foreground="{StaticResource ForegroundMainBrush}"
                                      VerticalAlignment="Center"
                                      Margin="0 0 10 0"
+                                     Height="24"
+                                     Width="24"
                                      />
 
             <Button x:Name="LogOut"
                     Grid.Column="2" 
+                    Style="{StaticResource HyperlinkStyleButton}"
                     VerticalAlignment="Center"
-                    Foreground="{StaticResource ForegroundMainBrush}"
+                    Foreground="{StaticResource ForegroundHighlightBrush}"
+                    
                     >
                 Log Out
             </Button>
-            
-                
- 
+
         </StackPanel>
-
-
 
     </Grid>
 </UserControl>
