@@ -90,7 +90,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    
+
                     <Border Padding="{TemplateBinding Padding}" Background="{TemplateBinding Background}">
                         <TextBlock x:Name="textBlock" FontSize="14">
                             <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center" />
@@ -113,6 +113,20 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+    </Style>
+    
+    <!-- actual hyperlinks -->
+    <Style TargetType="Hyperlink" x:Key="HyperLinkStyle">
+        <Setter Property="TextDecorations" Value="None"/>
+        <Setter Property="Foreground" Value="{StaticResource ForegroundHighlightBrush}" />
+
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="TextDecorations" Value="Underline"/>
+                <Setter Property="Foreground" Value="{StaticResource ForegroundSecondaryBrush}" />
+            </Trigger>
+        </Style.Triggers>
+
     </Style>
 
     <!-- menu/min/max title bar buttons -->

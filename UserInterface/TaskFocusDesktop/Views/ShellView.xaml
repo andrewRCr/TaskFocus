@@ -177,7 +177,8 @@
                                 Grid.Column="0"
                                 Grid.Row="2">
 
-                        <Menu Template="{StaticResource MiniNavMenu_Template}" />
+                        <Menu IsEnabled="{Binding IsUserLoggedIn}" 
+                              Template="{StaticResource MiniNavMenu_Template}" />
 
                     </StackPanel>
 
@@ -219,9 +220,7 @@
                     <Menu Grid.Column="0"
                           Grid.Row="3" 
                           VerticalAlignment="Bottom"
-                          Visibility="{Binding IsUserLoggedIn, 
-                                       Converter={StaticResource BooleanToVisibilityConverter}, 
-                                       FallbackValue=Visible}">
+                          IsEnabled="{Binding IsUserLoggedIn}" >
 
                         <MenuItem Header="Settings" 
                                     Command="{Binding SwitchToSettingsViewCommand}"
@@ -294,26 +293,6 @@
                                                  Foreground="{StaticResource ForegroundMainBrush}"
                                                  />
                     </customControls:CircularButton>
-
-                    <!--<Button Style="{StaticResource MaterialDesignIconButton}"
-                            x:Name="NewTaskButton" 
-                            Visibility="{Binding IsUserLoggedIn, 
-                                        Converter={StaticResource BooleanToVisibilityConverter}, 
-                                        FallbackValue=Visible}"
-                            IsEnabled="{Binding IsUserLoggedIn}"
-                            Grid.Column="2"                                                  
-                            Grid.Row="3" 
-                            HorizontalAlignment="Left" 
-                            Margin="25 10 0 10"
-                            Command="{Binding OpenNewTaskDialogCommand}"
-                            
-                            >
-                        <materialDesign:PackIcon Kind="Plus"
-                                                 
-                                                 Foreground="{StaticResource ForegroundMainBrush}"
-                                                 />
-
-                    </Button>-->
 
                 </Grid>
 
