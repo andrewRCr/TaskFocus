@@ -1,4 +1,5 @@
 ﻿using Caliburn.Micro;
+using System;
 using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
@@ -88,7 +89,7 @@ namespace TaskFocusDesktop.ViewModels.Base
         protected async Task RequestExitSubNavMenu()
         {
             await RequestSidePanelViewSwitch(ViewCatalog.SidePanelView.NavMenu);
-            await RequestMainContentViewSwitch(ViewCatalog.MainContentView.Home);
+            //await RequestMainContentViewSwitch(ViewCatalog.MainContentView.Home);
         }
     }
 }

@@ -6,9 +6,21 @@
 <MudSnackbarProvider />
 
 <MudLayout>
+
+    <!-- top app bar; logo + menu drawer toggle (if authenticated); login or auth widget -->
     <MudAppBar Elevation="0">
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+        <AuthorizeView>
+            <Authorized>
+                <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+            </Authorized>
+            <NotAuthorized>
+                <MudIcon Icon="@Icons.Material.Filled.OfflinePin" Color="Color.Primary" Class="mr-3" />
+                <MudText Color="Color.Primary" Typo="Typo.h6" Style="font-family:Bahnschrift; font-weight:700; font-size:x-large;">TaskFocus</MudText>
+            </NotAuthorized>
+        </AuthorizeView>
+        
         <MudSpacer />
+
         <AuthorizeView>
             <Authorized>
                 <AuthWidget />
@@ -19,20 +31,37 @@
         </AuthorizeView>
     </MudAppBar>
 
-    <MudDrawer @bind-Open="@_drawerOpen" Elevation="25" Width="300px" Variant="@DrawerVariant.Responsive" Breakpoint="Breakpoint.Md" PreserveOpenState="true">
-            <MudDrawerHeader Class="d-flex align-center">
-                <MudIcon Icon="@Icons.Material.Filled.OfflinePin" Color="Color.Primary" Class="mr-3" />
-                <MudText Color="Color.Primary" Typo="Typo.h6" Style="font-family:Bahnschrift; font-weight:700; font-size:x-large;">TaskFocus</MudText>
-        </MudDrawerHeader>
-        <NavMenuContainer />
-    </MudDrawer>
+    <!-- menu drawer; only visible if authenticated-->
+    <AuthorizeView>
+        <Authorized>
+            <MudDrawer @bind-Open="@_drawerOpen" Elevation="25" Width="300px" Variant="@DrawerVariant.Responsive" Breakpoint="Breakpoint.Md" PreserveOpenState="true">
+                <MudDrawerHeader Class="d-flex align-center">
+                    <MudIcon Icon="@Icons.Material.Filled.OfflinePin" Color="Color.Primary" Class="mr-3" />
+                    <MudText Color="Color.Primary" Typo="Typo.h6" Style="font-family:Bahnschrift; font-weight:700; font-size:x-large;">TaskFocus</MudText>
+                </MudDrawerHeader>
+                <NavMenuContainer />
+            </MudDrawer>
+        </Authorized>
+    </AuthorizeView>
 
+    <!-- body positioning; different if drawer visible (offset) -->
     <MudMainContent>
-        <div class="col-12  col-xxl-10" style="margin-left: 8px;" >
-            @Body
-        </div>
+        <AuthorizeView>
+            <Authorized>
+                <div class="col-12  col-xxl-10" style="margin-left: 8px;" >
+                    @Body
+                </div>
+            </Authorized>
+
+            <NotAuthorized>
+                <div class="col-12">
+                    @Body
+                </div>
+            </NotAuthorized>
+        </AuthorizeView>
     </MudMainContent>
 
+    <!-- global add new task component (+ button) -->
     <AuthorizeView>
         <Authorized>
             @if (DataState.IsDataLoaded()) { <AddNewTaskComponent /> }
@@ -58,7 +87,6 @@
         {
             PaletteDark = new PaletteDark()
             {
-                // Primary = Colors.Blue.Default,
                 Background = "#27272f"
         },
     };

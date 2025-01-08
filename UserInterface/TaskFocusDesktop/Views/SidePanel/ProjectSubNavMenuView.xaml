@@ -127,7 +127,10 @@
                     Orientation="Horizontal" 
                     HorizontalAlignment="Left"                       
                     Margin="20,0,0,0"
-                    Width="200" >
+                    Width="200" 
+                    MouseEnter="StackPanel_MouseEnter"
+                    MouseLeave="StackPanel_MouseLeave"
+                    >
 
             <customControls:CircularButton Command="{Binding RequestAddNewProjectDialogCommand}"
                                            FocusEllipseHoverColor="{StaticResource ForegroundHighlightSecondaryBrush}"
@@ -137,22 +140,24 @@
                                            Width="32"    
                                                >
 
-                <materialDesign:PackIcon Kind="Plus" 
+                    <materialDesign:PackIcon Kind="Plus" 
                                              Height="22"
                                              Width="22"
                                              HorizontalAlignment="Center"
                                              VerticalAlignment="Center"
                                              Foreground="{StaticResource ForegroundHighlightBrush}"  />
 
-            </customControls:CircularButton>
+                </customControls:CircularButton>
 
-            <TextBlock Style="{StaticResource HeaderTextStyle}"
-                               Margin="5 2 0 0"
-                               FontSize="15"
-                               Text="ADD NEW PROJECT"
-                               VerticalAlignment="Center"
+                <TextBlock x:Name="addNewProjectText" 
+                       Style="{StaticResource HeaderTextStyle}"
+                       Visibility="Hidden"
+                       Margin="5 2 0 0"
+                       FontSize="15"
+                       Text="ADD NEW PROJECT"
+                       VerticalAlignment="Center"
                                />
-
+        
         </StackPanel>
 
     </Grid>

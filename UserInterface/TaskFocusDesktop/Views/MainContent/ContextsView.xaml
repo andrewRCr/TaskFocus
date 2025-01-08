@@ -29,20 +29,8 @@
                                          Converter={StaticResource BooleanToVisibilityConverter}, 
                                          FallbackValue=Collapsed}"
                     Orientation="Horizontal"
-                    Margin="10 10 0 15"
-                    >
-
-            <!--<materialDesign:PackIcon Kind="Animation"
-                                     VerticalAlignment="Center"
-                                     Margin="10 0 10 0"
-                                     Foreground="{StaticResource ForegroundMainBrush}"
-                                     Height="24"
-                                     Width="24"
-                                     />-->
-
-            <!--<TextBlock Style="{StaticResource HeaderTextStyle}"
-                       VerticalAlignment="Center" Margin="0 2 0 0"
-                       Text="CONTEXTS" />-->
+                    Margin="10 10 0 15" >
+            
         </StackPanel>
 
         <WrapPanel Grid.Row="1" 

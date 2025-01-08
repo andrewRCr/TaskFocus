@@ -153,5 +153,15 @@ namespace TaskFocusDesktop.Views.SidePanel
                 }
             }
         }
+
+        private void StackPanel_MouseEnter(object sender, MouseEventArgs e)
+        {
+            this.addNewProjectText.Visibility = Visibility.Visible;
+        }
+
+        private void StackPanel_MouseLeave(object sender, MouseEventArgs e)
+        {
+            this.addNewProjectText.Visibility = Visibility.Hidden;
+        }
     }
 }

@@ -123,10 +123,13 @@
 
         <!-- add new context control, row 2 -->
         <StackPanel Grid.Row="2"
-                   Orientation="Horizontal" 
-                   HorizontalAlignment="Left"                       
-                   Margin="20,0,0,0"
-                   Width="200" >
+                    Orientation="Horizontal" 
+                    HorizontalAlignment="Left"                       
+                    Margin="20,0,0,0"
+                    Width="200" 
+                    MouseEnter="StackPanel_MouseEnter"
+                    MouseLeave="StackPanel_MouseLeave"
+                    >
 
             <customControls:CircularButton Command="{Binding RequestAddNewContextDialogCommand}"
                                           FocusEllipseHoverColor="{StaticResource ForegroundHighlightSecondaryBrush}"
@@ -145,12 +148,13 @@
 
             </customControls:CircularButton>
 
-            <TextBlock Style="{StaticResource HeaderTextStyle}"
-                              Margin="5 2 0 0"
-                              FontSize="15"
-                              Text="ADD NEW CONTEXT"
-                              VerticalAlignment="Center"
-                              />
+            <TextBlock x:Name="addNewContextText"
+                       Style="{StaticResource HeaderTextStyle}"
+                       Visibility="Hidden"
+                       Margin="5 2 0 0"
+                       FontSize="15"
+                       Text="ADD NEW CONTEXT"
+                       VerticalAlignment="Center" />
 
         </StackPanel>
 
