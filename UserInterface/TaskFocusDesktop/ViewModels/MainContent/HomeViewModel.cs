@@ -18,7 +18,7 @@ using Windows.UI.Composition;
 
 namespace TaskFocusDesktop.ViewModels.MainContent
 {
-    public class HomeViewModel : ViewModelBase, IHandle<LoginNotifyEvent>
+    public class HomeViewModel : ViewModelBase, IHandle<LoginNotifyEvent>, IHandle<AuthErrorNotifyEvent>, IHandle<UnconfirmedEmailNotifyEvent>
     {
         protected IUserEndpoint _userEndpoint;
         protected const double _alertMsgDisplaySec = 4.0;
@@ -100,6 +100,38 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             }
         }
 
+        private bool _showFeedbackMessage;
+        public bool ShowFeedbackMessage
+        {
+            get { return _showFeedbackMessage; }
+            set
+            {
+                _showFeedbackMessage = value;
+                NotifyOfPropertyChange(() => ShowFeedbackMessage);
+            }
+        }
+
+        private bool _showEmailConfirmLink = false;
+        public bool ShowEmailConfirmLink
+        {
+            get { return _showEmailConfirmLink; }
+            set
+            {
+                _showEmailConfirmLink = value;
+                NotifyOfPropertyChange(() => ShowEmailConfirmLink);
+            }
+        }
+
+        private string _confirmEmailUri = string.Empty;
+        public string ConfirmEmailUri
+        {
+            get { return _confirmEmailUri; }
+            set
+            {
+                _confirmEmailUri = value;
+                NotifyOfPropertyChange(() => ConfirmEmailUri);
+            }
+        }
 
         public HomeViewModel(IEventAggregator events, IAppState appState, IUserEndpoint userEndpoint) : base(events, appState)
         {
@@ -109,6 +141,8 @@ namespace TaskFocusDesktop.ViewModels.MainContent
 
             ShowNotAuthenticatedMessage = !_appState.IsAuthenticated;
             ShowForgotPasswordToggle = !_appState.IsAuthenticated;
+
+            FeedbackMessage = _appState.AlertMessage;
         }
 
         public ICommand ToggleShowForgotPasswordInput => new RelayCommand(execute => ShowForgotPasswordInput = !ShowForgotPasswordInput);
@@ -119,6 +153,38 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             ShowPleaseWaitLoginMessage = true;
             ShowForgotPasswordToggle = false;
             ShowForgotPasswordInput = false;
+            ShowEmailConfirmLink = false;
+            return Task.CompletedTask;
+        }
+
+        Task IHandle<AuthErrorNotifyEvent>.HandleAsync(AuthErrorNotifyEvent message, CancellationToken cancellationToken)
+        {
+            ShowPleaseWaitLoginMessage = false;
+            ShowForgotPasswordInput = false;
+            ShowForgotPasswordToggle = true;
+            ShowEmailConfirmLink = false;
+
+            FeedbackMessage = _appState.AlertMessage;
+            ShowFeedbackMessage = true;
+            IsFeedbackError = true;
+            return Task.CompletedTask;
+        }
+
+        Task IHandle<UnconfirmedEmailNotifyEvent>.HandleAsync(UnconfirmedEmailNotifyEvent message, CancellationToken cancellationToken)
+        {
+            ShowPleaseWaitLoginMessage = false;
+            ShowForgotPasswordInput = false;
+            ShowForgotPasswordToggle = true;
+
+            FeedbackMessage = _appState.AlertMessage;
+            ShowFeedbackMessage = true;
+            IsFeedbackError = true;
+
+
+            string confirmEmailUriBase = "https://taskfocus.azurewebsites.net/unconfirmedemail?email=";
+            ConfirmEmailUri = confirmEmailUriBase + message.Email;
+            ShowEmailConfirmLink = true;
+
             return Task.CompletedTask;
         }
 

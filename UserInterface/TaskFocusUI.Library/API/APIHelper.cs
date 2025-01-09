@@ -53,12 +53,12 @@ namespace TaskFocusUI.Library.API
 
             using (HttpResponseMessage response = await _apiClient.PostAsync("/token", data))
             {
-                if (response.IsSuccessStatusCode)
+                if (!response.IsSuccessStatusCode) { return null; }
+                else
                 {
                     var result = await response.Content.ReadAsAsync<AuthenticatedUser>();
                     return result;
                 }
-                else { throw new Exception(response.ReasonPhrase); }
             }
         }
 

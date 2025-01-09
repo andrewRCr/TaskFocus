@@ -25,76 +25,103 @@
     </LoaderContent>
 
     <ChildContent>
-        <div class="mx-auto text-center mt-6">
 
-            <MudContainer Class="d-flex align-center justify-center mud-width-full" >
-            <!-- header -->
-                <MudIcon Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Primary" Class="mr-3" />
-                <MudText Color="Color.Primary" Typo="Typo.button">Create new account</MudText>
-            </MudContainer>
+            <AuthorizeView>
+                <Authorized>
 
-            <MudContainer Class="d-flex align-center justify-center mud-width-full" >
+                <MudContainer MaxWidth="MaxWidth.ExtraSmall" Class="mt-6">
 
-            <MudForm @ref="_registerForm" @bind-IsValid="@_success" @bind-Errors="@_errors" Model="userModel">
+                <MudText Typo="Typo.button" Color="Color.Primary">
+                    Register New Account
+                </MudText>
 
-                <MudTextField T="string"
-                              @bind-Value="userModel.FirstName"
-                              Label="First Name"
-                              Style="width: 350px;"
-                              Validation="@(new Func<string, IEnumerable<string>>(FirstNameValidator))" />
+                    <MudPaper Elevation="25" Class="mt-2">
+                        <MudText Class="pt-4 px-4 pb-4 text-center">
+                                Please <MudLink Href="logout">logout</MudLink> of your existing account before registering a new one.
+                        </MudText>
 
-                <MudTextField T="string"
-                              @bind-Value="userModel.LastName"
-                              Label="Last Name"
-                              Style="width: 350px;"
-                              Validation="@(new Func<string, IEnumerable<string>>(LastNameValidator))" />
+                    </MudPaper>
 
-                <MudTextField T="string"
-                              @bind-Value="userModel.Email"
-                              Label="Email address"
-                              Style="width: 350px;"
-                              Validation="@(new EmailAddressAttribute() {ErrorMessage = "Please provide a valid email address."})" />
+                </MudContainer>
 
-                <MudTextField T="string"
-                              Label="Password"
-                              @bind-Value="userModel.Password"
-                              @ref="_pwField1"
-                              Style="width: 350px;"
-                              InputType="@_passwordInput"
-                              Adornment="Adornment.End"
-                              AdornmentIcon="@_passwordInputIcon"
-                              OnAdornmentClick="ToggleShowPassword"
-                              AdornmentAriaLabel="Show Password"
-                              Validation="@(new Func<string, IEnumerable<string>>(PasswordStrength))" />
+                </Authorized>
 
-                <MudTextField T="string"
-                              Label="Confirm Password"
-                              @bind-Value="userModel.ConfirmPassword"
-                              InputType="@_passwordInput"
-                              Style="width: 350px;"
-                              Adornment="Adornment.End"
-                              AdornmentIcon="@_passwordInputIcon"
-                              OnAdornmentClick="ToggleShowPassword"
-                              AdornmentAriaLabel="Show Confirm Password"
-                              Validation="@(new Func<string, string?>(PasswordMatch))" />
+                <NotAuthorized>
 
-                <MudButton Variant="Variant.Filled"
-                           Color="Color.Primary"
-                           Disabled="@(!_success)"
-                           Class="ml-auto mt-9"
-                           OnClick="(() => SubmitRegisterForm())">
-                    Register
-                </MudButton>
-                <MudButton Variant="Variant.Outlined"
-                           Color="Color.Inherit"
-                           DisableElevation="true"
-                           OnClick="@(()=>_registerForm.ResetAsync())"
-                           Class="mx-2 mt-9">
-                    Reset
-                </MudButton>
-            </MudForm>
-            </MudContainer>
-        </div>
+                <div class="mx-auto text-center mt-6">
+
+                    <MudContainer Class="d-flex align-center justify-center mud-width-full">
+                        <!-- header -->
+                        <MudIcon Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Primary" Class="mr-3" />
+                        <MudText Color="Color.Primary" Typo="Typo.button">Create new account</MudText>
+                    </MudContainer>
+
+                    <MudContainer Class="d-flex align-center justify-center mud-width-full">
+
+                        <MudForm @ref="_registerForm" @bind-IsValid="@_success" @bind-Errors="@_errors" Model="userModel">
+
+                            <MudTextField T="string"
+                                          @bind-Value="userModel.FirstName"
+                                          Label="First Name"
+                                          Style="width: 350px;"
+                                          Validation="@(new Func<string, IEnumerable<string>>(FirstNameValidator))" />
+
+                            <MudTextField T="string"
+                                          @bind-Value="userModel.LastName"
+                                          Label="Last Name"
+                                          Style="width: 350px;"
+                                          Validation="@(new Func<string, IEnumerable<string>>(LastNameValidator))" />
+
+                            <MudTextField T="string"
+                                          @bind-Value="userModel.Email"
+                                          Label="Email address"
+                                          Style="width: 350px;"
+                                          Validation="@(new EmailAddressAttribute() {ErrorMessage = "Please provide a valid email address."})" />
+
+                            <MudTextField T="string"
+                                          Label="Password"
+                                          @bind-Value="userModel.Password"
+                                          @ref="_pwField1"
+                                          Style="width: 350px;"
+                                          InputType="@_passwordInput"
+                                          Adornment="Adornment.End"
+                                          AdornmentIcon="@_passwordInputIcon"
+                                          OnAdornmentClick="ToggleShowPassword"
+                                          AdornmentAriaLabel="Show Password"
+                                          Validation="@(new Func<string, IEnumerable<string>>(PasswordStrength))" />
+
+                            <MudTextField T="string"
+                                          Label="Confirm Password"
+                                          @bind-Value="userModel.ConfirmPassword"
+                                          InputType="@_passwordInput"
+                                          Style="width: 350px;"
+                                          Adornment="Adornment.End"
+                                          AdornmentIcon="@_passwordInputIcon"
+                                          OnAdornmentClick="ToggleShowPassword"
+                                          AdornmentAriaLabel="Show Confirm Password"
+                                          Validation="@(new Func<string, string?>(PasswordMatch))" />
+
+                            <MudButton Variant="Variant.Filled"
+                                       Color="Color.Primary"
+                                       Disabled="@(!_success)"
+                                       Class="ml-auto mt-9"
+                                       OnClick="(() => SubmitRegisterForm())">
+                                Register
+                            </MudButton>
+                            <MudButton Variant="Variant.Outlined"
+                                       Color="Color.Inherit"
+                                       DisableElevation="true"
+                                       OnClick="@(()=>_registerForm.ResetAsync())"
+                                       Class="mx-2 mt-9">
+                                Reset
+                            </MudButton>
+                        </MudForm>
+                    </MudContainer>
+
+                </div>
+
+                </NotAuthorized>
+            </AuthorizeView>
 
     </ChildContent>
 </MudLoading>

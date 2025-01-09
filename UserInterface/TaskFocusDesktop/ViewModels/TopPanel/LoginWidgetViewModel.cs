@@ -10,6 +10,7 @@ using System.Windows;
 using TaskFocusDesktop.EventModels;
 using TaskFocusDesktop.ViewModels.Base;
 using TaskFocusUI.Library.API;
+using TaskFocusUI.Library.Models;
 using Windows.Security.Credentials;
 
 namespace TaskFocusDesktop.ViewModels.TopPanel
@@ -20,15 +21,17 @@ namespace TaskFocusDesktop.ViewModels.TopPanel
         private string _password = string.Empty;
         private IAPIHelper _apiHelper;
         protected IWindowManager _window;
+        protected IUserEndpoint _userEndpoint;
         private string? _errorMessage;
         private string _resourceName = "TaskFocus";
         private string? _defaultUserName;
         private bool _storedCredentialsWereFound = false;
 
-        public LoginWidgetViewModel(IAPIHelper aPIHelper, IWindowManager window, IEventAggregator events, IAppState appState) : base(events, appState)
+        public LoginWidgetViewModel(IAPIHelper aPIHelper, IWindowManager window, IEventAggregator events, IAppState appState, IUserEndpoint userEndpoint) : base(events, appState)
         {
             _apiHelper = aPIHelper;
             _window = window;
+            _userEndpoint = userEndpoint;
         }
 
         private bool _enableLoginFormControls;
@@ -97,28 +100,62 @@ namespace TaskFocusDesktop.ViewModels.TopPanel
             {
                 ErrorMessage = null;
                 EnableLoginFormControls = false;
-                // raise show login notify message event for home view to handle
+                // raise show login notify message event for home view to handle (auth processing, please wait...)
                 await _events.PublishOnUIThreadAsync(new LoginNotifyEvent());
-                // log in
-                var result = await _apiHelper.AuthenticateAsync(Username, Password);
-                // capture user info
-                await _apiHelper.GetLoggedInUserInfoAsync(result.AccessToken);
 
-                // save the credential to the credential manager
-                if (!_storedCredentialsWereFound)
+                // run pre-login checks
+                UserModel attemptLoginUserModel = new UserModel { Email = Username };
+                bool exists = await _userEndpoint.CheckUserExists(attemptLoginUserModel);
+                if (!exists)
                 {
-                    var vault = new Windows.Security.Credentials.PasswordVault();
-                    vault.Add(new Windows.Security.Credentials.PasswordCredential(
-                        _resourceName, Username, Password));
+                    _appState.AlertMessage = "No matching user found.";
+                    EnableLoginFormControls = true;
+                    await _events.PublishOnUIThreadAsync(new AuthErrorNotifyEvent());
                 }
+                else
+                {
+                    bool confirmed = await _userEndpoint.CheckUserEmailConfirmed(attemptLoginUserModel);
+                    if (!confirmed)
+                    {
+                        _appState.AlertMessage = "Please confirm your email address before logging in.";
+                        await _events.PublishOnUIThreadAsync(new UnconfirmedEmailNotifyEvent(attemptLoginUserModel.Email));
+                    }
+                    else
+                    {
+                        // attempt log in
+                        var result = await _apiHelper.AuthenticateAsync(Username, Password);
+                        if (result == null)
+                        {
+                            _appState.AlertMessage = "There was an error when attempting to log in. Please try again.";
+                            EnableLoginFormControls = true;
+                            await _events.PublishOnUIThreadAsync(new AuthErrorNotifyEvent());
+                        }
+                        else
+                        {
+                            // capture user info
+                            await _apiHelper.GetLoggedInUserInfoAsync(result.AccessToken);
 
-                // raise auth status log on event for shell view to handle
-                await _events.PublishOnUIThreadAsync(new AuthStatusChangedEvent(true));
+                            // save the credential to the credential manager
+                            if (!_storedCredentialsWereFound)
+                            {
+                                var vault = new Windows.Security.Credentials.PasswordVault();
+                                vault.Add(new Windows.Security.Credentials.PasswordCredential(
+                                    _resourceName, Username, Password));
+                            }
+
+                            // raise auth status log on event for shell view to handle
+                            await _events.PublishOnUIThreadAsync(new AuthStatusChangedEvent(true));
+                        }
+                    }
+                }
             }
             catch (Exception ex)
             {
                 ErrorMessage = ex.Message;
                 EnableLoginFormControls = true;
+
+                Console.WriteLine(ex.Message.ToString());
+                _appState.AlertMessage = ex.Message;
             }
         }
 

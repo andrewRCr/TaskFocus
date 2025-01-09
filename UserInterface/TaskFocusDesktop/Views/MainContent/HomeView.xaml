@@ -49,15 +49,6 @@
                 <StackPanel Orientation="Vertical"
                         VerticalAlignment="Center">
 
-                    <!--<TextBlock Style="{StaticResource messageTextStyle}"
-                           HorizontalAlignment="Center"
-                           VerticalAlignment="Center" >
-                        <TextBlock.Inlines>
-                            <Run Text="Welcome to" />
-                            <Run Text="TaskFocus" Foreground="{StaticResource ForegroundHighlightBrush}" />
-                        </TextBlock.Inlines>
-                    </TextBlock>-->
-
                     <StackPanel Orientation="Vertical"
                             Visibility="{Binding ShowPleaseWaitLoginMessage, 
                             Converter={StaticResource BooleanToVisibilityConverter}, 
@@ -202,6 +193,9 @@
             </StackPanel>
 
             <TextBlock Text="{Binding FeedbackMessage}"
+                       Visibility="{Binding ShowFeedbackMessage,
+                                            Converter={StaticResource BooleanToVisibilityConverter},
+                                            FallbackValue=Visible}"
                        HorizontalAlignment="Center"
                        Margin="0 3 0 0"
                        >
@@ -224,6 +218,18 @@
                 </TextBlock.Style>
                 
             </TextBlock>
+
+            <TextBlock Visibility="{Binding ShowEmailConfirmLink,
+                                            Converter={StaticResource BooleanToVisibilityConverter},
+                                            FallbackValue=Visible}"
+                       HorizontalAlignment="Center"
+                       Margin="0 3 0 0">
+                
+                            <Hyperlink Style="{StaticResource HyperLinkStyle}"
+                                        NavigateUri="{Binding ConfirmEmailUri}"
+                                        RequestNavigate="Hyperlink_RequestNavigate">CONFIRM EMAIL</Hyperlink>
+            </TextBlock>
+            
         </StackPanel>
        
 

@@ -33,5 +33,16 @@ namespace TaskFocusDesktop
                 AppStateChanged?.Invoke(nameof(IsAuthenticated), this);
             }
         }
+
+        private string _alertMessage = string.Empty;
+        public string AlertMessage
+        {
+            get { return _alertMessage; }
+            set
+            {
+                _alertMessage = value;
+                AppStateChanged?.Invoke(nameof(AlertMessage), this);
+            }
+        }
     }
 }
