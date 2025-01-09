@@ -1,0 +1,17 @@
+﻿@page "/attemptlogin"
+
+<PageTitle>TaskFocus</PageTitle>
+
+<MudLoading @bind-Loading="_loading">
+    <LoaderContent>
+        <div class="mx-auto text-center mt-3">
+            <MudProgressLinear Class="mb-3" Color="Color.Primary" Indeterminate="true" />
+            <MudText Typo="Typo.button" Class="mt-3">Authenticating, please wait...</MudText>
+        </div>
+    </LoaderContent>
+</MudLoading>
+
+@code {
+
+        private bool _loading = true;
+}

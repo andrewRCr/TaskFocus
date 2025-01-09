@@ -46,11 +46,10 @@
             <MudItem Class="col-auto mr-2">
 
                 <MudLoadingButton @bind-Loading="_working"
-                                  LoadingAdornment="Adornment.Start" 
-                                  LoadingCircularColor="Color.Primary"  
-                                  Variant="Variant.Filled" 
+                                  LoadingAdornment="Adornment.None"
+                                  Variant="Variant.Filled"
                                   Color="Color.Primary"
-                                  OnClick="ValidateAndExecute" >
+                                  OnClick="ValidateAndExecute">
                     Login
                 </MudLoadingButton>
                     
@@ -85,6 +84,9 @@
     {
         _working = true;
 
+        // display AuthProcessing loading screen
+        NavManager.NavigateTo("/attemptlogin");
+
         await _loginForm.Validate();
         if (_loginForm.IsValid)
         {
@@ -93,7 +95,9 @@
         else 
         { 
             _working = false;
-            AppState.ShowLoginError(); 
+            AppState.ShowGenericLoginError(); 
+            // return to Home view (from AuthProcessing) to see auth error
+            NavManager.NavigateTo("/");
         }
     }
 
@@ -105,6 +109,8 @@
         {
             AppState.AlertSeverity = MudBlazor.Severity.Warning;
             AppState.AlertMessage = "No matching user found.";
+            // return to Home view (from AuthProcessing) to see auth error 
+            NavManager.NavigateTo("/");
         }
         else
         {
@@ -122,7 +128,12 @@
                     AppState.ClearAlertMessage();
                     NavManager.NavigateTo("/inbox");
                 }
-                else { AppState.ShowLoginError(); }
+                else
+                {
+                    // return to Home view (from AuthProcessing) to see auth error
+                    AppState.ShowGenericLoginError();
+                    NavManager.NavigateTo("/");
+                }
             }
         }
 
