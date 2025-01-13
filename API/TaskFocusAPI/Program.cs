@@ -7,6 +7,8 @@ using System.Text;
 using TaskFocusAPI.Data;
 using TaskFocusAPI.Library.Utilities;
 using TaskFocusAPI.Library.DataAccess;
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
 
 namespace TaskFocusAPI
 {
@@ -61,7 +63,11 @@ namespace TaskFocusAPI
             })
                 .AddJwtBearer("JwtBearer", jwtBearerOptions =>
                 {
-                    string? securityKey = builder.Configuration.GetValue<string>("Secrets:JwtSecurityKey");
+                    // pull security key from key vault
+                    string? securityKey = null;
+                    string keyVaultUrl = builder.Configuration.GetValue<string>("AzureKeyVaultUrl")!;
+                    var secretsClient = new SecretClient(new Uri(keyVaultUrl), new DefaultAzureCredential());
+                    securityKey = secretsClient.GetSecret("JwtSecurityKey").Value.Value;
 
                     if (securityKey != null)
                     {

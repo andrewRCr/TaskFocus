@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -66,7 +68,11 @@ namespace TaskFocusAPI.Controllers
                     claims.Add(new Claim(ClaimTypes.Role, role.Name));
                 }
 
-                string? securityKey = _config.GetValue<string>("Secrets:JwtSecurityKey");
+                // pull security key from key vault
+                string? securityKey = null;
+                string keyVaultUrl = _config["AzureKeyVaultUrl"]!;
+                var secretsClient = new SecretClient(new Uri(keyVaultUrl), new DefaultAzureCredential());
+                securityKey = secretsClient.GetSecret("JwtSecurityKey").Value.Value;
 
                 if (securityKey != null)
                 {
