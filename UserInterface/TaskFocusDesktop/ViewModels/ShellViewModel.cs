@@ -461,7 +461,7 @@ namespace TaskFocusDesktop.ViewModels
                     break;
 
                 case ViewCatalog.DialogView.ChangePasswordDialog:
-                    dialogVM = new ChangePasswordDialogViewModel(
+                   extendedDialogVM = new ChangePasswordDialogViewModel(
                         _events, _appState, dummyWindow, _dataState, _dataService, _dataHelper, _userEndpoint, _apiHelper, _loggedInUser);
                     break;
 

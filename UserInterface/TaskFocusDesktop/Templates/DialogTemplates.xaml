@@ -313,9 +313,9 @@
     </DataTemplate>
 
     <!-- ChangePassword address dialog -->
-    <DataTemplate DataType="{x:Type dialogs:ChangePasswordDialogViewModel}" >
+    <!--<DataTemplate DataType="{x:Type dialogs:ChangePasswordDialogViewModel}" >
 
-        <!--<ContentPresenter Content="{StaticResource AddNewCollectionContent}" />-->
+        --><!--<ContentPresenter Content="{StaticResource AddNewCollectionContent}" />--><!--
 
         <Grid Margin="10" Width="400" Height="250" >
             <Grid.RowDefinitions>
@@ -324,7 +324,7 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <!-- header -->
+            --><!-- header --><!--
             <StackPanel Grid.Row="0" Orientation="Horizontal"   Margin="0,0,0,5">
                 <materialDesign:PackIcon Kind="ClipboardText" 
                                     Width="22" 
@@ -341,7 +341,7 @@
 
             </StackPanel>
 
-            <!-- text input and feedback message -->
+            --><!-- text input and feedback message --><!--
             <StackPanel Grid.Row="1" 
                        Margin="0 10 0 0"
                        Orientation="Vertical" 
@@ -349,12 +349,19 @@
 
                 <Grid >
 
-                    <TextBox x:Name="newPasswordInputField"
+                    <PasswordBox x:Name="newPasswordInputField" 
+                                 Width="275" 
+                                 Margin="0 10 0 5"
+                                 HorizontalAlignment="Center"
+                                 FontSize="14"
+                                 IsEnabled="True"/>
+
+                    --><!--<TextBox x:Name="newPasswordInputField"
                         Text="{Binding NewPassword}" 
                         FontSize="14"
                         Width="275"
                         Margin="0 10 0 5"
-                        HorizontalAlignment="Center" />
+                        HorizontalAlignment="Center" />--><!--
 
                     <TextBlock x:Name="placeholderText" 
                           IsHitTestVisible="False"
@@ -371,12 +378,19 @@
 
                 <Grid >
 
-                    <TextBox x:Name="confirmNewPasswordInputField"
+                    <PasswordBox x:Name="confirmNewPasswordInputField" 
+                                 Width="275" 
+                                 Margin="0 10 0 5"
+                                 HorizontalAlignment="Center"
+                                 FontSize="14"
+                                 IsEnabled="True"/>
+
+                    --><!--<TextBox x:Name="confirmNewPasswordInputField"
                         Text="{Binding ConfirmNewPassword}" 
                         FontSize="14"
                         Width="275"
                         Margin="0 10 0 5"
-                        HorizontalAlignment="Center" />
+                        HorizontalAlignment="Center" />--><!--
 
                     <TextBlock x:Name="confirmPlaceholderText" 
                           IsHitTestVisible="False"
@@ -397,7 +411,7 @@
 
             </StackPanel>
 
-            <!-- submit / cancel buttons -->
+            --><!-- submit / cancel buttons --><!--
             <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" >
 
                 <Button Content="_CANCEL"
@@ -435,8 +449,8 @@
                 </MultiDataTrigger.Setters>
             </MultiDataTrigger>
 
-        </DataTemplate.Triggers>
+        </DataTemplate.Triggers>-->
 
-    </DataTemplate>
+    <!--</DataTemplate>-->
 
 </ResourceDictionary>

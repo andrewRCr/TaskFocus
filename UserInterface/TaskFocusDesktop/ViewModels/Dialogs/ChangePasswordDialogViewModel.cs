@@ -2,8 +2,11 @@
 using MaterialDesignThemes.Wpf;
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Windows;
+using TaskFocusDesktop.EventModels;
 using TaskFocusDesktop.ViewModels.Base;
 using TaskFocusUI.Library;
 using TaskFocusUI.Library.API;
@@ -41,7 +44,6 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
             }
         }
 
-
         public ChangePasswordDialogViewModel(IEventAggregator events,
                                              IAppState appState,
                                              IWindowManager window,
@@ -56,22 +58,6 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
             _apiHelper = apiHelper;
             _loggedInUser = loggedInUser;
             HeaderText = "CHANGE PASSWORD";
-        }
-
-        protected override void OnViewLoaded(object view)
-        {
-            base.OnViewLoaded(view);
-            LoadLocalUserData();
-        }
-
-        protected void LoadLocalUserData()
-        {
-            if (_dataState.IsDataLoaded() && _dataState.CurrentUser != null)
-            {
-                _authUserModel.FirstName = _dataState.CurrentUser.FirstName;
-                _authUserModel.LastName = _dataState.CurrentUser.LastName;
-                _authUserModel.Email = _dataState.CurrentUser.Email;
-            }
         }
 
         protected override void CloseDialog()
@@ -126,47 +112,62 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
             {
                 try
                 {
+                    _authUserModel.FirstName = _loggedInUser.FirstName;
+                    _authUserModel.LastName = _loggedInUser.LastName;
+                    _authUserModel.Email = _loggedInUser.Email;
+
+                    // add new pw to model for update
                     _authUserModel.Password = NewPassword;
                     _authUserModel.ConfirmPassword = ConfirmNewPassword;
-                    //await _userEndpoint.UpdatePassword(_authUserModel);
+                    await _userEndpoint.UpdatePassword(_authUserModel);
 
                     CheckPasswordModel checkPasswordModel = new() { Email = _authUserModel.Email, Password = _authUserModel.Password };
-                    //bool success = await _userEndpoint.CheckPasswordValid(checkPasswordModel);
-                    //if (success)
-                    //{
-                    //    // update auth state: log user out
-                    //    _apiHelper.LogOutUser();
-                    //    _loggedInUser!.ResetUserModel();
+                    bool success = await _userEndpoint.CheckPasswordValid(checkPasswordModel);
+                    if (success)
+                    {
+                        // update auth state: log user out
+                        _apiHelper.LogOutUser();
+                        _loggedInUser!.ResetUserModel();
 
-                    //    // raise logout event for LoginWidget to handle 
-                    //    //await _events.PublishOnUIThreadAsync(new LogoutNotifyEvent());
-                    //    // raise auth status changed event for ShellView to handle
-                    //    //await _events.PublishOnUIThreadAsync(new AuthStatusChangedEvent(false));
+                        // raise logout event for LoginWidget to handle 
+                        await _events.PublishOnUIThreadAsync(new LogoutNotifyEvent());
+                        // raise auth status changed event for ShellView to handle
+                        await _events.PublishOnUIThreadAsync(new AuthStatusChangedEvent(false));
 
-                    //    // set Alert notification on home page
-                    //    //AppState.AlertSeverity = Severity.Success;
-                    //    //AppState.AlertMessage = "Password successfully updated. Please log in again.";
-                    //    //NavManager.NavigateTo("/");
+                        FeedbackMessage = "Password updated!";
+                        await Task.Delay(TimeSpan.FromSeconds(_successMsgDisplaySec));
 
-                    //    // send email confirmation
-                    //    UserModel user = new UserModel { Email = _authUserModel.Email };
-                    //    //await UserEndpoint.SendPasswordChangeSuccessEmail(user);
-                    //}
+                        // set Alert notification on home page + navigate to home
+                        await RequestMainContentViewSwitch(Utilities.ViewCatalog.MainContentView.Home);
+                        await _events.PublishOnUIThreadAsync(new PasswordUpdatedNotifyEvent());
+
+                        // close dialog
+                        DialogHost.Close(_dialogIdentifier);
+                        FeedbackMessage = null;
+                        IsFeedbackError = false;
+                        NewPassword = string.Empty;
+                        ConfirmNewPassword = string.Empty;
+
+                        // send email confirmation 
+                        UserModel user = new UserModel { Email = _authUserModel.Email };
+                        await _userEndpoint.SendPasswordChangeSuccessEmail(user);
+                    }
                 }
                 catch (Exception ex)
                 {
                     FeedbackMessage = ex.Message;
                 }
 
-                FeedbackMessage = "Password (dummy) updated!";
-                await Task.Delay(TimeSpan.FromSeconds(_successMsgDisplaySec));
-
-                // close dialog
-                DialogHost.Close(_dialogIdentifier);
-                FeedbackMessage = null;
-                IsFeedbackError = false;
-                NewPassword = string.Empty;
-                ConfirmNewPassword = string.Empty;
+                if (DialogHost.IsDialogOpen(_dialogIdentifier))
+                { 
+                    await Task.Delay(TimeSpan.FromSeconds(_successMsgDisplaySec));
+                    // close dialog
+                    DialogHost.Close(_dialogIdentifier);
+                    FeedbackMessage = null;
+                    IsFeedbackError = false;
+                    NewPassword = string.Empty;
+                    ConfirmNewPassword = string.Empty;
+                }
             }
         }
     }

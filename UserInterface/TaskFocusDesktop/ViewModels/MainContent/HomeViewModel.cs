@@ -18,7 +18,12 @@ using Windows.UI.Composition;
 
 namespace TaskFocusDesktop.ViewModels.MainContent
 {
-    public class HomeViewModel : ViewModelBase, IHandle<LoginNotifyEvent>, IHandle<AuthErrorNotifyEvent>, IHandle<UnconfirmedEmailNotifyEvent>
+    public class HomeViewModel : ViewModelBase, 
+                                 IHandle<LoginNotifyEvent>, 
+                                 IHandle<AuthErrorNotifyEvent>, 
+                                 IHandle<UnconfirmedEmailNotifyEvent>, 
+                                 IHandle<PasswordUpdatedNotifyEvent>,
+                                 IHandle<ClearHomeFeedbackMessageEvent>
     {
         protected IUserEndpoint _userEndpoint;
         protected const double _alertMsgDisplaySec = 4.0;
@@ -154,6 +159,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             ShowForgotPasswordToggle = false;
             ShowForgotPasswordInput = false;
             ShowEmailConfirmLink = false;
+            ShowFeedbackMessage = false;
             return Task.CompletedTask;
         }
 
@@ -249,6 +255,22 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             {
                 FeedbackMessage = ex.Message;
             }
+        }
+
+        Task IHandle<PasswordUpdatedNotifyEvent>.HandleAsync(PasswordUpdatedNotifyEvent message, CancellationToken cancellationToken)
+        {
+            FeedbackMessage = "Password successfully updated. Please log in again.";
+            IsFeedbackError = false;
+            ShowFeedbackMessage = true;
+
+            return Task.CompletedTask;
+        }
+
+        public Task HandleAsync(ClearHomeFeedbackMessageEvent message, CancellationToken cancellationToken)
+        {
+            FeedbackMessage = string.Empty;
+            ShowFeedbackMessage = false;
+            return Task.CompletedTask;
         }
     }
 }

@@ -210,7 +210,7 @@
                         </DataTrigger>
 
                             <DataTrigger Binding="{Binding IsFeedbackError}" Value="False">
-                                <Setter Property="Foreground" Value="{StaticResource ForegroundMainBrush}" />
+                                <Setter Property="Foreground" Value="Green" />
                             </DataTrigger>
                         </Style.Triggers>
 

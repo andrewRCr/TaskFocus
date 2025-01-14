@@ -17,13 +17,11 @@
                 <DataTrigger Binding="{Binding EnableLoginFormControls}" Value="False">
                     <Setter Property="materialDesign:TextFieldAssist.HasFilledTextField" Value="True" />
                 </DataTrigger>
-
-
-                
+          
             </Style.Triggers>
         </Style>
 
-        <Style x:Key="passwordInputFieldStyle" TargetType="{x:Type PasswordBox}" BasedOn="{StaticResource MaterialDesignPasswordBox}">
+        <Style x:Key="passwordInputFieldStyle" TargetType="{x:Type PasswordBox}" BasedOn="{StaticResource MaterialDesignFloatingHintRevealPasswordBox}">
             <Setter Property="Foreground" Value="{StaticResource ForegroundMainBrush}" />
             <Style.Triggers>
                 <DataTrigger Binding="{Binding EnableLoginFormControls}" Value="False">
@@ -89,13 +87,14 @@
             <Grid>
 
                 <PasswordBox x:Name="Password" 
-                         Style="{StaticResource passwordInputFieldStyle}"
-                         Grid.Column="1" 
-                         MinWidth="200" 
-                         Margin="10 0 0 10" 
-                         Padding="2" 
-                         FontSize="14"
-                         IsEnabled="{Binding EnableLoginFormControls}"
+                             Style="{StaticResource passwordInputFieldStyle}"
+                             materialDesign:PasswordBoxAssist.Password="{Binding Password}"
+                             Grid.Column="1" 
+                             MinWidth="200" 
+                             Margin="10 0 0 10" 
+                             Padding="2" 
+                             FontSize="14"
+                             IsEnabled="{Binding EnableLoginFormControls}"
                      />
 
                 <TextBlock x:Name="PasswordPlaceholderText" 
