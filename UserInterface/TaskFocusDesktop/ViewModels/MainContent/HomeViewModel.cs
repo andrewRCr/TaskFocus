@@ -22,6 +22,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
                                  IHandle<LoginNotifyEvent>, 
                                  IHandle<AuthErrorNotifyEvent>, 
                                  IHandle<UnconfirmedEmailNotifyEvent>, 
+                                 IHandle<UnconfirmedUpdatedEmailNotifyEvent>,
                                  IHandle<PasswordUpdatedNotifyEvent>,
                                  IHandle<ClearHomeFeedbackMessageEvent>
     {
@@ -124,6 +125,17 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             {
                 _showEmailConfirmLink = value;
                 NotifyOfPropertyChange(() => ShowEmailConfirmLink);
+            }
+        }
+
+        private bool _showResendEmailConfirmLink = false;
+        public bool ShowResendEmailConfirmLink
+        {
+            get { return _showResendEmailConfirmLink; }
+            set
+            {
+                _showResendEmailConfirmLink = value;
+                NotifyOfPropertyChange(() => ShowResendEmailConfirmLink);
             }
         }
 
@@ -270,6 +282,24 @@ namespace TaskFocusDesktop.ViewModels.MainContent
         {
             FeedbackMessage = string.Empty;
             ShowFeedbackMessage = false;
+            return Task.CompletedTask;
+        }
+
+        public Task HandleAsync(UnconfirmedUpdatedEmailNotifyEvent message, CancellationToken cancellationToken)
+        {
+            ShowPleaseWaitLoginMessage = false;
+            ShowForgotPasswordInput = false;
+            ShowForgotPasswordToggle = false;
+
+            FeedbackMessage = _appState.AlertMessage;
+            IsFeedbackError = false;
+            ShowFeedbackMessage = true;
+
+            string confirmEmailUriBase = "https://taskfocus.azurewebsites.net/unconfirmedupdatedemail?email=";
+            ConfirmEmailUri = confirmEmailUriBase + message.Email;
+            ShowEmailConfirmLink = false;
+            ShowResendEmailConfirmLink = true;
+
             return Task.CompletedTask;
         }
     }

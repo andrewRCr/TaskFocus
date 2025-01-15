@@ -3,6 +3,7 @@ using MaterialDesignThemes.Wpf;
 using Nextended.Core.Extensions;
 using System;
 using System.Threading.Tasks;
+using TaskFocusDesktop.EventModels;
 using TaskFocusDesktop.ViewModels.Base;
 using TaskFocusUI.Library;
 using TaskFocusUI.Library.API;
@@ -14,6 +15,8 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
     public class UpdateEmailDialogViewModel : DialogViewModelBase
     {
         private IUserEndpoint _userEndpoint;
+        private IAPIHelper _apiHelper;
+        private ILoggedInUserModel _loggedInUser;
         private UserModel _userModel = new();
 
         private string? _updatedEmailAddress;
@@ -33,28 +36,15 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
                                           IDataState dataState,
                                           IDataService dataService,
                                           IDataHelper dataHelper,
-                                          IUserEndpoint userEndpoint) : base(events, appState, window, dataState, dataService, dataHelper)
+                                          IUserEndpoint userEndpoint,
+                                          IAPIHelper apiHelper,
+                                          ILoggedInUserModel loggedInUser) : base(events, appState, window, dataState, dataService, dataHelper)
         {
             _userEndpoint = userEndpoint;
+            _loggedInUser = loggedInUser;
+            _apiHelper = apiHelper;
             HeaderText = "UPDATE EMAIL ADDRESS";
             UpdatedEmailAddress = _dataState.CurrentUser!.Email;
-        }
-
-        protected override void OnViewLoaded(object view)
-        {
-            base.OnViewLoaded(view);
-            LoadLocalUserData();
-        }
-
-        protected void LoadLocalUserData()
-        {
-            if (_dataState.IsDataLoaded() && _dataState.CurrentUser != null)
-            {
-                _userModel.Id = _dataState.CurrentUser.Id;
-                _userModel.FirstName = _dataState.CurrentUser.FirstName;
-                _userModel.LastName = _dataState.CurrentUser.LastName;
-                _userModel.Email = _dataState.CurrentUser.Email;
-            }
         }
 
         protected override void CloseDialog()
@@ -80,25 +70,53 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
             }
             else
             {
-
                 try
                 {
-                    //await _userEndpoint.RequestUpdateEmail(_userModel);
-                    //NavManager.NavigateTo($"/unconfirmedupdatedemail?email={_userModel.Email}");
+                    _userModel.Id = _loggedInUser.Id;
+                    _userModel.FirstName = _loggedInUser.FirstName;
+                    _userModel.LastName = _loggedInUser.LastName;
+
+                    bool success = await _userEndpoint.RequestUpdateEmail(_userModel);
+
+                    if (success)
+                    {
+                        // update auth state: log user out
+                        _apiHelper.LogOutUser();
+                        _loggedInUser!.ResetUserModel();
+
+                        // raise logout event for LoginWidget to handle 
+                        await _events.PublishOnUIThreadAsync(new LogoutNotifyEvent());
+                        // raise auth status changed event for ShellView to handle
+                        await _events.PublishOnUIThreadAsync(new AuthStatusChangedEvent(false));
+
+                        IsFeedbackError = false;
+                        FeedbackMessage = "Email address change requested.";
+                        await Task.Delay(TimeSpan.FromSeconds(_successMsgDisplaySec));
+
+                        // set Alert notification on home page + navigate to home
+                        _appState.AlertMessage = "Check your email for a link to confirm your updated address.";
+                        await RequestMainContentViewSwitch(Utilities.ViewCatalog.MainContentView.Home);
+                        await _events.PublishOnUIThreadAsync(new UnconfirmedUpdatedEmailNotifyEvent(_userModel.Email));
+
+                        // close dialog
+                        DialogHost.Close(_dialogIdentifier);
+                        FeedbackMessage = null;
+                        UpdatedEmailAddress = null;
+                    }
                 }
                 catch (Exception ex)
                 {
                     FeedbackMessage = ex.Message;
                 }
 
-                FeedbackMessage = "Email address updated!";
-                await Task.Delay(TimeSpan.FromSeconds(_successMsgDisplaySec));
-
-                // close dialog
-                DialogHost.Close(_dialogIdentifier);
-                FeedbackMessage = null;
-                IsFeedbackError = false;
-                UpdatedEmailAddress = null;
+                if (DialogHost.IsDialogOpen(_dialogIdentifier))
+                {
+                    // close dialog
+                    DialogHost.Close(_dialogIdentifier);
+                    FeedbackMessage = null;
+                    IsFeedbackError = false;
+                    UpdatedEmailAddress = null;
+                }
             }
         }
     }

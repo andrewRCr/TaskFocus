@@ -229,7 +229,18 @@
                                         NavigateUri="{Binding ConfirmEmailUri}"
                                         RequestNavigate="Hyperlink_RequestNavigate">CONFIRM EMAIL</Hyperlink>
             </TextBlock>
-            
+
+            <TextBlock Visibility="{Binding ShowResendEmailConfirmLink,
+                                            Converter={StaticResource BooleanToVisibilityConverter},
+                                            FallbackValue=Visible}"
+                       HorizontalAlignment="Center"
+                       Margin="0 3 0 0">
+                
+                            <Hyperlink Style="{StaticResource HyperLinkStyle}"
+                                        NavigateUri="{Binding ConfirmEmailUri}"
+                                        RequestNavigate="Hyperlink_RequestNavigate">RESEND EMAIL</Hyperlink>
+            </TextBlock>
+
         </StackPanel>
        
 

@@ -457,7 +457,7 @@ namespace TaskFocusDesktop.ViewModels
 
                 case ViewCatalog.DialogView.UpdateEmailDialog:
                     dialogVM = new UpdateEmailDialogViewModel(
-                        _events, _appState, dummyWindow, _dataState, _dataService, _dataHelper, _userEndpoint);
+                        _events, _appState, dummyWindow, _dataState, _dataService, _dataHelper, _userEndpoint, _apiHelper, _loggedInUser);
                     break;
 
                 case ViewCatalog.DialogView.ChangePasswordDialog:

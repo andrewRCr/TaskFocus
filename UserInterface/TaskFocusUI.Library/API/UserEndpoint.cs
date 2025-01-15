@@ -203,7 +203,7 @@ namespace TaskFocusUI.Library.API
             }
         }
 
-        public async Task RequestUpdateEmail(UserModel updatedUserModel)
+        public async Task<bool> RequestUpdateEmail(UserModel updatedUserModel)
         {
             var data = new
             {
@@ -217,8 +217,9 @@ namespace TaskFocusUI.Library.API
             using (HttpResponseMessage response = await _apiHelper.APIClient.PutAsJsonAsync("/api/User/RequestUpdateEmail", data))
             {
                 if (response.IsSuccessStatusCode)
-                {
+                {               
                     _logger?.LogInformation($"API: User RequestUpdateEmail call processed successfully.");
+                    return true;
                 }
                 else { throw new Exception(response.ReasonPhrase); }
             }
