@@ -3,22 +3,22 @@
 @inject ISnackbar Snackbar
 
 <MudAppBar Bottom="true" 
-           Fixed="true" 
-           Color="Color.Transparent" 
-           Elevation="0" >
+Fixed="true" 
+Color="Color.Transparent" 
+Elevation="0" >
 
-        <MudIconButton Class="rounded-circle"
-                       Icon="@Icons.Material.Filled.Add"
-                       Color="Color.Primary"
-                       Variant="Variant.Filled"
-                       Size="Size.Large"
-                       Edge="Edge.Start"
-                       OnClick="ShowNewTaskInput" />
+    <MudIconButton Class="rounded-circle"
+    Icon="@Icons.Material.Filled.Add"
+    Color="Color.Primary"
+    Variant="Variant.Filled"
+    Size="Size.Large"
+    Edge="Edge.Start"
+    OnClick="ShowNewTaskInput" />
 </MudAppBar>
 
 <MudDialog @bind-IsVisible=_newTaskInputsVisible 
-           Options="dialogOptions"
-           Style="background-color: #27272f" >
+Options="dialogOptions"
+Style="background-color: #27272f" >
 
     <TitleContent>
         <MudStack Row="true" Spacing="1">
@@ -40,31 +40,32 @@
                             <!-- taskName input -->
                             <MudItem xs="8" sm="5" md="3" lg="3" xl="3">
                                 <MudTextField @bind-Value="_newTask.TaskName" 
-                                              Placeholder="Task" 
-                                              Variant="Variant.Text" 
-                                              Margin="Margin.Dense"
-                                              Required="true"
-                                              RequiredError=" "
-                                              AutoGrow AutoFocus />
+                                Placeholder="Task" 
+                                Variant="Variant.Text" 
+                                Margin="Margin.Dense"
+                                Required="true"
+                                RequiredError=" "
+                                AutoGrow 
+                                AutoFocus="false" />
                             </MudItem>
 
                             <!-- projectName input-->
                             <MudItem xs="8" sm="5" md="3" lg="3" xl="3">
 
                                 <MudAutocomplete @ref="_projectSelectInput"
-                                                 T="string"
-                                                 @bind-Value="_newTask.ProjectName"
-                                                 SearchFunc="@((x)=> ItemCollectionSearch(_projectNames, x))"
-                                                 Margin="Margin.Dense"
-                                                 Dense="true"
-                                                 Placeholder="Project"
-                                                 Disabled="@_isProjectInputDisabled"
-                                                 AnchorOrigin="Origin.BottomCenter"
-                                                 ResetValueOnEmptyText="true"
-                                                 Strict="false"
-                                                 CoerceText="true"
-                                                 SelectOnClick="true"
-                                                 SelectValueOnTab="true">
+                                T="string"
+                                @bind-Value="_newTask.ProjectName"
+                                SearchFunc="@((x)=> ItemCollectionSearch(_projectNames, x))"
+                                Margin="Margin.Dense"
+                                Dense="true"
+                                Placeholder="Project"
+                                Disabled="@_isProjectInputDisabled"
+                                AnchorOrigin="Origin.BottomCenter"
+                                ResetValueOnEmptyText="true"
+                                Strict="false"
+                                CoerceText="true"
+                                SelectOnClick="true"
+                                SelectValueOnTab="true">
                                     <ItemTemplate Context="e">
 
                                         <MudText>
@@ -78,19 +79,19 @@
                             <!-- contextName input-->
                             <MudItem xs="8" sm="5" md="3" lg="3" xl="3">
                                 <MudAutocomplete @ref="_contextSelectInput"
-                                                 T="string"
-                                                 @bind-Value="_newTask.ContextName"
-                                                 SearchFunc="@((x) => ItemCollectionSearch(_contextNames, x))"
-                                                 Margin="Margin.Dense"
-                                                 Dense="true"
-                                                 Placeholder="Context"
-                                                 Disabled="@_isContextInputDisabled"
-                                                 AnchorOrigin="Origin.BottomCenter"
-                                                 ResetValueOnEmptyText="true"
-                                                 Strict="false"
-                                                 CoerceText="true"
-                                                 SelectOnClick="true"
-                                                 SelectValueOnTab="true">
+                                T="string"
+                                @bind-Value="_newTask.ContextName"
+                                SearchFunc="@((x) => ItemCollectionSearch(_contextNames, x))"
+                                Margin="Margin.Dense"
+                                Dense="true"
+                                Placeholder="Context"
+                                Disabled="@_isContextInputDisabled"
+                                AnchorOrigin="Origin.BottomCenter"
+                                ResetValueOnEmptyText="true"
+                                Strict="false"
+                                CoerceText="true"
+                                SelectOnClick="true"
+                                SelectValueOnTab="true">
                                     <ItemTemplate Context="e">
 
                                         <MudText>
@@ -105,13 +106,13 @@
                             <MudItem xs="8" sm="5" md="2" lg="2" xl="2">
 
                                 <MudDatePicker @ref="_datePicker"
-                                               @bind-Date="_newTask.DueDate"
-                                               OnClick="()=> _datePicker.SelectAsync()"
-                                               Placeholder="Due"
-                                               Margin="Margin.Dense"
-                                               DisableToolbar="true"
-                                               Editable="true"
-                                               AutoClose="false">
+                                @bind-Date="_newTask.DueDate"
+                                OnClick="()=> _datePicker.SelectAsync()"
+                                Placeholder="Due"
+                                Margin="Margin.Dense"
+                                DisableToolbar="true"
+                                Editable="true"
+                                AutoClose="false">
                                     <PickerActions>
 
                                         <MudButton Class="mr-auto align-self-start" OnClick="@(() => _datePicker.Clear())">Clear</MudButton>
@@ -174,6 +175,7 @@
 
     private void ShowNewTaskInput()
     {
+        CustomAuthenticatedOnInit();
         _newTaskInputsVisible = true;
     }
 

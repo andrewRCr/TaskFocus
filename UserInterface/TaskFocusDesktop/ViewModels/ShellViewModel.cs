@@ -210,8 +210,6 @@ namespace TaskFocusDesktop.ViewModels
 
             _events.SubscribeOnPublishedThread(this);
 
-            // TODO: pull auth token from local storage
-
             // top widget panel
             TopWidgetPanel = IsUserLoggedIn ? IoC.Get<AuthWidgetViewModel>() : IoC.Get<LoginWidgetViewModel>();
             ActivateItemAsync(TopWidgetPanel, new CancellationToken());

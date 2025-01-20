@@ -4,37 +4,37 @@
 @inject ISnackbar Snackbar
 
 <MudStack Row="true" Class="@_stackClass"
-          Spacing="0" 
-          @onmouseover="()=> ShowHideItemEditMenuButton(true)" 
-          @onmouseout="()=> ShowHideItemEditMenuButton(false)"
-          @onfocusout="CloseItemEditMenu">
+Spacing="0" 
+@onmouseover="()=> ShowHideItemEditMenuButton(true)" 
+
+@onfocusout="CloseItemEditMenu">
 
     <MudNavLink OnClick="@SetFocusedItemIdStr" 
-                Icon="@Icons.Material.Filled.List" 
-                IconColor="@_linkColor"
-                Class="subNavLink active"
-                ActiveClass="active">
+    Icon="@Icons.Material.Filled.List" 
+    IconColor="@_linkColor"
+    Class="subNavLink active"
+    ActiveClass="active">
         <ChildContent>
             <MudText Color="@_linkColor">
-                 @if (IsProjectsSubMenu) { @ProjectParam.ProjectName }
-                  else { @ContextParam.ContextName }
+                @if (IsProjectsSubMenu) { @ProjectParam.ProjectName }
+                else { @ContextParam.ContextName }
             </MudText>
         </ChildContent>
     </MudNavLink>
 
     <MudMenu @ref="_itemEditMenu"
-             Icon="@Icons.Material.Filled.MoreVert"
-             Class="@_editMenuClassStr"
-             Dense="true" 
-             Size="Size.Medium">
-             
+    Icon="@Icons.Material.Filled.MoreVert"
+    Class=""
+    Dense="true" 
+    Size="Size.Medium">
+
         <div @onmousedown=OnItemMouseDown>
             <MudMenuItem OnClick="RenameItem" OnTouch="RenameItemTouch" Icon="@Icons.Material.Filled.Edit" IconSize="Size.Medium">
                 <MudText Typo="Typo.button" Class="ml-n4">Rename</MudText>
             </MudMenuItem>
             <MudMenuItem OnClick="DeleteItem" OnTouch="DeleteItemTouch" Icon="@Icons.Material.Filled.DeleteForever" IconSize="Size.Medium">
                 <MudText Typo="Typo.button" Class="ml-n4">Delete</MudText>
-                </MudMenuItem>
+            </MudMenuItem>
         </div>
     </MudMenu>
 
@@ -46,7 +46,7 @@
         <MudStack Row="true" Spacing="1">
             <MudIcon Icon="@Icons.Material.Filled.Edit" Class="mr-3" />
             <MudText Typo="Typo.button">
-                 Rename @_collectionTypeName
+                Rename @_collectionTypeName
             </MudText>
         </MudStack>
     </TitleContent>

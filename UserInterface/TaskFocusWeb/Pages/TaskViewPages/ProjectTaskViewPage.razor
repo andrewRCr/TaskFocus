@@ -4,6 +4,7 @@
 @if (ProjectParam != null && IsLocalDataLoaded())
 {
     <MudTreeView T="TaskContainerComponent" Width="100%">
+
         <MudTreeViewItem T="TaskContainerComponent"
                          Expanded="true"
                          Icon="@Icons.Material.Filled.Assignment"
@@ -17,6 +18,7 @@
                                     ContainerProjectsParam="@LocalProjects"
                                     ContainerContextsParam="@LocalContexts" />
         </MudTreeViewItem>
+
     </MudTreeView>
 }
 
