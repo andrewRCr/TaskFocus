@@ -8,14 +8,14 @@
 <MudLayout>
 
     <!-- top app bar; logo + menu drawer toggle (if authenticated); login or auth widget -->
-    <MudAppBar Elevation="0">
+    <MudAppBar Elevation="0" >
         <AuthorizeView>
             <Authorized>
-                <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+                <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Class="ml-n5" OnClick="@((e) => DrawerToggle())" />
             </Authorized>
             <NotAuthorized>
-                <MudIcon Icon="@Icons.Material.Filled.OfflinePin" Color="Color.Primary" Class="mr-3" />
-                <MudText Color="Color.Primary" Typo="Typo.h6" Style="font-family:Bahnschrift; font-weight:700; font-size:x-large;">TaskFocus</MudText>
+                <MudIcon Icon="@Icons.Material.Filled.OfflinePin" Color="Color.Primary" Class="mr-4 ml-n3" Size="Size.Large" />
+                <MudText Color="Color.Primary" Typo="Typo.h5" Class="mt-1" Style="font-family:Bahnschrift; font-weight:700; font-size:x-large;">TaskFocus</MudText>
             </NotAuthorized>
         </AuthorizeView>
         
@@ -31,42 +31,59 @@
         </AuthorizeView>
     </MudAppBar>
 
-    <!-- menu drawer; only visible if authenticated-->
-    <AuthorizeView>
-        <Authorized>
-            <MudDrawer @bind-Open="@_drawerOpen" Elevation="25" Width="310px" Variant="@DrawerVariant.Responsive" Breakpoint="Breakpoint.Md" PreserveOpenState="true">
-                <MudDrawerHeader Class="d-flex align-center">
-                    <MudIcon Icon="@Icons.Material.Filled.OfflinePin" Color="Color.Primary" Class="mr-3" />
-                    <MudText Color="Color.Primary" Typo="Typo.h6" Style="font-family:Bahnschrift; font-weight:700; font-size:x-large;">TaskFocus</MudText>
-                </MudDrawerHeader>
-                <NavMenuContainer />
-            </MudDrawer>
-        </Authorized>
-    </AuthorizeView>
+    <MudStack Row="true">
 
-    <!-- body positioning; different if drawer visible (offset) -->
-    <MudMainContent>
+        <!-- menu drawer; only visible if authenticated-->
         <AuthorizeView>
             <Authorized>
-                <div class="col-12  col-xxl-10" style="margin-left: 8px;" >
-                    @Body
-                </div>
+
+                <!-- behind-drawer mini nav menu (for when drawer collpased) -->
+                <MudStack>
+                    <div class="mt-6 mb-6"/>
+                    <NavMenuMini ShowBorderHighlight="true" />
+                </MudStack>
+
+                <MudDivider Vertical />
+
+                <MudDrawer @bind-Open="@_drawerOpen" Elevation="25" Width="310px" Variant="@DrawerVariant.Responsive" Breakpoint="Breakpoint.Md" PreserveOpenState="true">
+                    <MudDrawerHeader Class="d-flex align-center">
+                        <MudIcon Icon="@Icons.Material.Filled.OfflinePin" Color="Color.Primary" Class="mr-4 ml-n3" Size="Size.Large" />
+                        <MudText Color="Color.Primary" Typo="Typo.h5" Class="mt-1" Style="font-family:Bahnschrift; font-weight:700; font-size:x-large;">TaskFocus</MudText>
+                    </MudDrawerHeader>
+                    <NavMenuContainer />
+                </MudDrawer>
             </Authorized>
-
-            <NotAuthorized>
-                <div class="col-12">
-                    @Body
-                </div>
-            </NotAuthorized>
         </AuthorizeView>
-    </MudMainContent>
 
-    <!-- global add new task component (+ button) -->
-    <AuthorizeView>
-        <Authorized>
-            @if (DataState.IsDataLoaded()) { <AddNewTaskComponent /> }
-        </Authorized>
-    </AuthorizeView>
+        <!-- body positioning; different if drawer visible (offset) -->
+        <MudMainContent>
+            <AuthorizeView>
+                <Authorized>
+                    <div class="col-12  col-xxl-10" style="margin-left: 8px;">
+                        @Body
+                    </div>
+                </Authorized>
+
+                <NotAuthorized>
+                    <div class="col-12">
+                        @Body
+                    </div>
+                </NotAuthorized>
+            </AuthorizeView>
+        </MudMainContent>
+
+        <!-- global add new task component (+ button) -->
+        <AuthorizeView>
+            <Authorized>
+                @if (DataState.IsDataLoaded())
+                {
+                    <AddNewTaskComponent />
+                }
+            </Authorized>
+        </AuthorizeView>
+
+    </MudStack>
+
 
 </MudLayout>
 

@@ -4,21 +4,21 @@
     <MudNavLink Class="mainNavLink" Disabled="@_isMenuDisabled" Href="inbox" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Inbox" />
     <MudNavLink Class="mainNavLink" Disabled="@_isMenuDisabled" Href="today" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Today" />
 
-            <div @onclick=@ResetFocusedProjectIdStr>
+    <div @onclick=@ResetFocusedProjectIdStr>
         <MudNavLink Class="mainNavLink" Disabled="@_isMenuDisabled" Href="projects" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Assignment" />
-            </div>
+    </div>
 
-            <div @onclick=@ResetFocusedContextIdStr>
+    <div @onclick=@ResetFocusedContextIdStr>
         <MudNavLink Class="mainNavLink" Disabled="@_isMenuDisabled" Href="contexts" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.AutoAwesomeMotion" />
-            </div>
+    </div>
 
-            <MudNavLink Disabled />
-            <MudDivider DividerType="DividerType.Middle" />
+    <MudNavLink Disabled />
+    <MudDivider DividerType="DividerType.Middle" />
 
     <MudNavLink Class="mainNavLink" Disabled="@_isMenuDisabled" Href="completed" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Checklist" />
             
-            <MudDivider Class="invisible"  />
-            <MudDivider DividerType="DividerType.Middle" />
+    <MudDivider Class="invisible"  />
+    <MudDivider DividerType="DividerType.Middle" />
     <MudNavLink Class="mainNavLink" Disabled="@_isMenuDisabled" Href="settings" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.ManageAccounts" />
 </MudNavMenu>
 
