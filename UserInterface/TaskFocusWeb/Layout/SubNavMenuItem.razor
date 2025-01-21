@@ -3,11 +3,11 @@
 @inject IDataService DataService
 @inject ISnackbar Snackbar
 
-<MudStack Row="true" Class="@_stackClass"
-Spacing="0" 
-@onmouseover="()=> ShowHideItemEditMenuButton(true)" 
-
-@onfocusout="CloseItemEditMenu">
+<MudStack Row="true" 
+          Class="@_stackClass"
+          Spacing="0" 
+          @onmouseover="()=> ShowHideItemEditMenuButton(true)" 
+          @onfocusout="CloseItemEditMenu">
 
     <MudNavLink OnClick="@SetFocusedItemIdStr" 
     Icon="@Icons.Material.Filled.List" 

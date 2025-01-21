@@ -76,7 +76,7 @@ namespace TaskFocusWeb
             {
                 _focusedProjectIdStr = value;
                 AppStateChanged?.Invoke(nameof(FocusedProjectIdStr), this);
-                //Console.WriteLine($"AppState: FocusedProjectIdStr changed to {value}!");
+                Console.WriteLine($"AppState: FocusedProjectIdStr changed to {value}!");
             }
         }
 

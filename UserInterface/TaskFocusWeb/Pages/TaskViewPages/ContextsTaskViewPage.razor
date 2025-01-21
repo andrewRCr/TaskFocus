@@ -7,9 +7,20 @@
 <MudStack Row="true">
     @if (IsLocalDataLoaded())
     {
-        @if (_focusedContextIdStr != null)
+        @if (_focusedContextIdStr != null && ContextParam != null)
         {
-            <ContextTaskViewPage ContextId="@_focusedContextIdStr" />
+            <MudTreeView T="TaskContainerComponent" Width="100%">
+
+                <MudTreeViewItem T="TaskContainerComponent" Expanded="true" Icon="@Icons.Material.Filled.AutoAwesomeMotion" Text="@ContextParam.ContextName" TextTypo="Typo.button">
+                    <TaskContainerComponent ContainerTaskItemsParam="@LocalTasks!.Where(x=>(x.ContextId == ContextParam.Id) && !x.CleanedUp).ToList()"
+                                            ContainerIdentifierParam="@ContextParam.ContextName"
+                                            ContainerOrderingTypeParam="Context"
+                                            ContainerItemsSelectorParam="@((item, dropzone) => item.ContextName == dropzone)"
+                                            ContainerProjectsParam="@LocalProjects"
+                                            ContainerContextsParam="@LocalContexts" />
+                </MudTreeViewItem>
+           
+            </MudTreeView>
         }
         else if (LocalContexts!.Count > 0) // all contexts view
         {
@@ -60,6 +71,9 @@
 
 @code {
     private string? _focusedContextIdStr = null;
+    public ContextDisplayModel ContextParam { get; set; } = default!;
+    bool isValid = false;
+    int integerContextId;
 
     protected override void OnInitialized()
     {
@@ -71,6 +85,15 @@
     {
         LoadAllLocalData();
         _focusedContextIdStr = AppState.FocusedContextIdStr;
+    }
+
+    protected void GetContextFromId()
+    {
+        isValid = int.TryParse(_focusedContextIdStr, out integerContextId);
+        if (isValid)
+        {
+            ContextParam = DataState.Contexts!.Find(x => x.Id == integerContextId)!;
+        }
     }
 
     public bool ContextItemsSelector(ContextDisplayModel item, string dropzone)
@@ -90,6 +113,11 @@
             //Console.WriteLine("AllProjectsPage: returned true on HandleAppStateChanged!");
             _focusedContextIdStr = appState.FocusedContextIdStr;
             LoadAlertMessage();
+
+            if (_focusedContextIdStr != null)
+            {
+                GetContextFromId();
+            }
         }
 
         return AppState.CanRefresh;
