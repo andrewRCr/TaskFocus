@@ -1,24 +1,16 @@
-﻿using AutoMapper;
-using Caliburn.Micro;
-using System;
-using System.ComponentModel;
-using System.Dynamic;
-using System.Windows;
-using TaskFocusDesktop.ViewModels.Base;
-using TaskFocusDesktop.Utilities;
-using TaskFocusUI.Library.API;
-using TaskFocusUI.Library.Utilities;
-using TaskFocusUI.Library;
+﻿using Caliburn.Micro;
 using System.Collections.Generic;
-using TaskFocusUI.Library.Models;
-using System.Linq;
-using TaskFocusDesktop.EventModels;
-using System.Threading.Tasks;
-using System.Threading;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
-using Microsoft.Xaml.Behaviors;
-using System.Windows.Threading;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using TaskFocusDesktop.EventModels;
+using TaskFocusDesktop.ViewModels.Base;
+using TaskFocusUI.Library;
+using TaskFocusUI.Library.Models;
+using TaskFocusUI.Library.Utilities;
 
 namespace TaskFocusDesktop.ViewModels.MainContent
 {

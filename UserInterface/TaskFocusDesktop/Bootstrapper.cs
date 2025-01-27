@@ -52,7 +52,8 @@ namespace TaskFocusDesktop
         private IConfiguration AddConfiguration()
         {
             IConfigurationBuilder builder = new ConfigurationBuilder()
-                .SetBasePath(Path.GetDirectoryName(System.AppContext.BaseDirectory))
+                //.SetBasePath(Path.GetDirectoryName(AppContext.BaseDirectory))
+                .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json");
 
             string envJsonPath = System.Diagnostics.Debugger.IsAttached ? 
