@@ -52,14 +52,13 @@ namespace TaskFocusDesktop
         private IConfiguration AddConfiguration()
         {
             IConfigurationBuilder builder = new ConfigurationBuilder()
-                //.SetBasePath(Path.GetDirectoryName(AppContext.BaseDirectory))
-                .SetBasePath(Directory.GetCurrentDirectory())
+                .SetBasePath(AppContext.BaseDirectory)
                 .AddJsonFile("appsettings.json");
 
             string envJsonPath = System.Diagnostics.Debugger.IsAttached ? 
                 "appsettings.Development.json" : "appsettings.json";
 
-            builder.AddJsonFile(envJsonPath, optional: true, reloadOnChange: true);
+            builder.AddJsonFile(envJsonPath, optional: false, reloadOnChange: true);
             return builder.Build();
         }
 
