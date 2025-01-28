@@ -11,6 +11,8 @@
     <Platforms>AnyCPU;x86</Platforms>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="appsettings.Development.json" />
+    <None Remove="appsettings.json" />
     <None Remove="Resources\Fonts\Roboto-Black.ttf" />
     <None Remove="Resources\Fonts\Roboto-BlackItalic.ttf" />
     <None Remove="Resources\Fonts\Roboto-Bold.ttf" />
@@ -25,6 +27,10 @@
     <None Remove="Resources\Fonts\Roboto-ThinItalic.ttf" />
     <None Remove="Resources\Images\favicon-16x16.png" />
     <None Remove="Resources\Images\favicon-32x32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="appsettings.Development.json" />
+    <EmbeddedResource Include="appsettings.json" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="13.0.1" />
@@ -87,12 +93,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Update="appsettings.Development.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="appsettings.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
