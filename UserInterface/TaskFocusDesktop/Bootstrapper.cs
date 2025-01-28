@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Packaging;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -56,9 +57,9 @@ namespace TaskFocusDesktop
                 .AddJsonFile("appsettings.json");
 
             string envJsonPath = System.Diagnostics.Debugger.IsAttached ? 
-                "appsettings.Development.json" : Path.Combine(AppContext.BaseDirectory, "appsettings.json");
+                "appsettings.Development.json" : "appsettings.json";
 
-            builder.AddJsonFile(envJsonPath, optional: false, reloadOnChange: true);
+            builder.AddJsonFile(envJsonPath, optional: true, reloadOnChange: true);
             return builder.Build();
         }
 
