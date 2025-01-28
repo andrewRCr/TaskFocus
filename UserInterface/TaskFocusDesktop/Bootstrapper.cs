@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
 using Caliburn.Micro;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using TaskFocusDesktop.Utilities;
@@ -54,10 +56,10 @@ namespace TaskFocusDesktop
                 .SetBasePath(AppContext.BaseDirectory)
                 .AddJsonFile("appsettings.json");
 
-            string envJsonPath = System.Diagnostics.Debugger.IsAttached ? 
+            string envJsonFileName = System.Diagnostics.Debugger.IsAttached ? 
                 "appsettings.Development.json" : "appsettings.json";
 
-            builder.AddEmbeddedJsonFile(envJsonPath);
+            builder.AddJsonFile(envJsonFileName, optional: true, reloadOnChange: true);
 
             return builder.Build();
         }
