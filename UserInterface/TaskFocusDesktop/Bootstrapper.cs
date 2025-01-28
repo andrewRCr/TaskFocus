@@ -56,7 +56,7 @@ namespace TaskFocusDesktop
                 .AddJsonFile("appsettings.json");
 
             string envJsonPath = System.Diagnostics.Debugger.IsAttached ? 
-                "appsettings.Development.json" : "appsettings.json";
+                "appsettings.Development.json" : Path.Combine(AppContext.BaseDirectory, "appsettings.json");
 
             builder.AddJsonFile(envJsonPath, optional: false, reloadOnChange: true);
             return builder.Build();
