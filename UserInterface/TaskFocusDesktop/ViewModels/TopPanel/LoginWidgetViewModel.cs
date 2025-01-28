@@ -141,6 +141,18 @@ namespace TaskFocusDesktop.ViewModels.TopPanel
                                 var vault = new Windows.Security.Credentials.PasswordVault();
                                 vault.Add(new Windows.Security.Credentials.PasswordCredential(
                                     _resourceName, Username, Password));
+                            }                         
+                            else
+                            {
+                                // update saved credentials if logged in with updated ones
+                                var loginCredential = GetCredentialFromLocker();
+                                if (Password != loginCredential!.Password)
+                                {
+                                    var vault = new Windows.Security.Credentials.PasswordVault();
+                                    vault.Remove(loginCredential);
+                                    vault.Add(new Windows.Security.Credentials.PasswordCredential(
+                                    _resourceName, Username, Password));
+                                }                           
                             }
 
                             // raise auth status log on event for shell view to handle

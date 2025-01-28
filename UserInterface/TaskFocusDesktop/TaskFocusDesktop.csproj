@@ -9,7 +9,7 @@
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <PublishReadyToRun>true</PublishReadyToRun>
     <Platforms>AnyCPU;x86</Platforms>
-    <ApplicationIcon>Resources\Images\favicon-32x32.ico</ApplicationIcon>
+    <ApplicationIcon>Resources\Images\appicon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Resources\Fonts\Roboto-Black.ttf" />
@@ -28,7 +28,7 @@
     <None Remove="Resources\Images\favicon-32x32.png" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Resources\Images\favicon-32x32.ico" />
+    <Content Include="Resources\Images\appicon.ico" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="13.0.1" />
