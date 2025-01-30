@@ -57,7 +57,7 @@ namespace TaskFocusDesktop
                 .AddJsonFile("appsettings.json");
 
             string configFileName = System.Diagnostics.Debugger.IsAttached ? 
-                "appsettings.Development!.json" : "appsettings.json";
+                "appsettings.Development.json" : "appsettings.json";
 
             // inform user if appsettings missing
             string configFilePath = Path.Combine(AppContext.BaseDirectory, configFileName);
