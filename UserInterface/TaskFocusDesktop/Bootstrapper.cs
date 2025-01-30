@@ -1,12 +1,11 @@
 ﻿using AutoMapper;
 using Caliburn.Micro;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using TaskFocusDesktop.Utilities;
@@ -22,6 +21,7 @@ namespace TaskFocusDesktop
     public class Bootstrapper : BootstrapperBase
     {
         private SimpleContainer _container = new SimpleContainer();
+        public bool ShouldHandleEx { get; set; } = true;
 
         public Bootstrapper()
         {
@@ -56,10 +56,19 @@ namespace TaskFocusDesktop
                 .SetBasePath(AppContext.BaseDirectory)
                 .AddJsonFile("appsettings.json");
 
-            string envJsonFileName = System.Diagnostics.Debugger.IsAttached ? 
-                "appsettings.Development.json" : "appsettings.json";
+            string configFileName = System.Diagnostics.Debugger.IsAttached ? 
+                "appsettings.Development!.json" : "appsettings.json";
 
-            builder.AddJsonFile(envJsonFileName, optional: true, reloadOnChange: true);
+            // inform user if appsettings missing
+            string configFilePath = Path.Combine(AppContext.BaseDirectory, configFileName);
+            if (!File.Exists(configFilePath))
+            {
+                System.Windows.MessageBox.Show("\"appsettings.json\" not found! " +
+                    "Please ensure this config file (included with download) is in the same directory as the executable.",
+                    "Taskfocus", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+
+            builder.AddJsonFile(configFileName, optional: true, reloadOnChange: true);
 
             return builder.Build();
         }
@@ -126,6 +135,24 @@ namespace TaskFocusDesktop
         protected override void BuildUp(object instance)
         {
             _container.BuildUp(instance);
+        }
+
+        protected void ShowException(Exception ex)
+        {
+            if (ex == null)
+            {
+                Execute.OnUIThread(() =>
+                {
+                    System.Windows.MessageBox.Show(ex.Message, "Taskfocus", MessageBoxButton.OK, MessageBoxImage.Information);
+                    Console.WriteLine($"{ex.Source} threw an exception:", ex.Message);
+                });
+            }
+        }
+
+        protected override void OnUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+        {
+            ShowException(e.Exception);
+            e.Handled = ShouldHandleEx ? true : false;
         }
     }
 }
