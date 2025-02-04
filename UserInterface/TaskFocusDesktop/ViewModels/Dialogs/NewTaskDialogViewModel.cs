@@ -25,6 +25,28 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
             }
         }
 
+        private bool _userHasProjects;
+        public bool UserHasProjects
+        { 
+            get { return _userHasProjects; }
+            set
+            {
+                _userHasProjects = value;
+                NotifyOfPropertyChange(() => UserHasProjects);
+            }
+        }
+
+        private bool _userHasContexts;
+        public bool UserHasContexts
+        {
+            get { return _userHasContexts; }
+            set
+            {
+                _userHasContexts = value;
+                NotifyOfPropertyChange(() => UserHasContexts);
+            }
+        }
+
         public NewTaskDialogViewModel(IEventAggregator events, IAppState appState, IWindowManager window,
                                       IDataState dataState, IDataService dataService, IDataHelper dataHelper,
                                       string? focusedProjectName = null, string? focusedContextName = null) : base(events, appState, window, dataState, dataService, dataHelper)
@@ -44,6 +66,8 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
                 // load projects / contexts (not tasks)
                 LoadLocalProjectData();
                 LoadLocalContextData();
+                UserHasProjects = LocalProjects != null ? LocalProjects.Count > 0 : false;
+                UserHasContexts = LocalContexts != null ? LocalContexts.Count > 0 : false;
             }
             catch (Exception ex)
             {

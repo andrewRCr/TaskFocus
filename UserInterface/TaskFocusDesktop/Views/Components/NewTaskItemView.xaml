@@ -68,7 +68,6 @@
                 </Setter.Value>
             </Setter>
 
-
             <Style.Triggers>
                 <DataTrigger Binding="{Binding NewTask.Completed}" Value="True">
                     <Setter Property="FontStyle" Value="Italic" />
@@ -207,16 +206,6 @@
                                 <Setter TargetName="buttonGrid" Property="Visibility" Value="Visible" />
                             </DataTrigger>
 
-                            <!--<MultiDataTrigger>
-                                <MultiDataTrigger.Conditions>
-                                    <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Grid}}" Value="True" />
-                                    <Condition Binding="{Binding NewTask.Completed}" Value="False" />
-                                </MultiDataTrigger.Conditions>
-                                <MultiDataTrigger.Setters>
-                                    <Setter TargetName="buttonGrid" Property="Visibility" Value="Visible" />
-                                </MultiDataTrigger.Setters>
-                            </MultiDataTrigger>-->
-
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="checkboxIcon" Property="Foreground" Value="{StaticResource ForegroundSecondaryBrush}" />
                             </Trigger>
@@ -250,7 +239,7 @@
                     <ControlTemplate TargetType="ComboBox">
                         <Grid>
                             <ComboBox x:Name="collectionComboBox"                                    
-                                         materialDesign:TextFieldAssist.HasClearButton="False"
+                                         materialDesign:TextFieldAssist.HasClearButton="False"                                       
                                          Margin="5 5 15 5" 
                                          Style="{StaticResource collectionTextInputStyle}"
                                          SelectionChanged="CollectionComboBox_SelectionChanged"
@@ -259,7 +248,9 @@
                                          DisplayMemberPath="ProjectName"
                                          SelectedValue="{Binding NewTask.ProjectName}"
                                          SelectedValuePath="ProjectName"
-                                         />
+                                         IsEnabled="{Binding UserHasProjects}"
+                                         materialDesign:TextFieldAssist.HasFilledTextField="{Binding UserHasProjects, 
+                                                                                             Converter={StaticResource InverseBooleanConverter}}" />
 
                             <TextBlock x:Name="placeholderText" 
                                           IsHitTestVisible="False"
@@ -314,7 +305,10 @@
                                          DropDownClosed="CollectionComboBox_DropDownClosed"   
                                          DisplayMemberPath="ContextName"
                                          SelectedValue="{Binding NewTask.ContextName}"
-                                         SelectedValuePath="ContextName" />
+                                         SelectedValuePath="ContextName"
+                                         IsEnabled="{Binding UserHasContexts}"
+                                         materialDesign:TextFieldAssist.HasFilledTextField="{Binding UserHasContexts, 
+                                                                                             Converter={StaticResource InverseBooleanConverter}}" />
 
                             <TextBlock x:Name="placeholderText" 
                                           IsHitTestVisible="False"
