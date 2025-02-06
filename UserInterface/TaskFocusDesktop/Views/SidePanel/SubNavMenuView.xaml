@@ -20,11 +20,9 @@
     
     <Grid>
         <StackPanel Orientation="Vertical" VerticalAlignment="Stretch">
-
-
-                
-                <!-- 'back' button -->
-                <Button Command="{Binding SwitchToMainNavMenuCommand}" 
+         
+            <!-- 'back' button -->
+            <Button Command="{Binding SwitchToMainNavMenuCommand}" 
                         Background="Transparent"
                         HorizontalAlignment="Left"
                         HorizontalContentAlignment="Left"
@@ -52,15 +50,6 @@
 
             </Button>
 
-                <!--<Button Command="{Binding SwitchToMainNavMenuCommand}" 
-                        Background="Transparent"
-                        BorderThickness="0" >
-
-
-                </Button>-->
-
-            <!--</StackPanel>-->
- 
             <Menu ItemsSource="{Binding LocalProjects}">
 
                 <Menu.ItemsPanel>

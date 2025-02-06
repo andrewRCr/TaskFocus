@@ -228,6 +228,23 @@ namespace TaskFocusDesktop.ViewModels
             _userEndpoint = userEndpoint;
         }
 
+        protected override void OnViewLoaded(object view)
+        {
+            base.OnViewLoaded(view);
+            Window appWindow = (Window)GetView();
+            _appState.AppWindowHeight = appWindow.Height;
+            appWindow.SizeChanged += AppWindow_SizeChanged;
+        }
+
+        private void AppWindow_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            Window appWindow = (Window)GetView();
+            double newHeight = appWindow.Height;
+
+            _appState.AppWindowHeight = newHeight;
+            _events.PublishOnUIThreadAsync(new AppWindowHeightChangedEvent(newHeight));
+        }
+
         private Point GetSystemMenuPosition()
         {
             Window appWindow = (Window)GetView();

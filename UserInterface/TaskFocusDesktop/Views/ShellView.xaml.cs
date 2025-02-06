@@ -34,7 +34,6 @@ namespace TaskFocusDesktop.Views
             HwndSource.FromHwnd(mWindowHandle).AddHook(new HwndSourceHook(WindowProc));
         }
 
-
         private static System.IntPtr WindowProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
             switch (msg)

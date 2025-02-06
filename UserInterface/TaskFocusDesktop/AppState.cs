@@ -44,5 +44,16 @@ namespace TaskFocusDesktop
                 AppStateChanged?.Invoke(nameof(AlertMessage), this);
             }
         }
+
+        private double _appWindowHeight;
+        public double AppWindowHeight
+        {
+            get { return _appWindowHeight; }
+            set 
+            {
+                _appWindowHeight = value;
+                AppStateChanged?.Invoke(nameof(AppWindowHeight), this);
+            }
+        }
     }
 }

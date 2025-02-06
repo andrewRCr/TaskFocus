@@ -30,136 +30,142 @@
 
     </UserControl.Resources>
 
-    <Grid x:Name="mainSubNavMenuGrid">
+    <StackPanel Orientation="Vertical" >
 
-        <Grid.RowDefinitions>
-            <RowDefinition Height="50" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="50" />
-        </Grid.RowDefinitions>
+        <ScrollViewer VerticalScrollBarVisibility="Disabled" >
 
-        <!-- header row (0); contains back button and header text -->
-        <Grid Grid.Row="0" >
-                
-            <!-- 'back' button -->
-            <Button Command="{Binding ExitSubNavMenuCommand}" 
-                    Background="Transparent"
-                    HorizontalAlignment="Left"
-                    HorizontalContentAlignment="Left"
-                    Margin="-10 10 0 10"
-                    Width="150" 
-                    BorderThickness="0"  >
+            <Grid x:Name="mainSubNavMenuGrid" 
+                  ScrollViewer.CanContentScroll="True"  
+                  MaxHeight="{Binding MaxSubNavMenuHeight}" >
 
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="50" />
+                    <RowDefinition Height="*"  />
+                    <RowDefinition Height="50" />
+                </Grid.RowDefinitions>
 
-                    <materialDesign:PackIcon Kind="ChevronLeft"
-                                        Foreground="{StaticResource ForegroundMainBrush}"
-                                        Height="32"
-                                        Width="32"
-                                        VerticalAlignment="Center"
-                                        HorizontalAlignment="Left"
-                                        />
+                <!-- header row (0); contains back button and header text -->
+                <Grid Grid.Row="0" >
 
-                    <TextBlock Text="PROJECTS"
-                        Style="{StaticResource HeaderTextStyle}"
-                        Foreground="{StaticResource ForegroundMainBrush}"
-                        VerticalAlignment="Center"
-                        Margin="6 1 0 0"
-                        />
+                    <!-- 'back' button -->
+                    <Button Command="{Binding ExitSubNavMenuCommand}" 
+                            Background="Transparent"
+                            HorizontalAlignment="Left"
+                            HorizontalContentAlignment="Left"
+                            Margin="-10 10 0 10"
+                            Width="150" 
+                            BorderThickness="0"  >
 
-                </StackPanel>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
 
-            </Button>
+                            <materialDesign:PackIcon Kind="ChevronLeft"
+                                                     Foreground="{StaticResource ForegroundMainBrush}"
+                                                     Height="32"
+                                                     Width="32"
+                                                     VerticalAlignment="Center"
+                                                     HorizontalAlignment="Left" />
 
-        </Grid>
+                            <TextBlock Text="PROJECTS"
+                                       Style="{StaticResource HeaderTextStyle}"
+                                       Foreground="{StaticResource ForegroundMainBrush}"
+                                       VerticalAlignment="Center"
+                                       Margin="6 1 0 0" />
 
-        <!-- menu content, row 1. 2 columns (one for collection name, one for corresponding edit button)-->
-        <Grid Grid.Row="1" >
+                        </StackPanel>
 
-            <Behaviors:Interaction.Triggers>
-                <Behaviors:EventTrigger EventName="MouseLeave">
-                    <Behaviors:InvokeCommandAction Command="{Binding NoHoveredProjectsCommand}" />
-                </Behaviors:EventTrigger>
+                    </Button>
 
-            </Behaviors:Interaction.Triggers>
+                </Grid>
 
-            <!-- collection name menu items, row 1 -> column 0 -->
-            <ListBox x:Name="subNavMenuListBox"          
-                 ItemsSource="{Binding LocalProjects}" 
-                 SelectedItem="{Binding SelectedProject}"        
-                 Style="{StaticResource NavigationListBoxStyle}" >
+                <!-- menu content, row 1. 2 columns (one for collection name, one for corresponding edit button)-->
+                <Grid Grid.Row="1" >
 
-                <Behaviors:Interaction.Triggers>
-                    <Behaviors:EventTrigger EventName="SelectionChanged">
-                        <Behaviors:InvokeCommandAction Command="{Binding SelectedProjectChangedCommand}" />
-                    </Behaviors:EventTrigger>
+                    <Behaviors:Interaction.Triggers>
+                        <Behaviors:EventTrigger EventName="MouseLeave">
+                            <Behaviors:InvokeCommandAction Command="{Binding NoHoveredProjectsCommand}" />
+                        </Behaviors:EventTrigger>
+                    </Behaviors:Interaction.Triggers>
 
-                </Behaviors:Interaction.Triggers>
+                    <!-- collection name menu items, row 1 -> column 0 -->
+                    <ListBox x:Name="subNavMenuListBox"     
+                             ScrollViewer.CanContentScroll="True"  
+                             ScrollViewer.VerticalScrollBarVisibility="Auto"
+                             Height="{Binding ListBoxHeight}"
+                             ItemsSource="{Binding LocalProjects}" 
+                             SelectedItem="{Binding SelectedProject}" 
+                             Style="{StaticResource NavigationListBoxStyle}" >
 
+                        <Behaviors:Interaction.Triggers>
+                            <Behaviors:EventTrigger EventName="SelectionChanged">
+                                <Behaviors:InvokeCommandAction Command="{Binding SelectedProjectChangedCommand}" />
+                            </Behaviors:EventTrigger>
+                        </Behaviors:Interaction.Triggers>
 
-                <ListBox.ItemTemplate>
-                          
-                    <DataTemplate>
+                        <ListBox.ItemTemplate>
 
-                        <ListBoxItem x:Name="ListItem" 
+                            <DataTemplate>
+
+                                <ListBoxItem x:Name="ListItem" 
                                      Style="{StaticResource NavigationListBoxItemStyle}" 
                                      PreviewMouseRightButtonDown="ListItem_PreviewMouseRightButtonDown"
                                      PreviewMouseLeftButtonDown="ListItem_PreviewMouseLeftButtonDown" 
+                                     ToolTip="Right-click to edit Project"
                                      HorizontalAlignment="Stretch"
                                      HorizontalContentAlignment="Stretch" >
 
-                            <TextBlock x:Name="ListItemTextBlock" DockPanel.Dock="Left"
+                                    <TextBlock x:Name="ListItemTextBlock" DockPanel.Dock="Left"
                                        Text="{Binding ProjectName}"
                                        Margin="15 0 0 0"
                                        PreviewMouseLeftButtonDown="ListItemTextBlock_SelectParentListBoxItem" />
 
-                        </ListBoxItem>
+                                </ListBoxItem>
 
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
 
-            </ListBox>
+                    </ListBox>
 
-        </Grid>
+                </Grid>
 
-        <!-- add new project control, row 2 -->
-        <StackPanel Grid.Row="2"
+                <!-- add new project control, row 2 -->
+                <StackPanel Grid.Row="2"
                     Orientation="Horizontal" 
                     HorizontalAlignment="Left"                       
-                    Margin="20,0,0,0"
+                    Margin="20,0,0,15"
                     Width="200" 
                     MouseEnter="StackPanel_MouseEnter"
-                    MouseLeave="StackPanel_MouseLeave"
-                    >
+                    MouseLeave="StackPanel_MouseLeave" >
 
-            <customControls:CircularButton Command="{Binding RequestAddNewProjectDialogCommand}"
+                    <customControls:CircularButton Command="{Binding RequestAddNewProjectDialogCommand}"
                                            FocusEllipseHoverColor="{StaticResource ForegroundHighlightSecondaryBrush}"
                                            FocusEllipsePressedColor="{StaticResource BackgroundLightestGreyBrush}"
                                            Style="{StaticResource addNewCollectionIconButtonTemplate}"
                                            Height="32"
-                                           Width="32"    
-                                               >
+                                           Width="32" >
 
-                    <materialDesign:PackIcon Kind="Plus" 
+                        <materialDesign:PackIcon Kind="Plus" 
                                              Height="22"
                                              Width="22"
                                              HorizontalAlignment="Center"
                                              VerticalAlignment="Center"
-                                             Foreground="{StaticResource ForegroundHighlightBrush}"  />
+                                             Foreground="{StaticResource ForegroundHighlightBrush}" />
 
-                </customControls:CircularButton>
+                    </customControls:CircularButton>
 
-                <TextBlock x:Name="addNewProjectText" 
+                    <TextBlock x:Name="addNewProjectText" 
                        Style="{StaticResource HeaderTextStyle}"
                        Visibility="Hidden"
                        Margin="5 2 0 0"
                        FontSize="15"
                        Text="ADD NEW PROJECT"
-                       VerticalAlignment="Center"
-                               />
-        
-        </StackPanel>
+                       VerticalAlignment="Center" />
 
-    </Grid>
+                </StackPanel>
+
+            </Grid>
+
+        </ScrollViewer>
+
+    </StackPanel >
 
 </UserControl>

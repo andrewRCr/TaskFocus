@@ -240,7 +240,6 @@ namespace TaskFocusDesktop.ViewModels.Base
         {
             if (_dataState.IsDataLoaded())
             {
-                //LocalTasks = new BindingList<TaskDisplayModel>(_dataState.Tasks!);
                 LocalTasks = new ObservableCollection<TaskDisplayModel>(_dataState.Tasks!);
                 foreach (TaskDisplayModel task in LocalTasks!)
                 {
@@ -253,7 +252,6 @@ namespace TaskFocusDesktop.ViewModels.Base
         {
             if (_dataState.IsDataLoaded())
             {
-                //LocalProjects = new BindingList<ProjectDisplayModel>(_dataState.Projects!);
                 LocalProjects = new ObservableCollection<ProjectDisplayModel>(_dataState.Projects!);
                 foreach (ProjectDisplayModel project in LocalProjects!)
                 {
