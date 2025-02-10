@@ -64,16 +64,49 @@
 
         </WrapPanel>
 
-        <!-- focused/selected context display -->
-        <components:TaskCollectionView Margin="0 0 0 0"
-                                       Visibility="{Binding ShowNoFocusedContextTutorialText, 
-                                                    Converter={StaticResource InvertableBooleanToVisibilityConverter}, 
-                                                    ConverterParameter=Inverted, FallbackValue=Collapsed}"
-                                       CollectionId="{Binding FocusedContextId}" 
-                                       IsProjectCollection="False"
-                                       CollectionIconKind="Animation"
-                                       CollectionName="{Binding FocusedContextName}"
-                                       CollectionTasks="{Binding FocusedContextTasks}" />
+        <Expander IsExpanded="True" Margin="0" 
+                  Background="Transparent"
+                  Visibility="{Binding ShowNoFocusedContextTutorialText, 
+                                       Converter={StaticResource InvertableBooleanToVisibilityConverter}, 
+                                       ConverterParameter=Inverted, FallbackValue=Collapsed}" >
+
+            <Expander.Header>
+
+                <StackPanel Orientation="Horizontal">
+                    <materialDesign:PackIcon Kind="Animation"
+                                    VerticalAlignment="Center"
+                                    Margin="0 0 0 0"
+                                    Foreground="{StaticResource ForegroundMainBrush}"
+                                    Height="24"
+                                    Width="24"
+                                    />
+
+                    <TextBlock Text="{Binding FocusedContextName}" 
+                              Style="{StaticResource HeaderTextStyle}"
+                              VerticalAlignment="Center"
+                              Margin="10 0 0 0"
+                              />
+                </StackPanel>
+
+
+            </Expander.Header>
+
+            <ScrollViewer Grid.Row="1"  
+                      MaxHeight="{Binding MaxTaskScrollHeight}"
+                      VerticalScrollBarVisibility="Disabled" >
+
+                <!-- focused/selected context display -->
+                <components:TaskItemContainerView ContainerTasks="{Binding FocusedContextTasks}" 
+                                              IsProjectContainer="False"
+                                              CanReorder="True"
+                                              ListBoxHeight="{Binding ListBoxHeight}"
+                                              OrderingIndex="{Binding OrderingIndex}"
+                                        />
+
+            </ScrollViewer>
+
+        </Expander>
+
     </Grid>
     
 </UserControl>

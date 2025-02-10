@@ -107,7 +107,7 @@
                         <ListBox.ItemTemplate>
 
                             <DataTemplate>
-
+                                
                                 <ListBoxItem x:Name="ListItem" 
                                     Style="{StaticResource NavigationListBoxItemStyle}" 
                                     PreviewMouseRightButtonDown="ListItem_PreviewMouseRightButtonDown"
@@ -116,10 +116,17 @@
                                     HorizontalAlignment="Stretch"
                                     HorizontalContentAlignment="Stretch" >
 
-                                    <TextBlock x:Name="ListItemTextBlock" DockPanel.Dock="Left"
-                                      Text="{Binding ContextName}"
-                                      Margin="15 0 0 0"
-                                      PreviewMouseLeftButtonDown="ListItemTextBlock_SelectParentListBoxItem" />
+                                    <StackPanel Orientation="Horizontal">
+
+                                        <materialDesign:PackIcon Kind="FormatListBulleted"
+                                                                 Margin="10 0 0 0" />
+
+                                        <TextBlock x:Name="ListItemTextBlock" 
+                                                   Text="{Binding ContextName}"
+                                                   Margin="15 0 0 0"
+                                                   PreviewMouseLeftButtonDown="ListItemTextBlock_SelectParentListBoxItem" />
+
+                                    </StackPanel>
 
                                 </ListBoxItem>
 
@@ -134,7 +141,7 @@
                 <StackPanel Grid.Row="2"
                             Orientation="Horizontal" 
                             HorizontalAlignment="Left"                       
-                            Margin="20,0,0,15"
+                            Margin="15,0,0,15"
                             Width="200" 
                             MouseEnter="StackPanel_MouseEnter"
                             MouseLeave="StackPanel_MouseLeave" >

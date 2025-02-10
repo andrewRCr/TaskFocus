@@ -71,13 +71,19 @@
 
         </WrapPanel>
 
-        <!-- today (starred + due) tasks -->
-        <components:TaskItemContainerView Grid.Row="1"
-                                          Margin="15 0 0 0"
-                                          CanReorder="True"
-                                          OrderingIndex="{Binding OrderingIndex}"
-                                          ContainerTasks="{Binding LocalTasks}"
-                                          />
+        <ScrollViewer  Grid.Row="1"  
+                       MaxHeight="{Binding MaxTaskScrollHeight}"
+                       VerticalScrollBarVisibility="Disabled" >
+
+            <!-- today (starred + due) tasks -->
+            <components:TaskItemContainerView Grid.Row="1"
+                                              Margin="15 0 0 0"
+                                              CanReorder="True"
+                                              ListBoxHeight="{Binding ListBoxHeight}"
+                                              OrderingIndex="{Binding OrderingIndex}"
+                                              ContainerTasks="{Binding LocalTasks}" />
+
+        </ScrollViewer>
 
     </Grid>
 </UserControl>

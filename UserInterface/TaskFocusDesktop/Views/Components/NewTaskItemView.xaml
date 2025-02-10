@@ -14,7 +14,7 @@
     <UserControl.Resources>
         <Style x:Key="taskTextInputStyle" TargetType="{x:Type TextBox}" BasedOn="{StaticResource MaterialDesignTextBox}">
             <Setter Property="FontSize" Value="14" />
-            <Setter Property="Width" Value="225" />
+            <Setter Property="Width" Value="220" />
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="TextWrapping" Value="Wrap" />
             <Setter Property="materialDesign:TextFieldAssist.TextBoxViewMargin" Value="0 0 0 2" />
@@ -25,7 +25,7 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="TextBox">
-                        <Grid>
+                        <Grid >
                             <TextBox x:Name="taskNameTextBox"
                                      materialDesign:TextFieldAssist.HasClearButton="False"
                                      Text="{Binding NewTask.TaskName}"
@@ -33,7 +33,7 @@
 
                             <TextBlock x:Name="placeholderText" 
                                        IsHitTestVisible="False"
-                                       Text="Task Name/Description" 
+                                       Text="Task" 
                                        FontSize="14"
                                        Foreground="{StaticResource ForegroundSecondaryBrush}"
                                        Visibility="Hidden"
@@ -81,7 +81,7 @@
 
         <Style x:Key="collectionTextInputStyle" TargetType="{x:Type ComboBox}" BasedOn="{StaticResource MaterialDesignComboBox}" >
             <Setter Property="FontSize" Value="14" />
-            <Setter Property="Width" Value="225" />
+            <Setter Property="Width" Value="200" />
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="IsEditable" Value="True" />
             <Setter Property="materialDesign:TextFieldAssist.TextBoxViewMargin" Value="0 0 0 2" />
@@ -351,7 +351,7 @@
             <Setter Property="Margin" Value="10 9 5 5" />
             <Setter Property="materialDesign:TextFieldAssist.TextBoxViewMargin" Value="0 0 0 2" />
             <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="MinWidth" Value="80" />
+            <Setter Property="MinWidth" Value="110" />
 
             <Setter Property="Template">
                 <Setter.Value>
@@ -421,9 +421,8 @@
 
             <StackPanel Orientation="Horizontal">
 
-
                 <!-- starred "checkbox" -->
-                <customControls:CheckBoxButton IsChecked="{Binding NewTask.Starred}"
+                <!--<customControls:CheckBoxButton IsChecked="{Binding NewTask.Starred}"
                                                CheckBoxFocusEllipseHoverColor="{StaticResource BackgroundLightestGreyBrush}"
                                                CheckBoxFocusEllipsePressedColor="{StaticResource BackgroundLightestGreyBrush}"
                                                Style="{StaticResource taskItemCheckBoxButtonTemplate}"
@@ -450,8 +449,7 @@
 
                         </Style.Triggers>
                     </Style>
-                </customControls:CheckBoxButton>
-
+                </customControls:CheckBoxButton>-->
 
                 <!--task Name value-->
                 <TextBox Text="{Binding NewTask.TaskName}"

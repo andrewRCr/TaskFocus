@@ -75,6 +75,9 @@ namespace TaskFocusDesktop.ViewModels.MainContent
                 }
 
                 ShowEmptyTaskListTutorialText = LocalTasks.Count == 0;
+
+                TaskCount = LocalTasks.Count;
+                UpdateScrollHeight(AppWindowHeight);
             }
         }
 

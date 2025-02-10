@@ -79,11 +79,16 @@
 
         </WrapPanel>
 
-        <components:TaskItemContainerView Grid.Row="1"
-                                          Margin="15 0 0 0"
-                                          CanReorder="False"
-                                          ContainerTasks="{Binding LocalTasks}"
-                                          />
+        <ScrollViewer  Grid.Row="1"  
+                       MaxHeight="{Binding MaxTaskScrollHeight}"
+                       VerticalScrollBarVisibility="Disabled" >
 
+            <components:TaskItemContainerView Grid.Row="1"
+                                              Margin="15 0 0 0"
+                                              CanReorder="False"
+                                              ListBoxHeight="{Binding ListBoxHeight}"
+                                              ContainerTasks="{Binding LocalTasks}" />
+        </ScrollViewer>
+        
     </Grid>
 </UserControl>

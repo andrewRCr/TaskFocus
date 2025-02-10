@@ -32,6 +32,12 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             }
         }
 
+        protected override void OnViewLoaded(object view)
+        {
+            base.OnViewLoaded(view);
+            ActiveMainContentView = Utilities.ViewCatalog.MainContentView.Inbox;
+        }
+
         protected override void LoadLocalTaskData()
         {
             if (_dataState.IsDataLoaded())
@@ -47,6 +53,9 @@ namespace TaskFocusDesktop.ViewModels.MainContent
                 }
 
                 ShowEmptyTaskListTutorialText = LocalTasks.Count == 0;
+
+                TaskCount = LocalTasks.Count;
+                UpdateScrollHeight(AppWindowHeight);
             }
         }
 
@@ -65,7 +74,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
                 else
                 {
                     List<TaskDisplayModel> tasksToUpdate = LocalTasks!.ToList();
-                    await _dataService.UpdateCollectionOrderingIndices(tasksToUpdate);
+                    await _dataService.UpdateCollectionOrderingIndices(tasksToUpdate);               
                 }
             }
             else { await _dataService.UpdateTaskData(senderTask); }

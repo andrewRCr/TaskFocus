@@ -8,17 +8,20 @@
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="400">
 
-    <Grid>
+    <Grid ScrollViewer.CanContentScroll="True" >
 
         <!-- task container -->
         <ListBox x:Name="TaskContainerListBox" 
                  Margin="15 0 15 0"
+                 Height="{Binding ListBoxHeight, RelativeSource={RelativeSource 
+                                           AncestorType={x:Type local:TaskItemContainerView}}}"
                  ItemsSource="{Binding ContainerTasks, RelativeSource={RelativeSource 
                                            AncestorType={x:Type local:TaskItemContainerView}}}"
                  AllowDrop="True" 
                  SelectionChanged="TaskContainerListBox_SelectionChanged"           
                  ItemTemplate="{StaticResource TaskItem_Template}"
                  SelectedItem="{Binding DataContext.SelectedTaskItem, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                 ScrollViewer.CanContentScroll="True"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled" >
 
             <ListBox.ItemContainerStyle>
@@ -55,9 +58,9 @@
                                         </MultiDataTrigger.Conditions>
                                         <Setter TargetName="_Border" Property="Background" Value="{StaticResource BackgroundLightestGreyBrush}"/>
                                     </MultiDataTrigger>
-                                    
+
                                 </ControlTemplate.Triggers>
-                 
+
                             </ControlTemplate>
                         </Setter.Value>
                     </Setter>
@@ -69,4 +72,5 @@
         </ListBox >
 
     </Grid>
+
 </UserControl>

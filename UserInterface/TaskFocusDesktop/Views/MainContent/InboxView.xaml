@@ -17,12 +17,12 @@
     <Grid x:Name="MainGridBackground" 
           Focusable="True" 
           Background="Transparent" 
-          PreviewMouseDown="MainGridBackground_PreviewMouseDown"
-          >
+          PreviewMouseDown="MainGridBackground_PreviewMouseDown" >
 
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" /> <!-- TEMPORARY FOR DEBUG LINES -->
         </Grid.RowDefinitions>
 
         <!-- view title -->
@@ -74,13 +74,40 @@
 
         </WrapPanel>
 
-        <!-- inbox tasks -->
-        <components:TaskItemContainerView Grid.Row="1"
+        <ScrollViewer  Grid.Row="1"  
+                       MaxHeight="{Binding MaxTaskScrollHeight}"
+                       VerticalScrollBarVisibility="Disabled" >
+
+            <!-- inbox tasks -->
+            <components:TaskItemContainerView Grid.Row="1"
                                           Margin="15 0 0 0"
                                           CanReorder="True"
                                           OrderingIndex="{Binding OrderingIndex}"
                                           ContainerTasks="{Binding LocalTasks}"
+                                          ListBoxHeight ="{Binding ListBoxHeight}"
                                           />
+
+        </ScrollViewer>
+
+        <!-- debug -->
+        <!--<StackPanel Orientation="Vertical" Grid.Row="2"  >
+
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="AppWindowHeight: " />
+                <TextBlock Text="{Binding AppWindowHeight}" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="MaxTaskScrollHeight: " />
+                <TextBlock Text="{Binding MaxTaskScrollHeight}" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="ListBoxHeight: " />
+                <TextBlock Text="{Binding ListBoxHeight}" />
+            </StackPanel>
+
+        </StackPanel>-->
 
     </Grid>
 

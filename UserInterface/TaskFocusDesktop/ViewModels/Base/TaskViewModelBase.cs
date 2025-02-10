@@ -7,10 +7,12 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Dynamic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using TaskFocusDesktop.Commands;
+using TaskFocusDesktop.EventModels;
 using TaskFocusDesktop.Utilities;
 using TaskFocusUI.Library;
 using TaskFocusUI.Library.API;
@@ -19,12 +21,56 @@ using TaskFocusUI.Library.Utilities;
 
 namespace TaskFocusDesktop.ViewModels.Base
 {
-    public abstract class TaskViewModelBase : ViewModelBase
+    public abstract class TaskViewModelBase : ViewModelBase, IHandle<AppWindowHeightChangedEvent>
     {
         protected IWindowManager _window;
         protected IDataState _dataState;
         protected IDataService _dataService;
         protected IDataHelper _dataHelper;
+
+        private int _appWindowHeight;
+        public int AppWindowHeight
+        {
+            get { return _appWindowHeight; }
+            set
+            {
+                _appWindowHeight = value;
+                NotifyOfPropertyChange(() => AppWindowHeight);
+            }
+        }
+
+        private int _maxTaskScrollHeight;
+        public int MaxTaskScrollHeight
+        {
+            get { return _maxTaskScrollHeight; }
+            set
+            {
+                _maxTaskScrollHeight = value;
+                NotifyOfPropertyChange(() => MaxTaskScrollHeight);
+            }
+        }
+
+        private int _listBoxHeight;
+        public int ListBoxHeight
+        {
+            get { return _listBoxHeight; }
+            set
+            {
+                _listBoxHeight = value;
+                NotifyOfPropertyChange(() => ListBoxHeight);
+            }
+        }
+
+        private int _taskCount;
+        public int TaskCount
+        {
+            get { return _taskCount; }
+            set
+            {
+                _taskCount = value;
+                NotifyOfPropertyChange(() => TaskCount);
+            }
+        }
 
         public TaskViewModelBase(IEventAggregator events, IAppState appState, IWindowManager window,
                                  IDataState dataState, IDataService dataService, IDataHelper dataHelper) : base(events, appState)
@@ -36,6 +82,7 @@ namespace TaskFocusDesktop.ViewModels.Base
             _dataHelper = dataHelper;
 
             _dataState.DataStateChanged += DataStateChanged;
+            AppWindowHeight = (int)appState.AppWindowHeight;
         }
 
         public string? OrderingIndex { get; set; }
@@ -80,11 +127,6 @@ namespace TaskFocusDesktop.ViewModels.Base
         private async void DataStateChanged(string propertyName, IDataState dataState)
         {
             bool changesOccured = HandleDataStateChanged(propertyName, dataState);
-            //if (changesOccured)
-            //{
-            //    //await InvokeAsync(StateHasChanged);
-            //    Refresh();
-            //}
         }
 
         private ObservableCollection<TaskDisplayModel>? _localTasks;
@@ -128,10 +170,6 @@ namespace TaskFocusDesktop.ViewModels.Base
             {
                 _selectedTaskItem = value;
                 NotifyOfPropertyChange(() => SelectedTaskItem);
-
-                // debug
-                //string selectedTaskItemText = SelectedTaskItem != null ? SelectedTaskItem.TaskName : "NULL";
-                //Debug.WriteLine($"SelectedTaskItem: {selectedTaskItemText}");
             }
         }
 
@@ -158,10 +196,6 @@ namespace TaskFocusDesktop.ViewModels.Base
             {
                 _selectedContext = value;
                 NotifyOfPropertyChange(() => SelectedContext);
-
-                // debug
-                //string selectedContextText = SelectedContext != null ? SelectedContext.ContextName : "NULL";
-                //Debug.WriteLine($"SelectedContext: { selectedContextText}");
             }
         }
 
@@ -245,6 +279,8 @@ namespace TaskFocusDesktop.ViewModels.Base
                 {
                     task.PropertyChanged += OnExistingTaskPropertyChanged!; // subscribe to property changed event
                 }
+                TaskCount = LocalTasks.Count;
+                UpdateScrollHeight(AppWindowHeight);
             }
         }
 
@@ -300,6 +336,32 @@ namespace TaskFocusDesktop.ViewModels.Base
             _logger.Info($"{senderContext.ContextName}'s property {changedProperty} was changed.");
 
             await _dataService.UpdateContextData(senderContext);
+        }
+
+        // updates task listbox and containing scrollviewer height values dynamically
+        protected void UpdateScrollHeight(int appWindowHeight)
+        {
+            int fixedTotalOtherWindowElementsHeight = 300;
+            int requiredTaskListHeight = 70 * TaskCount;
+            MaxTaskScrollHeight = requiredTaskListHeight;
+
+            if (appWindowHeight - fixedTotalOtherWindowElementsHeight < requiredTaskListHeight)
+            {
+                int difference = requiredTaskListHeight - (appWindowHeight - fixedTotalOtherWindowElementsHeight);
+                ListBoxHeight = requiredTaskListHeight - difference;
+            }
+            else
+            {
+                ListBoxHeight = requiredTaskListHeight;
+            }
+
+            AppWindowHeight = appWindowHeight;
+        }
+
+        public Task HandleAsync(AppWindowHeightChangedEvent message, CancellationToken cancellationToken)
+        {
+            UpdateScrollHeight((int)message.NewAppWindowHeight);
+            return Task.CompletedTask;
         }
     }
 }

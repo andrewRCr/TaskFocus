@@ -11,15 +11,15 @@
              xmlns:system="clr-namespace:System;assembly=netstandard" 
              xmlns:utilities="clr-namespace:TaskFocusDesktop.Utilities" 
              xmlns:components="clr-namespace:TaskFocusDesktop.Views.Components"
-             d:DesignHeight="150" d:DesignWidth="900">
+             d:DesignHeight="200" d:DesignWidth="1000">
 
     <UserControl.Resources>
         <utilities:IsNullConverter x:Key="IsNullConverterInstance"/>
     </UserControl.Resources>
 
-    <Grid Width="900" 
-          Height="150"
-          Background="Transparent" >
+    <Grid Width="1000" 
+          Height="200"
+          Background="{StaticResource BackgroundDarkGreyBrush}" >
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -28,31 +28,40 @@
 
         <!-- header -->
         <StackPanel Grid.Row="0" Orientation="Horizontal"   Margin="5 5 0 0">
-            <materialDesign:PackIcon Kind="CheckboxOutline" 
+            <materialDesign:PackIcon Kind="Plus" 
                                      Width="22" 
                                      Height="22" 
                                      VerticalAlignment="Center"
-                                     Margin="0 0 0 0"
+                                     Margin="5 5 0 0"
                                      Foreground="{StaticResource ForegroundMainBrush}"/>
 
             <TextBlock Text="{Binding HeaderText}"
                        Style="{StaticResource HeaderTextStyle}" 
                        FontSize="16"
                        VerticalAlignment="Center"
-                       Margin="5 0 0 0"
+                       Margin="6 6 0 0"
                                />
 
         </StackPanel>
 
         <!-- text input and feedback message -->
         <StackPanel Grid.Row="1" 
-                    Margin="0 10 5 0"
+                    Margin="5 10 5 0"
                     Orientation="Vertical" 
                     HorizontalAlignment="Center" >
 
-            <Grid >
+            <Grid Margin="0 10 0 5" >
 
-                <components:NewTaskItemView />
+                <materialDesign:Card  
+                     materialDesign:ElevationAssist.Elevation="Dp6"
+                     HorizontalContentAlignment="Center"
+                     Width="900"
+                     Padding="12"
+                     Background="{StaticResource BackgroundLightGreyBrush}" >
+
+                    <components:NewTaskItemView />
+                    
+                </materialDesign:Card>
 
             </Grid>
 
@@ -78,7 +87,7 @@
 
         <!-- submit / cancel buttons -->
         <StackPanel Grid.Row="2" 
-                    Margin="0 0 10 10"
+                    Margin="0 5 10 10"
                     Orientation="Horizontal" 
                     HorizontalAlignment="Right" 
                     VerticalAlignment="Bottom" >

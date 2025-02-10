@@ -12,7 +12,7 @@
     <UserControl.Resources>
         <Style x:Key="taskTextInputStyle" TargetType="{x:Type TextBox}" BasedOn="{StaticResource MaterialDesignTextBox}">
             <Setter Property="FontSize" Value="14" />
-            <Setter Property="Width" Value="300" />
+            <Setter Property="Width" Value="350" />
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="TextWrapping" Value="Wrap" />
             <Setter Property="materialDesign:TextFieldAssist.TextBoxViewMargin" Value="0 0 0 2" />
@@ -33,7 +33,7 @@
 
         <Style x:Key="collectionTextInputStyle" TargetType="{x:Type ComboBox}" BasedOn="{StaticResource MaterialDesignComboBox}" >
             <Setter Property="FontSize" Value="14" />
-            <Setter Property="Width" Value="300" />
+            <Setter Property="Width" Value="250" />
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="IsEditable" Value="True" />
             <Setter Property="materialDesign:TextFieldAssist.TextBoxViewMargin" Value="0 0 0 2" />
@@ -363,15 +363,18 @@
     </UserControl.Resources>
     
     <Grid x:Name="MainTaskItemGrid" 
+          ScrollViewer.CanContentScroll="True"
           Focusable="True" 
           Margin="0 0 0 0">
         
         <Border Background="{StaticResource BackgroundLightGreyBrush}" 
+                ScrollViewer.CanContentScroll="True"
                 CornerRadius="5" 
                 Margin="2"
                 Padding="10" >
 
-            <StackPanel Orientation="Horizontal">
+            <StackPanel Orientation="Horizontal"
+                        ScrollViewer.CanContentScroll="True" >
 
                 <!-- drag indicator -->
                 <materialDesign:PackIcon Kind="Drag"
@@ -451,7 +454,6 @@
             </StackPanel>
 
         </Border>
-
 
     </Grid>
 </UserControl>

@@ -77,6 +77,7 @@ namespace TaskFocusDesktop.ViewModels.SidePanel
 
         public RelayCommand RequestRenameSelectedContextDialogCommand => new RelayCommand(async execute => await RequestRenameSelectedContextDialog());
 
+        // updates task listbox and containing scrollviewer height values dynamically
         private void UpdateScrollHeight(int appWindowHeight)
         {
             int fixedBaseSubMenuHeight = 110;

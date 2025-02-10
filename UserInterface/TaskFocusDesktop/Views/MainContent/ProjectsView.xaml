@@ -64,7 +64,7 @@
         </WrapPanel>
 
         <Expander IsExpanded="True" Margin="0" 
-                 Background="Transparent"
+                  Background="Transparent"
                   Visibility="{Binding ShowNoFocusedProjectTutorialText, 
              Converter={StaticResource InvertableBooleanToVisibilityConverter}, 
              ConverterParameter=Inverted, FallbackValue=Collapsed}"
@@ -91,11 +91,19 @@
 
             </Expander.Header>
 
-            <components:TaskItemContainerView ContainerTasks="{Binding FocusedProjectTasks}" 
+            <ScrollViewer  Grid.Row="1"  
+                           MaxHeight="{Binding MaxTaskScrollHeight}"
+                           VerticalScrollBarVisibility="Disabled" >
+
+                <components:TaskItemContainerView ContainerTasks="{Binding FocusedProjectTasks}" 
                                               IsProjectContainer="True"
                                               CanReorder="True"
+                                              ListBoxHeight="{Binding ListBoxHeight}"
                                               OrderingIndex="{Binding OrderingIndex}"
                                         />
+
+            </ScrollViewer>
+            
         </Expander>
 
     </Grid>

@@ -84,6 +84,15 @@ namespace TaskFocusDesktop.Views.Components
         public static readonly DependencyProperty TaskItemInsertedCommandProperty =
             DependencyProperty.Register("TaskItemInsertedCommand", typeof(RelayCommand), typeof(TaskItemContainerView), new PropertyMetadata(null));
 
+        public int ListBoxHeight
+        {
+            get { return (int)GetValue(ListBoxHeightProperty); }
+            set { SetValue(ListBoxHeightProperty, value); }
+        }
+
+        public static readonly DependencyProperty ListBoxHeightProperty =
+            DependencyProperty.Register("ListBoxHeight", typeof(int), typeof(TaskItemContainerView), new PropertyMetadata(null));
+
         public RelayCommand TaskItemInsertedCommand
         {
             get { return (RelayCommand)GetValue(TaskItemInsertedCommandProperty); }

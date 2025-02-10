@@ -107,6 +107,9 @@ namespace TaskFocusDesktop.ViewModels.MainContent
                 {
                     task.PropertyChanged += OnExistingTaskPropertyChanged!; // subscribe to property changed event
                 }
+
+                TaskCount = FocusedContextTasks.Count;
+                UpdateScrollHeight(AppWindowHeight);
             }
             else
             {
