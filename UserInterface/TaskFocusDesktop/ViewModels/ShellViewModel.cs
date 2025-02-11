@@ -1,5 +1,6 @@
 ﻿using Caliburn.Micro;
 using MaterialDesignThemes.Wpf;
+using MudBlazor;
 using MudBlazor.Extensions.Components;
 using System;
 using System.Collections.Generic;
@@ -7,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 using TaskFocusDesktop.Commands;
 using TaskFocusDesktop.EventModels;
 using TaskFocusDesktop.Utilities;
@@ -19,6 +21,7 @@ using TaskFocusUI.Library.API;
 using TaskFocusUI.Library.Models;
 using TaskFocusUI.Library.Utilities;
 using Windows.System;
+using Windows.UI;
 
 namespace TaskFocusDesktop.ViewModels
 {
@@ -76,6 +79,17 @@ namespace TaskFocusDesktop.ViewModels
         {
             get { return Borderless ? 0 : _windowRadius; }
             set { _windowRadius = value; }
+        }
+
+        private SolidColorBrush _miniNavIconColor;
+        public SolidColorBrush MiniNavIconColor
+        {
+            get { return _miniNavIconColor; }
+            set 
+            { 
+                _miniNavIconColor = value;
+                NotifyOfPropertyChange(() => MiniNavIconColor);
+            }
         }
 
         private Screen? _topWidgetPanel;
@@ -226,6 +240,8 @@ namespace TaskFocusDesktop.ViewModels
             ActiveMainContentView = IsUserLoggedIn ? ViewCatalog.MainContentView.Inbox : ViewCatalog.MainContentView.Home;
             _appState = appState;
             _userEndpoint = userEndpoint;
+
+            UpdateMiniNavIconColor();
         }
 
         protected override void OnViewLoaded(object view)
@@ -266,6 +282,12 @@ namespace TaskFocusDesktop.ViewModels
             return ShellWindowState == WindowState.Maximized ? maximizedPosition : normalPosition;
         }
 
+        private void UpdateMiniNavIconColor()
+        {
+            string hexValue = IsUserLoggedIn ? "#c2c2c5" : "#737379"; // foreground main/tertiary
+            MiniNavIconColor = (SolidColorBrush)new BrushConverter().ConvertFrom(hexValue)!;
+        }
+
         public async Task ExitApplication()
         {
             await TryCloseAsync();
@@ -289,6 +311,8 @@ namespace TaskFocusDesktop.ViewModels
         {
             NotifyOfPropertyChange(() => IsUserLoggedIn);
             _appState.IsAuthenticated = true;
+            UpdateMiniNavIconColor();
+
             await _dataService.FetchAllRemoteData();
 
             TopWidgetPanel = IoC.Get<AuthWidgetViewModel>();
@@ -304,6 +328,7 @@ namespace TaskFocusDesktop.ViewModels
             NotifyOfPropertyChange(() => IsUserLoggedIn);
             _appState.IsAuthenticated = false;
             _appState.ShouldAutoLogin = false;
+            UpdateMiniNavIconColor();
 
             TopWidgetPanel = IoC.Get<LoginWidgetViewModel>();
             await ActivateItemAsync(TopWidgetPanel, new CancellationToken());

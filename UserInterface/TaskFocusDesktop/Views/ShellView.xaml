@@ -178,7 +178,7 @@
                                 Grid.Column="0"
                                 Grid.Row="2">
 
-                        <Menu IsEnabled="{Binding IsUserLoggedIn}" 
+                        <Menu IsEnabled="{Binding IsUserLoggedIn}"
                               Template="{StaticResource MiniNavMenu_Template}" />
 
                     </StackPanel>
@@ -230,7 +230,7 @@
                                 <materialDesign:PackIcon Kind="AccountCog" 
                                                             Height="24" 
                                                             Width="24"
-                                                            Foreground="{StaticResource ForegroundMainBrush}"
+                                                            Foreground="{Binding MiniNavIconColor}"
                                                             />
                             </MenuItem.Icon>
                         </MenuItem>

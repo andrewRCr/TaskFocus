@@ -13,7 +13,13 @@
     <Style TargetType="materialDesign:PackIcon" x:Key="MiniNavMenuIconStyle">
         <Setter Property="Height" Value="24" />
         <Setter Property="Width" Value="24" />
-        <Setter Property="Foreground" Value="{StaticResource ForegroundMainBrush}" />
+
+        <Setter Property="Foreground">
+            <Setter.Value>
+                <Binding Path="DataContext.MiniNavIconColor" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}" />
+            </Setter.Value>
+        </Setter>
+
     </Style>
 
     <!-- // MiniNavMenu MenuItem template // -->
@@ -21,12 +27,10 @@
     <ControlTemplate x:Key="MiniNavMenuItem_Template"
                      TargetType="{x:Type MenuItem}">
 
-        <Border x:Name="MenuItemBorder"
-                
+        <Border x:Name="MenuItemBorder"              
                 BorderThickness="0"
                 Height="50"
-                Width="60"
-                >
+                Width="60" >
 
             <Border.Background>
                 <MultiBinding Converter="{StaticResource ActiveMainViewToVisibilityConverter}">
