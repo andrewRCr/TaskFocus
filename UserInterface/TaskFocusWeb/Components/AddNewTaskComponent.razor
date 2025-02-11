@@ -149,6 +149,13 @@ Style="background-color: #27272f" >
     private bool _isProjectInputDisabled = false;
     private bool _isContextInputDisabled = false;
 
+    private string? _focusedProjectIdStr = null;
+    public ProjectDisplayModel ProjectParam { get; set; } = default!;
+    private string? _focusedContextIdStr = null;
+    public ContextDisplayModel ContextParam { get; set; } = default!;
+    int integerProjectId;
+    int integerContextId;
+
     private MudForm _newTaskForm = default!;
     private bool _newTaskIsValid;
     private string[] _newTaskErrors = { };
@@ -171,6 +178,20 @@ Style="background-color: #27272f" >
         LoadLocalProjectData();
         LoadLocalContextData();
         UpdateProjectContextSelectionLists();
+        _focusedProjectIdStr = AppState.FocusedProjectIdStr;
+        _focusedContextIdStr = AppState.FocusedContextIdStr;
+
+        // context-awareness: if on Projects or Contexts pages and have highlighted in the UI a particular one, pre-populate field
+        if (_focusedProjectIdStr != null && AppState.ShowProjectSubMenu)
+        {
+            GetProjectFromId();
+            if (ProjectParam != null) { _newTask.ProjectName = ProjectParam.ProjectName; }
+        }
+        else if (_focusedContextIdStr != null && AppState.ShowContextSubMenu)
+        {
+            GetContextFromId();
+            if (ContextParam != null){ _newTask.ContextName = ContextParam.ContextName; }
+        }
     }
 
     private void ShowNewTaskInput()
@@ -242,6 +263,24 @@ Style="background-color: #27272f" >
         catch (Exception ex)
         {
             errorMessage = ex.Message;
+        }
+    }
+
+    protected void GetProjectFromId()
+    {
+        bool isValid = int.TryParse(_focusedProjectIdStr, out integerProjectId);
+        if (isValid)
+        {
+            ProjectParam = DataState.Projects!.Find(x => x.Id == integerProjectId)!;
+        }
+    }
+
+    protected void GetContextFromId()
+    {
+        bool isValid = int.TryParse(_focusedContextIdStr, out integerContextId);
+        if (isValid)
+        {
+            ContextParam = DataState.Contexts!.Find(x => x.Id == integerContextId)!;
         }
     }
 }

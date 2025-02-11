@@ -88,6 +88,7 @@ namespace TaskFocusWeb
             {
                 _focusedContextIdStr = value;
                 AppStateChanged?.Invoke(nameof(FocusedContextIdStr), this);
+                Console.WriteLine($"AppState: FocusedContextIdStr changed to {value}!");
             }
         }
 
