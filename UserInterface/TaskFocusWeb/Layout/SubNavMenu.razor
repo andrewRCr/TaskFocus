@@ -212,6 +212,8 @@
 
     private async Task TrySubmitNewCollection()
     {
+        await VerifyAuthAndRedirectIfExpired();
+
         if (string.IsNullOrWhiteSpace(_newCollectionName))
         {
             Snackbar.Add($"{_collectionTypeName} name is required.", Severity.Error);

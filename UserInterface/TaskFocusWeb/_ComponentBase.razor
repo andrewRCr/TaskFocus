@@ -8,6 +8,7 @@
 @inject IMapper Mapper
 @inject IDataHelper DataHelper
 @inject IDataService DataService
+@inject NavigationManager NavManager
 
 @code {
     [Inject]
@@ -18,6 +19,8 @@
 
     [CascadingParameter]
     public Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    protected bool _isAuthenticated = false;
 
     protected List<string> dataRefreshTriggers = new List<string> { 
         nameof(DataState.Tasks), nameof(DataState.Projects), nameof(DataState.Contexts) };
@@ -53,9 +56,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var authState = await AuthState;
-
-        if (authState.User.Identity!.IsAuthenticated)
+        await VerifyAuth();
+        if (_isAuthenticated)
         {
             // do any child-specific loading/filtering of data
             CustomAuthenticatedOnInit();
@@ -65,6 +67,23 @@
     // to be defined in children as needed
     protected virtual void CustomAuthenticatedOnInit()
     {
+    }
+
+    protected async Task VerifyAuth()
+    {
+        var authState = await AuthState;
+        _isAuthenticated = authState.User.Identity!.IsAuthenticated;
+    }
+
+    protected async Task VerifyAuthAndRedirectIfExpired()
+    {
+        await VerifyAuth();
+        if (!_isAuthenticated)
+        {
+            AppState.AlertSeverity = Severity.Warning;
+            AppState.AlertMessage = "Session expired; please log in again.";
+            NavManager.NavigateTo("/");
+        }
     }
 
     // to be defined in child components as needed
@@ -194,6 +213,8 @@
     // saves updated task data to server on property change
     protected async void OnExistingTaskPropertyChanged(object sender, PropertyChangedEventArgs e)
     {
+        await VerifyAuthAndRedirectIfExpired();
+
         string? changedProperty = e.PropertyName;
         TaskDisplayModel senderTask = (TaskDisplayModel)sender;
         Console.WriteLine($"{senderTask.TaskName}'s property {changedProperty} was changed.");
@@ -204,6 +225,8 @@
     // saves updated project data to server on property change
     protected async void OnExistingProjectPropertyChanged(object sender, PropertyChangedEventArgs e)
     {
+        await VerifyAuthAndRedirectIfExpired();
+
         string? changedProperty = e.PropertyName;
         ProjectDisplayModel senderProject = (ProjectDisplayModel)sender;
         Console.WriteLine($"{senderProject.ProjectName}'s property {changedProperty} was changed.");
@@ -214,6 +237,8 @@
     // saves updated context data to server on property change
     protected async void OnExistingContextPropertyChanged(object sender, PropertyChangedEventArgs e)
     {
+        await VerifyAuthAndRedirectIfExpired();
+
         string? changedProperty = e.PropertyName;
         ContextDisplayModel senderContext = (ContextDisplayModel)sender;
         Console.WriteLine($"{senderContext.ContextName}'s property {changedProperty} was changed.");

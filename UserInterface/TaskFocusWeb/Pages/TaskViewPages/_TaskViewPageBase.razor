@@ -1,4 +1,5 @@
 ﻿@inherits _ComponentBase
+@inject NavigationManager NavManager
 
 @code {
     protected MudBlazor.Severity _alertSeverity = Severity.Normal;
@@ -13,6 +14,14 @@
         AppState.ShowProjectSubMenu = false;
         AppState.ShowContextSubMenu = false;
         LoadAlertMessage();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await VerifyAuthAndRedirectIfExpired();
+
+        // do any child-specific loading/filtering of data
+        CustomAuthenticatedOnInit();      
     }
 
     protected void LoadAlertMessage()

@@ -27,10 +27,10 @@
             <!-- user app preferences -->
             <MudTreeView T="MudContainer" Width="100%">
                 <MudTreeViewItem T="MudContainer" 
-                                 Expanded="true"
-                                 Icon="@Icons.Material.Filled.Settings"
-                                 Text="Preferences"
-                                 TextTypo="Typo.button">
+                Expanded="true"
+                Icon="@Icons.Material.Filled.Settings"
+                Text="Preferences"
+                TextTypo="Typo.button">
 
                     <MudContainer MaxWidth="MaxWidth.Medium">
 
@@ -38,27 +38,27 @@
 
                         <MudRadioGroup @bind-Value="LocalSettings.CleanUpImmediately" Class="ml-2">
                             <MudRadio Value="true" 
-                                      Dense="true" 
-                                      Class="ml-2" 
-                                      Color="Color.Primary"
-                                      UnCheckedColor="Color.Inherit">
+                            Dense="true" 
+                            Class="ml-2" 
+                            Color="Color.Primary"
+                            UnCheckedColor="Color.Inherit">
                                 <MudText Style="@_immediateTextStyleStr">Immediately</MudText>
                             </MudRadio>
 
                             <MudRadio Value="false" Dense="true" Class="ml-2" Color="!LocalSettings.CleanUpImmediately ? Color.Primary : Color.Inherit">
                                 <MudStack Row="true" AlignItems="AlignItems.Center">
-                                <MudNumericField @bind-Value="LocalSettings.CleanUpDelayDays"
-                                                 Class="ml-2 d-flex align-start pb-3"
-                                                 HideSpinButtons="false"
-                                                 DisableUnderLine="true"
-                                                 Variant="Variant.Text"
-                                                 Min="1"
-                                                 Max="90"
-                                                 MaxLength="2"
-                                                 Disabled="@LocalSettings.CleanUpImmediately"
-                                                 FullWidth="false"
-                                                 Margin="Margin.Dense"
-                                                 Style="@_cleanDaysNumFieldStyleStr" />
+                                    <MudNumericField @bind-Value="LocalSettings.CleanUpDelayDays"
+                                    Class="ml-2 d-flex align-start pb-3"
+                                    HideSpinButtons="false"
+                                    DisableUnderLine="true"
+                                    Variant="Variant.Text"
+                                    Min="1"
+                                    Max="90"
+                                    MaxLength="2"
+                                    Disabled="@LocalSettings.CleanUpImmediately"
+                                    FullWidth="false"
+                                    Margin="Margin.Dense"
+                                    Style="@_cleanDaysNumFieldStyleStr" />
 
                                     <MudText Class="ml-n2" Style="@_cleanDaysTextStyleStr">@_cleanDaysTextStr after completion</MudText>
                                 </MudStack>
@@ -68,24 +68,24 @@
 
                         <MudText Class="ml-4 mb-n1">Automatically <strong>delete</strong> completed tasks:</MudText>
 
-                            <div class="d-flex">
+                        <div class="d-flex">
                             <MudStack Row="true" AlignItems="AlignItems.Center">
                                 <MudNumericField @bind-Value="LocalSettings.DeleteDelayDays"
-                                                    Class="ml-6 d-flex align-start pb-3"
-                                                    HideSpinButtons="false"
-                                                    DisableUnderLine="true"
-                                                    Variant="Variant.Text"
-                                                    Min="1"
-                                                    Max="90"
-                                                    MaxLength="2"
-                                                    FullWidth="false"
-                                                    Margin="Margin.Dense"
-                                                    Style="@_deleteDaysNumFieldStyleStr" />
+                                Class="ml-6 d-flex align-start pb-3"
+                                HideSpinButtons="false"
+                                DisableUnderLine="true"
+                                Variant="Variant.Text"
+                                Min="1"
+                                Max="90"
+                                MaxLength="2"
+                                FullWidth="false"
+                                Margin="Margin.Dense"
+                                Style="@_deleteDaysNumFieldStyleStr" />
 
                                 <MudText Class="ml-n2">@_deleteDaysTextStr after completion</MudText>
                             </MudStack>
-                            </div>
-               
+                        </div>
+
                     </MudContainer>
 
                 </MudTreeViewItem>
@@ -94,10 +94,10 @@
             <!-- user profile info / settings -->
             <MudTreeView T="MudContainer" Width="100%">
                 <MudTreeViewItem T="MudContainer" 
-                                 Expanded="true"
-                                 Icon="@Icons.Material.Filled.AccountCircle"
-                                 Text="Profile"
-                                 TextTypo="Typo.button">
+                Expanded="true"
+                Icon="@Icons.Material.Filled.AccountCircle"
+                Text="Profile"
+                TextTypo="Typo.button">
 
                     <MudContainer MaxWidth="MaxWidth.Medium">
 
@@ -115,27 +115,27 @@
 
                         <!-- disabled email address display -->
                         <MudTextField Class="ml-4"
-                                        Style="width:370px;"
-                                        Disabled="true"
-                                        Variant="Variant.Text"
-                                        Margin="Margin.Dense"
-                                        HelperText="Email Address"
-                                        @bind-Value="LocalCurrentUser.Email" />
+                        Style="width:370px;"
+                        Disabled="true"
+                        Variant="Variant.Text"
+                        Margin="Margin.Dense"
+                        HelperText="Email Address"
+                        @bind-Value="LocalCurrentUser.Email" />
 
                         <!-- email/password update buttons (open dialogs) -->
                         <MudButton Class="mt-5 ml-4"
-                                    Variant="Variant.Filled"
-                                    ButtonType="ButtonType.Button"
-                                    OnClick="OpenUpdateEmailDialog"
-                                    Color="Color.Primary">
+                        Variant="Variant.Filled"
+                        ButtonType="ButtonType.Button"
+                        OnClick="OpenUpdateEmailDialog"
+                        Color="Color.Primary">
                             Update email
                         </MudButton>
 
                         <MudButton Class="mt-5 ml-4"
-                                    Variant="Variant.Filled"
-                                    ButtonType="ButtonType.Button"
-                                    OnClick="OpenUpdatePasswordDialog"
-                                    Color="Color.Primary">
+                        Variant="Variant.Filled"
+                        ButtonType="ButtonType.Button"
+                        OnClick="OpenUpdatePasswordDialog"
+                        Color="Color.Primary">
                             Change password
                         </MudButton>
 
@@ -156,8 +156,8 @@
 
     <!-- updateEmail dialog -->
     <MudDialog @bind-IsVisible="_updateEmailDialogVisible" @ref="_updateEmailDialog"
-               Options="dialogOptions"
-               Style="background-color: #27272f" >
+    Options="dialogOptions"
+    Style="background-color: #27272f" >
         <TitleContent>
             <MudIcon Icon="@Icons.Material.Filled.Edit" Class="mr-1 mb-1" />
             <MudText Typo="Typo.button">
@@ -170,11 +170,11 @@
                 <MudForm @ref="_updateEmailForm" @bind-IsValid="@_emailFormIsValid" @bind-Errors="@_emailErrors" Model="_userModel">
 
                     <MudTextField T="string" Class="mb-2"
-                                  Label="Email Address" ShrinkLabel="true"
-                                  Margin="Margin.Dense"
-                                  @bind-Value="_userModel.Email"
-                                  Style="width: 350px;"
-                                  Validation="@(new EmailAddressAttribute() {ErrorMessage = "Please provide a valid email address."})" />
+                    Label="Email Address" ShrinkLabel="true"
+                    Margin="Margin.Dense"
+                    @bind-Value="_userModel.Email"
+                    Style="width: 350px;"
+                    Validation="@(new EmailAddressAttribute() {ErrorMessage = "Please provide a valid email address."})" />
                 </MudForm>
             </MudPaper>
             <MudText Typo="Typo.caption">You will need to confirm your new email address after updating.</MudText>
@@ -182,9 +182,9 @@
         <DialogActions>
             <MudButton OnClick="()=> _updateEmailDialogVisible = false" Class="px-0">Cancel</MudButton>
             <MudButton Color="Color.Primary"
-                       Disabled="@(!_emailFormIsValid)"
-                       Class="px-0"
-                       OnClick="SubmitUpdatedEmail">
+            Disabled="@(!_emailFormIsValid)"
+            Class="px-0"
+            OnClick="SubmitUpdatedEmail">
                 Submit
             </MudButton>
         </DialogActions>
@@ -192,8 +192,8 @@
 
     <!-- updatePassword dialog -->
     <MudDialog @bind-IsVisible="_updatePasswordDialogVisible" @ref="_updatePasswordDialog" 
-               Options="dialogOptions"
-               Style="background-color: #27272f">
+    Options="dialogOptions"
+    Style="background-color: #27272f">
         <TitleContent>
             <MudIcon Icon="@Icons.Material.Filled.Edit" Class="mr-1 mb-1" />
             <MudText Typo="Typo.button">
@@ -205,30 +205,30 @@
 
                 <MudForm @ref="_updatePasswordForm" @bind-IsValid="@_passwordFormIsValid" @bind-Errors="@_passwordErrors" Model="_authUserModel">
                     <MudTextField T="string" Class="pl-2 my-2"
-                                  Label="New password" ShrinkLabel="true"
-                                  @bind-Value="_authUserModel.Password"
-                                  @ref="_pwField1"
-                                  Style="width: 350px;"
-                                  Margin="Margin.Dense"
-                                  InputType="@_passwordInput"
-                                  Adornment="Adornment.End"
-                                  AdornmentIcon="@_passwordInputIcon"
-                                  OnAdornmentClick="ToggleShowPassword"
-                                  AdornmentAriaLabel="Show Password"
-                                  Validation="@(new Func<string, IEnumerable<string>>(PasswordStrength))" Required="true"
-                                  RequiredError="Password is required!" />
+                    Label="New password" ShrinkLabel="true"
+                    @bind-Value="_authUserModel.Password"
+                    @ref="_pwField1"
+                    Style="width: 350px;"
+                    Margin="Margin.Dense"
+                    InputType="@_passwordInput"
+                    Adornment="Adornment.End"
+                    AdornmentIcon="@_passwordInputIcon"
+                    OnAdornmentClick="ToggleShowPassword"
+                    AdornmentAriaLabel="Show Password"
+                    Validation="@(new Func<string, IEnumerable<string>>(PasswordStrength))" Required="true"
+                    RequiredError="Password is required!" />
 
                     <MudTextField T="string" class="pl-2 mb-2"
-                                  Label="Confirm new password" ShrinkLabel="true"
-                                  @bind-Value="_authUserModel.ConfirmPassword"
-                                  InputType="@_passwordInput"
-                                  Style="width: 350px;"
-                                  Margin="Margin.Dense"
-                                  Adornment="Adornment.End"
-                                  AdornmentIcon="@_passwordInputIcon"
-                                  OnAdornmentClick="ToggleShowPassword"
-                                  AdornmentAriaLabel="Show Confirm Password"
-                                  Validation="@(new Func<string, string?>(PasswordMatch))" />
+                    Label="Confirm new password" ShrinkLabel="true"
+                    @bind-Value="_authUserModel.ConfirmPassword"
+                    InputType="@_passwordInput"
+                    Style="width: 350px;"
+                    Margin="Margin.Dense"
+                    Adornment="Adornment.End"
+                    AdornmentIcon="@_passwordInputIcon"
+                    OnAdornmentClick="ToggleShowPassword"
+                    AdornmentAriaLabel="Show Confirm Password"
+                    Validation="@(new Func<string, string?>(PasswordMatch))" />
                 </MudForm>
             </MudPaper>
             <MudText Typo="Typo.caption">You will need to re-authenticate after updating.</MudText>
@@ -236,9 +236,9 @@
         <DialogActions>
             <MudButton OnClick="()=> _updatePasswordDialogVisible = false" Class="px-0">Cancel</MudButton>
             <MudButton Color="Color.Primary"
-                       Disabled="@(!_passwordFormIsValid)"
-                       Class="px-0"
-                       OnClick="SubmitUpdatedPassword">
+            Disabled="@(!_passwordFormIsValid)"
+            Class="px-0"
+            OnClick="SubmitUpdatedPassword">
                 Submit
             </MudButton>
         </DialogActions>
@@ -308,6 +308,12 @@
         LoadAlertMessage();
     }
 
+    protected override async Task OnInitializedAsync()
+    {
+        await VerifyAuthAndRedirectIfExpired();
+        CustomAuthenticatedOnInit();
+    }
+
     protected override void CustomAuthenticatedOnInit()
     {
         LoadLocalSettingsData();
@@ -323,14 +329,18 @@
         }
     }
 
-    private void OpenUpdateEmailDialog()
+    private async void OpenUpdateEmailDialog()
     {
+        await VerifyAuthAndRedirectIfExpired();
+
         if (DataState.IsDataLoaded()) { _userModel.Email = LocalCurrentUser.Email; }
         _updateEmailDialogVisible = true;
     }
 
     private async Task SubmitUpdatedEmail()
     {
+        await VerifyAuthAndRedirectIfExpired();
+
         AppState.ClearAlertMessage();
 
         await _updateEmailForm.Validate();
@@ -366,8 +376,10 @@
         }
     }
 
-    private void OpenUpdatePasswordDialog()
+    private async void OpenUpdatePasswordDialog()
     {
+        await VerifyAuthAndRedirectIfExpired();
+
         _authUserModel.Password = string.Empty;
         _authUserModel.ConfirmPassword = string.Empty;
         _updatePasswordDialogVisible = true;
@@ -375,6 +387,8 @@
 
     private async Task SubmitUpdatedPassword()
     {
+        await VerifyAuthAndRedirectIfExpired();
+
         await _updatePasswordForm.Validate();
         if (_updatePasswordForm.IsValid)
         {
@@ -510,6 +524,7 @@
         UserSettingsDisplayModel senderSettings = (UserSettingsDisplayModel)sender;
         Console.WriteLine($"LocalSettings's property {changedProperty} was changed.");
 
+        await VerifyAuthAndRedirectIfExpired();
         await DataService.UpdateSettingsData(senderSettings);
     }
 

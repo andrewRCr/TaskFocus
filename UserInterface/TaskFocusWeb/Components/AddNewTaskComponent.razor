@@ -194,10 +194,13 @@ Style="background-color: #27272f" >
         }
     }
 
-    private void ShowNewTaskInput()
+    private async void ShowNewTaskInput()
     {
-        CustomAuthenticatedOnInit();
+        await VerifyAuthAndRedirectIfExpired();
+       
+        CustomAuthenticatedOnInit(); 
         _newTaskInputsVisible = true;
+        
     }
 
     private void UpdateProjectContextSelectionLists()
@@ -241,6 +244,8 @@ Style="background-color: #27272f" >
 
     private async Task TrySubmitNewTask()
     {
+        await VerifyAuthAndRedirectIfExpired();
+
         await _newTaskForm.Validate();
         if (_newTaskForm.IsValid)
         {

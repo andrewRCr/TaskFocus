@@ -228,6 +228,8 @@
 
     private async Task SubmitDelete()
     {
+        await VerifyAuthAndRedirectIfExpired();
+
         _deleteDialogVisible = false;
         await DataService.DeleteTask(TaskParam);
         Snackbar.Add("Task deleted.", Severity.Success);

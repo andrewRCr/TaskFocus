@@ -112,8 +112,10 @@
         SetLinkColor();
     }
 
-    private void TrySubmitRename()
+    private async void TrySubmitRename()
     {
+        await VerifyAuthAndRedirectIfExpired();
+
         if (string.IsNullOrWhiteSpace(_itemName))
         {
             Snackbar.Add($"{_collectionTypeName} name is required.", Severity.Error);
@@ -133,6 +135,7 @@
 
     private async Task SubmitDelete()
     {
+        await VerifyAuthAndRedirectIfExpired();
         _deleteDialogVisible = false;
 
         if (IsProjectsSubMenu)
