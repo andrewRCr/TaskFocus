@@ -1,6 +1,5 @@
 ﻿using System.Net.Http;
 using System.Threading.Tasks;
-using TaskFocusUI.Library.API;
 using TaskFocusUI.Library.Models;
 
 namespace TaskFocusUI.Library.API

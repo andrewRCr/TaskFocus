@@ -2,9 +2,7 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
-using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
 using TaskFocusUI.Library.Models;
@@ -32,7 +30,6 @@ namespace TaskFocusUI.Library.API
                 {
                     var result = await response.Content.ReadAsAsync<ProjectModel>();
                     return result;
-
                 }
                 else { throw new Exception(response.ReasonPhrase); }
             }
@@ -46,7 +43,6 @@ namespace TaskFocusUI.Library.API
                 {
                     var result = await response.Content.ReadAsAsync<List<ProjectModel>>();
                     return result;
-
                 }
                 else { throw new Exception(response.ReasonPhrase); }
             }

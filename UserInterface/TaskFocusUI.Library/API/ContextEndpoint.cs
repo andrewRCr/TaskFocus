@@ -30,7 +30,6 @@ namespace TaskFocusUI.Library.API
                 {
                     var result = await response.Content.ReadAsAsync<ContextModel>();
                     return result;
-
                 }
                 else { throw new Exception(response.ReasonPhrase); }
             }
@@ -44,7 +43,6 @@ namespace TaskFocusUI.Library.API
                 {
                     var result = await response.Content.ReadAsAsync<List<ContextModel>>();
                     return result;
-
                 }
                 else { throw new Exception(response.ReasonPhrase); }
             }

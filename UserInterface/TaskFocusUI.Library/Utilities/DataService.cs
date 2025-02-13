@@ -7,7 +7,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using TaskFocusUI.Library.API;
-using TaskFocusUI.Library.Logging;
 using TaskFocusUI.Library.Models;
 
 namespace TaskFocusUI.Library.Utilities
@@ -285,7 +284,7 @@ namespace TaskFocusUI.Library.Utilities
             }
         }
 
-        //
+        // updated user settings data to API
         public async Task UpdateSettingsData(UserSettingsDisplayModel displaySettings)
         {
             // re-map
@@ -544,10 +543,9 @@ namespace TaskFocusUI.Library.Utilities
 
             if (!_dataHelper.IsNewContextNameUnique(newContext.ContextName))
             {
-                LogError("Unable to create context: project names must be unique.");
+                LogError("Unable to create context: context names must be unique.");
                 return;
             }
-
 
             // determine OrderIndex for context
             newContext.OrderIndex = _dataState.Contexts!.Count > 0 ? _dataState.Contexts.Count : 0;

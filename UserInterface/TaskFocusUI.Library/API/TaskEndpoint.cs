@@ -1,10 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Nextended.Core.Types;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text;
@@ -34,7 +31,6 @@ namespace TaskFocusUI.Library.API
                 {
                     var result = await response.Content.ReadAsAsync<TaskModel>();
                     return result;
-
                 }
                 else { throw new Exception(response.ReasonPhrase); }
             }
@@ -48,7 +44,6 @@ namespace TaskFocusUI.Library.API
                 {
                     var result = await response.Content.ReadAsAsync<List<TaskModel>>();
                     return result;
-
                 }
                 else { throw new Exception(response.ReasonPhrase); }
             }
@@ -62,7 +57,6 @@ namespace TaskFocusUI.Library.API
                 {
                     var result = await response.Content.ReadAsAsync<List<TaskModel>>();
                     return result;
-
                 }
                 else { throw new Exception(response.ReasonPhrase); }
             }

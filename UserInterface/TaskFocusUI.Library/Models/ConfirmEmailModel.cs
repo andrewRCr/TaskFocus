@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Text;
-
-namespace TaskFocusUI.Library.Models
+﻿namespace TaskFocusUI.Library.Models
 {
     public class ConfirmEmailModel
     {

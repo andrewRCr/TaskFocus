@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Reflection;
-using System.Text;
 
 namespace TaskFocusUI.Library.Models
 {
@@ -14,7 +11,6 @@ namespace TaskFocusUI.Library.Models
         public DateTime? DateCompleted { get; set; }
         public int? ProjectId { get; set; }
         public int? ContextId { get; set; }
-        //public bool CleanedUp { get; set; } = false;
 
         // indexer
         public object this[string propertyName]
