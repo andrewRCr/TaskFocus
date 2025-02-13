@@ -6,7 +6,7 @@
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:local="clr-namespace:TaskFocusDesktop.Views.TopPanel"
              mc:Ignorable="d" 
-             d:DesignHeight="75" d:DesignWidth="1125">
+             d:DesignHeight="75" d:DesignWidth="1125" >
     <Grid>
 
         <StackPanel Orientation="Horizontal" 
@@ -20,8 +20,7 @@
                     Style="{StaticResource HyperlinkStyleButton}"
                     Foreground="{StaticResource ForegroundHighlightBrush}"
                     Content="{Binding UserEmailAddressStr}"
-                    Command="{Binding SwitchToSettingsViewCommand}"                   
-                    />
+                    Command="{Binding SwitchToSettingsViewCommand}" />
 
             <materialDesign:PackIcon Kind="Logout"
                                      Grid.Column="1" 
@@ -29,16 +28,13 @@
                                      VerticalAlignment="Center"
                                      Margin="0 0 10 0"
                                      Height="24"
-                                     Width="24"
-                                     />
+                                     Width="24" />
 
             <Button x:Name="LogOut"
                     Grid.Column="2" 
                     Style="{StaticResource HyperlinkStyleButton}"
                     VerticalAlignment="Center"
-                    Foreground="{StaticResource ForegroundHighlightBrush}"
-                    
-                    >
+                    Foreground="{StaticResource ForegroundHighlightBrush}" >
                 Log Out
             </Button>
 

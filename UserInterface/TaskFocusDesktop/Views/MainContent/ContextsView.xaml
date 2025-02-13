@@ -16,7 +16,7 @@
     <Grid x:Name="MainGridBackground" 
           Focusable="True" 
           Background="Transparent" 
-          PreviewMouseDown="MainGridBackground_PreviewMouseDown">
+          PreviewMouseDown="MainGridBackground_PreviewMouseDown" >
 
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -34,22 +34,21 @@
         </StackPanel>
 
         <WrapPanel Grid.Row="1" 
-           Margin="60 0 0 0"
-           Visibility="{Binding ShowNoFocusedContextTutorialText, 
+                   Margin="60 0 0 0"
+                   Visibility="{Binding ShowNoFocusedContextTutorialText, 
                                 Converter={StaticResource BooleanToVisibilityConverter}, 
                                 FallbackValue=Collapsed}" >
 
-            <materialDesign:Card  
-                     materialDesign:ElevationAssist.Elevation="Dp6"
-                     Width="800"
-                     Padding="12"
-                     Background="{StaticResource BackgroundLightGreyBrush}"
-                     >
+            <materialDesign:Card materialDesign:ElevationAssist.Elevation="Dp6"
+                                 Width="800"
+                                 Padding="12"
+                                 Background="{StaticResource BackgroundLightGreyBrush}" >
+                
                 <TextBlock TextWrapping="Wrap"
-                   FontSize="16" 
-                   HorizontalAlignment="Center" 
-                   TextAlignment="Center"
-                   utilities:TextBlockHelper.TrimRuns="True" >
+                           FontSize="16" 
+                           HorizontalAlignment="Center" 
+                           TextAlignment="Center"
+                           utilities:TextBlockHelper.TrimRuns="True" >
 
                     <TextBlock.Inlines>
                         <Run Text="Group tasks that will be performed in similar conditions by creating and assigning  "/>
@@ -64,7 +63,8 @@
 
         </WrapPanel>
 
-        <Expander IsExpanded="True" Margin="0" 
+        <Expander IsExpanded="True" 
+                  Margin="0" 
                   Background="Transparent"
                   Visibility="{Binding ShowNoFocusedContextTutorialText, 
                                        Converter={StaticResource InvertableBooleanToVisibilityConverter}, 
@@ -74,34 +74,30 @@
 
                 <StackPanel Orientation="Horizontal">
                     <materialDesign:PackIcon Kind="Animation"
-                                    VerticalAlignment="Center"
-                                    Margin="0 0 0 0"
-                                    Foreground="{StaticResource ForegroundMainBrush}"
-                                    Height="24"
-                                    Width="24"
-                                    />
+                                             VerticalAlignment="Center"
+                                             Margin="0 0 0 0"
+                                             Foreground="{StaticResource ForegroundMainBrush}"
+                                             Height="24"
+                                             Width="24" />
 
                     <TextBlock Text="{Binding FocusedContextName}" 
-                              Style="{StaticResource HeaderTextStyle}"
-                              VerticalAlignment="Center"
-                              Margin="10 0 0 0"
-                              />
+                               Style="{StaticResource HeaderTextStyle}"
+                               VerticalAlignment="Center"
+                               Margin="10 0 0 0" />
                 </StackPanel>
-
 
             </Expander.Header>
 
             <ScrollViewer Grid.Row="1"  
-                      MaxHeight="{Binding MaxTaskScrollHeight}"
-                      VerticalScrollBarVisibility="Disabled" >
+                          MaxHeight="{Binding MaxTaskScrollHeight}"
+                          VerticalScrollBarVisibility="Disabled" >
 
                 <!-- focused/selected context display -->
                 <components:TaskItemContainerView ContainerTasks="{Binding FocusedContextTasks}" 
-                                              IsProjectContainer="False"
-                                              CanReorder="True"
-                                              ListBoxHeight="{Binding ListBoxHeight}"
-                                              OrderingIndex="{Binding OrderingIndex}"
-                                        />
+                                                  IsProjectContainer="False"
+                                                  CanReorder="True"
+                                                  ListBoxHeight="{Binding ListBoxHeight}"
+                                                  OrderingIndex="{Binding OrderingIndex}" />
 
             </ScrollViewer>
 

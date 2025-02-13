@@ -11,8 +11,7 @@
              xmlns:maincontent="clr-namespace:TaskFocusDesktop.ViewModels.MainContent" 
              d:DataContext="{d:DesignInstance Type=maincontent:ProjectsViewModel}"
              d:DesignHeight="450" d:DesignWidth="800"
-             Style="{StaticResource BaseMainContentViewStyle}"
-             >
+             Style="{StaticResource BaseMainContentViewStyle}" >
 
     <Grid x:Name="MainGridBackground" 
           Focusable="True" 
@@ -40,12 +39,11 @@
                                         Converter={StaticResource BooleanToVisibilityConverter}, 
                                         FallbackValue=Collapsed}" >
 
-            <materialDesign:Card  
-                     materialDesign:ElevationAssist.Elevation="Dp6"
-                     Width="800"
-                     Padding="12"
-                     Background="{StaticResource BackgroundLightGreyBrush}"
-                     >
+            <materialDesign:Card materialDesign:ElevationAssist.Elevation="Dp6"
+                                 Width="800"
+                                 Padding="12"
+                                 Background="{StaticResource BackgroundLightGreyBrush}" >
+                
                 <TextBlock TextWrapping="Wrap"
                    FontSize="16" 
                    HorizontalAlignment="Center" 
@@ -66,41 +64,36 @@
         <Expander IsExpanded="True" Margin="0" 
                   Background="Transparent"
                   Visibility="{Binding ShowNoFocusedProjectTutorialText, 
-             Converter={StaticResource InvertableBooleanToVisibilityConverter}, 
-             ConverterParameter=Inverted, FallbackValue=Collapsed}"
-                 >
+                               Converter={StaticResource InvertableBooleanToVisibilityConverter}, 
+                               ConverterParameter=Inverted, FallbackValue=Collapsed}" >
 
             <Expander.Header>
 
                 <StackPanel Orientation="Horizontal">
                     <materialDesign:PackIcon Kind="ClipboardText"
-                                    VerticalAlignment="Center"
-                                    Margin="0 0 0 0"
-                                    Foreground="{StaticResource ForegroundMainBrush}"
-                                    Height="24"
-                                    Width="24"
-                                    />
+                                             VerticalAlignment="Center"
+                                             Margin="0 0 0 0"
+                                             Foreground="{StaticResource ForegroundMainBrush}"
+                                             Height="24"
+                                             Width="24" />
 
                     <TextBlock Text="{Binding FocusedProjectName}" 
-                              Style="{StaticResource HeaderTextStyle}"
-                              VerticalAlignment="Center"
-                              Margin="10 0 0 0"
-                              />
+                               Style="{StaticResource HeaderTextStyle}"
+                               VerticalAlignment="Center"
+                               Margin="10 0 0 0" />
                 </StackPanel>
-
 
             </Expander.Header>
 
-            <ScrollViewer  Grid.Row="1"  
-                           MaxHeight="{Binding MaxTaskScrollHeight}"
-                           VerticalScrollBarVisibility="Disabled" >
+            <ScrollViewer Grid.Row="1"  
+                          MaxHeight="{Binding MaxTaskScrollHeight}"
+                          VerticalScrollBarVisibility="Disabled" >
 
                 <components:TaskItemContainerView ContainerTasks="{Binding FocusedProjectTasks}" 
-                                              IsProjectContainer="True"
-                                              CanReorder="True"
-                                              ListBoxHeight="{Binding ListBoxHeight}"
-                                              OrderingIndex="{Binding OrderingIndex}"
-                                        />
+                                                  IsProjectContainer="True"
+                                                  CanReorder="True"
+                                                  ListBoxHeight="{Binding ListBoxHeight}"
+                                                  OrderingIndex="{Binding OrderingIndex}" />
 
             </ScrollViewer>
             

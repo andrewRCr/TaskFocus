@@ -1,9 +1,5 @@
 ﻿using Caliburn.Micro;
 using MaterialDesignThemes.Wpf;
-using MudBlazor;
-using MudBlazor.Extensions.Components;
-using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -20,8 +16,6 @@ using TaskFocusUI.Library;
 using TaskFocusUI.Library.API;
 using TaskFocusUI.Library.Models;
 using TaskFocusUI.Library.Utilities;
-using Windows.System;
-using Windows.UI;
 
 namespace TaskFocusDesktop.ViewModels
 {
@@ -466,32 +460,32 @@ namespace TaskFocusDesktop.ViewModels
                 case ViewCatalog.DialogView.RenameProjectDialog:
                     if (_focusedProjectId != null && _focusedProjectName != null)
                     {
-                        extendedDialogVM = new RenameCollectionDialogViewModel(_events, _appState, dummyWindow, _dataState, _dataService, _dataHelper,
-                            true, (int)_focusedProjectId, _focusedProjectName);
+                        extendedDialogVM = new RenameCollectionDialogViewModel(_events, _appState, dummyWindow, _dataState, _dataService, 
+                            _dataHelper, true, (int)_focusedProjectId, _focusedProjectName);
                     }
                     break;
 
                 case ViewCatalog.DialogView.RenameContextDialog:
                     if (_focusedContextId != null && _focusedContextName != null)
                     {
-                        extendedDialogVM = new RenameCollectionDialogViewModel(_events, _appState, dummyWindow, _dataState, _dataService, _dataHelper, 
-                            false, (int)_focusedContextId, _focusedContextName);
+                        extendedDialogVM = new RenameCollectionDialogViewModel(_events, _appState, dummyWindow, _dataState, _dataService, 
+                            _dataHelper, false, (int)_focusedContextId, _focusedContextName);
                     }
                     break;
 
                 case ViewCatalog.DialogView.DeleteProjectDialog:
                     if (_focusedProjectId != null && _focusedProjectName != null)
                     {
-                        extendedDialogVM = new DeleteCollectionDialogViewModel( _events, _appState, dummyWindow, _dataState, _dataService, _dataHelper, 
-                            true, (int)_focusedProjectId, _focusedProjectName);
+                        extendedDialogVM = new DeleteCollectionDialogViewModel( _events, _appState, dummyWindow, _dataState, _dataService, 
+                            _dataHelper, true, (int)_focusedProjectId, _focusedProjectName);
                     }
                     break;
 
                 case ViewCatalog.DialogView.DeleteContextDialog:
                     if (_focusedContextId != null && _focusedContextName != null)
                     {
-                        extendedDialogVM = new DeleteCollectionDialogViewModel( _events, _appState, dummyWindow, _dataState, _dataService, _dataHelper, 
-                            false, (int)_focusedContextId, _focusedContextName);
+                        extendedDialogVM = new DeleteCollectionDialogViewModel( _events, _appState, dummyWindow, _dataState, _dataService, 
+                            _dataHelper, false, (int)_focusedContextId, _focusedContextName);
                     }
                     break;
 

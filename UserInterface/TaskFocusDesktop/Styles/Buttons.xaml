@@ -1,7 +1,6 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:customControls="clr-namespace:TaskFocusDesktop.CustomControls"
-                    >
+                    xmlns:customControls="clr-namespace:TaskFocusDesktop.CustomControls" >
     
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="Colors.xaml" />
@@ -28,7 +27,6 @@
                         <Trigger Property="IsPressed" Value="True">
                             <Setter TargetName="focusEllipse" Property="Fill" Value="{Binding FocusEllipsePressedColor, RelativeSource={RelativeSource TemplatedParent}}"/>
                         </Trigger>
-
 
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -57,7 +55,6 @@
                         <Trigger Property="IsPressed" Value="True">
                             <Setter TargetName="focusEllipse" Property="Fill" Value="{Binding FocusEllipsePressedColor, RelativeSource={RelativeSource TemplatedParent}}"/>
                         </Trigger>
-
 
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -185,10 +182,6 @@
                     </Grid>
                     <ControlTemplate.Triggers>
 
-                        <!--<DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True">
-                            <Setter TargetName="buttonGrid" Property="Visibility" Value="Visible" />
-                        </DataTrigger>-->
-
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="focusEllipse" Property="Fill" Value="{Binding FocusEllipseHoverColor, RelativeSource={RelativeSource TemplatedParent}}"/>
                         </Trigger>
@@ -211,10 +204,6 @@
                         <ContentPresenter Content="{TemplateBinding Content}" HorizontalAlignment="Stretch" VerticalAlignment="Center"  />
                     </Grid>
                     <ControlTemplate.Triggers>
-
-                        <!--<DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True">
-                            <Setter TargetName="buttonGrid" Property="Visibility" Value="Visible" />
-                        </DataTrigger>-->
 
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="focusEllipse" Property="Fill" Value="{Binding FocusEllipseHoverColor, RelativeSource={RelativeSource TemplatedParent}}"/>

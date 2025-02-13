@@ -11,7 +11,7 @@
              xmlns:Behaviors="http://schemas.microsoft.com/xaml/behaviors"
              d:DataContext="{d:DesignInstance Type=sidepanel:ProjectSubNavMenuViewModel}"
              mc:Ignorable="d" 
-             d:DesignHeight="600" d:DesignWidth="250">
+             d:DesignHeight="600" d:DesignWidth="250" >
   
     <UserControl.Resources>
         <ResourceDictionary>
@@ -27,7 +27,6 @@
             </ContextMenu>
 
         </ResourceDictionary>
-
     </UserControl.Resources>
 
     <StackPanel Orientation="Vertical" >
@@ -106,12 +105,12 @@
                             <DataTemplate>
 
                                 <ListBoxItem x:Name="ListItem" 
-                                     Style="{StaticResource NavigationListBoxItemStyle}" 
-                                     PreviewMouseRightButtonDown="ListItem_PreviewMouseRightButtonDown"
-                                     PreviewMouseLeftButtonDown="ListItem_PreviewMouseLeftButtonDown" 
-                                     ToolTip="Right-click to edit Project"
-                                     HorizontalAlignment="Stretch"
-                                     HorizontalContentAlignment="Stretch" >
+                                             Style="{StaticResource NavigationListBoxItemStyle}" 
+                                             PreviewMouseRightButtonDown="ListItem_PreviewMouseRightButtonDown"
+                                             PreviewMouseLeftButtonDown="ListItem_PreviewMouseLeftButtonDown" 
+                                             ToolTip="Right-click to edit Project"
+                                             HorizontalAlignment="Stretch"
+                                             HorizontalContentAlignment="Stretch" >
 
                                     <StackPanel Orientation="Horizontal">
 
@@ -136,36 +135,36 @@
 
                 <!-- add new project control, row 2 -->
                 <StackPanel Grid.Row="2"
-                    Orientation="Horizontal" 
-                    HorizontalAlignment="Left"                       
-                    Margin="15,0,0,15"
-                    Width="200" 
-                    MouseEnter="StackPanel_MouseEnter"
-                    MouseLeave="StackPanel_MouseLeave" >
+                            Orientation="Horizontal" 
+                            HorizontalAlignment="Left"                       
+                            Margin="15,0,0,15"
+                            Width="200" 
+                            MouseEnter="StackPanel_MouseEnter"
+                            MouseLeave="StackPanel_MouseLeave" >
 
                     <customControls:CircularButton Command="{Binding RequestAddNewProjectDialogCommand}"
-                                           FocusEllipseHoverColor="{StaticResource ForegroundHighlightSecondaryBrush}"
-                                           FocusEllipsePressedColor="{StaticResource BackgroundLightestGreyBrush}"
-                                           Style="{StaticResource addNewCollectionIconButtonTemplate}"
-                                           Height="32"
-                                           Width="32" >
+                                                   FocusEllipseHoverColor="{StaticResource ForegroundHighlightSecondaryBrush}"
+                                                   FocusEllipsePressedColor="{StaticResource BackgroundLightestGreyBrush}"
+                                                   Style="{StaticResource addNewCollectionIconButtonTemplate}"
+                                                   Height="32"
+                                                   Width="32" >
 
                         <materialDesign:PackIcon Kind="Plus" 
-                                             Height="22"
-                                             Width="22"
-                                             HorizontalAlignment="Center"
-                                             VerticalAlignment="Center"
-                                             Foreground="{StaticResource ForegroundHighlightBrush}" />
+                                                 Height="22"
+                                                 Width="22"
+                                                 HorizontalAlignment="Center"
+                                                 VerticalAlignment="Center"
+                                                 Foreground="{StaticResource ForegroundHighlightBrush}" />
 
                     </customControls:CircularButton>
 
                     <TextBlock x:Name="addNewProjectText" 
-                       Style="{StaticResource HeaderTextStyle}"
-                       Visibility="Hidden"
-                       Margin="5 2 0 0"
-                       FontSize="15"
-                       Text="ADD NEW PROJECT"
-                       VerticalAlignment="Center" />
+                               Style="{StaticResource HeaderTextStyle}"
+                               Visibility="Hidden"
+                               Margin="5 2 0 0"
+                               FontSize="15"
+                               Text="ADD NEW PROJECT"
+                               VerticalAlignment="Center" />
 
                 </StackPanel>
 

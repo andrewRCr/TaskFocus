@@ -22,22 +22,19 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" /> <!-- TEMPORARY FOR DEBUG LINES -->
         </Grid.RowDefinitions>
 
         <!-- view title -->
         <StackPanel Grid.Row="0"
                     Orientation="Horizontal"
-                    Margin="10 10 0 15"
-                    >
+                    Margin="10 10 0 15" >
 
             <materialDesign:PackIcon Kind="Inbox"
                                      VerticalAlignment="Center"
                                      Margin="10 0 10 0"
                                      Foreground="{StaticResource ForegroundMainBrush}"
                                      Height="24"
-                                     Width="24"
-                                     />
+                                     Width="24" />
 
             <TextBlock Style="{StaticResource HeaderTextStyle}"
                        VerticalAlignment="Center" Margin="0 2 0 0"
@@ -47,14 +44,15 @@
 
         <WrapPanel Grid.Row="1" 
                    Margin="60 0 0 0"
-                   Visibility="{Binding ShowEmptyTaskListTutorialText, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" >
+                   Visibility="{Binding ShowEmptyTaskListTutorialText, 
+                                Converter={StaticResource BooleanToVisibilityConverter}, 
+                                FallbackValue=Collapsed}" >
 
-            <materialDesign:Card  
-                             materialDesign:ElevationAssist.Elevation="Dp6"
-                             Width="800"
-                             Padding="12"
-                             Background="{StaticResource BackgroundLightGreyBrush}"
-                             >
+            <materialDesign:Card materialDesign:ElevationAssist.Elevation="Dp6"
+                                 Width="800"
+                                 Padding="12"
+                                 Background="{StaticResource BackgroundLightGreyBrush}" >
+                
                 <TextBlock TextWrapping="Wrap"
                            FontSize="16" 
                            HorizontalAlignment="Center" 
@@ -74,40 +72,19 @@
 
         </WrapPanel>
 
-        <ScrollViewer  Grid.Row="1"  
-                       MaxHeight="{Binding MaxTaskScrollHeight}"
-                       VerticalScrollBarVisibility="Disabled" >
+        <ScrollViewer Grid.Row="1"  
+                      MaxHeight="{Binding MaxTaskScrollHeight}"
+                      VerticalScrollBarVisibility="Disabled" >
 
             <!-- inbox tasks -->
             <components:TaskItemContainerView Grid.Row="1"
-                                          Margin="15 0 0 0"
-                                          CanReorder="True"
-                                          OrderingIndex="{Binding OrderingIndex}"
-                                          ContainerTasks="{Binding LocalTasks}"
-                                          ListBoxHeight ="{Binding ListBoxHeight}"
-                                          />
+                                              Margin="15 0 0 0"
+                                              CanReorder="True"
+                                              OrderingIndex="{Binding OrderingIndex}"
+                                              ContainerTasks="{Binding LocalTasks}"
+                                              ListBoxHeight ="{Binding ListBoxHeight}" />
 
         </ScrollViewer>
-
-        <!-- debug -->
-        <!--<StackPanel Orientation="Vertical" Grid.Row="2"  >
-
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Text="AppWindowHeight: " />
-                <TextBlock Text="{Binding AppWindowHeight}" />
-            </StackPanel>
-
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Text="MaxTaskScrollHeight: " />
-                <TextBlock Text="{Binding MaxTaskScrollHeight}" />
-            </StackPanel>
-
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Text="ListBoxHeight: " />
-                <TextBlock Text="{Binding ListBoxHeight}" />
-            </StackPanel>
-
-        </StackPanel>-->
 
     </Grid>
 

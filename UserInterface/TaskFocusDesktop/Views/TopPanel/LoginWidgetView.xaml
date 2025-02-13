@@ -8,10 +8,12 @@
              xmlns:toppanel="clr-namespace:TaskFocusDesktop.ViewModels.TopPanel" 
              d:DataContext="{d:DesignInstance Type=toppanel:LoginWidgetViewModel}"
              mc:Ignorable="d" 
-             d:DesignHeight="75" d:DesignWidth="1125">
+             d:DesignHeight="75" d:DesignWidth="1125" >
 
     <UserControl.Resources>
-        <Style x:Key="usernameInputFieldStyle" TargetType="{x:Type TextBox}" BasedOn="{StaticResource MaterialDesignTextBox}">
+        <Style x:Key="usernameInputFieldStyle" 
+               TargetType="{x:Type TextBox}" 
+               BasedOn="{StaticResource MaterialDesignTextBox}">
             <Setter Property="Foreground" Value="{StaticResource ForegroundMainBrush}" />
             <Style.Triggers>
                 <DataTrigger Binding="{Binding EnableLoginFormControls}" Value="False">
@@ -21,7 +23,9 @@
             </Style.Triggers>
         </Style>
 
-        <Style x:Key="passwordInputFieldStyle" TargetType="{x:Type PasswordBox}" BasedOn="{StaticResource MaterialDesignFloatingHintRevealPasswordBox}">
+        <Style x:Key="passwordInputFieldStyle" 
+               TargetType="{x:Type PasswordBox}" 
+               BasedOn="{StaticResource MaterialDesignFloatingHintRevealPasswordBox}">
             <Setter Property="Foreground" Value="{StaticResource ForegroundMainBrush}" />
             <Style.Triggers>
                 <DataTrigger Binding="{Binding EnableLoginFormControls}" Value="False">
@@ -41,14 +45,14 @@
             <Grid>
 
                 <TextBox x:Name="UsernameInputField" 
-                     Style="{StaticResource usernameInputFieldStyle}"
-                     Grid.Column="0" 
-                     MinWidth="200"
-                     Margin="10 0 0 10" 
-                     Padding="2" 
-                     FontSize="14"         
-                     Text="{Binding Username}"
-                     IsEnabled="{Binding EnableLoginFormControls}" />
+                         Style="{StaticResource usernameInputFieldStyle}"
+                         Grid.Column="0" 
+                         MinWidth="200"
+                         Margin="10 0 0 10" 
+                         Padding="2" 
+                         FontSize="14"         
+                         Text="{Binding Username}"
+                         IsEnabled="{Binding EnableLoginFormControls}" />
 
                 <TextBlock x:Name="UsernamePlaceholderText" 
                            IsHitTestVisible="False"
@@ -62,15 +66,18 @@
                         <Style>
                             <Style.Triggers>
 
-                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=DataContext.Username, 
-                                                             Converter={StaticResource IsNullConverterInstance}, 
-                                                             ConverterParameter=IsNullOrWhiteSpace}" Value="False" >
+                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, 
+                                                       Path=DataContext.Username, 
+                                                       Converter={StaticResource IsNullConverterInstance}, 
+                                                       ConverterParameter=IsNullOrWhiteSpace}" Value="False" >
                                     <DataTrigger.Setters>
                                         <Setter Property="TextBlock.Visibility" Value="Hidden"/>
                                     </DataTrigger.Setters>
                                 </DataTrigger>
 
-                                <DataTrigger Binding="{Binding ElementName=UsernameInputField, Path=IsKeyboardFocusWithin}" Value="True" >
+                                <DataTrigger Binding="{Binding ElementName=UsernameInputField, 
+                                                       Path=IsKeyboardFocusWithin}" 
+                                             Value="True" >
                                     <DataTrigger.Setters>
                                         <Setter Property="TextBlock.Visibility" Value="Hidden"/>
                                     </DataTrigger.Setters>
@@ -94,8 +101,7 @@
                              Margin="10 0 0 10" 
                              Padding="2" 
                              FontSize="14"
-                             IsEnabled="{Binding EnableLoginFormControls}"
-                     />
+                             IsEnabled="{Binding EnableLoginFormControls}" />
 
                 <TextBlock x:Name="PasswordPlaceholderText" 
                            IsHitTestVisible="False"
@@ -109,9 +115,11 @@
                         <Style>
                             <Style.Triggers>
 
-                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=DataContext.Password, 
-                                                             Converter={StaticResource IsNullConverterInstance}, 
-                                                             ConverterParameter=IsNullOrWhiteSpace}" Value="False" >
+                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, 
+                                                               Path=DataContext.Password, 
+                                                               Converter={StaticResource IsNullConverterInstance}, 
+                                                               ConverterParameter=IsNullOrWhiteSpace}" 
+                                             Value="False" >
                                     <DataTrigger.Setters>
                                         <Setter Property="TextBlock.Visibility" Value="Hidden"/>
                                     </DataTrigger.Setters>

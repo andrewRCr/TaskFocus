@@ -16,8 +16,12 @@ namespace TaskFocusDesktop.ViewModels.MainContent
 {
     public class TodayViewModel : TaskViewModelBase, INotifyPropertyChanged
     {
-        public TodayViewModel(IEventAggregator events, IAppState appState, IWindowManager window, IDataState dataState,
-                              IDataService dataService, IDataHelper dataHelper) : base(events, appState, window, dataState, dataService, dataHelper)
+        public TodayViewModel(IEventAggregator events,
+                              IAppState appState,
+                              IWindowManager window,
+                              IDataState dataState,
+                              IDataService dataService,
+                              IDataHelper dataHelper) : base(events, appState, window, dataState, dataService, dataHelper)
         {
             OrderingIndex = "TodayIndex";
         }
@@ -38,7 +42,8 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             await base.OnInitializeAsync(cancellationToken);
 
             // remove TodayIndex from any completed (but not CleanedUp) tasks from view if completed > 1 day ago
-            var oldCompletedTodayTasks = _dataState.Tasks!.Where(x => x.TodayIndex != null && x.Completed && (x.DateCompleted < DateTime.Now.Date)).ToList();
+            var oldCompletedTodayTasks = _dataState.Tasks!.Where(
+                x => x.TodayIndex != null && x.Completed && (x.DateCompleted < DateTime.Now.Date)).ToList();
             foreach (TaskDisplayModel task in oldCompletedTodayTasks)
             {
                 // force update: will detect and remove TodayIndex, as well as shift other task indices accordingly if needed

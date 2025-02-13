@@ -2,9 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
-using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using TaskFocusDesktop.EventModels;
@@ -27,7 +24,11 @@ namespace TaskFocusDesktop.ViewModels.TopPanel
         private string? _defaultUserName;
         private bool _storedCredentialsWereFound = false;
 
-        public LoginWidgetViewModel(IAPIHelper aPIHelper, IWindowManager window, IEventAggregator events, IAppState appState, IUserEndpoint userEndpoint) : base(events, appState)
+        public LoginWidgetViewModel(IAPIHelper aPIHelper,
+                                    IWindowManager window,
+                                    IEventAggregator events,
+                                    IAppState appState,
+                                    IUserEndpoint userEndpoint) : base(events, appState)
         {
             _apiHelper = aPIHelper;
             _window = window;

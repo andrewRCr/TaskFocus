@@ -1,15 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
-using System.Windows;
 
 namespace TaskFocusDesktop.Utilities
 {
-    // adapted from https://stackoverflow.com/a/53661386
+    // adapted from: https://stackoverflow.com/a/53661386
 
     public class TextBlockHelper
     {

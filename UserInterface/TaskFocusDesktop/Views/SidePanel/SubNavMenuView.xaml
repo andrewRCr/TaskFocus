@@ -9,7 +9,7 @@
              xmlns:sidepanel="clr-namespace:TaskFocusDesktop.ViewModels.SidePanel" 
              d:DataContext="{d:DesignInstance Type=sidepanel:SubNavMenuViewModel}"
              mc:Ignorable="d" 
-             d:DesignHeight="600" d:DesignWidth="250">
+             d:DesignHeight="600" d:DesignWidth="250" >
 
     <UserControl.Resources>
         <ResourceDictionary>
@@ -19,16 +19,16 @@
     </UserControl.Resources>
     
     <Grid>
-        <StackPanel Orientation="Vertical" VerticalAlignment="Stretch">
+        <StackPanel Orientation="Vertical" VerticalAlignment="Stretch" >
          
             <!-- 'back' button -->
             <Button Command="{Binding SwitchToMainNavMenuCommand}" 
-                        Background="Transparent"
-                        HorizontalAlignment="Left"
-                        HorizontalContentAlignment="Left"
-                        Margin="-10 0 0 0"
-                        Width="150" 
-                        BorderThickness="0"  >
+                    Background="Transparent"
+                    HorizontalAlignment="Left"
+                    HorizontalContentAlignment="Left"
+                    Margin="-10 0 0 0"
+                    Width="150" 
+                    BorderThickness="0" >
 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
 
@@ -37,14 +37,12 @@
                                              Height="32"
                                              Width="32"
                                              VerticalAlignment="Center"
-                                             HorizontalAlignment="Left"
-                                             />
+                                             HorizontalAlignment="Left" />
 
                     <TextBlock Text="{Binding HeaderText}"
                                Style="{StaticResource HeaderTextStyle}"
                                VerticalAlignment="Center"
-                               Margin="6 0 0 0"
-                               />
+                               Margin="6 0 0 0" />
 
                 </StackPanel>
 
@@ -61,7 +59,6 @@
                 <Menu.ItemTemplate>
                     <DataTemplate>
                         <MenuItem Header="{Binding ProjectName}" />
-
                     </DataTemplate>
                 </Menu.ItemTemplate>
 

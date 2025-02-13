@@ -11,7 +11,7 @@
              xmlns:Behaviors="http://schemas.microsoft.com/xaml/behaviors"
              d:DataContext="{d:DesignInstance Type=sidepanel:ContextSubNavMenuViewModel}"
              mc:Ignorable="d" 
-             d:DesignHeight="600" d:DesignWidth="250">
+             d:DesignHeight="600" d:DesignWidth="250" >
 
     <UserControl.Resources>
         <ResourceDictionary>
@@ -26,7 +26,6 @@
                 </MenuItem>
             </ContextMenu>
         </ResourceDictionary>
-
     </UserControl.Resources>
 
     <StackPanel Orientation="Vertical" >
@@ -48,12 +47,12 @@
 
                     <!-- 'back' button -->
                     <Button Command="{Binding ExitSubNavMenuCommand}" 
-                           Background="Transparent"
-                           HorizontalAlignment="Left"
-                           HorizontalContentAlignment="Left"
-                           Margin="-10 10 0 10"
-                           Width="150" 
-                           BorderThickness="0"  >
+                            Background="Transparent"
+                            HorizontalAlignment="Left"
+                            HorizontalContentAlignment="Left"
+                            Margin="-10 10 0 10"
+                            Width="150" 
+                            BorderThickness="0"  >
 
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
 
@@ -62,15 +61,13 @@
                                        Height="32"
                                        Width="32"
                                        VerticalAlignment="Center"
-                                       HorizontalAlignment="Left"
-                                       />
+                                       HorizontalAlignment="Left" />
 
                             <TextBlock Text="CONTEXTS"
                                        Style="{StaticResource HeaderTextStyle}"
                                        Foreground="{StaticResource ForegroundMainBrush}"
                                        VerticalAlignment="Center"
-                                       Margin="6 1 0 0"
-                                       />
+                                       Margin="6 1 0 0" />
 
                         </StackPanel>
 
@@ -109,13 +106,13 @@
                             <DataTemplate>
                                 
                                 <ListBoxItem x:Name="ListItem" 
-                                    Style="{StaticResource NavigationListBoxItemStyle}" 
-                                    PreviewMouseRightButtonDown="ListItem_PreviewMouseRightButtonDown"
-                                    PreviewMouseLeftButtonDown="ListItem_PreviewMouseLeftButtonDown" 
-                                    ToolTip="Right-click to edit Context"
-                                    HorizontalAlignment="Stretch"
-                                    HorizontalContentAlignment="Stretch" >
-
+                                             Style="{StaticResource NavigationListBoxItemStyle}" 
+                                             PreviewMouseRightButtonDown="ListItem_PreviewMouseRightButtonDown"
+                                             PreviewMouseLeftButtonDown="ListItem_PreviewMouseLeftButtonDown" 
+                                             ToolTip="Right-click to edit Context"
+                                             HorizontalAlignment="Stretch"
+                                             HorizontalContentAlignment="Stretch" >
+ 
                                     <StackPanel Orientation="Horizontal">
 
                                         <materialDesign:PackIcon Kind="FormatListBulleted"
@@ -147,19 +144,18 @@
                             MouseLeave="StackPanel_MouseLeave" >
 
                     <customControls:CircularButton Command="{Binding RequestAddNewContextDialogCommand}"
-                                          FocusEllipseHoverColor="{StaticResource ForegroundHighlightSecondaryBrush}"
-                                          FocusEllipsePressedColor="{StaticResource BackgroundLightestGreyBrush}"
-                                          Style="{StaticResource addNewCollectionIconButtonTemplate}"
-                                          Height="32"
-                                          Width="32"    
-                                              >
+                                                   FocusEllipseHoverColor="{StaticResource ForegroundHighlightSecondaryBrush}"
+                                                   FocusEllipsePressedColor="{StaticResource BackgroundLightestGreyBrush}"
+                                                   Style="{StaticResource addNewCollectionIconButtonTemplate}"
+                                                   Height="32"
+                                                   Width="32" >
 
                         <materialDesign:PackIcon Kind="Plus" 
                                                  Height="22"
                                                  Width="22"
                                                  HorizontalAlignment="Center"
                                                  VerticalAlignment="Center"
-                                                 Foreground="{StaticResource ForegroundHighlightBrush}"  />
+                                                 Foreground="{StaticResource ForegroundHighlightBrush}" />
 
                     </customControls:CircularButton>
 

@@ -9,23 +9,25 @@
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              d:DataContext="{d:DesignInstance Type=dialogs:NewTaskDialogViewModel}"
              mc:Ignorable="d" 
-             d:DesignHeight="65" d:DesignWidth="1000">
+             d:DesignHeight="65" d:DesignWidth="1000" >
 
     <UserControl.Resources>
-        <Style x:Key="taskTextInputStyle" TargetType="{x:Type TextBox}" BasedOn="{StaticResource MaterialDesignTextBox}">
+        
+        <Style x:Key="taskTextInputStyle" 
+               TargetType="{x:Type TextBox}" 
+               BasedOn="{StaticResource MaterialDesignTextBox}">
             <Setter Property="FontSize" Value="14" />
             <Setter Property="Width" Value="220" />
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="TextWrapping" Value="Wrap" />
             <Setter Property="materialDesign:TextFieldAssist.TextBoxViewMargin" Value="0 0 0 2" />
-
             <Setter Property="BorderThickness" Value="0 0 0 1" />
             <Setter Property="BorderBrush" Value="{StaticResource ForegroundTertiaryBrush}" />
 
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="TextBox">
-                        <Grid >
+                        <Grid>
                             <TextBox x:Name="taskNameTextBox"
                                      materialDesign:TextFieldAssist.HasClearButton="False"
                                      Text="{Binding NewTask.TaskName}"
@@ -38,16 +40,20 @@
                                        Foreground="{StaticResource ForegroundSecondaryBrush}"
                                        Visibility="Hidden"
                                        Padding="0 1 0 0"
-                                       Margin="5 3 5 0" >
-                            </TextBlock>
-
+                                       Margin="5 3 5 0" />
                         </Grid>
+                        
                         <ControlTemplate.Triggers>
 
-                            <MultiDataTrigger >
+                            <MultiDataTrigger>
                                 <MultiDataTrigger.Conditions>
-                                    <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=DataContext.NewTask.TaskName, Converter={StaticResource IsNullConverterInstance}}" Value="True" />
-                                    <Condition Binding="{Binding ElementName=taskNameTextBox, Path=IsKeyboardFocusWithin}" Value="False" />
+                                    <Condition Binding="{Binding RelativeSource={RelativeSource Self}, 
+                                                         Path=DataContext.NewTask.TaskName, 
+                                                         Converter={StaticResource IsNullConverterInstance}}" 
+                                                         Value="True" />
+                                    <Condition Binding="{Binding ElementName=taskNameTextBox, 
+                                                         Path=IsKeyboardFocusWithin}" 
+                                                         Value="False" />
                                 </MultiDataTrigger.Conditions>
                                 <MultiDataTrigger.Setters>
                                     <Setter TargetName="placeholderText" Property="Visibility" Value="Visible"/>
@@ -55,12 +61,16 @@
                             </MultiDataTrigger>
 
                             <Trigger SourceName="taskNameTextBox" Property="IsMouseOver" Value="True">
-                                <Setter TargetName="taskNameTextBox" Property="materialDesign:TextFieldAssist.HasClearButton" Value="True" />
+                                <Setter TargetName="taskNameTextBox" 
+                                        Property="materialDesign:TextFieldAssist.HasClearButton" 
+                                        Value="True" />
                             </Trigger>
 
                             <DataTrigger Binding="{Binding NewTask.Completed}" Value="True">
                                 <Setter TargetName="placeholderText" Property="FontStyle" Value="Italic"/>
-                                <Setter TargetName="placeholderText" Property="Foreground" Value="{StaticResource ForegroundTertiaryBrush}"/>
+                                <Setter TargetName="placeholderText" 
+                                        Property="Foreground" 
+                                        Value="{StaticResource ForegroundTertiaryBrush}"/>
                             </DataTrigger>
 
                         </ControlTemplate.Triggers>
@@ -79,7 +89,9 @@
             </Style.Triggers>
         </Style>
 
-        <Style x:Key="collectionTextInputStyle" TargetType="{x:Type ComboBox}" BasedOn="{StaticResource MaterialDesignComboBox}" >
+        <Style x:Key="collectionTextInputStyle" 
+               TargetType="{x:Type ComboBox}" 
+               BasedOn="{StaticResource MaterialDesignComboBox}" >
             <Setter Property="FontSize" Value="14" />
             <Setter Property="Width" Value="200" />
             <Setter Property="VerticalAlignment" Value="Center" />
@@ -107,30 +119,44 @@
             <Setter Property="Foreground" Value="{StaticResource ForegroundMainBrush}" />
         </Style>
 
-        <Style x:Key="clearIconStyle" TargetType="materialDesign:PackIcon" BasedOn="{StaticResource iconStyle}" >
+        <Style x:Key="clearIconStyle" 
+               TargetType="materialDesign:PackIcon" 
+               BasedOn="{StaticResource iconStyle}" >
             <Setter Property="Height" Value="16" />
             <Setter Property="Width" Value="16" />
         </Style>
 
-        <Style x:Key="taskItemIconButtonTemplate" BasedOn="{StaticResource CircularButtonTemplate}" TargetType="{x:Type customControls:CircularButton}" >
+        <Style x:Key="taskItemIconButtonTemplate" 
+               BasedOn="{StaticResource CircularButtonTemplate}" 
+               TargetType="{x:Type customControls:CircularButton}" >
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type customControls:CircularButton}">
                         <Grid x:Name="buttonGrid" Visibility="Hidden">
                             <Ellipse x:Name="focusEllipse" Fill="Transparent"/>
-                            <ContentPresenter Content="{TemplateBinding Content}" HorizontalAlignment="Center" VerticalAlignment="Center"  />
+                            <ContentPresenter Content="{TemplateBinding Content}" 
+                                              HorizontalAlignment="Center" 
+                                              VerticalAlignment="Center"  />
                         </Grid>
                         <ControlTemplate.Triggers>
 
-                            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Grid}}" Value="True">
+                            <DataTrigger Binding="{Binding IsMouseOver, 
+                                                   RelativeSource={RelativeSource AncestorType=Grid}}" 
+                                         Value="True" >
                                 <Setter TargetName="buttonGrid" Property="Visibility" Value="Visible" />
                             </DataTrigger>
 
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="focusEllipse" Property="Fill" Value="{Binding FocusEllipseHoverColor, RelativeSource={RelativeSource TemplatedParent}}"/>
+                                <Setter TargetName="focusEllipse" 
+                                        Property="Fill" 
+                                        Value="{Binding FocusEllipseHoverColor, 
+                                        RelativeSource={RelativeSource TemplatedParent}}" />
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="focusEllipse" Property="Fill" Value="{Binding FocusEllipsePressedColor, RelativeSource={RelativeSource TemplatedParent}}"/>
+                                <Setter TargetName="focusEllipse" 
+                                        Property="Fill" 
+                                        Value="{Binding FocusEllipsePressedColor, 
+                                                RelativeSource={RelativeSource TemplatedParent}}" />
                             </Trigger>
 
                         </ControlTemplate.Triggers>
@@ -139,7 +165,9 @@
             </Setter>
         </Style>
 
-        <Style x:Key="clearSelectionButtonTemplate" BasedOn="{StaticResource CircularButtonTemplate}" TargetType="{x:Type customControls:CircularButton}" >
+        <Style x:Key="clearSelectionButtonTemplate" 
+               BasedOn="{StaticResource CircularButtonTemplate}" 
+               TargetType="{x:Type customControls:CircularButton}" >
             <Setter Property="Height" Value="20" />
             <Setter Property="Width" Value="20" />
 
@@ -148,15 +176,23 @@
                     <ControlTemplate TargetType="{x:Type customControls:CircularButton}">
                         <Grid x:Name="buttonGrid" Visibility="Visible">
                             <Ellipse x:Name="focusEllipse" Fill="Transparent"/>
-                            <ContentPresenter Content="{TemplateBinding Content}" HorizontalAlignment="Center" VerticalAlignment="Center"  />
+                            <ContentPresenter Content="{TemplateBinding Content}" 
+                                              HorizontalAlignment="Center" 
+                                              VerticalAlignment="Center"  />
                         </Grid>
                         <ControlTemplate.Triggers>
 
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="focusEllipse" Property="Fill" Value="{Binding FocusEllipseHoverColor, RelativeSource={RelativeSource TemplatedParent}}"/>
+                                <Setter TargetName="focusEllipse" 
+                                        Property="Fill" 
+                                        Value="{Binding FocusEllipseHoverColor, 
+                                                RelativeSource={RelativeSource TemplatedParent}}"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="focusEllipse" Property="Fill" Value="{Binding FocusEllipsePressedColor, RelativeSource={RelativeSource TemplatedParent}}"/>
+                                <Setter TargetName="focusEllipse" 
+                                        Property="Fill" 
+                                        Value="{Binding FocusEllipsePressedColor, 
+                                                RelativeSource={RelativeSource TemplatedParent}}"/>
                             </Trigger>
 
                         </ControlTemplate.Triggers>
@@ -165,7 +201,9 @@
             </Setter>
         </Style>
 
-        <Style x:Key="taskItemCheckBoxButtonTemplate" BasedOn="{StaticResource CircularCheckBoxButtonTemplate}" TargetType="customControls:CheckBoxButton">
+        <Style x:Key="taskItemCheckBoxButtonTemplate" 
+               BasedOn="{StaticResource CircularCheckBoxButtonTemplate}" 
+               TargetType="customControls:CheckBoxButton">
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="customControls:CheckBoxButton">
@@ -174,12 +212,12 @@
 
                             <Ellipse x:Name="focusEllipse" Fill="Transparent"  />
                             <materialDesign:PackIcon x:Name="checkboxIcon" 
-                                                               Kind="StarOutline" 
-                                                               Style="{StaticResource iconStyle}"
-                                                               Margin="0 0 0 1"
-                                                               Foreground="{StaticResource ForegroundMainBrush}"
-                                                               HorizontalAlignment="Center" 
-                                                               VerticalAlignment="Center" />
+                                                     Kind="StarOutline" 
+                                                     Style="{StaticResource iconStyle}"
+                                                     Margin="0 0 0 1"
+                                                     Foreground="{StaticResource ForegroundMainBrush}"
+                                                     HorizontalAlignment="Center" 
+                                                     VerticalAlignment="Center" />
                         </Grid>
 
                         <ControlTemplate.Triggers>
@@ -202,15 +240,22 @@
                                 <Setter TargetName="buttonGrid" Property="Visibility" Value="Hidden" />
                             </DataTrigger>
 
-                            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Grid}}" Value="True" >
+                            <DataTrigger Binding="{Binding IsMouseOver, 
+                                                   RelativeSource={RelativeSource AncestorType=Grid}}" 
+                                         Value="True" >
                                 <Setter TargetName="buttonGrid" Property="Visibility" Value="Visible" />
                             </DataTrigger>
 
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="checkboxIcon" Property="Foreground" Value="{StaticResource ForegroundSecondaryBrush}" />
+                                <Setter TargetName="checkboxIcon" 
+                                        Property="Foreground" 
+                                        Value="{StaticResource ForegroundSecondaryBrush}" />
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="focusEllipse" Property="Fill" Value="{Binding CheckBoxFocusEllipsePressedColor, RelativeSource={RelativeSource TemplatedParent}}"/>
+                                <Setter TargetName="focusEllipse" 
+                                        Property="Fill" 
+                                        Value="{Binding CheckBoxFocusEllipsePressedColor, 
+                                                RelativeSource={RelativeSource TemplatedParent}}"/>
                             </Trigger>
 
                         </ControlTemplate.Triggers>
@@ -219,7 +264,9 @@
             </Setter>
         </Style>
 
-        <Style x:Key="completedCheckBoxStyle" BasedOn="{StaticResource MaterialDesignUserForegroundCheckBox}" TargetType="CheckBox" >
+        <Style x:Key="completedCheckBoxStyle" 
+               BasedOn="{StaticResource MaterialDesignUserForegroundCheckBox}" 
+               TargetType="CheckBox" >
             <Setter Property="Foreground" Value="{StaticResource ForegroundMainBrush}" />
 
             <Style.Triggers>
@@ -233,33 +280,35 @@
 
         </Style>
 
-        <Style x:Key="projectComboBoxTemplate" TargetType="ComboBox" BasedOn="{StaticResource MaterialDesignComboBox}">
+        <Style x:Key="projectComboBoxTemplate" 
+               TargetType="ComboBox" 
+               BasedOn="{StaticResource MaterialDesignComboBox}">
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ComboBox">
                         <Grid>
                             <ComboBox x:Name="collectionComboBox"                                    
-                                         materialDesign:TextFieldAssist.HasClearButton="False"                                       
-                                         Margin="5 5 15 5" 
-                                         Style="{StaticResource collectionTextInputStyle}"
-                                         SelectionChanged="CollectionComboBox_SelectionChanged"
-                                         DropDownClosed="CollectionComboBox_DropDownClosed"
-                                         ItemsSource="{Binding LocalProjects}"
-                                         DisplayMemberPath="ProjectName"
-                                         SelectedValue="{Binding NewTask.ProjectName}"
-                                         SelectedValuePath="ProjectName"
-                                         IsEnabled="{Binding UserHasProjects}"
-                                         materialDesign:TextFieldAssist.HasFilledTextField="{Binding UserHasProjects, 
-                                                                                             Converter={StaticResource InverseBooleanConverter}}" />
+                                      materialDesign:TextFieldAssist.HasClearButton="False"                                       
+                                      Margin="5 5 15 5" 
+                                      Style="{StaticResource collectionTextInputStyle}"
+                                      SelectionChanged="CollectionComboBox_SelectionChanged"
+                                      DropDownClosed="CollectionComboBox_DropDownClosed"
+                                      ItemsSource="{Binding LocalProjects}"
+                                      DisplayMemberPath="ProjectName"
+                                      SelectedValue="{Binding NewTask.ProjectName}"
+                                      SelectedValuePath="ProjectName"
+                                      IsEnabled="{Binding UserHasProjects}"
+                                      materialDesign:TextFieldAssist.HasFilledTextField="{Binding UserHasProjects, 
+                                                                                          Converter={StaticResource InverseBooleanConverter}}" />
 
                             <TextBlock x:Name="placeholderText" 
-                                          IsHitTestVisible="False"
-                                          Text="Project" 
-                                          FontSize="14"
-                                          Foreground="{StaticResource ForegroundSecondaryBrush}"
-                                          Visibility="Hidden"
-                                          Padding="0 1 0 0"
-                                          Margin="5 8 5 0" >
+                                       IsHitTestVisible="False"
+                                       Text="Project" 
+                                       FontSize="14"
+                                       Foreground="{StaticResource ForegroundSecondaryBrush}"
+                                       Visibility="Hidden"
+                                       Padding="0 1 0 0"
+                                       Margin="5 8 5 0" >
                             </TextBlock>
 
                         </Grid>
@@ -267,8 +316,13 @@
 
                             <MultiDataTrigger >
                                 <MultiDataTrigger.Conditions>
-                                    <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=DataContext.NewTask.ProjectName, Converter={StaticResource IsNullConverterInstance}}" Value="True" />
-                                    <Condition Binding="{Binding ElementName=collectionComboBox, Path=IsKeyboardFocusWithin}" Value="False" />
+                                    <Condition Binding="{Binding RelativeSource={RelativeSource Self}, 
+                                                         Path=DataContext.NewTask.ProjectName, 
+                                                         Converter={StaticResource IsNullConverterInstance}}" 
+                                                Value="True" />
+                                    <Condition Binding="{Binding ElementName=collectionComboBox, 
+                                                         Path=IsKeyboardFocusWithin}" 
+                                               Value="False" />
                                 </MultiDataTrigger.Conditions>
                                 <MultiDataTrigger.Setters>
                                     <Setter TargetName="placeholderText" Property="Visibility" Value="Visible"/>
@@ -276,7 +330,9 @@
                             </MultiDataTrigger>
 
                             <Trigger SourceName="collectionComboBox" Property="IsMouseOver" Value="True">
-                                <Setter TargetName="collectionComboBox" Property="materialDesign:TextFieldAssist.HasClearButton" Value="True" />
+                                <Setter TargetName="collectionComboBox" 
+                                        Property="materialDesign:TextFieldAssist.HasClearButton" 
+                                        Value="True" />
                             </Trigger>
 
                             <DataTrigger Binding="{Binding NewTask.Completed}" Value="True">
@@ -290,50 +346,58 @@
             </Setter>
         </Style>
 
-        <Style x:Key="contextComboBoxTemplate" TargetType="ComboBox" BasedOn="{StaticResource MaterialDesignComboBox}">
+        <Style x:Key="contextComboBoxTemplate" 
+               TargetType="ComboBox" 
+               BasedOn="{StaticResource MaterialDesignComboBox}">
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ComboBox">
                         <Grid>
                             <ComboBox x:Name="collectionComboBox"  
-                                         Text="{TemplateBinding Text}" 
-                                         materialDesign:TextFieldAssist.HasClearButton="False"
-                                         Margin="5 5 15 5" 
-                                         Style="{StaticResource collectionTextInputStyle}"
-                                         ItemsSource="{Binding LocalContexts}"
-                                         SelectionChanged="CollectionComboBox_SelectionChanged"
-                                         DropDownClosed="CollectionComboBox_DropDownClosed"   
-                                         DisplayMemberPath="ContextName"
-                                         SelectedValue="{Binding NewTask.ContextName}"
-                                         SelectedValuePath="ContextName"
-                                         IsEnabled="{Binding UserHasContexts}"
-                                         materialDesign:TextFieldAssist.HasFilledTextField="{Binding UserHasContexts, 
-                                                                                             Converter={StaticResource InverseBooleanConverter}}" />
+                                      Text="{TemplateBinding Text}" 
+                                      materialDesign:TextFieldAssist.HasClearButton="False"
+                                      Margin="5 5 15 5" 
+                                      Style="{StaticResource collectionTextInputStyle}"
+                                      ItemsSource="{Binding LocalContexts}"
+                                      SelectionChanged="CollectionComboBox_SelectionChanged"
+                                      DropDownClosed="CollectionComboBox_DropDownClosed"   
+                                      DisplayMemberPath="ContextName"
+                                      SelectedValue="{Binding NewTask.ContextName}"
+                                      SelectedValuePath="ContextName"
+                                      IsEnabled="{Binding UserHasContexts}"
+                                      materialDesign:TextFieldAssist.HasFilledTextField="{Binding UserHasContexts, 
+                                                                                          Converter={StaticResource InverseBooleanConverter}}" />
 
                             <TextBlock x:Name="placeholderText" 
-                                          IsHitTestVisible="False"
-                                          Text="Context" 
-                                          FontSize="14"
-                                          Foreground="{StaticResource ForegroundSecondaryBrush}"
-                                          Visibility="Hidden"
-                                          Padding="0 1 0 0"
-                                          Margin="5 8 5 0" />
+                                       IsHitTestVisible="False"
+                                       Text="Context" 
+                                       FontSize="14"
+                                       Foreground="{StaticResource ForegroundSecondaryBrush}"
+                                       Visibility="Hidden"
+                                       Padding="0 1 0 0"
+                                       Margin="5 8 5 0" />
                         </Grid>
                         <ControlTemplate.Triggers>
 
                             <MultiDataTrigger >
                                 <MultiDataTrigger.Conditions>
-                                    <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=DataContext.NewTask.ContextName, Converter={StaticResource IsNullConverterInstance}}" Value="True" />
-                                    <Condition Binding="{Binding ElementName=collectionComboBox, Path=IsKeyboardFocusWithin}" Value="False" />
+                                    <Condition Binding="{Binding RelativeSource={RelativeSource Self}, 
+                                                                 Path=DataContext.NewTask.ContextName, 
+                                                                 Converter={StaticResource IsNullConverterInstance}}" 
+                                               Value="True" />
+                                    <Condition Binding="{Binding ElementName=collectionComboBox, 
+                                                         Path=IsKeyboardFocusWithin}" 
+                                               Value="False" />
                                 </MultiDataTrigger.Conditions>
                                 <MultiDataTrigger.Setters>
                                     <Setter TargetName="placeholderText" Property="Visibility" Value="Visible"/>
-                                    <!--<Setter TargetName="clearSelectionButton" Property="Visibility" Value="Hidden" />-->
                                 </MultiDataTrigger.Setters>
                             </MultiDataTrigger>
 
                             <Trigger SourceName="collectionComboBox" Property="IsMouseOver" Value="True">
-                                <Setter TargetName="collectionComboBox" Property="materialDesign:TextFieldAssist.HasClearButton" Value="True" />
+                                <Setter TargetName="collectionComboBox" 
+                                        Property="materialDesign:TextFieldAssist.HasClearButton" 
+                                        Value="True" />
                             </Trigger>
 
                             <DataTrigger Binding="{Binding NewTask.Completed}" Value="True">
@@ -347,7 +411,9 @@
             </Setter>
         </Style>
 
-        <Style x:Key="dueDatePickerTemplate" TargetType="DatePicker" BasedOn="{StaticResource MaterialDesignDatePicker}">
+        <Style x:Key="dueDatePickerTemplate" 
+               TargetType="DatePicker" 
+               BasedOn="{StaticResource MaterialDesignDatePicker}">
             <Setter Property="Margin" Value="10 9 5 5" />
             <Setter Property="materialDesign:TextFieldAssist.TextBoxViewMargin" Value="0 0 0 2" />
             <Setter Property="VerticalAlignment" Value="Center" />
@@ -362,8 +428,7 @@
                                         Text="Due"
                                         SelectedDate="{Binding NewTask.DueDate}"
                                         BorderBrush="{StaticResource ForegroundTertiaryBrush}"
-                                        SelectedDateChanged="DatePicker_SelectedDateChanged"
-                                        />
+                                        SelectedDateChanged="DatePicker_SelectedDateChanged" />
 
                             <TextBlock x:Name="placeholderText" 
                                           IsHitTestVisible="False"
@@ -394,7 +459,10 @@
 
                             <MultiDataTrigger >
                                 <MultiDataTrigger.Conditions>
-                                    <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=DataContext.NewTask.DueDate, Converter={StaticResource IsNullConverterInstance}}" Value="True" />
+                                    <Condition Binding="{Binding RelativeSource={RelativeSource Self}, 
+                                                         Path=DataContext.NewTask.DueDate, 
+                                                         Converter={StaticResource IsNullConverterInstance}}" 
+                                               Value="True" />
                                     <Condition Binding="{Binding ElementName=dueDatePicker, Path=IsKeyboardFocusWithin}" Value="False" />
                                 </MultiDataTrigger.Conditions>
                                 <MultiDataTrigger.Setters>
@@ -421,36 +489,6 @@
 
             <StackPanel Orientation="Horizontal">
 
-                <!-- starred "checkbox" -->
-                <!--<customControls:CheckBoxButton IsChecked="{Binding NewTask.Starred}"
-                                               CheckBoxFocusEllipseHoverColor="{StaticResource BackgroundLightestGreyBrush}"
-                                               CheckBoxFocusEllipsePressedColor="{StaticResource BackgroundLightestGreyBrush}"
-                                               Style="{StaticResource taskItemCheckBoxButtonTemplate}"
-                                               Margin="2 0 0 0">
-
-                    <Style>
-                        <Style.Triggers>
-
-                            <MultiDataTrigger>
-                                <MultiDataTrigger.Conditions>
-                                    <Condition Binding="{Binding NewTask.Completed}" Value="False" />
-                                    <Condition Binding="{Binding NewTask.Starred}" Value="True" />
-
-                                </MultiDataTrigger.Conditions>
-                                <MultiDataTrigger.Setters>
-                                    <Setter Property="customControls:CheckBoxButton.Visibility" Value="Visible" />
-                                </MultiDataTrigger.Setters>
-                            </MultiDataTrigger>
-
-                            <DataTrigger Binding="{Binding NewTask.Completed}" Value="True">
-                                <Setter Property="customControls:CheckBoxButton.Visibility" Value="Collapsed" />
-                                <Setter Property="CheckBox.IsHitTestVisible" Value="False" />
-                            </DataTrigger>
-
-                        </Style.Triggers>
-                    </Style>
-                </customControls:CheckBoxButton>-->
-
                 <!--task Name value-->
                 <TextBox Text="{Binding NewTask.TaskName}"
                          Margin="15 5 15 5"    
@@ -458,13 +496,11 @@
 
                 <!--project dropdown-->
                 <ComboBox x:Name="projectComboBox" 
-                          Style="{StaticResource projectComboBoxTemplate}" 
-                          />
+                          Style="{StaticResource projectComboBoxTemplate}" />
 
                 <!--context dropdown-->
                 <ComboBox Text="{Binding NewTask.ContextName}" 
-                          Style="{StaticResource contextComboBoxTemplate}"
-                          />
+                          Style="{StaticResource contextComboBoxTemplate}" />
 
                 <!--due date datepicker-->
                 <DatePicker Style="{StaticResource dueDatePickerTemplate}" />

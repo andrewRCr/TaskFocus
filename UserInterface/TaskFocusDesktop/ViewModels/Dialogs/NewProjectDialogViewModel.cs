@@ -12,9 +12,12 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
 {
     public class NewProjectDialogViewModel : DialogViewModelBase
     {
-        public NewProjectDialogViewModel(
-            IEventAggregator events, IAppState appState, IWindowManager window, IDataState dataState,
-            IDataService dataService, IDataHelper dataHelper) : base(events, appState, window, dataState, dataService, dataHelper)
+        public NewProjectDialogViewModel(IEventAggregator events,
+                                         IAppState appState,
+                                         IWindowManager window,
+                                         IDataState dataState,
+                                         IDataService dataService,
+                                         IDataHelper dataHelper) : base(events, appState, window, dataState, dataService, dataHelper)
         {
             NewCollectionPlaceholderText = "Project Name";
             HeaderText = "ADD NEW PROJECT";

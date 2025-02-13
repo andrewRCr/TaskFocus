@@ -1,14 +1,4 @@
 ﻿using Caliburn.Micro;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Input;
-using TaskFocusDesktop.Commands;
-using TaskFocusDesktop.EventModels;
-using TaskFocusDesktop.Utilities;
 using TaskFocusDesktop.ViewModels.Base;
 
 namespace TaskFocusDesktop.ViewModels.SidePanel

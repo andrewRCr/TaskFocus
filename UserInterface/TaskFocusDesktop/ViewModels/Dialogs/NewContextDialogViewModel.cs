@@ -12,7 +12,8 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
 {
     public class NewContextDialogViewModel : DialogViewModelBase
     {
-        public NewContextDialogViewModel(IEventAggregator events, IAppState appState,
+        public NewContextDialogViewModel(IEventAggregator events,
+                                         IAppState appState,
                                          IWindowManager window,
                                          IDataState dataState,
                                          IDataService dataService,

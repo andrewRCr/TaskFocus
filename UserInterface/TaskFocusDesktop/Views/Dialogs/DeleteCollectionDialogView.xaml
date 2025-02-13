@@ -12,7 +12,7 @@
              xmlns:utilities="clr-namespace:TaskFocusDesktop.Utilities" 
              xmlns:components="clr-namespace:TaskFocusDesktop.Views.Components" 
              d:DataContext="{d:DesignInstance Type=dialogs:DeleteCollectionDialogViewModel}"
-             d:DesignHeight="200" d:DesignWidth="500">
+             d:DesignHeight="200" d:DesignWidth="500" >
 
     <UserControl.Resources>
         <utilities:IsNullConverter x:Key="IsNullConverterInstance"/>
@@ -35,20 +35,19 @@
                                      Foreground="{StaticResource ErrorRedBrush}"/>
 
             <TextBlock Text="{Binding HeaderText}"
-                               Style="{StaticResource HeaderTextStyle}" 
-                               FontSize="16"
-                               VerticalAlignment="Center"
-                               />
+                       Style="{StaticResource HeaderTextStyle}" 
+                       FontSize="16"
+                       VerticalAlignment="Center" />
 
         </StackPanel>
 
         <!-- text delete warning and feedback message -->
         <StackPanel Grid.Row="1" 
-                        Margin="0 15 0 0"
-                        Orientation="Vertical" 
-                        HorizontalAlignment="Center" >
+                    Margin="0 15 0 0"
+                    Orientation="Vertical" 
+                    HorizontalAlignment="Center" >
 
-            <Grid >
+            <Grid>
 
                 <TextBlock FontSize="15"
                            Width="435"
@@ -65,7 +64,6 @@
                         <Run Text="Any tasks with this  " />
                         <Run Text="{Binding CollectionTypeStr}" />
                         <Run Text="assigned will be moved to your Inbox." />
-
                     </TextBlock.Inlines>
                 </TextBlock>
 
@@ -78,18 +76,20 @@
         </StackPanel>
 
         <!-- submit / cancel buttons -->
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" >
+        <StackPanel Grid.Row="2" 
+                    Orientation="Horizontal" 
+                    HorizontalAlignment="Right" 
+                    VerticalAlignment="Bottom" >
 
             <Button Content="_CANCEL"
-                        Command="{Binding CloseDialogCommand}" 
-                        Style="{StaticResource dialogCancelButtonStyle}"              
-                        Margin="0 0 15 0" />
+                    Command="{Binding CloseDialogCommand}" 
+                    Style="{StaticResource dialogCancelButtonStyle}"              
+                    Margin="0 0 15 0" />
 
             <Button Content="_DELETE" 
-                        Command="{Binding ProcessSubmitActionCommand}"
-                        Style="{StaticResource dialogSubmitButtonStyle}"
-                        Background="{StaticResource ErrorRedBrush}"
-                    />
+                    Command="{Binding ProcessSubmitActionCommand}"
+                    Style="{StaticResource dialogSubmitButtonStyle}"
+                    Background="{StaticResource ErrorRedBrush}" />
 
         </StackPanel>
 

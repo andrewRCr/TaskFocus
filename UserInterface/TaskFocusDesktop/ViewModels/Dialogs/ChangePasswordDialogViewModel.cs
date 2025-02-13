@@ -1,11 +1,8 @@
 ﻿using Caliburn.Micro;
 using MaterialDesignThemes.Wpf;
 using System;
-using System.Collections.Generic;
-using System.Dynamic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Windows;
 using TaskFocusDesktop.EventModels;
 using TaskFocusDesktop.ViewModels.Base;
 using TaskFocusUI.Library;
@@ -97,7 +94,7 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
 
         protected override async Task ProcessSubmitAction()
         {
-            // VALIDATE
+            // validate
             if (PasswordStrength(NewPassword) != null)
             {
                 IsFeedbackError = true;

@@ -26,9 +26,15 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
         }
 
 
-        public RenameCollectionDialogViewModel(IEventAggregator events, IAppState appState, IWindowManager window, IDataState dataState,
-                                               IDataService dataService, IDataHelper dataHelper, bool isProjectCollection,
-                                               int focusedCollectionId, string? focusedCollectionName) : base(events, appState, window, dataState, dataService, dataHelper)
+        public RenameCollectionDialogViewModel(IEventAggregator events,
+                                               IAppState appState,
+                                               IWindowManager window,
+                                               IDataState dataState,
+                                               IDataService dataService,
+                                               IDataHelper dataHelper,
+                                               bool isProjectCollection,
+                                               int focusedCollectionId,
+                                               string? focusedCollectionName) : base(events, appState, window, dataState, dataService, dataHelper)
         {
             _isProjectCollection = isProjectCollection;
             _focusedCollectionId = focusedCollectionId;

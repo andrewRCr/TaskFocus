@@ -93,8 +93,12 @@ namespace TaskFocusDesktop.ViewModels.Base
 
         public RelayCommand CloseDialogCommand => new RelayCommand(execute =>  CloseDialog());
 
-        public DialogViewModelBase(IEventAggregator events, IAppState appState, IWindowManager window,
-                                   IDataState dataState, IDataService dataService, IDataHelper dataHelper) : base(events, appState, window, dataState, dataService, dataHelper)
+        public DialogViewModelBase(IEventAggregator events,
+                                   IAppState appState,
+                                   IWindowManager window,
+                                   IDataState dataState,
+                                   IDataService dataService,
+                                   IDataHelper dataHelper) : base(events, appState, window, dataState, dataService, dataHelper)
         {
             _events = events;
             _window = window;

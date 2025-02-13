@@ -1,12 +1,9 @@
 ﻿using Caliburn.Micro;
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Dynamic;
 using System.Linq;
-using System.Windows;
 using TaskFocusDesktop.ViewModels.Base;
 using TaskFocusUI.Library;
 using TaskFocusUI.Library.Models;
@@ -16,8 +13,12 @@ namespace TaskFocusDesktop.ViewModels.MainContent
 {
     public class CompletedViewModel : TaskViewModelBase, INotifyPropertyChanged
     {
-        public CompletedViewModel(IEventAggregator events, IAppState appState, IWindowManager window,
-                                  IDataState dataState, IDataService dataService, IDataHelper dataHelper) : base(events, appState, window, dataState, dataService, dataHelper)
+        public CompletedViewModel(IEventAggregator events,
+                                  IAppState appState,
+                                  IWindowManager window,
+                                  IDataState dataState,
+                                  IDataService dataService,
+                                  IDataHelper dataHelper) : base(events, appState, window, dataState, dataService, dataHelper)
         {   
         }
 

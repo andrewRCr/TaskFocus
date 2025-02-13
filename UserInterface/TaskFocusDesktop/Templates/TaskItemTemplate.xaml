@@ -1,9 +1,9 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
                     xmlns:components="clr-namespace:TaskFocusDesktop.Views.Components"
-                    xmlns:utilities="clr-namespace:TaskFocusDesktop.Utilities">
+                    xmlns:utilities="clr-namespace:TaskFocusDesktop.Utilities" >
 
-    <utilities:IsNullConverter x:Key="IsNullConverterInstance"/>
+    <utilities:IsNullConverter x:Key="IsNullConverterInstance" />
     
     <DataTemplate x:Key="TaskItem_Template" DataType="ListBoxItem" >
         <components:TaskItemView />

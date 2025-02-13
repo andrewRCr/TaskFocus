@@ -5,7 +5,6 @@ using TaskFocusDesktop.EventModels;
 using TaskFocusDesktop.Utilities;
 using TaskFocusDesktop.ViewModels.Base;
 using TaskFocusUI.Library;
-using TaskFocusUI.Library.Models;
 using TaskFocusUI.Library.Utilities;
 
 namespace TaskFocusDesktop.ViewModels.SidePanel
@@ -16,9 +15,12 @@ namespace TaskFocusDesktop.ViewModels.SidePanel
 
         public string HeaderText { get { return IsProjectsSubMenu ? "PROJECTS" : "CONTEXTS"; } }
 
-
-        public SubNavMenuViewModel(IEventAggregator events, IAppState appState, IWindowManager window,
-                                   IDataState dataState, IDataService dataService, IDataHelper dataHelper) : base(events, appState, window, dataState, dataService, dataHelper)
+        public SubNavMenuViewModel(IEventAggregator events,
+                                   IAppState appState,
+                                   IWindowManager window,
+                                   IDataState dataState,
+                                   IDataService dataService,
+                                   IDataHelper dataHelper) : base(events, appState, window, dataState, dataService, dataHelper)
         {
         }
 

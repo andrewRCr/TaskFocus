@@ -9,8 +9,6 @@ namespace TaskFocusDesktop.ViewModels.Components
         public string OrderingIndex => string.Empty;
         public int ListBoxHeight => 0;
 
-        public TaskItemContainerViewModel()
-        {
-        }
+        public TaskItemContainerViewModel() {}
     }
 }

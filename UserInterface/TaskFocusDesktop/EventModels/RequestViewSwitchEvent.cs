@@ -1,16 +1,9 @@
-﻿using Microsoft.AspNetCore.Components.Forms;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TaskFocusDesktop.Utilities;
+﻿using TaskFocusDesktop.Utilities;
 
 namespace TaskFocusDesktop.EventModels
 {
     public class RequestViewSwitchEvent
-    {
-        
+    {   
         public ViewCatalog.ContentPanel RequestedContentPanel { get; set; }
 
         public ViewCatalog.MainContentView RequestedMainContentView { get; set; }

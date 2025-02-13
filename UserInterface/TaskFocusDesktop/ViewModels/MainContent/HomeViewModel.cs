@@ -1,10 +1,6 @@
 ﻿using Caliburn.Micro;
 using Nextended.Core.Extensions;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +10,6 @@ using TaskFocusDesktop.EventModels;
 using TaskFocusDesktop.ViewModels.Base;
 using TaskFocusUI.Library.API;
 using TaskFocusUI.Library.Models;
-using Windows.UI.Composition;
 
 namespace TaskFocusDesktop.ViewModels.MainContent
 {
@@ -150,7 +145,9 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             }
         }
 
-        public HomeViewModel(IEventAggregator events, IAppState appState, IUserEndpoint userEndpoint) : base(events, appState)
+        public HomeViewModel(IEventAggregator events,
+                             IAppState appState,
+                             IUserEndpoint userEndpoint) : base(events, appState)
         {
             _events = events;
             _events.SubscribeOnPublishedThread(this);

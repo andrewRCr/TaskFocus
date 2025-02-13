@@ -23,9 +23,8 @@
     </Style>
 
     <!-- // MiniNavMenu MenuItem template // -->
-
     <ControlTemplate x:Key="MiniNavMenuItem_Template"
-                     TargetType="{x:Type MenuItem}">
+                     TargetType="{x:Type MenuItem}" >
 
         <Border x:Name="MenuItemBorder"              
                 BorderThickness="0"
@@ -50,11 +49,11 @@
 
                 <!-- selected indicator (background) -->
                 <Border x:Name="SelectedIndicatorBorder" 
-                               Panel.ZIndex="-1"
-                               Height="50"
-                               Width="60" 
-                               Margin="0"
-                               Background="{StaticResource BackgroundMidGreyBrush}" >
+                        Panel.ZIndex="-1"
+                        Height="50"
+                        Width="60" 
+                        Margin="0"
+                        Background="{StaticResource BackgroundMidGreyBrush}" >
 
                     <Border.Visibility>
                         <MultiBinding Converter="{StaticResource ActiveMainViewToVisibilityConverter}">
@@ -82,7 +81,6 @@
     </ControlTemplate>
 
     <!-- // MiniNavMenu template // -->
-
     <ControlTemplate x:Key="MiniNavMenu_Template" TargetType="Menu">
 
         <Menu Margin="0 0 0 0" >

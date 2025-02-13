@@ -1,31 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Controls;
+﻿using System.Reflection;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace TaskFocusDesktop.Utilities
 {
-    // source: https://stackoverflow.com/questions/30631522/caliburn-micro-support-for-passwordbox
+    // adapted from: https://stackoverflow.com/questions/30631522/caliburn-micro-support-for-passwordbox
 
     public static class PasswordBoxHelper
     {
         public static readonly DependencyProperty BoundPasswordProperty =
             DependencyProperty.RegisterAttached("BoundPassword",
-                typeof(string),
-                typeof(PasswordBoxHelper),
-                new FrameworkPropertyMetadata(string.Empty, OnBoundPasswordChanged));
+                                                typeof(string),
+                                                typeof(PasswordBoxHelper),
+                                                new FrameworkPropertyMetadata(string.Empty, OnBoundPasswordChanged));
 
         public static string GetBoundPassword(DependencyObject d)
         {
             var box = d as PasswordBox;
             if (box != null)
             {
-                // this funny little dance here ensures that we've hooked the
-                // PasswordChanged event once, and only once.
+                // ensures that we've hooked the PasswordChanged event once, and only once
                 box.PasswordChanged -= PasswordChanged;
                 box.PasswordChanged += PasswordChanged;
             }
@@ -41,9 +35,8 @@ namespace TaskFocusDesktop.Utilities
             d.SetValue(BoundPasswordProperty, value);
         }
 
-        private static void OnBoundPasswordChanged(
-            DependencyObject d,
-            DependencyPropertyChangedEventArgs e)
+        private static void OnBoundPasswordChanged(DependencyObject d,
+                                                   DependencyPropertyChangedEventArgs e)
         {
             var box = d as PasswordBox;
 

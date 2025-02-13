@@ -23,22 +23,20 @@
         SourceInitialized="Window_SourceInitialized"
         AllowsTransparency="True"
         Background="Transparent"
-        Style="{StaticResource BaseStyle}">
+        Style="{StaticResource BaseStyle}" >
 
     <WindowChrome.WindowChrome>
-        <WindowChrome
-            ResizeBorderThickness="{Binding ResizeBorderThickness}"
-            CaptionHeight="{Binding TitleBarHeight}"
-            GlassFrameThickness="0"
-            CornerRadius="0"
-            />
+        <WindowChrome ResizeBorderThickness="{Binding ResizeBorderThickness}"
+                      CaptionHeight="{Binding TitleBarHeight}"
+                      GlassFrameThickness="0"
+                      CornerRadius="0" />
     </WindowChrome.WindowChrome>
 
     <!-- transparent outer window border for resizing -->
     <Border BorderThickness="2" Padding="{Binding OuterMarginSizeThickness, FallbackValue=10}" >
 
         <!-- main window outline -->
-        <Grid >
+        <Grid>
 
             <!-- opacity mask for corners on grid -->
             <Border x:Name="Container" 
@@ -91,9 +89,9 @@
                     <!-- Column 0-1, Row 0  -->
                     <!-- Title bar  -->
                     <Grid Grid.Column="0"
-                            Grid.Row="0"
-                            Grid.ColumnSpan="3"
-                            Background="Transparent" >
+                          Grid.Row="0"
+                          Grid.ColumnSpan="3"
+                          Background="Transparent" >
 
                         <Grid.ColumnDefinitions>
                             <!-- Icon -->
@@ -109,9 +107,9 @@
                         <Button Style="{StaticResource WindowControlButton}"
                                 Command="{Binding TitleBarMenuCommand}">
                             <materialDesign:PackIcon Kind="Menu"
-                                                        VerticalAlignment="Center"
-                                                        HorizontalAlignment="Center"
-                                                        Foreground="{StaticResource ForegroundMainBrush}" />
+                                                     VerticalAlignment="Center"
+                                                     HorizontalAlignment="Center"
+                                                     Foreground="{StaticResource ForegroundMainBrush}" />
                         </Button>
 
                         <!-- Window Buttons -->
@@ -120,26 +118,25 @@
                             <Button Command="{Binding MinimizeCommand}"
                                     Style="{StaticResource WindowControlButton}">
                                 <materialDesign:PackIcon Kind="WindowMinimize"
-                                                            VerticalAlignment="Center"
-                                                            HorizontalAlignment="Center"
-                                                            Foreground="{StaticResource ForegroundMainBrush}" />
+                                                         VerticalAlignment="Center"
+                                                         HorizontalAlignment="Center"
+                                                         Foreground="{StaticResource ForegroundMainBrush}" />
                             </Button>
 
                             <Button Command="{Binding MaximizeCommand}"
                                     Style="{StaticResource WindowControlButton}">
                                 <materialDesign:PackIcon Kind="{Binding WindowMaxRestoreIcon}"
-                                                            VerticalAlignment="Center"
-                                                            HorizontalAlignment="Center"
-                                                            Foreground="{StaticResource ForegroundMainBrush}" />
-
+                                                         VerticalAlignment="Center"
+                                                         HorizontalAlignment="Center"
+                                                         Foreground="{StaticResource ForegroundMainBrush}" />
                             </Button>
 
                             <Button Command="{Binding CloseCommand}"
                                     Style="{StaticResource WindowCloseButton}">
                                 <materialDesign:PackIcon Kind="WindowClose"
-                                                            VerticalAlignment="Center"
-                                                            HorizontalAlignment="Center"
-                                                            Foreground="{StaticResource ForegroundMainBrush}" />
+                                                         VerticalAlignment="Center"
+                                                         HorizontalAlignment="Center"
+                                                         Foreground="{StaticResource ForegroundMainBrush}" />
                             </Button>
 
                         </StackPanel>
@@ -157,18 +154,18 @@
                                 Orientation="Horizontal">
 
                         <materialDesign:PackIcon Kind="CheckUnderlineCircle"
-                                                    Height="23"
-                                                    Width="23"
-                                                    Margin="3 6 3 3" 
-                                                    VerticalAlignment="Center"
-                                                    HorizontalAlignment="Center"
-                                                    Foreground="{StaticResource ForegroundHighlightBrush}" />
-                        <TextBlock
-                                    FontSize="24"
-                                    Foreground="{StaticResource ForegroundHighlightBrush}"
-                                    FontWeight="Bold"
-                                    Margin="5 0 0 0"
-                                    >TaskFocus</TextBlock>
+                                                 Height="23"
+                                                 Width="23"
+                                                 Margin="3 6 3 3" 
+                                                 VerticalAlignment="Center"
+                                                 HorizontalAlignment="Center"
+                                                 Foreground="{StaticResource ForegroundHighlightBrush}" />
+                        <TextBlock FontSize="24"
+                                   Foreground="{StaticResource ForegroundHighlightBrush}"
+                                   FontWeight="Bold"
+                                   Margin="5 0 0 0" >
+                            TaskFocus
+                        </TextBlock>
                     </StackPanel>
 
                     <!-- Column 0, Row 2  -->
@@ -184,24 +181,23 @@
                     </StackPanel>
 
                     <Rectangle Grid.Column="0" 
-                                Grid.Row="2"
-                                Grid.RowSpan="2"
-                                StrokeThickness="1" 
-                                Width="1"
-                                HorizontalAlignment="Right"
-                                VerticalAlignment="Stretch"
-                                Stroke="{StaticResource BackgroundSeparatorGreyBrush}"
-                                Fill="{StaticResource BackgroundSeparatorGreyBrush}" />
+                               Grid.Row="2"
+                               Grid.RowSpan="2"
+                               StrokeThickness="1" 
+                               Width="1"
+                               HorizontalAlignment="Right"
+                               VerticalAlignment="Stretch"
+                               Stroke="{StaticResource BackgroundSeparatorGreyBrush}"
+                               Fill="{StaticResource BackgroundSeparatorGreyBrush}" />
 
                     <!-- Column 1, Row 2  -->
                     <!-- // SidePanel: full NavMenu (text) + SubNavMenu // -->
                     <StackPanel Orientation="Vertical"
                                 Grid.Column="1" 
                                 Grid.Row="2"
-                                Visibility="{
-                                Binding IsUserLoggedIn, 
-                                Converter={StaticResource BooleanToVisibilityConverter}, 
-                                FallbackValue=Visible}">
+                                Visibility="{Binding IsUserLoggedIn, 
+                                                     Converter={StaticResource BooleanToVisibilityConverter}, 
+                                                     FallbackValue=Visible}" >
 
                         <ContentControl x:Name="SideMenuPanel"  />
 
@@ -209,12 +205,12 @@
 
                     <!-- // separator // -->
                     <Rectangle Grid.Column="1" 
-                                Grid.Row="2" 
-                                Grid.RowSpan="2"
-                                Width="1" 
-                                Stroke="{StaticResource BackgroundSeparatorGreyBrush}" 
-                                VerticalAlignment="Stretch"
-                                HorizontalAlignment="Right" />
+                               Grid.Row="2" 
+                               Grid.RowSpan="2"
+                               Width="1" 
+                               Stroke="{StaticResource BackgroundSeparatorGreyBrush}" 
+                               VerticalAlignment="Stretch"
+                               HorizontalAlignment="Right" />
 
                     <!-- Column 0, Row 3  -->
                     <!-- // Bottom-sticky MiniNavMenu: Settings // -->
@@ -224,14 +220,13 @@
                           IsEnabled="{Binding IsUserLoggedIn}" >
 
                         <MenuItem Header="Settings" 
-                                    Command="{Binding SwitchToSettingsViewCommand}"
-                                    Template="{StaticResource MiniNavMenuItem_Template}">
+                                  Command="{Binding SwitchToSettingsViewCommand}"
+                                  Template="{StaticResource MiniNavMenuItem_Template}">
                             <MenuItem.Icon>
                                 <materialDesign:PackIcon Kind="AccountCog" 
-                                                            Height="24" 
-                                                            Width="24"
-                                                            Foreground="{Binding MiniNavIconColor}"
-                                                            />
+                                                         Height="24" 
+                                                         Width="24"
+                                                         Foreground="{Binding MiniNavIconColor}" />
                             </MenuItem.Icon>
                         </MenuItem>
 
@@ -245,11 +240,11 @@
                           Margin="0 0 0 0"
                           Visibility="{Binding IsUserLoggedIn, 
                                        Converter={StaticResource BooleanToVisibilityConverter}, 
-                                       FallbackValue=Visible}">
+                                       FallbackValue=Visible}" >
 
                         <MenuItem Header="Settings"
-                                Command="{Binding SwitchToSettingsViewCommand}"
-                                Template="{StaticResource NavMenuItem_Template}">
+                                  Command="{Binding SwitchToSettingsViewCommand}"
+                                  Template="{StaticResource NavMenuItem_Template}">
 
                         </MenuItem>
 
@@ -258,14 +253,12 @@
                     <!-- Column 2, Row 1  -->
                     <ContentControl x:Name="TopWidgetPanel"  
                                     Grid.Column="2" 
-                                    Grid.Row="1"
-                                    />
+                                    Grid.Row="1" />
 
                     <!-- Column 2, Row 2  -->
                     <ContentControl x:Name="MainContentPanel"
                                     Grid.Column="2" 
-                                    Grid.Row="2"
-                                        />
+                                    Grid.Row="2" />
 
                     <!-- Column 2, Row 3  -->
 
@@ -283,16 +276,14 @@
                                                    Command="{Binding OpenNewTaskDialogCommand}"
                                                    Style="{StaticResource addNewTaskIconButtonTemplate}"
                                                    FocusEllipseHoverColor="{StaticResource BackgroundLightGreyBrush}"
-                                                   FocusEllipsePressedColor="{StaticResource ForegroundTertiaryBrush}"
-                                                  
-                                                   >
+                                                   FocusEllipsePressedColor="{StaticResource ForegroundTertiaryBrush}" >
+                        
                         <materialDesign:PackIcon Kind="Plus"
                                                  HorizontalAlignment="Center"
                                                  VerticalAlignment="Center"
                                                  Height="26"
                                                  Width="26"
-                                                 Foreground="{StaticResource ForegroundMainBrush}"
-                                                 />
+                                                 Foreground="{StaticResource ForegroundMainBrush}" />
                     </customControls:CircularButton>
 
                 </Grid>

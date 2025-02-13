@@ -1,7 +1,6 @@
 ﻿using Caliburn.Micro;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Threading;
 using System.Threading.Tasks;
 using TaskFocusDesktop.Commands;
 using TaskFocusDesktop.EventModels;
@@ -13,7 +12,7 @@ using TaskFocusUI.Library.Utilities;
 
 namespace TaskFocusDesktop.ViewModels.SidePanel
 {
-    public class ProjectSubNavMenuViewModel : TaskViewModelBase, IHandle<AppWindowHeightChangedEvent>
+    public class ProjectSubNavMenuViewModel : TaskViewModelBase
     {
         private int _projectCount;
         public int ProjectCount
@@ -37,28 +36,6 @@ namespace TaskFocusDesktop.ViewModels.SidePanel
             }
         }
 
-        private int _listBoxHeight;
-        public int ListBoxHeight
-        {
-            get { return _listBoxHeight; }
-            set
-            {
-                _listBoxHeight = value;
-                NotifyOfPropertyChange(() => ListBoxHeight);
-            }
-        }
-
-        private int _appWindowHeight;
-        public int AppWindowHeight
-        {
-            get { return _appWindowHeight; }
-            set
-            {
-                _appWindowHeight = value;
-                NotifyOfPropertyChange(() => AppWindowHeight);
-            }
-        }
-
         public ProjectSubNavMenuViewModel(IEventAggregator events,
                                           IAppState appState,
                                           IWindowManager window,
@@ -78,7 +55,7 @@ namespace TaskFocusDesktop.ViewModels.SidePanel
         public RelayCommand RequestRenameSelectedProjectDialogCommand => new RelayCommand(async execute => await RequestRenameSelectedProjectDialog());
 
         // updates project listbox and containing scrollviewer height values dynamically
-        private void UpdateScrollHeight(int appWindowHeight)
+        protected override void UpdateScrollHeight(int appWindowHeight)
         {
             int fixedBaseSubMenuHeight = 110;
             int fixedTotalOtherWindowElementsHeight = 300;
@@ -148,12 +125,6 @@ namespace TaskFocusDesktop.ViewModels.SidePanel
             LoadAllLocalData();
             Debug.WriteLine("ProjectsSubNavMenuViewModel: returned true on HandleDataStateChanged!");
             return true;
-        }
-
-        public Task HandleAsync(AppWindowHeightChangedEvent message, CancellationToken cancellationToken)
-        {
-            UpdateScrollHeight((int)message.NewAppWindowHeight);
-            return Task.CompletedTask;
         }
     }
 }

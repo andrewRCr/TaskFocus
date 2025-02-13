@@ -1,11 +1,7 @@
-﻿using AutoMapper;
-using Caliburn.Micro;
+﻿using Caliburn.Micro;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Dynamic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using TaskFocusDesktop.Commands;
@@ -13,7 +9,6 @@ using TaskFocusDesktop.EventModels;
 using TaskFocusDesktop.Utilities;
 using TaskFocusDesktop.ViewModels.Base;
 using TaskFocusUI.Library;
-using TaskFocusUI.Library.API;
 using TaskFocusUI.Library.Models;
 using TaskFocusUI.Library.Utilities;
 
@@ -65,8 +60,12 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             }
         }
 
-        public SettingsViewModel(IEventAggregator events, IAppState appState, IWindowManager window,
-                                 IDataState dataState, IDataService dataService, IDataHelper dataHelper) : base(events, appState, window, dataState, dataService, dataHelper)
+        public SettingsViewModel(IEventAggregator events,
+                                 IAppState appState,
+                                 IWindowManager window,
+                                 IDataState dataState,
+                                 IDataService dataService,
+                                 IDataHelper dataHelper) : base(events, appState, window, dataState, dataService, dataHelper)
         {
         }
 

@@ -1,21 +1,16 @@
-﻿using AutoMapper;
-using Caliburn.Micro;
+﻿using Caliburn.Micro;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Dynamic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Input;
 using TaskFocusDesktop.Commands;
 using TaskFocusDesktop.EventModels;
-using TaskFocusDesktop.Utilities;
 using TaskFocusUI.Library;
-using TaskFocusUI.Library.API;
 using TaskFocusUI.Library.Models;
 using TaskFocusUI.Library.Utilities;
 
@@ -72,8 +67,12 @@ namespace TaskFocusDesktop.ViewModels.Base
             }
         }
 
-        public TaskViewModelBase(IEventAggregator events, IAppState appState, IWindowManager window,
-                                 IDataState dataState, IDataService dataService, IDataHelper dataHelper) : base(events, appState)
+        public TaskViewModelBase(IEventAggregator events,
+                                 IAppState appState,
+                                 IWindowManager window,
+                                 IDataState dataState,
+                                 IDataService dataService,
+                                 IDataHelper dataHelper) : base(events, appState)
         {
             _events = events;
             _window = window;
@@ -201,10 +200,6 @@ namespace TaskFocusDesktop.ViewModels.Base
 
         protected override async void OnViewLoaded(object view)
         {
-            // nothing local, currently.
-            // children will assign themselves as the ActiveViewModel
-            // and then call LoadTasks()
-
             try
             {
                 LoadAllLocalData();
@@ -339,7 +334,7 @@ namespace TaskFocusDesktop.ViewModels.Base
         }
 
         // updates task listbox and containing scrollviewer height values dynamically
-        protected void UpdateScrollHeight(int appWindowHeight)
+        protected virtual void UpdateScrollHeight(int appWindowHeight)
         {
             int fixedTotalOtherWindowElementsHeight = 300;
             int requiredTaskListHeight = 70 * TaskCount;

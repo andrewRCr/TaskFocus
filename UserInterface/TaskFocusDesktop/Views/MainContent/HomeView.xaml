@@ -12,8 +12,7 @@
              xmlns:base="clr-namespace:TaskFocusDesktop.ViewModels.Base" 
              d:DataContext="{d:DesignInstance Type=maincontent:HomeViewModel}"
              Style="{StaticResource BaseMainContentViewStyle}"
-             xmlns:utilities="clr-namespace:TaskFocusDesktop.Utilities" 
-             >
+             xmlns:utilities="clr-namespace:TaskFocusDesktop.Utilities" >
 
     <UserControl.Resources>
         <Style x:Key="messageTextStyle" TargetType="TextBlock">
@@ -22,69 +21,66 @@
     </UserControl.Resources>
     
     <Grid>
-    
+
         <StackPanel Orientation="Vertical"
                     Width="400"
                     Height="300"
                     VerticalAlignment="Top"
-                    Margin="0 50 0 0"
-                    >
+                    Margin="0 50 0 0" >
+
             <TextBlock Text="NOT AUTHENTICATED" 
                        Style="{StaticResource HeaderTextStyle}"
                        HorizontalAlignment="Left"
                        FontSize="14"
                        FontWeight="SemiBold"
-                       Foreground="{StaticResource ForegroundHighlightBrush}"
-                       />
+                       Foreground="{StaticResource ForegroundHighlightBrush}" />
 
             <materialDesign:Card materialDesign:ElevationAssist.Elevation="Dp6"
-                             VerticalAlignment="Top"
-                             Margin="0 3 0 0"
-                             Width="400"
-                             Height="100"
-                             Padding="8"
-                             Background="{StaticResource BackgroundLightGreyBrush}"
-                             >
+                                 VerticalAlignment="Top"
+                                 Margin="0 3 0 0"
+                                 Width="400"
+                                 Height="100"
+                                 Padding="8"
+                                 Background="{StaticResource BackgroundLightGreyBrush}" >
 
                 <StackPanel Orientation="Vertical"
-                        VerticalAlignment="Center">
+                            VerticalAlignment="Center">
 
                     <StackPanel Orientation="Vertical"
-                            Visibility="{Binding ShowPleaseWaitLoginMessage, 
-                            Converter={StaticResource BooleanToVisibilityConverter}, 
-                            FallbackValue=Collapsed}" >
+                                Visibility="{Binding ShowPleaseWaitLoginMessage, 
+                                             Converter={StaticResource BooleanToVisibilityConverter}, 
+                                             FallbackValue=Collapsed}" >
 
                         <TextBlock FontSize="14"                
-                               Margin="0 4 0 0"
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Center" >
+                                   Margin="0 4 0 0"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center" >
                         Logging you in, please wait...
                         <LineBreak />
                         </TextBlock>
 
-                        <customControls:LoadingSpinner 
-                                    EllipseSize="4" 
-                                    HorizontalAlignment="Center" 
-                                    Margin="4 8 4 4" 
-                                    Height="20" 
-                                    Width="20"/>
+                        <customControls:LoadingSpinner EllipseSize="4" 
+                                                       HorizontalAlignment="Center" 
+                                                       Margin="4 8 4 4" 
+                                                       Height="20" 
+                                                       Width="20" />
 
                     </StackPanel>
 
                     <StackPanel Orientation="Vertical"
-                            Visibility="{Binding ShowPleaseWaitLoginMessage, 
-                                         Converter={StaticResource InvertableBooleanToVisibilityConverter}, 
-                                         ConverterParameter=Inverted, FallbackValue=Visible}" >
+                                Visibility="{Binding ShowPleaseWaitLoginMessage, 
+                                             Converter={StaticResource InvertableBooleanToVisibilityConverter}, 
+                                             ConverterParameter=Inverted, FallbackValue=Visible}" >
 
                         <TextBlock FontSize="14"                
-                               Margin="0 10 0 0"
-                               Visibility="{Binding ShowNotAuthenticatedMessage, 
-                                            Converter={StaticResource BooleanToVisibilityConverter},
-                                            FallbackValue=Visible}"
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Center" 
-                               
-                               utilities:TextBlockHelper.TrimRuns="True" TextAlignment="Center">
+                                   Margin="0 10 0 0"
+                                   Visibility="{Binding ShowNotAuthenticatedMessage, 
+                                                Converter={StaticResource BooleanToVisibilityConverter},
+                                                FallbackValue=Visible}"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center" 
+                                   utilities:TextBlockHelper.TrimRuns="True" 
+                                   TextAlignment="Center" >
 
                             <TextBlock.Inlines>
                                 <Run Text="Please log in to continue." />
@@ -120,24 +116,23 @@
                                      FallbackValue=Visible}"
                         Content="Forgot password?"
                         Foreground="{StaticResource ForegroundMainBrush}"
-                        Command="{Binding ToggleShowForgotPasswordInput}"
-                       />
+                        Command="{Binding ToggleShowForgotPasswordInput}" />
 
                 <materialDesign:Card materialDesign:ElevationAssist.Elevation="Dp6"
-                             VerticalAlignment="Top"
-                             Margin="0 10 0 0"
-                             Width="400"
-                             Height="100"
-                             Padding="8"
-                             Background="{StaticResource BackgroundLightGreyBrush}" 
+                                     VerticalAlignment="Top"
+                                     Margin="0 10 0 0"
+                                     Width="400"
+                                     Height="100"
+                                     Padding="8"
+                                     Background="{StaticResource BackgroundLightGreyBrush}" 
                                      Visibility="{Binding ShowForgotPasswordInput, 
-                                     Converter={StaticResource BooleanToVisibilityConverter},
-                                     FallbackValue=Visible}">
+                                                  Converter={StaticResource BooleanToVisibilityConverter},
+                                                  FallbackValue=Visible}" >
 
                     <StackPanel Orientation="Vertical">
 
                         <Grid Margin="0 10 0 0">
-                            
+
                             <TextBox x:Name="forgotPasswordEmailInput"
                                      Text="{Binding ForgotPasswordEmailAddress}"
                                      Width="200" 
@@ -159,13 +154,16 @@
 
                                             <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=DataContext.ForgotPasswordEmailAddress, 
                                                                  Converter={StaticResource IsNullConverterInstance}, 
-                                                                 ConverterParameter=IsNullOrWhiteSpace}" Value="False" >
+                                                                 ConverterParameter=IsNullOrWhiteSpace}" 
+                                                         Value="False" >
                                                 <DataTrigger.Setters>
                                                     <Setter Property="TextBlock.Visibility" Value="Hidden"/>
                                                 </DataTrigger.Setters>
                                             </DataTrigger>
 
-                                            <DataTrigger Binding="{Binding ElementName=forgotPasswordEmailInput, Path=IsKeyboardFocusWithin}" Value="True" >
+                                            <DataTrigger Binding="{Binding ElementName=forgotPasswordEmailInput, 
+                                                                   Path=IsKeyboardFocusWithin}" 
+                                                         Value="True" >
                                                 <DataTrigger.Setters>
                                                     <Setter Property="TextBlock.Visibility" Value="Hidden"/>
                                                 </DataTrigger.Setters>
@@ -184,8 +182,7 @@
                                 Command="{Binding RequestSubmitForgotPasswordForm}"
                                 Margin="0 8 0 0"
                                 Width="150"
-                                Foreground="{StaticResource ForegroundHighlightBrush}"
-                            />
+                                Foreground="{StaticResource ForegroundHighlightBrush}" />
                     </StackPanel>
 
                 </materialDesign:Card>
@@ -197,17 +194,16 @@
                                             Converter={StaticResource BooleanToVisibilityConverter},
                                             FallbackValue=Visible}"
                        HorizontalAlignment="Center"
-                       Margin="0 3 0 0"
-                       >
-                
+                       Margin="0 3 0 0" >
+
                 <TextBlock.Style>
                     <Style TargetType="TextBlock">
                         <Setter Property="Foreground" Value="{StaticResource ForegroundMainBrush}" />
-                                                  
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding IsFeedbackError}" Value="True">
+
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsFeedbackError}" Value="True">
                                 <Setter Property="Foreground" Value="{StaticResource ErrorRedBrush}" />
-                        </DataTrigger>
+                            </DataTrigger>
 
                             <DataTrigger Binding="{Binding IsFeedbackError}" Value="False">
                                 <Setter Property="Foreground" Value="Green" />
@@ -216,7 +212,7 @@
 
                     </Style>
                 </TextBlock.Style>
-                
+
             </TextBlock>
 
             <TextBlock Visibility="{Binding ShowEmailConfirmLink,
@@ -226,23 +222,22 @@
                        Margin="0 3 0 0">
                 
                             <Hyperlink Style="{StaticResource HyperLinkStyle}"
-                                        NavigateUri="{Binding ConfirmEmailUri}"
-                                        RequestNavigate="Hyperlink_RequestNavigate">CONFIRM EMAIL</Hyperlink>
+                                       NavigateUri="{Binding ConfirmEmailUri}"
+                                       RequestNavigate="Hyperlink_RequestNavigate">CONFIRM EMAIL</Hyperlink>
             </TextBlock>
 
             <TextBlock Visibility="{Binding ShowResendEmailConfirmLink,
                                             Converter={StaticResource BooleanToVisibilityConverter},
                                             FallbackValue=Visible}"
                        HorizontalAlignment="Center"
-                       Margin="0 3 0 0">
+                       Margin="0 3 0 0" >
                 
                             <Hyperlink Style="{StaticResource HyperLinkStyle}"
-                                        NavigateUri="{Binding ConfirmEmailUri}"
-                                        RequestNavigate="Hyperlink_RequestNavigate">RESEND EMAIL</Hyperlink>
+                                       NavigateUri="{Binding ConfirmEmailUri}"
+                                       RequestNavigate="Hyperlink_RequestNavigate">RESEND EMAIL</Hyperlink>
             </TextBlock>
 
         </StackPanel>
-       
 
     </Grid>
 </UserControl>

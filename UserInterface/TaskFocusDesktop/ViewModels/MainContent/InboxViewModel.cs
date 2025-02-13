@@ -1,11 +1,9 @@
 ﻿using Caliburn.Micro;
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading.Tasks;
 using TaskFocusDesktop.ViewModels.Base;
 using TaskFocusUI.Library;
 using TaskFocusUI.Library.Models;
@@ -15,8 +13,12 @@ namespace TaskFocusDesktop.ViewModels.MainContent
 {
     public class InboxViewModel : TaskViewModelBase, INotifyPropertyChanged
     {
-        public InboxViewModel(IEventAggregator events, IAppState appState, IWindowManager window, IDataState dataState,
-                              IDataService dataService, IDataHelper dataHelper) : base(events, appState, window, dataState, dataService, dataHelper)
+        public InboxViewModel(IEventAggregator events,
+                              IAppState appState,
+                              IWindowManager window,
+                              IDataState dataState,
+                              IDataService dataService,
+                              IDataHelper dataHelper) : base(events, appState, window, dataState, dataService, dataHelper)
         {
             OrderingIndex = "InboxIndex";
         }

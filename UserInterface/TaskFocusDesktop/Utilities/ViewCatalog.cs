@@ -1,5 +1,4 @@
-﻿
-namespace TaskFocusDesktop.Utilities
+﻿namespace TaskFocusDesktop.Utilities
 {
     public class ViewCatalog
     {

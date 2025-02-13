@@ -10,32 +10,42 @@
              d:DesignHeight="50" d:DesignWidth="50">
 
     <Grid Background="Transparent">
-        
+
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
             <ColumnDefinition Width="15"/>
         </Grid.ColumnDefinitions>
-        
+
         <TextBox x:Name="txtNum" 
                  x:FieldModifier="private" 
                  TextChanged="TxtNum_TextChanged" 
                  FontSize="16" 
                  BorderThickness="0" 
                  VerticalAlignment="Center" 
-                 Padding="5,0" Margin="0,0,2,0"/>
-        
+                 Padding="5,0" 
+                 Margin="0,0,2,0" />
+
         <Grid Grid.Column="1">
+
             <Grid.RowDefinitions>
                 <RowDefinition Height="20*"/>
                 <RowDefinition Height="20*"/>
             </Grid.RowDefinitions>
 
             <Grid Background="{Binding IncreaseButtonColor, RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=UserControl}, Mode=TwoWay, FallbackValue={StaticResource ForegroundHighlightBrush}}">
-                
-                <Viewbox HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" Width="Auto">
-                    <materialDesign:PackIcon Kind="ChevronUp" Foreground="White" Height="32.941" Width="32"/>
+
+                <Viewbox HorizontalAlignment="Stretch" 
+                         VerticalAlignment="Stretch" 
+                         Height="Auto" 
+                         Width="Auto" >
+
+                    <materialDesign:PackIcon Kind="ChevronUp" 
+                                             Foreground="White" 
+                                             Height="32.941" 
+                                             Width="32" />
+
                 </Viewbox>
-                
+
                 <Button x:Name="cmdUp"                     
                         x:FieldModifier="private" 
                         Click="CmdUp_Click" 
@@ -43,13 +53,23 @@
                         Height="Auto" 
                         BorderBrush="{x:Null}" 
                         Background="{x:Null}"/>
-            
+
             </Grid>
 
-            <Grid Grid.Row="1" Background="{Binding DecreaseButtonColor, RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=UserControl}}" >
+            <Grid Grid.Row="1" 
+                  Background="{Binding DecreaseButtonColor, 
+                               RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=UserControl}}" >
+
+                <Viewbox HorizontalAlignment="Stretch" 
+                         VerticalAlignment="Stretch" 
+                         Height="Auto" 
+                         Width="Auto" >
+                    
+                    <materialDesign:PackIcon Kind="ChevronDown" 
+                                             Foreground="White" 
+                                             Height="32.942" 
+                                             Width="32" />
                 
-                <Viewbox HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" Width="Auto">
-                    <materialDesign:PackIcon Kind="ChevronDown" Foreground="White" Height="32.942" Width="32"/>
                 </Viewbox>
 
                 <Button x:Name="cmdDown" 
@@ -61,10 +81,9 @@
                         Background="{x:Null}" />
 
             </Grid>
-            
-        </Grid>
-        
-    </Grid>
 
+        </Grid>
+
+    </Grid>
 
 </UserControl>

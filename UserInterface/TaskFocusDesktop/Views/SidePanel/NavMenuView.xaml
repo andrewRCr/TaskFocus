@@ -9,7 +9,7 @@
              xmlns:sidepanel="clr-namespace:TaskFocusDesktop.ViewModels.SidePanel" 
              d:DataContext="{d:DesignInstance Type=sidepanel:NavMenuViewModel}"
              mc:Ignorable="d" 
-             d:DesignHeight="600" d:DesignWidth="250">
+             d:DesignHeight="600" d:DesignWidth="250" >
     
     <UserControl.Resources>
         <ResourceDictionary>
@@ -23,7 +23,7 @@
         <StackPanel Orientation="Vertical" VerticalAlignment="Stretch">
 
             <Menu>
-
+                
                 <Menu.ItemsPanel>
                     <ItemsPanelTemplate>
                         <VirtualizingStackPanel Orientation="Vertical"/>
@@ -32,7 +32,7 @@
 
                 <MenuItem Header="Inbox" 
                           Template="{StaticResource NavMenuItem_Template}" 
-                          Command="{Binding SwitchToInboxViewCommand}">
+                          Command="{Binding SwitchToInboxViewCommand}" >
 
                     <MenuItem.Icon>
                         <materialDesign:PackIcon Kind="Inbox" Margin="0 0 0 0" />
@@ -42,7 +42,7 @@
 
                 <MenuItem Header="Today"
                           Template="{StaticResource NavMenuItem_Template}"
-                          Command="{Binding SwitchToTodayViewCommand}">
+                          Command="{Binding SwitchToTodayViewCommand}" >
 
                     <MenuItem.Icon>
                         <materialDesign:PackIcon Kind="CalendarToday" Margin="0 0 0 0" />
@@ -52,7 +52,7 @@
 
                 <MenuItem Header="Projects" 
                           Template="{StaticResource NavMenuItem_Template}"
-                          Command="{Binding SwitchToProjectsViewCommand}">
+                          Command="{Binding SwitchToProjectsViewCommand}" >
 
                     <MenuItem.Icon>
                         <materialDesign:PackIcon Kind="ClipboardText" Margin="0 0 0 0" />
@@ -62,7 +62,7 @@
 
                 <MenuItem Header="Contexts" 
                           Template="{StaticResource NavMenuItem_Template}"
-                          Command="{Binding SwitchToContextsViewCommand}">
+                          Command="{Binding SwitchToContextsViewCommand}" >
 
                     <MenuItem.Icon>
                         <materialDesign:PackIcon Kind="Animation" Margin="0 0 0 0" />
@@ -72,7 +72,7 @@
 
                 <MenuItem Header="[ Completed ]" 
                           Template="{StaticResource NavMenuItem_Template}"
-                          Command="{Binding SwitchToCompletedViewCommand}">
+                          Command="{Binding SwitchToCompletedViewCommand}" >
 
                     <MenuItem.Icon>
                         <materialDesign:PackIcon Kind="PlaylistCheck" Margin="0 0 0 0" />
