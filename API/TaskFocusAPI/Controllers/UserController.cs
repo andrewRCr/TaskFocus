@@ -1,20 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Win32;
 using System.Security.Claims;
 using TaskFocusAPI.Data;
-using TaskFocusAPI.Library.Utilities;
 using TaskFocusAPI.Library.DataAccess;
 using TaskFocusAPI.Library.Models;
+using TaskFocusAPI.Library.Utilities;
 using TaskFocusAPI.Models;
-using System.ComponentModel.DataAnnotations;
-using System.Text;
-using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.AspNetCore.Http.HttpResults;
-
 
 namespace TaskFocusAPI.Controllers
 {
@@ -45,15 +37,10 @@ namespace TaskFocusAPI.Controllers
         [HttpGet]
         public async Task SendTestEmailToUser()
         {
-            //string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            //UserModel currentUser = _userData.GetUserById(userId).First();
+            string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            UserModel currentUser = _userData.GetUserById(userId).First();
 
-            UserModel testUser = new();
-            testUser.FirstName = "TestFirst";
-            testUser.LastName = "TestLast";
-            testUser.Email = "andrew.creekmore@me.com";
-
-            await _emailSender.SendEmailAsync(testUser, "test", "Hey, this is a test!");
+            await _emailSender.SendEmailAsync(currentUser, "test", "Hey, this is a test!");
         }
 
         [HttpPost]

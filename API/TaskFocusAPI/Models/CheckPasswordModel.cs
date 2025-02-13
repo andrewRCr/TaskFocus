@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace TaskFocusAPI.Models
+﻿namespace TaskFocusAPI.Models
 {
     public class CheckPasswordModel
     {

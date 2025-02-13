@@ -3,13 +3,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace TaskFocusAPI.Library.DataAccess
 {
@@ -19,7 +15,7 @@ namespace TaskFocusAPI.Library.DataAccess
         private IDbTransaction _transaction;
         private IConfiguration _config;
         private readonly ILogger<SqlDataAccess> _logger;
-        private bool isConnectionClosed = false;
+        private bool _isConnectionClosed = false;
 
         public SqlDataAccess(IConfiguration config, ILogger<SqlDataAccess> logger)
         {
@@ -55,7 +51,7 @@ namespace TaskFocusAPI.Library.DataAccess
         {
             _connection = new SqlConnection(GetConnectionString(connectionStringName));
             _connection.Open();
-            isConnectionClosed = false;
+            _isConnectionClosed = false;
 
             _transaction = _connection.BeginTransaction();
         }
@@ -79,7 +75,7 @@ namespace TaskFocusAPI.Library.DataAccess
             _transaction?.Commit();
             _connection?.Close();
 
-            isConnectionClosed = true;
+            _isConnectionClosed = true;
         }
 
         public void RollbackTransaction()
@@ -87,12 +83,12 @@ namespace TaskFocusAPI.Library.DataAccess
             _transaction?.Rollback();
             _connection?.Close();
 
-            isConnectionClosed = true;
+            _isConnectionClosed = true;
         }
 
         public void Dispose()
         {
-            if (!isConnectionClosed)
+            if (!_isConnectionClosed)
             {
                 try
                 {

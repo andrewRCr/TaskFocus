@@ -1,12 +1,11 @@
-﻿using MailKit.Net.Smtp;
-using MimeKit;
-using TaskFocusAPI.Library.Models;
-using Microsoft.Extensions.Configuration;
-using System.Threading.Tasks;
-using System;
+﻿using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
-using Azure.Identity;
-using MimeKit.Text;
+using MailKit.Net.Smtp;
+using Microsoft.Extensions.Configuration;
+using MimeKit;
+using System;
+using System.Threading.Tasks;
+using TaskFocusAPI.Library.Models;
 
 namespace TaskFocusAPI.Library.Utilities
 {

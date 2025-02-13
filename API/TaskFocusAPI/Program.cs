@@ -1,14 +1,13 @@
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.Configuration;
 using System.Text;
 using TaskFocusAPI.Data;
-using TaskFocusAPI.Library.Utilities;
 using TaskFocusAPI.Library.DataAccess;
-using Azure.Identity;
-using Azure.Security.KeyVault.Secrets;
+using TaskFocusAPI.Library.Utilities;
 
 namespace TaskFocusAPI
 {
@@ -18,7 +17,7 @@ namespace TaskFocusAPI
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
+            // add services to the container
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
                 ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -100,7 +99,7 @@ namespace TaskFocusAPI
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
+            // configure the HTTP request pipeline
             if (app.Environment.IsDevelopment())
             {
                 app.UseMigrationsEndPoint();
@@ -108,7 +107,7 @@ namespace TaskFocusAPI
             else
             {
                 app.UseExceptionHandler("/Home/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+                // the default HSTS value is 30 days; see https://aka.ms/aspnetcore-hsts
                 app.UseHsts();
             }
 

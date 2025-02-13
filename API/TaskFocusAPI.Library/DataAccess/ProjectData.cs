@@ -1,9 +1,6 @@
-﻿using Microsoft.Extensions.Configuration;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TaskFocusAPI.Library.Models;
 
 namespace TaskFocusAPI.Library.DataAccess
@@ -80,6 +77,5 @@ namespace TaskFocusAPI.Library.DataAccess
             var p = new { Id = projectToDelete.Id };
             _sqlDataAccess.SaveData("dbo.spProject_Delete", p, "TaskFocusData");
         }
-
     }
 }
