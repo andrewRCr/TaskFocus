@@ -2,7 +2,7 @@
 @inject IDataService DataService
 @inject ISnackbar Snackbar
 
-<MudNavMenu Bordered="true" Style="width: 250px;">
+<MudNavMenu Bordered="true" Style="width: 300px;">
     <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.ArrowBackIosNew" OnClick="HideSubMenu"/>
     <MudButton OnClick="ResetToAllItemsView" Color="Color.Inherit" Class="ml-2">@CollectionName</MudButton>
     <MudDivider DividerType="DividerType.Middle" />
@@ -27,7 +27,7 @@
     }
 
     <div class="flex-grow-1" 
-         style="max-width: 250px;" 
+         style="max-width: 300px;" 
          @onmouseover="()=>SetAddNewCollectionButtonActive(true)"
          @onmouseleave="()=>SetAddNewCollectionButtonActive(false)">
 
