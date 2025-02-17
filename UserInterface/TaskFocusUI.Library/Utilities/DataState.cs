@@ -14,7 +14,6 @@ namespace TaskFocusUI.Library
             get { return _currentUser; }
             set
             {
-                Console.WriteLine("DataState: CurrentUser changed!");
                 _currentUser = value;
                 DataStateChanged?.Invoke(nameof(CurrentUser), this);
             }
@@ -26,7 +25,6 @@ namespace TaskFocusUI.Library
             get { return _userSettings; }
             set
             {
-                Console.WriteLine("DataState: UserSettings changed!");
                 _userSettings = value;
                 DataStateChanged?.Invoke(nameof(UserSettings), this);
             }
@@ -38,7 +36,6 @@ namespace TaskFocusUI.Library
             get { return _tasks; }
             set
             {
-                Console.WriteLine("DataState: Tasks changed!");
                 _tasks = value;
                 DataStateChanged?.Invoke(nameof(Tasks), this);
             }
@@ -50,7 +47,6 @@ namespace TaskFocusUI.Library
             get { return _projects; }
             set
             {
-                Console.WriteLine("DataState: Projects changed!");
                 _projects = value;
                 DataStateChanged?.Invoke(nameof(Projects), this);
             }
@@ -62,7 +58,6 @@ namespace TaskFocusUI.Library
             get { return _contexts; }
             set
             {
-                Console.WriteLine("DataState: Contexts changed!");
                 _contexts = value;
                 DataStateChanged?.Invoke(nameof(Contexts), this);
             }
