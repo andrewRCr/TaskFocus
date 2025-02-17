@@ -132,7 +132,6 @@ namespace TaskFocusDesktop.ViewModels.MainContent
         {
             string? changedProperty = e.PropertyName;
             UserSettingsDisplayModel senderSettings = (UserSettingsDisplayModel)sender;
-            Console.WriteLine($"LocalSettings's property {changedProperty} was changed.");
 
             await _dataService.UpdateSettingsData(senderSettings);
         }
@@ -144,7 +143,6 @@ namespace TaskFocusDesktop.ViewModels.MainContent
                 return false;
             }
 
-            //Console.WriteLine("SettingsViewPage: returned true on HandleDataStateChanged!");
             LoadLocalSettingsData();
 
             return true;
