@@ -65,14 +65,11 @@ else
 
     protected override void CustomAuthenticatedOnInit()
     {
-        //Console.WriteLine($"ContainerOrderingTypeParam: {ContainerOrderingTypeParam}");
         if (CanReorderParam)
         {
             _orderingIndex = ContainerOrderingTypeParam + "Index";
             ContainerTaskItemsParam = ContainerTaskItemsParam.OrderBy(x => x[_orderingIndex]).ToList();
         }
-
-        //Console.WriteLine($"_orderingIndex: {_orderingIndex}");
     }
 
     private bool IsDraggingDisabled(TaskDisplayModel task)
@@ -82,7 +79,6 @@ else
 
     private void OnItemDropped(MudItemDropInfo<TaskDisplayModel> dropItem)
     {
-        //Console.WriteLine("item dropped!");
         UpdateLocalOrder(dropItem);
         SetCanRefresh(true);
     }
@@ -96,7 +92,6 @@ else
 
     private void UpdateLocalOrder(MudItemDropInfo<TaskDisplayModel> reorderedDropItem)
     {
-        //Console.WriteLine(_orderingIndex);
         int oldIndex = (int)reorderedDropItem.Item![_orderingIndex]!;
         var newIndex = reorderedDropItem.IndexInZone;
 
@@ -131,7 +126,6 @@ else
 
         if (AppState.CanRefresh)
         {
-            //Console.WriteLine("TaskContainerComp: returned true on HandleDataStateChanged!");
             if (CanReorderParam && _container != null) { RefreshContainer(); }
         }
 

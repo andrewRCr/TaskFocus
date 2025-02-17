@@ -9,14 +9,22 @@
 
     <!-- top app bar; logo + menu drawer toggle (if authenticated); login or auth widget -->
     <MudAppBar Elevation="0" >
-
         <AuthorizeView>
             <Authorized>
-                <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Class="ml-n5" OnClick="@((e) => DrawerToggle())" />
+                <MudIconButton Icon="@Icons.Material.Filled.Menu" 
+                               Color="Color.Inherit" 
+                               Class="ml-n5" 
+                               OnClick="@((e) => DrawerToggle())" />
             </Authorized>
             <NotAuthorized>
-                <MudIcon Icon="@Icons.Material.Filled.OfflinePin" Color="Color.Primary" Class="mr-4 ml-n3" Size="Size.Large" />
-                <MudText Color="Color.Primary" Typo="Typo.h5" Class="mt-1" Style="font-family:Bahnschrift; font-weight:700; font-size:x-large;">TaskFocus</MudText>
+                <MudIcon Icon="@Icons.Material.Filled.OfflinePin" 
+                         Color="Color.Primary" 
+                         Class="mr-4 ml-n3" 
+                         Size="Size.Large" />
+                <MudText Color="Color.Primary" 
+                         Typo="Typo.h5" 
+                         Class="mt-1" 
+                         Style="font-family:Bahnschrift; font-weight:700; font-size:x-large;">TaskFocus</MudText>
             </NotAuthorized>
         </AuthorizeView>
         
@@ -139,7 +147,6 @@
             if (!DataState.IsDataLoaded())
             {
                 await DataService.FetchAllRemoteData();
-                //Console.WriteLine("MainLayout: onInit fetched all remote data!");
             }
         }
     }

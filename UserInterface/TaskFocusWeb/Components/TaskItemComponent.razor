@@ -276,8 +276,6 @@
         if (TaskParam.Completed) { _dateStyleStr = "font-style: italic"; }
         _inputStyleStr = TaskParam.Completed ? "font-style: italic;" : string.Empty;
         _dragIndicatorStyleStr = TaskParam.Completed ? "color: #5e5e65;" : string.Empty;
-
-        //Console.WriteLine("TaskItemComponent: OnParametersSet called!");
     }
 
     private void UpdateProjectContextSelectionLists()
@@ -332,7 +330,6 @@
 
     private void OnItemMouseDown()
     {
-        //Console.WriteLine("item clicked!");
         _itemClicked = true;
     }
 
@@ -375,38 +372,32 @@
     Task IBrowserViewportObserver.NotifyBrowserViewportChangeAsync(BrowserViewportEventArgs browserViewportEventArgs)
     {
         int width = browserViewportEventArgs.BrowserWindowSize.Width;
-        //Console.WriteLine(width);
 
         if (width < 600)
         {
             _gridSpacing = 0;
             _deleteClassStrSpacing = "mt-n16 ml-5";
             _deleteGridItemClassStr = "d-flex align-content-center pr-3 mt-n16";
-            //Console.WriteLine("xs");
         }
         else if (width < 960 && width >= 600)
         {
             _gridSpacing = 1;
             _deleteClassStrSpacing = "mt-n8";
             _deleteGridItemClassStr = "d-flex align-content-center pl-6";
-            //Console.WriteLine("s");
         }
         else if (width < 1280 && width >= 960)
         {
             _gridSpacing = 2;
             _deleteClassStrSpacing = "mb-n4 ml-n6";
             _deleteGridItemClassStr = "d-flex align-content-center pl-6";
-            //Console.WriteLine("md");
         }
         else if (width >= 1280)
         {
             _gridSpacing = 3;
             _deleteClassStrSpacing = "mb-n4 ml-n3";
             _deleteGridItemClassStr = "d-flex align-content-center pl-6";
-            //Console.WriteLine("lg and up");
         }
 
-        //Console.WriteLine(_gridSpacing);
         _deleteClassStr = _deleteClassStrBase + _deleteClassStrSpacing;
         return InvokeAsync(StateHasChanged);
     }

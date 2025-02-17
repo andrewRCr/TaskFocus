@@ -169,7 +169,6 @@
 
         if (AppState.CanRefresh)
         {
-            //Console.WriteLine("Home: returned true on HandleDataStateChanged!");
             InvokeAsync(CheckConfirmedStatus);
         }
 
@@ -185,7 +184,6 @@
 
         if (AppState.CanRefresh)
         {
-            //Console.WriteLine("UnconfirmedEmail: returned true on HandleAppStateChanged!");
             LoadAlertMessage();
         }
 

@@ -41,7 +41,6 @@
 
     private void OnItemDropped()
     {
-        //Console.WriteLine("item dropped!");
         SetCanRefresh(true);
         UpdateParametersFromDataState();
     }
@@ -65,7 +64,6 @@
         if (AppState.CanRefresh)
         {
             UpdateParametersFromDataState();
-            //Console.WriteLine("ProjectContainerComp: returned true on HandleDataStateChanged!");
         }
 
         return AppState.CanRefresh;

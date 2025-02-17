@@ -12,7 +12,6 @@
             get { return _alertSeverity; }
             set
             {
-                //Console.WriteLine($"AppState: AlertSeverity changed to {value}!");
                 _alertSeverity = value;
                 AppStateChanged?.Invoke(nameof(AlertSeverity), this);
             }
@@ -24,7 +23,6 @@
             get { return _alertMessage; }
             set
             {
-                //Console.WriteLine($"AppState: AlertMessage changed to {value}!");
                 _alertMessage = value;
                 AppStateChanged?.Invoke(nameof(AlertMessage), this);
             }
@@ -36,7 +34,6 @@
             get { return _canRefresh; }
             set
             {
-                //Console.WriteLine($"AppState: CanRefresh changed to {value}!");
                 _canRefresh = value;
                 AppStateChanged?.Invoke(nameof(CanRefresh), this);
             }
@@ -72,7 +69,6 @@
             {
                 _focusedProjectIdStr = value;
                 AppStateChanged?.Invoke(nameof(FocusedProjectIdStr), this);
-                //Console.WriteLine($"AppState: FocusedProjectIdStr changed to {value}!");
             }
         }
 
@@ -84,7 +80,6 @@
             {
                 _focusedContextIdStr = value;
                 AppStateChanged?.Invoke(nameof(FocusedContextIdStr), this);
-                //Console.WriteLine($"AppState: FocusedContextIdStr changed to {value}!");
             }
         }
 

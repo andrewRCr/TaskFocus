@@ -576,7 +576,6 @@
     {
         string? changedProperty = e.PropertyName;
         UserSettingsDisplayModel senderSettings = (UserSettingsDisplayModel)sender;
-        Console.WriteLine($"LocalSettings's property {changedProperty} was changed.");
 
         await VerifyAuthAndRedirectIfExpired();
         await DataService.UpdateSettingsData(senderSettings);
@@ -591,7 +590,6 @@
 
         if (AppState.CanRefresh)
         {
-            //Console.WriteLine("SettingsViewPage: returned true on HandleDataStateChanged!");
             LoadLocalSettingsData();
         }
 
@@ -607,7 +605,6 @@
 
         if (AppState.CanRefresh)
         {
-            //Console.WriteLine("SettingsViewPage: returned true on HandleAppStateChanged!");
             LoadAlertMessage();
         }
 

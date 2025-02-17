@@ -121,7 +121,6 @@
 
         if (AppState.CanRefresh)
         {
-            //Console.WriteLine("AllProjectsPage: returned true on HandleAppStateChanged!");
             _focusedContextIdStr = appState.FocusedContextIdStr;
             LoadAlertMessage();
 
@@ -143,7 +142,6 @@
 
         if (AppState.CanRefresh)
         {
-            //Console.WriteLine("AllContextsPage: returned true on HandleDataStateChanged!");
             LoadAllLocalData();
         }
 

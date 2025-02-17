@@ -217,7 +217,6 @@
 
         string? changedProperty = e.PropertyName;
         TaskDisplayModel senderTask = (TaskDisplayModel)sender;
-        Console.WriteLine($"{senderTask.TaskName}'s property {changedProperty} was changed.");
 
         await DataService.UpdateTaskData(senderTask);
     }
@@ -229,7 +228,6 @@
 
         string? changedProperty = e.PropertyName;
         ProjectDisplayModel senderProject = (ProjectDisplayModel)sender;
-        Console.WriteLine($"{senderProject.ProjectName}'s property {changedProperty} was changed.");
 
         await DataService.UpdateProjectData(senderProject);
     }
@@ -241,7 +239,6 @@
 
         string? changedProperty = e.PropertyName;
         ContextDisplayModel senderContext = (ContextDisplayModel)sender;
-        Console.WriteLine($"{senderContext.ContextName}'s property {changedProperty} was changed.");
 
         await DataService.UpdateContextData(senderContext);
     }
