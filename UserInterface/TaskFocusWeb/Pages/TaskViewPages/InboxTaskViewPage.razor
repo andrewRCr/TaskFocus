@@ -3,12 +3,12 @@
 
 <PageTitle>TaskFocus: Inbox</PageTitle>
 
-
 @if (IsLocalDataLoaded())
 {
     if (LocalTasks!.Count() > 0)
     {
         <MudTreeView T="TaskContainerComponent" Width="100%">
+
             <MudTreeViewItem T="TaskContainerComponent"
                              Expanded="true"
                              Icon="@Icons.Material.Filled.Inbox"
@@ -27,6 +27,7 @@
     else
     {
         <MudTreeView T="MudContainer" Width="75%">
+
             <MudTreeViewItem T="MudContainer"
                              Expanded="true"
                              Icon="@Icons.Material.Filled.Inbox"
@@ -65,7 +66,8 @@
     {
         if (DataState.IsDataLoaded())
         {
-            List<TaskDisplayModel> inboxTasks = DataState.Tasks!.Where(x => (x.ProjectId == null || x.ContextId == null) && !x.CleanedUp).ToList();
+            List<TaskDisplayModel> inboxTasks = DataState.Tasks!.Where(
+                x => (x.ProjectId == null || x.ContextId == null) && !x.CleanedUp).ToList();
             inboxTasks.OrderBy(x => x.InboxIndex);
             LocalTasks = inboxTasks;
 

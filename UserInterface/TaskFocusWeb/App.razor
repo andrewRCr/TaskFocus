@@ -10,11 +10,13 @@
                     </MudPaper>
                 </MudContainer>
             </Authorizing>
+
             <NotAuthorized>
                 <h1>Unauthorized</h1>
                 <p>The page or component you are trying to reach requires authentication. </p>
             </NotAuthorized>
         </AuthorizeRouteView>
+
         <FocusOnNavigate RouteData="@routeData" Selector="h1" />
     </Found>
     <NotFound>

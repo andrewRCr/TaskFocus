@@ -11,25 +11,33 @@
     {
         @if (LocalProjects != null)
         {
-            <SubNavMenuItemContainer IsProjectsSubMenu="true" ContainerProjectsParam="@LocalProjects" ContainerIdentifierParam="ProjectsSubNavMenu" />
+            <SubNavMenuItemContainer IsProjectsSubMenu="true" 
+                                     ContainerProjectsParam="@LocalProjects" 
+                                     ContainerIdentifierParam="ProjectsSubNavMenu" />
         }
     }
     else
     {
         @if (LocalContexts != null)
         {
-            <SubNavMenuItemContainer IsProjectsSubMenu="false" ContainerContextsParam="@LocalContexts" ContainerIdentifierParam="ContextsSubNavMenu" />
+            <SubNavMenuItemContainer IsProjectsSubMenu="false" 
+                                     ContainerContextsParam="@LocalContexts" 
+                                     ContainerIdentifierParam="ContextsSubNavMenu" />
         }
     }
 
-    <div class="flex-grow-1" style="max-width: 250px;" @onmouseover="()=>SetAddNewCollectionButtonActive(true)"
+    <div class="flex-grow-1" 
+         style="max-width: 250px;" 
+         @onmouseover="()=>SetAddNewCollectionButtonActive(true)"
          @onmouseleave="()=>SetAddNewCollectionButtonActive(false)">
+
         <MudIconButton OnClick="()=>_newCollectionDialogVisible = true"
                        Color="@_addNewCollectionButtonColor"
                        Class="ml-1 mr-2"
-                       Icon="@Icons.Material.Filled.Add"
-                       />
-        <MudText Typo="Typo.button" Class="@_addCollectionTextClassStr">Add new @_collectionTypeName</MudText>
+                       Icon="@Icons.Material.Filled.Add" />
+
+        <MudText Typo="Typo.button" 
+                 Class="@_addCollectionTextClassStr">Add new @_collectionTypeName</MudText>
     </div>
 
 </MudNavMenu>
@@ -37,14 +45,15 @@
 <!-- addNewCollection dialog -->
 <MudDialog @bind-IsVisible="_newCollectionDialogVisible" 
            Options="dialogOptions" 
-           Style="background-color: #27272f"
-           >
+           Style="background-color: #27272f" >
+
     <TitleContent>
         <MudIcon Icon="@Icons.Material.Filled.Add" Class="mr-1 mb-1" />
         <MudText Typo="Typo.button" >
              Add new @_collectionTypeName
         </MudText>
     </TitleContent>
+
     <DialogContent>
         <MudPaper Outlined Style="background-color: #373740;" Class="pb-2 px-2 pt-n1" Elevation="3">
             <MudTextField @bind-Value="_newCollectionName" 
@@ -54,10 +63,12 @@
                           Placeholder="@_addNewPlaceholderText" />
         </MudPaper>
     </DialogContent>
+
     <DialogActions>
         <MudButton OnClick="CancelAddNewCollectionDialog" Class="px-0">Cancel</MudButton>
         <MudButton Color="Color.Primary" OnClick="TrySubmitNewCollection" Class="px-0">Add</MudButton>
     </DialogActions>
+
 </MudDialog>
 
 <style>
@@ -168,7 +179,8 @@
 
             foreach (ProjectDisplayModel project in LocalProjects!)
             {
-                project.PropertyChanged += OnExistingProjectPropertyChanged!; // subscribe to property changed event
+                // subscribe to property changed event
+                project.PropertyChanged += OnExistingProjectPropertyChanged!; 
             }
         }
     }
@@ -183,7 +195,8 @@
 
             foreach (ContextDisplayModel context in LocalContexts!)
             {
-                context.PropertyChanged += OnExistingContextPropertyChanged!; // subscribe to property changed event                                                                        
+                // subscribe to property changed event
+                context.PropertyChanged += OnExistingContextPropertyChanged!;                                                                     
             }
         }
     }
@@ -204,10 +217,8 @@
 
     private void SetFocusedItemIdStr(int itemId)
     {
-        if (IsProjectsSubMenu)
-        { AppState.FocusedProjectIdStr = itemId.ToString(); }
-        else
-        { AppState.FocusedContextIdStr = itemId.ToString(); ; }
+        if (IsProjectsSubMenu) { AppState.FocusedProjectIdStr = itemId.ToString(); }
+        else { AppState.FocusedContextIdStr = itemId.ToString(); ; }
     }
 
     private async Task TrySubmitNewCollection()

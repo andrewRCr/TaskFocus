@@ -40,7 +40,10 @@
                         </MudText>
 
                         <MudText Class="pb-2 px-4 text-center">
-                            <MudButton ButtonType="ButtonType.Button" Variant="Variant.Text" Color="Color.Primary" OnClick="ResendConfirmLink">Resend</MudButton>
+                            <MudButton ButtonType="ButtonType.Button" 
+                                       Variant="Variant.Text" 
+                                       Color="Color.Primary" 
+                                       OnClick="ResendConfirmLink">Resend</MudButton>
                         </MudText>
 
                     </MudPaper>
@@ -59,7 +62,6 @@
                     {
                         <MudAlert Class="mt-6" Elevation="25" Severity="_alertSeverity">@_alertMessage</MudAlert>
                     }
-
                 </MudContainer>
             }
         </MudContainer>
@@ -69,19 +71,12 @@
 
 @code {
     private bool _emailUpdateHasBeenProcessed = false;
-    private bool _isAuthenticated = false;
     private ConfirmUpdatedEmailModel _confirmUpdatedEmailModel = new();
 
     private MudBlazor.Severity _alertSeverity = Severity.Normal;
     private string _alertMessage = string.Empty;
     private string? _errorMessage;
     private bool _loading = false;
-
-    private async Task VerifyAuth()
-    {
-        var authState = await AuthState;
-        _isAuthenticated = authState.User.Identity!.IsAuthenticated;
-    }
 
     protected override void OnInitialized()
     {
@@ -137,10 +132,7 @@
                 }
             }
         }
-        else
-        {
-            NavManager.NavigateTo("/");
-        }
+        else { NavManager.NavigateTo("/"); }
     }
 
     private async Task ResendConfirmLink()

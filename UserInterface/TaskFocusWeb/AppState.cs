@@ -1,8 +1,4 @@
-﻿using AutoMapper;
-using TaskFocusUI.Library.API;
-using TaskFocusUI.Library.Models;
-
-namespace TaskFocusWeb
+﻿namespace TaskFocusWeb
 {
     public delegate void AppStateChangedHandler(String propertyName, AppState state);
 
@@ -76,7 +72,7 @@ namespace TaskFocusWeb
             {
                 _focusedProjectIdStr = value;
                 AppStateChanged?.Invoke(nameof(FocusedProjectIdStr), this);
-                Console.WriteLine($"AppState: FocusedProjectIdStr changed to {value}!");
+                //Console.WriteLine($"AppState: FocusedProjectIdStr changed to {value}!");
             }
         }
 
@@ -88,7 +84,7 @@ namespace TaskFocusWeb
             {
                 _focusedContextIdStr = value;
                 AppStateChanged?.Invoke(nameof(FocusedContextIdStr), this);
-                Console.WriteLine($"AppState: FocusedContextIdStr changed to {value}!");
+                //Console.WriteLine($"AppState: FocusedContextIdStr changed to {value}!");
             }
         }
 

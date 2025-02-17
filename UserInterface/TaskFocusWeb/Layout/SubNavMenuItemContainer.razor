@@ -8,15 +8,18 @@
                       ItemsSelector="@((item, dropzone) => true)"
                       ItemPicked="()=>SetCanRefresh(false)"
                       ItemDropped="OnProjectItemDropped">
+
         <ChildContent>
             <MudDropZone T="ProjectDisplayModel"
                          Identifier="@ContainerIdentifierParam"
                          AllowReorder="true"
                          Class="rounded mud-background-gray px-0 py-0 ma-0" />
         </ChildContent>
+
         <ItemRenderer>
                 <SubNavMenuItem IsProjectsSubMenu="IsProjectsSubMenu" ProjectParam="@context" />
         </ItemRenderer>
+
     </MudDropContainer>
 }
 else
@@ -27,15 +30,18 @@ else
                       ItemsSelector="@((item, dropzone) => true)"
                       ItemPicked="()=>SetCanRefresh(false)"
                       ItemDropped="OnContextItemDropped">
+
         <ChildContent>
             <MudDropZone T="ContextDisplayModel"
                          Identifier="@ContainerIdentifierParam"
                          AllowReorder="true"
                          Class="rounded mud-background-gray px-0 py-0 ma-0" />
         </ChildContent>
+
         <ItemRenderer>
             <SubNavMenuItem IsProjectsSubMenu="IsProjectsSubMenu" ContextParam="@context" />
         </ItemRenderer>
+
     </MudDropContainer>
 }
 

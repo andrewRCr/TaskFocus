@@ -1,25 +1,44 @@
-﻿<MudExpansionPanels DisableBorders="true" Elevation="0" MultiExpansion="true">
-    <MudDropContainer T="ContextDisplayModel" Items="@ContainerContextItemsParam" ItemsSelector="@ContainerItemsSelectorParam" Class="5">
+﻿<MudExpansionPanels DisableBorders="true" 
+                    MultiExpansion="true"
+                    Elevation="0">
+
+    <MudDropContainer T="ContextDisplayModel" 
+                      Items="@ContainerContextItemsParam" 
+                      ItemsSelector="@ContainerItemsSelectorParam" 
+                      Class="5">
         <ChildContent>
-            <MudDropZone T="ContextDisplayModel" AllowReorder Class="6 rounded mud-background-gray px-2 py-1 ma-2" />
+            <MudDropZone T="ContextDisplayModel" 
+                AllowReorder 
+                Class="6 rounded mud-background-gray px-2 py-1 ma-2" />
         </ChildContent>
+
         <ItemRenderer>
             <MudPaper Elevation=25 Class="pa-0 my-2">
 
-                <MudExpansionPanel IsExpanded="@IsExpanded" DisableGutters="true" Dense="true" Class="pa-0 my-2">
+                <MudExpansionPanel IsExpanded="@IsExpanded" 
+                                   DisableGutters="true" 
+                                   Dense="true" 
+                                   Class="pa-0 my-2">
+
                     <TitleContent>
                         <div class="d-flex">
                             <MudText><strong>@context.ContextName</strong></MudText>
                         </div>
                     </TitleContent>
                     <ChildContent>
-                        <MudDropZone T="TaskDisplayModel" Identifier="@context.ContextName" AllowReorder Class="mud-background-gray px-3 py-2 ma-0" />
+                        <MudDropZone T="TaskDisplayModel" 
+                                     Identifier="@context.ContextName" 
+                                     AllowReorder 
+                                     Class="mud-background-gray px-3 py-2 ma-0" />
                     </ChildContent>
+
                 </MudExpansionPanel>
 
             </MudPaper>
         </ItemRenderer>
+
     </MudDropContainer>
+
 </MudExpansionPanels>
 
 @code {

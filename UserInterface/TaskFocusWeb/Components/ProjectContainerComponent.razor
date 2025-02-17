@@ -1,18 +1,27 @@
 ﻿@inherits _ComponentBase
 
-<MudExpansionPanels DisableBorders="true" Elevation="0" MultiExpansion="true">
+<MudExpansionPanels DisableBorders="true" 
+                    MultiExpansion="true"
+                    Elevation="0">
+
         <MudDropContainer T="ProjectDisplayModel" 
                           Items="@ContainerProjectItemsParam" 
                           ItemsSelector="@ContainerItemsSelectorParam"
                           ItemPicked="()=>SetCanRefresh(false)"
                           ItemDropped="OnItemDropped">
+
             @foreach (ProjectDisplayModel project in ContainerProjectItemsParam)
             {
                 <MudTreeView T="string">
-                <MudTreeViewItem Value="@project.ProjectName" TextTypo="Typo.button" Expanded="true" Icon="@Icons.Material.Filled.AssignmentTurnedIn">
-           @*              <MudPaper Elevation=25 Class="pa-0 my-2"> *@
-                            <MudDropZone T="TaskDisplayModel" Identifier="@project.ProjectName" AllowReorder="true" Class="mud-background-gray px-3 py-2 ma-0" />
-                    @*     </MudPaper> *@
+                    <MudTreeViewItem Value="@project.ProjectName" 
+                                     TextTypo="Typo.button" 
+                                     Expanded="true" 
+                                     Icon="@Icons.Material.Filled.AssignmentTurnedIn">
+
+                            <MudDropZone T="TaskDisplayModel" 
+                                         Identifier="@project.ProjectName" 
+                                         AllowReorder="true" 
+                                         Class="mud-background-gray px-3 py-2 ma-0" />
                     </MudTreeViewItem>
                 </MudTreeView>
             }
@@ -32,7 +41,7 @@
 
     private void OnItemDropped()
     {
-        Console.WriteLine("item dropped!");
+        //Console.WriteLine("item dropped!");
         SetCanRefresh(true);
         UpdateParametersFromDataState();
     }
@@ -56,7 +65,7 @@
         if (AppState.CanRefresh)
         {
             UpdateParametersFromDataState();
-            Console.WriteLine("ProjectContainerComp: returned true on HandleDataStateChanged!");
+            //Console.WriteLine("ProjectContainerComp: returned true on HandleDataStateChanged!");
         }
 
         return AppState.CanRefresh;

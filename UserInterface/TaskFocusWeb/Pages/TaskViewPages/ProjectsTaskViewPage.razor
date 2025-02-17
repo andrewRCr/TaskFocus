@@ -11,15 +11,18 @@
         {
             <MudTreeView T="TaskContainerComponent" Width="100%">
 
-                <MudTreeViewItem T="TaskContainerComponent" Expanded="true" Icon="@Icons.Material.Filled.Assignment" Text="@ProjectParam.ProjectName" TextTypo="Typo.button">
-                    <TaskContainerComponent ContainerTaskItemsParam="@LocalTasks!.Where(x=>(x.ProjectId == ProjectParam.Id) && !x.CleanedUp).ToList()"
-                    ContainerIdentifierParam="@ProjectParam.ProjectName"
-                    ContainerOrderingTypeParam="Project"
-                    ContainerItemsSelectorParam="@((item, dropzone) => item.ProjectName == dropzone)"
-                    ContainerProjectsParam="@LocalProjects"
-                    ContainerContextsParam="@LocalContexts" />
-                </MudTreeViewItem>
+                <MudTreeViewItem T="TaskContainerComponent" 
+                                 Expanded="true" 
+                                 Icon="@Icons.Material.Filled.Assignment" 
+                                 Text="@ProjectParam.ProjectName" TextTypo="Typo.button">
 
+                    <TaskContainerComponent ContainerTaskItemsParam="@LocalTasks!.Where(x=>(x.ProjectId == ProjectParam.Id) && !x.CleanedUp).ToList()"
+                                            ContainerIdentifierParam="@ProjectParam.ProjectName"
+                                            ContainerOrderingTypeParam="Project"
+                                            ContainerItemsSelectorParam="@((item, dropzone) => item.ProjectName == dropzone)"
+                                            ContainerProjectsParam="@LocalProjects"
+                                            ContainerContextsParam="@LocalContexts" />
+                </MudTreeViewItem>
             </MudTreeView>
         }
         else if (LocalProjects!.Count > 0) // all projects view
@@ -27,13 +30,18 @@
             <MudTreeView T="TaskContainerComponent" Width="100%">
                 @foreach (ProjectDisplayModel project in LocalProjects!)
                 {
-                    <MudTreeViewItem T="TaskContainerComponent" Expanded="true" Icon="@Icons.Material.Filled.Assignment" Text="@project.ProjectName" TextTypo="Typo.button">
+                    <MudTreeViewItem T="TaskContainerComponent" 
+                                     Expanded="true" 
+                                     Icon="@Icons.Material.Filled.Assignment" 
+                                     Text="@project.ProjectName" 
+                                     TextTypo="Typo.button">
+
                         <TaskContainerComponent ContainerTaskItemsParam="@LocalTasks!.Where(x=>(x.ProjectId == project.Id) && !x.CleanedUp).ToList()"
-                        ContainerIdentifierParam="@project.ProjectName"
-                        ContainerOrderingTypeParam="Project"
-                        ContainerItemsSelectorParam="@((item, dropzone) => item.ProjectName == dropzone)"
-                        ContainerProjectsParam="@LocalProjects"
-                        ContainerContextsParam="@LocalContexts" />
+                                                ContainerIdentifierParam="@project.ProjectName"
+                                                ContainerOrderingTypeParam="Project"
+                                                ContainerItemsSelectorParam="@((item, dropzone) => item.ProjectName == dropzone)"
+                                                ContainerProjectsParam="@LocalProjects"
+                                                ContainerContextsParam="@LocalContexts" />
                     </MudTreeViewItem>  
                 }
             </MudTreeView>
@@ -41,11 +49,12 @@
         else
         {
             <MudTreeView T="MudContainer" Width="75%">
+
                 <MudTreeViewItem T="MudContainer"
-                Expanded="true"
-                Icon="@Icons.Material.Filled.Assignment"
-                Text=""
-                TextTypo="Typo.button">
+                                 Expanded="true"
+                                 Icon="@Icons.Material.Filled.Assignment"
+                                 Text=""
+                                 TextTypo="Typo.button">
 
                     <MudContainer MaxWidth="MaxWidth.Medium">
                         <MudPaper Elevation="25" Class="pa-0 my-2">
@@ -54,6 +63,7 @@
                             </MudText>
                         </MudPaper>
                     </MudContainer>
+
                 </MudTreeViewItem>
             </MudTreeView>
         }

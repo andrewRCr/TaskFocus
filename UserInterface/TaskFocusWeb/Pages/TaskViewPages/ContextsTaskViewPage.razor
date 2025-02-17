@@ -11,7 +11,11 @@
         {
             <MudTreeView T="TaskContainerComponent" Width="100%">
 
-                <MudTreeViewItem T="TaskContainerComponent" Expanded="true" Icon="@Icons.Material.Filled.AutoAwesomeMotion" Text="@ContextParam.ContextName" TextTypo="Typo.button">
+                <MudTreeViewItem T="TaskContainerComponent" 
+                                 Expanded="true" 
+                                 Icon="@Icons.Material.Filled.AutoAwesomeMotion" 
+                                 Text="@ContextParam.ContextName" TextTypo="Typo.button">
+
                     <TaskContainerComponent ContainerTaskItemsParam="@LocalTasks!.Where(x=>(x.ContextId == ContextParam.Id) && !x.CleanedUp).ToList()"
                                             ContainerIdentifierParam="@ContextParam.ContextName"
                                             ContainerOrderingTypeParam="Context"
@@ -27,7 +31,12 @@
             <MudTreeView T="TaskContainerComponent" Width="100%">
                 @foreach (ContextDisplayModel context in LocalContexts!)
                 {
-                    <MudTreeViewItem T="TaskContainerComponent" Expanded="true" Icon="@Icons.Material.Filled.AutoAwesomeMotion" Text="@context.ContextName" TextTypo="Typo.button">
+                    <MudTreeViewItem T="TaskContainerComponent" 
+                                     Expanded="true" 
+                                     Icon="@Icons.Material.Filled.AutoAwesomeMotion" 
+                                     Text="@context.ContextName" 
+                                     TextTypo="Typo.button">
+
                         <TaskContainerComponent ContainerTaskItemsParam="@LocalTasks!.Where(x=>(x.ContextId == context.Id) && !x.CleanedUp).ToList()"
                                                 ContainerIdentifierParam="@context.ContextName"
                                                 ContainerOrderingTypeParam="Context"
@@ -41,6 +50,7 @@
         else
         {
             <MudTreeView T="MudContainer" Width="75%">
+
                 <MudTreeViewItem T="MudContainer"
                                  Expanded="true"
                                  Icon="@Icons.Material.Filled.AutoAwesomeMotion"
@@ -54,6 +64,7 @@
                             </MudText>
                         </MudPaper>
                     </MudContainer>
+
                 </MudTreeViewItem>
             </MudTreeView>
         }

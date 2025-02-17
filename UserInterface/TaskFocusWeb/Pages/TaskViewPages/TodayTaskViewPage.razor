@@ -9,6 +9,7 @@
     if (LocalTasks!.Count() > 0)
     {
         <MudTreeView T="TaskContainerComponent" Width="100%">
+
             <MudTreeViewItem T="TaskContainerComponent"
                              Expanded="true"
                              Icon="@Icons.Material.Filled.Today"
@@ -79,9 +80,11 @@
         if (DataState.IsDataLoaded())
         {
             List<TaskDisplayModel> dueTasks = DataState.Tasks!.Where(x => 
-                (x.DueDate <= DateTime.Now.Date) && !x.CleanedUp && (x.DateCompleted == null || x.DateCompleted == DateTime.Now.Date)).ToList();
+                (x.DueDate <= DateTime.Now.Date) && !x.CleanedUp && 
+                (x.DateCompleted == null || x.DateCompleted == DateTime.Now.Date)).ToList();
             List<TaskDisplayModel> starredTasks = DataState.Tasks!.Where(x => 
-                (x.Starred == true) && !x.CleanedUp && (x.DateCompleted == null || x.DateCompleted == DateTime.Now.Date)).ToList();
+                (x.Starred == true) && !x.CleanedUp && 
+                (x.DateCompleted == null || x.DateCompleted == DateTime.Now.Date)).ToList();
             List<TaskDisplayModel> todayTasks = dueTasks.Concat(starredTasks).ToList();
 
             // ensure any newly due/overdue tasks have a TodayIndex

@@ -10,38 +10,52 @@
           @onfocusout="CloseItemEditMenu">
 
     <MudNavLink OnClick="@SetFocusedItemIdStr" 
-    Icon="@Icons.Material.Filled.List" 
-    IconColor="@_linkColor"
-    Class="subNavLink active"
-    ActiveClass="active">
+                Icon="@Icons.Material.Filled.List" 
+                IconColor="@_linkColor"
+                Class="subNavLink active"
+                ActiveClass="active">
+
         <ChildContent>
             <MudText Color="@_linkColor">
                 @if (IsProjectsSubMenu) { @ProjectParam.ProjectName }
                 else { @ContextParam.ContextName }
             </MudText>
         </ChildContent>
+
     </MudNavLink>
 
     <MudMenu @ref="_itemEditMenu"
-    Icon="@Icons.Material.Filled.MoreVert"
-    Class=""
-    Dense="true" 
-    Size="Size.Medium">
+             Icon="@Icons.Material.Filled.MoreVert"
+             Class=""
+             Dense="true" 
+             Size="Size.Medium">
 
         <div @onmousedown=OnItemMouseDown>
-            <MudMenuItem OnClick="RenameItem" OnTouch="RenameItemTouch" Icon="@Icons.Material.Filled.Edit" IconSize="Size.Medium">
+
+            <MudMenuItem OnClick="RenameItem" 
+                         OnTouch="RenameItemTouch" 
+                         Icon="@Icons.Material.Filled.Edit" 
+                         IconSize="Size.Medium">
                 <MudText Typo="Typo.button" Class="ml-n4">Rename</MudText>
             </MudMenuItem>
-            <MudMenuItem OnClick="DeleteItem" OnTouch="DeleteItemTouch" Icon="@Icons.Material.Filled.DeleteForever" IconSize="Size.Medium">
+
+            <MudMenuItem OnClick="DeleteItem" 
+                         OnTouch="DeleteItemTouch" 
+                         Icon="@Icons.Material.Filled.DeleteForever" 
+                         IconSize="Size.Medium">
                 <MudText Typo="Typo.button" Class="ml-n4">Delete</MudText>
             </MudMenuItem>
+
         </div>
     </MudMenu>
 
 </MudStack>
 
 <!-- rename dialog -->
-<MudDialog @bind-IsVisible="_renameDialogVisible" Options="dialogOptions" Style="background-color: #27272f">
+<MudDialog @bind-IsVisible="_renameDialogVisible" 
+           Options="dialogOptions" 
+           Style="background-color: #27272f">
+
     <TitleContent>
         <MudStack Row="true" Spacing="1">
             <MudIcon Icon="@Icons.Material.Filled.Edit" Class="mr-3" />
@@ -50,11 +64,20 @@
             </MudText>
         </MudStack>
     </TitleContent>
+
     <DialogContent>
-        <MudPaper Outlined Style="background-color: #373740;" Class="pb-2 px-2 pt-n1" Elevation="3">
-            <MudTextField @bind-Value="_itemName" Variant="Variant.Text" Margin="Margin.Dense" OnKeyUp="RenameEnterKeyPressed" />
+        <MudPaper Outlined Style="background-color: #373740;" 
+                  Class="pb-2 px-2 pt-n1" 
+                  Elevation="3">
+
+            <MudTextField @bind-Value="_itemName" 
+                          Variant="Variant.Text" 
+                          Margin="Margin.Dense" 
+                          OnKeyUp="RenameEnterKeyPressed" />
+
         </MudPaper>
     </DialogContent>
+
     <DialogActions>
         <MudButton OnClick="()=>_renameDialogVisible = false" Class="px-0">Cancel</MudButton>
         <MudButton Color="Color.Primary" OnClick="SubmitRename" Class="px-0">Save</MudButton>
@@ -62,20 +85,28 @@
 </MudDialog>
 
 <!-- delete dialog -->
-<MudDialog @bind-IsVisible="_deleteDialogVisible" Options="dialogOptions" Style="background-color: #27272f">
+<MudDialog @bind-IsVisible="_deleteDialogVisible" 
+           Options="dialogOptions" 
+           Style="background-color: #27272f">
+
     <TitleContent>
         <MudStack Row="true" Spacing="1">
             <MudIcon Icon="@Icons.Material.Filled.DeleteForever" Class="mr-3" />
             <MudText Typo="Typo.button">Delete "@_itemName"?</MudText>
         </MudStack>
     </TitleContent>
+
     <DialogContent>
-        <MudPaper Outlined Style="background-color: #373740;" Class="pa-3 ma-0 mb-1" Elevation="3">
+        <MudPaper Outlined 
+                  Style="background-color: #373740;" 
+                  Class="pa-3 ma-0 mb-1" 
+                  Elevation="3">
             <MudText>
                 Any tasks with this @_collectionTypeName assigned will be moved to your Inbox.
             </MudText>
         </MudPaper>
     </DialogContent>
+
     <DialogActions>
         <MudButton OnClick="()=>_deleteDialogVisible= false" Class="px-0">Cancel</MudButton>
         <MudButton Color="Color.Error" OnClick="SubmitDelete" Class="px-0">Delete</MudButton>
@@ -138,10 +169,8 @@
         await VerifyAuthAndRedirectIfExpired();
         _deleteDialogVisible = false;
 
-        if (IsProjectsSubMenu)
-        { await DataService.DeleteProject(ProjectParam); }
-        else
-        { await DataService.DeleteContext(ContextParam); }
+        if (IsProjectsSubMenu) { await DataService.DeleteProject(ProjectParam); }
+        else { await DataService.DeleteContext(ContextParam); }
 
         Snackbar.Add($"{_collectionTypeName} deleted.", Severity.Success);
     }
@@ -179,8 +208,7 @@
             _itemEditMenu.CloseMenu();
             ShowHideItemEditMenuButton(false);
         }
-        // reset for future clicks
-        _itemClicked = false;
+        _itemClicked = false; // reset for future clicks
     }
 
     private void OnItemMouseDown()

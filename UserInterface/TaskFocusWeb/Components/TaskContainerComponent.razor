@@ -8,6 +8,7 @@
                       ItemsSelector="@ContainerItemsSelectorParam"
                       ItemPicked="()=>SetCanRefresh(false)"
                       ItemDropped="OnItemDropped">
+
         <ChildContent>
             <MudDropZone T="TaskDisplayModel"
                          Identifier="@ContainerIdentifierParam"
@@ -15,6 +16,7 @@
                          ItemIsDisabled="(task)=>IsDraggingDisabled(task)"
                          Class="rounded mud-background-gray px-2 py-1 ma-2" />
         </ChildContent>
+
         <ItemRenderer>
             <MudPaper Elevation="25" Class="pa-0 my-2">
                 <TaskItemComponent TaskParam="@context"
@@ -22,6 +24,7 @@
                                    ContextsParam="@ContainerContextsParam" />
             </MudPaper>
         </ItemRenderer>
+
     </MudDropContainer>
 }
 else
@@ -34,8 +37,6 @@ else
         </MudPaper>
     </MudContainer>
 }
-
-
 
 @code {
     [Parameter]

@@ -6,11 +6,16 @@
 @inject IDataService DataService
 @using System.ComponentModel.DataAnnotations
 
-<MudForm Model="userModel" @ref="_loginForm" @bind-IsValid="@_success" @bind-Errors="@_errors" >
+<MudForm Model="userModel" 
+         @ref="_loginForm" 
+         @bind-IsValid="@_success" 
+         @bind-Errors="@_errors" >
 
     <MudGrid>
         <MudStack Row="true" Class="mt-2" AlignItems="AlignItems.Center">
+
             <MudItem Class="col-auto">
+
                 <MudTextField @bind-Value="userModel.Email"
                               Variant="Variant.Outlined" 
                               Margin="Margin.Dense"
@@ -23,7 +28,9 @@
                               OnKeyUp="EnterKeyPressed"
                               Validation="@(new EmailAddressAttribute() {ErrorMessage = " "})" />
             </MudItem>
+
             <MudItem Class="col-auto">
+
                 <MudTextField @bind-Value="userModel.Password"
                               Variant="Variant.Outlined"
                               Margin="Margin.Dense"
@@ -136,7 +143,6 @@
                 }
             }
         }
-
         _working = false;
     }
 
@@ -150,9 +156,7 @@
 
     private string? PasswordValidator(string pw)
     {
-        if (string.IsNullOrWhiteSpace(pw)) { return " "; }
-
-        return null;
+        return string.IsNullOrWhiteSpace(pw) ? " " : null;
     }
 
     private void ToggleShowPassword()

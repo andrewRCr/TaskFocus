@@ -1,22 +1,36 @@
 ﻿@inherits _ComponentBase
 
-<MudNavMenu Bordered="true" Style="display: flex; flex-flow: column; height: inherit; width:250px;">
+<MudNavMenu Bordered="true" 
+            Style="display: flex; flex-flow: column; height: inherit; width:250px;">
 
-    <MudNavLink Class="mainNavLink" Disabled="@_isMenuDisabled" Href="inbox" Match="NavLinkMatch.Prefix">
+    <MudNavLink Class="mainNavLink" 
+                Disabled="@_isMenuDisabled" 
+                Href="inbox" 
+                Match="NavLinkMatch.Prefix">
             Inbox
     </MudNavLink>
-    <MudNavLink Class="mainNavLink" Disabled="@_isMenuDisabled" Href="today" Match="NavLinkMatch.Prefix">
+
+    <MudNavLink Class="mainNavLink" 
+                Disabled="@_isMenuDisabled" 
+                Href="today" 
+                Match="NavLinkMatch.Prefix">
             Today
     </MudNavLink>
 
     <div @onclick=@ResetFocusedProjectIdStr>
-        <MudNavLink Class="mainNavLink" Disabled="@_isMenuDisabled" Href="projects" Match="NavLinkMatch.Prefix">
+        <MudNavLink Class="mainNavLink" 
+                    Disabled="@_isMenuDisabled" 
+                    Href="projects" 
+                    Match="NavLinkMatch.Prefix">
                 Projects
         </MudNavLink>
     </div>
 
     <div @onclick=@ResetFocusedContextIdStr>
-        <MudNavLink Class="mainNavLink" Disabled="@_isMenuDisabled" Href="contexts" Match="NavLinkMatch.Prefix">
+        <MudNavLink Class="mainNavLink" 
+                    Disabled="@_isMenuDisabled" 
+                    Href="contexts" 
+                    Match="NavLinkMatch.Prefix">
                 Contexts
         </MudNavLink>
     </div>
@@ -24,28 +38,29 @@
     <MudNavLink Disabled />
     <MudDivider DividerType="DividerType.Middle" />
 
-    <MudNavLink Class="mainNavLink" Disabled="@_isMenuDisabled" Href="completed" Match="NavLinkMatch.Prefix" Style="color:#5e5e65;"><i>[ Completed ]</i></MudNavLink>
+    <MudNavLink Class="mainNavLink" 
+                Disabled="@_isMenuDisabled" 
+                Href="completed" 
+                Match="NavLinkMatch.Prefix" 
+                Style="color:#5e5e65;"><i>[ Completed ]</i></MudNavLink>
+
     <MudDivider Class="invisible" />
     <MudDivider DividerType="DividerType.Middle" />
-    <MudNavLink Class="mainNavLink" Disabled="@_isMenuDisabled" Href="settings" Match="NavLinkMatch.Prefix">Settings</MudNavLink>
+
+    <MudNavLink Class="mainNavLink" 
+                Disabled="@_isMenuDisabled" 
+                Href="settings" 
+                Match="NavLinkMatch.Prefix">Settings</MudNavLink>
 
 </MudNavMenu>
 
 @code {
-    private bool _isAuthenticated = false;
     private bool _isMenuDisabled = true;
 
     protected override async Task OnInitializedAsync()
     {
         dataRefreshTriggers = new List<string> { nameof(DataState.CurrentUser) };
         await VerifyAuth();
-    }
-
-    private async Task VerifyAuth()
-    {
-        var authState = await AuthState;
-
-        _isAuthenticated = authState.User.Identity!.IsAuthenticated;
         _isMenuDisabled = !_isAuthenticated;
     }
 

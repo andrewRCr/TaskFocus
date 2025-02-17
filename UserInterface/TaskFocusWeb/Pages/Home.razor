@@ -14,6 +14,7 @@
 }
 
 <MudLoading @bind-Loading="_loading">
+
     <LoaderContent>
         <div class="mx-auto text-center mt-3">
             <MudProgressLinear Class="mb-3" Color="Color.Primary" Indeterminate="true" />
@@ -50,20 +51,24 @@
                 {
                     <MudPaper Elevation="25" Class="mt-3 px-4">
 
-                        <MudForm @ref="_forgotPasswordForm" @bind-IsValid="@_success" @bind-Errors="@_errors" Model="_userModel">
+                        <MudForm @ref="_forgotPasswordForm" 
+                                 @bind-IsValid="@_success" 
+                                 @bind-Errors="@_errors" 
+                                 Model="_userModel">
+
                             <MudTextField T="string"
-                                            @bind-Value="_userModel.Email"
-                                            Label="Email Address"
-                                            Style="width: 350px;"
-                                            Margin="Margin.Normal"
-                                            Validation="@(new EmailAddressAttribute() {ErrorMessage = "Please provide a valid email address."})"
-                                            Class="pa-2" />
+                                          @bind-Value="_userModel.Email"
+                                          Label="Email Address"
+                                          Style="width: 350px;"
+                                          Margin="Margin.Normal"
+                                          Validation="@(new EmailAddressAttribute() {ErrorMessage = "Please provide a valid email address."})"
+                                          Class="pa-2" />
 
                             <MudText Class="pb-2 px-4 text-center">
                                 <MudButton Variant="Variant.Text"
-                                            Color="Color.Primary"
-                                            Disabled="@(!_success)"
-                                            OnClick="(() => SubmitForgotPasswordForm())">
+                                           Color="Color.Primary"
+                                           Disabled="@(!_success)"
+                                           OnClick="(() => SubmitForgotPasswordForm())">
                                     Send reset link
                                 </MudButton>
                             </MudText>
@@ -85,7 +90,6 @@
 
 @code {
     private bool _loading = false;
-    private bool _isAuthenticated = false;
     private bool _forgotPassword = false;
     private ForgotPasswordModel _userModel = new();
     private string? _errorMessage = string.Empty;
@@ -107,12 +111,6 @@
         {
             NavManager.NavigateTo("/inbox");
         }  
-    }
-
-    private async Task VerifyAuth()
-    {
-        var authState = await AuthState;
-        _isAuthenticated = authState.User.Identity!.IsAuthenticated;
     }
 
     private void LoadAlertMessage()

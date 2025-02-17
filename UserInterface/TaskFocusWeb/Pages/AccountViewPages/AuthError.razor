@@ -22,8 +22,6 @@
 }
 
 @code {
-    private bool _isAuthenticated = false;
-
     protected override async Task OnInitializedAsync()
     {
         dataRefreshTriggers = new List<string> { nameof(DataState.CurrentUser) };
@@ -33,12 +31,6 @@
         {
             NavManager.NavigateTo("/inbox");
         }
-    }
-
-    private async Task VerifyAuth()
-    {
-        var authState = await AuthState;
-        _isAuthenticated = authState.User.Identity!.IsAuthenticated;
     }
 
     protected override bool HandleDataStateChanged(string propertyName, IDataState dataState)

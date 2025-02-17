@@ -9,6 +9,7 @@
 
     <!-- top app bar; logo + menu drawer toggle (if authenticated); login or auth widget -->
     <MudAppBar Elevation="0" >
+
         <AuthorizeView>
             <Authorized>
                 <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Class="ml-n5" OnClick="@((e) => DrawerToggle())" />
@@ -29,11 +30,12 @@
                 <LoginWidget />
             </NotAuthorized>
         </AuthorizeView>
+
     </MudAppBar>
 
     <MudStack Row="true">
 
-        <!-- menu drawer; only visible if authenticated-->
+        <!-- nav menu drawer; only visible if authenticated-->
         <AuthorizeView>
             <Authorized>
 
@@ -45,12 +47,27 @@
 
                 <MudDivider Vertical />
 
-                <MudDrawer @bind-Open="@_drawerOpen" Elevation="25" Width="310px" Variant="@DrawerVariant.Responsive" Breakpoint="Breakpoint.Md" PreserveOpenState="true">
+                <MudDrawer @bind-Open="@_drawerOpen" 
+                           Elevation="25" 
+                           Width="310px" 
+                           Variant="@DrawerVariant.Responsive" 
+                           Breakpoint="Breakpoint.Md" 
+                           PreserveOpenState="true">
+
                     <MudDrawerHeader Class="d-flex align-center">
-                        <MudIcon Icon="@Icons.Material.Filled.OfflinePin" Color="Color.Primary" Class="mr-4 ml-n3" Size="Size.Large" />
-                        <MudText Color="Color.Primary" Typo="Typo.h5" Class="mt-1" Style="font-family:Bahnschrift; font-weight:700; font-size:x-large;">TaskFocus</MudText>
+                        <MudIcon Icon="@Icons.Material.Filled.OfflinePin" 
+                                 Color="Color.Primary" 
+                                 Class="mr-4 ml-n3" 
+                                 Size="Size.Large" />
+                        <MudText Color="Color.Primary" 
+                                 Typo="Typo.h5" 
+                                 Class="mt-1" 
+                                 Style="font-family:Bahnschrift; font-weight:700; font-size:x-large;">TaskFocus</MudText>
                     </MudDrawerHeader>
+
+                    <!-- nav menu  -->
                     <NavMenuContainer />
+
                 </MudDrawer>
             </Authorized>
         </AuthorizeView>
@@ -83,7 +100,6 @@
         </AuthorizeView>
 
     </MudStack>
-
 
 </MudLayout>
 
@@ -119,7 +135,7 @@
 
         if (authState.User.Identity!.IsAuthenticated)
         {
-            // ensure DataState has remote data loaded
+            // if DataState has no remote data loaded, load it
             if (!DataState.IsDataLoaded())
             {
                 await DataService.FetchAllRemoteData();

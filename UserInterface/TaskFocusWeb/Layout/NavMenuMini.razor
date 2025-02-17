@@ -1,25 +1,54 @@
 ﻿@inherits _ComponentBase
 
-<MudNavMenu Bordered="@ShowBorderHighlight" Style="display: flex; flex-flow: column; height: inherit; width:60px;" >
-    <MudNavLink Class="mainNavLink" Disabled="@_isMenuDisabled" Href="inbox" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Inbox" />
-    <MudNavLink Class="mainNavLink" Disabled="@_isMenuDisabled" Href="today" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Today" />
+<MudNavMenu Bordered="@ShowBorderHighlight" 
+            Style="display: flex; flex-flow: column; height: inherit; width:60px;" >
+
+    <MudNavLink Class="mainNavLink" 
+                Disabled="@_isMenuDisabled" 
+                Href="inbox" 
+                Match="NavLinkMatch.Prefix" 
+                Icon="@Icons.Material.Filled.Inbox" />
+
+    <MudNavLink Class="mainNavLink" 
+                Disabled="@_isMenuDisabled" 
+                Href="today" 
+                Match="NavLinkMatch.Prefix" 
+                Icon="@Icons.Material.Filled.Today" />
 
     <div @onclick=@ResetFocusedProjectIdStr>
-        <MudNavLink Class="mainNavLink" Disabled="@_isMenuDisabled" Href="projects" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Assignment" />
+        <MudNavLink Class="mainNavLink" 
+                    Disabled="@_isMenuDisabled" 
+                    Href="projects" 
+                    Match="NavLinkMatch.Prefix" 
+                    Icon="@Icons.Material.Filled.Assignment" />
     </div>
 
     <div @onclick=@ResetFocusedContextIdStr>
-        <MudNavLink Class="mainNavLink" Disabled="@_isMenuDisabled" Href="contexts" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.AutoAwesomeMotion" />
+        <MudNavLink Class="mainNavLink" 
+                    Disabled="@_isMenuDisabled" 
+                    Href="contexts" 
+                    Match="NavLinkMatch.Prefix" 
+                    Icon="@Icons.Material.Filled.AutoAwesomeMotion" />
     </div>
 
     <MudNavLink Disabled />
     <MudDivider DividerType="DividerType.Middle" />
 
-    <MudNavLink Class="mainNavLink" Disabled="@_isMenuDisabled" Href="completed" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Checklist" />
+    <MudNavLink Class="mainNavLink" 
+                Disabled="@_isMenuDisabled" 
+                Href="completed" 
+                Match="NavLinkMatch.Prefix" 
+                Icon="@Icons.Material.Filled.Checklist" />
             
     <MudDivider Class="invisible"  />
     <MudDivider DividerType="DividerType.Middle" />
-    <MudNavLink Class="mainNavLink" Disabled="@_isMenuDisabled" Href="settings" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.ManageAccounts" />
+
+    <MudNavLink Class="mainNavLink" 
+                Disabled="@_isMenuDisabled" 
+                Href="settings" 
+                Match="NavLinkMatch.Prefix" 
+                Icon="@Icons.Material.Filled.ManageAccounts" />
+
 </MudNavMenu>
 
 <style>
@@ -34,20 +63,12 @@
     [Parameter]
     public bool ShowBorderHighlight { get; set; } = false;
 
-    private bool _isAuthenticated = false;
     private bool _isMenuDisabled = true;
 
     protected override async Task OnInitializedAsync()
     {
         dataRefreshTriggers = new List<string> { nameof(DataState.CurrentUser) };
         await VerifyAuth();
-    }
-
-    private async Task VerifyAuth()
-    {
-        var authState = await AuthState;
-
-        _isAuthenticated = authState.User.Identity!.IsAuthenticated;
         _isMenuDisabled = !_isAuthenticated;
     }
 
