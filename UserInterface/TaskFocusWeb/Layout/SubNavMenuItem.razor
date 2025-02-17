@@ -4,16 +4,16 @@
 @inject ISnackbar Snackbar
 
 <MudStack Row="true" 
-          Class="@_stackClass"
-          Spacing="0" 
-          @onmouseover="()=> ShowHideItemEditMenuButton(true)" 
-          @onfocusout="CloseItemEditMenu">
+Class="@_stackClass"
+Spacing="0" 
+@onmouseover="()=> ShowHideItemEditMenuButton(true)" 
+@onfocusout="CloseItemEditMenu">
 
     <MudNavLink OnClick="@SetFocusedItemIdStr" 
-                Icon="@Icons.Material.Filled.List" 
-                IconColor="@_linkColor"
-                Class="subNavLink active"
-                ActiveClass="active">
+    Icon="@_iconStr" 
+    IconColor="@_linkColor"
+    Class="subNavLink active"
+    ActiveClass="active">
 
         <ChildContent>
             <MudText Color="@_linkColor">
@@ -25,24 +25,24 @@
     </MudNavLink>
 
     <MudMenu @ref="_itemEditMenu"
-             Icon="@Icons.Material.Filled.MoreVert"
-             Class=""
-             Dense="true" 
-             Size="Size.Medium">
+    Icon="@Icons.Material.Filled.MoreVert"
+    Class=""
+    Dense="true" 
+    Size="Size.Medium">
 
         <div @onmousedown=OnItemMouseDown>
 
             <MudMenuItem OnClick="RenameItem" 
-                         OnTouch="RenameItemTouch" 
-                         Icon="@Icons.Material.Filled.Edit" 
-                         IconSize="Size.Medium">
+            OnTouch="RenameItemTouch" 
+            Icon="@Icons.Material.Filled.Edit" 
+            IconSize="Size.Medium">
                 <MudText Typo="Typo.button" Class="ml-n4">Rename</MudText>
             </MudMenuItem>
 
             <MudMenuItem OnClick="DeleteItem" 
-                         OnTouch="DeleteItemTouch" 
-                         Icon="@Icons.Material.Filled.DeleteForever" 
-                         IconSize="Size.Medium">
+            OnTouch="DeleteItemTouch" 
+            Icon="@Icons.Material.Filled.DeleteForever" 
+            IconSize="Size.Medium">
                 <MudText Typo="Typo.button" Class="ml-n4">Delete</MudText>
             </MudMenuItem>
 
@@ -53,8 +53,8 @@
 
 <!-- rename dialog -->
 <MudDialog @bind-IsVisible="_renameDialogVisible" 
-           Options="dialogOptions" 
-           Style="background-color: #27272f">
+Options="dialogOptions" 
+Style="background-color: #27272f">
 
     <TitleContent>
         <MudStack Row="true" Spacing="1">
@@ -67,13 +67,13 @@
 
     <DialogContent>
         <MudPaper Outlined Style="background-color: #373740;" 
-                  Class="pb-2 px-2 pt-n1" 
-                  Elevation="3">
+        Class="pb-2 px-2 pt-n1" 
+        Elevation="3">
 
             <MudTextField @bind-Value="_itemName" 
-                          Variant="Variant.Text" 
-                          Margin="Margin.Dense" 
-                          OnKeyUp="RenameEnterKeyPressed" />
+            Variant="Variant.Text" 
+            Margin="Margin.Dense" 
+            OnKeyUp="RenameEnterKeyPressed" />
 
         </MudPaper>
     </DialogContent>
@@ -86,8 +86,8 @@
 
 <!-- delete dialog -->
 <MudDialog @bind-IsVisible="_deleteDialogVisible" 
-           Options="dialogOptions" 
-           Style="background-color: #27272f">
+Options="dialogOptions" 
+Style="background-color: #27272f">
 
     <TitleContent>
         <MudStack Row="true" Spacing="1">
@@ -98,9 +98,9 @@
 
     <DialogContent>
         <MudPaper Outlined 
-                  Style="background-color: #373740;" 
-                  Class="pa-3 ma-0 mb-1" 
-                  Elevation="3">
+        Style="background-color: #373740;" 
+        Class="pa-3 ma-0 mb-1" 
+        Elevation="3">
             <MudText>
                 Any tasks with this @_collectionTypeName assigned will be moved to your Inbox.
             </MudText>
@@ -129,6 +129,7 @@
     private string _editMenuClassStr = "invisible";
     private string _stackClass = string.Empty;
     private MudBlazor.Color _linkColor = Color.Inherit;
+    private string _iconStr = Icons.Material.Filled.List;
 
     private bool _itemClicked = false;
     private bool _renameDialogVisible = false;
@@ -184,6 +185,9 @@
 
         _collectionTypeName = IsProjectsSubMenu ?
             "Project" : "Context";
+
+        _iconStr = IsProjectsSubMenu ?
+        Icons.Material.Filled.List : Icons.Material.Filled.AlternateEmail;
 
         if (IsProjectsSubMenu && ProjectParam.OrderIndex == 0 ||
             !IsProjectsSubMenu && ContextParam.OrderIndex == 0)
