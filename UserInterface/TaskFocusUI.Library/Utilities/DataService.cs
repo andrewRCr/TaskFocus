@@ -28,6 +28,9 @@ namespace TaskFocusUI.Library.Utilities
         private int _contextUpdateEntered = 0;
         private int _settingsUpdateEntered = 0;
 
+        ProjectModel? projectBeingUpdated;
+        ContextModel? contextBeingUpdated;
+
         public DataService(IAPIHelper apiHelper, ILogger<DataService> logger, ITaskEndpoint taskEndpoint, IProjectEndpoint projectEndpoint,
             IContextEndpoint contextEndpoint, IUserEndpoint userEndpoint, IMapper mapper, IDataHelper dataHelper, IDataState dataState)
         {
@@ -248,14 +251,24 @@ namespace TaskFocusUI.Library.Utilities
                     return;
                 }
 
+                if (projectBeingUpdated != null && project.Id != projectBeingUpdated.Id)
+                {
+                    // unlock
+                    Interlocked.Exchange(ref _projectUpdateEntered, 0);
+                    projectBeingUpdated = null;
+                }
+
                 // lock
                 if (Interlocked.Increment(ref _projectUpdateEntered) != 1) { return; }
+                projectBeingUpdated = project;
 
+                // update + refresh
                 await _projectEndpoint.UpdateProject(project);
                 await FetchAllRemoteData();
 
                 // unlock
                 Interlocked.Exchange(ref _projectUpdateEntered, 0);
+                projectBeingUpdated = null;
             }
         }
 
@@ -273,14 +286,24 @@ namespace TaskFocusUI.Library.Utilities
                     return;
                 }
 
+                if (contextBeingUpdated != null && context.Id != contextBeingUpdated.Id)
+                {
+                    // unlock
+                    Interlocked.Exchange(ref _contextUpdateEntered, 0);
+                    contextBeingUpdated = null;
+                }
+
                 // lock
                 if (Interlocked.Increment(ref _contextUpdateEntered) != 1) { return; }
+                contextBeingUpdated = context;
 
+                // update + refresh
                 await _contextEndpoint.UpdateContext(context);
                 await FetchAllRemoteData();
 
                 // unlock
                 Interlocked.Exchange(ref _contextUpdateEntered, 0);
+                contextBeingUpdated = null;
             }
         }
 
