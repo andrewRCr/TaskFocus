@@ -109,12 +109,14 @@ else
 
     private void UpdateRemoteOrder(MudItemDropInfo<TaskDisplayModel> reorderedDropItem)
     {
+        AppState.CanRefresh = false;
+
         foreach (var item in ContainerTaskItemsParam)
         {
             // will trigger an API UpdateTaskData call
             item[_orderingIndex] = ContainerTaskItemsParam.IndexOf(item);
-            Console.WriteLine($"{item.TaskName} OrderingIndex({_orderingIndex}): {item[_orderingIndex]}");
         }
+        AppState.CanRefresh = true;
     }
 
     protected override bool HandleDataStateChanged(String propertyName, IDataState dataState)

@@ -28,8 +28,9 @@ namespace TaskFocusUI.Library.Utilities
         private int _contextUpdateEntered = 0;
         private int _settingsUpdateEntered = 0;
 
-        ProjectModel? projectBeingUpdated;
-        ContextModel? contextBeingUpdated;
+        TaskModel? _taskBeingUpdated;
+        ProjectModel? _projectBeingUpdated;
+        ContextModel? _contextBeingUpdated;
 
         public DataService(IAPIHelper apiHelper, ILogger<DataService> logger, ITaskEndpoint taskEndpoint, IProjectEndpoint projectEndpoint,
             IContextEndpoint contextEndpoint, IUserEndpoint userEndpoint, IMapper mapper, IDataHelper dataHelper, IDataState dataState)
@@ -69,6 +70,7 @@ namespace TaskFocusUI.Library.Utilities
                 await FetchRemoteProjectData();
                 await FetchRemoteContextData();
                 LogInformation("FetchAllRemoteData call processed successfully.");
+
             }
             catch (Exception ex)
             {
@@ -154,8 +156,16 @@ namespace TaskFocusUI.Library.Utilities
 
             if (_dataHelper.HasTaskDataChanged(task) || forceUpdate)
             {
+                if (_taskBeingUpdated != null && task.Id != _taskBeingUpdated.Id)
+                {
+                    // unlock
+                    Interlocked.Exchange(ref _taskUpdateEntered, 0);
+                    _taskBeingUpdated = null;
+                }
+
                 // lock
                 if (Interlocked.Increment(ref _taskUpdateEntered) != 1) { return; }
+                _taskBeingUpdated = task;
 
                 if (_dataHelper.HasTaskProjectNameChanged(task))
                 {
@@ -196,12 +206,10 @@ namespace TaskFocusUI.Library.Utilities
                     task.ContextIndex = null;
                 }
 
-                // should be in Today view
+                // task should now be in Today view
                 if (task.TodayIndex == null && (task.Starred || _dataHelper.IsTaskDueOrOverDue(task)) &&
                     !(task.Completed && task.DateCompleted != DateTime.Now.Date))
                 {
-                    //LogInformation($"passed TodayIndex == null check! TodayIndex value: {task.TodayIndex}");
-
                     List<TaskDisplayModel> starredTasks = _dataState.Tasks!
                         .Where(x => x.Starred).ToList();
 
@@ -212,14 +220,15 @@ namespace TaskFocusUI.Library.Utilities
                     todayTasks = todayTasks.DistinctBy(x => x.Id).ToList();
 
                     task.TodayIndex = todayTasks.Count > 1 ? (todayTasks.Count - 1) : 0;
-                    //LogInformation($"{task.TaskName}: new TodayIndex is {task.TodayIndex}");
                 }
 
+                // update + refresh
                 await _taskEndpoint.UpdateTask(task);
                 await FetchAllRemoteData();
 
                 // unlock
                 Interlocked.Exchange(ref _taskUpdateEntered, 0);
+                _taskBeingUpdated = null;
             }
         }
 
@@ -251,16 +260,16 @@ namespace TaskFocusUI.Library.Utilities
                     return;
                 }
 
-                if (projectBeingUpdated != null && project.Id != projectBeingUpdated.Id)
+                if (_projectBeingUpdated != null && project.Id != _projectBeingUpdated.Id)
                 {
                     // unlock
                     Interlocked.Exchange(ref _projectUpdateEntered, 0);
-                    projectBeingUpdated = null;
+                    _projectBeingUpdated = null;
                 }
 
                 // lock
                 if (Interlocked.Increment(ref _projectUpdateEntered) != 1) { return; }
-                projectBeingUpdated = project;
+                _projectBeingUpdated = project;
 
                 // update + refresh
                 await _projectEndpoint.UpdateProject(project);
@@ -268,7 +277,7 @@ namespace TaskFocusUI.Library.Utilities
 
                 // unlock
                 Interlocked.Exchange(ref _projectUpdateEntered, 0);
-                projectBeingUpdated = null;
+                _projectBeingUpdated = null;
             }
         }
 
@@ -286,16 +295,16 @@ namespace TaskFocusUI.Library.Utilities
                     return;
                 }
 
-                if (contextBeingUpdated != null && context.Id != contextBeingUpdated.Id)
+                if (_contextBeingUpdated != null && context.Id != _contextBeingUpdated.Id)
                 {
                     // unlock
                     Interlocked.Exchange(ref _contextUpdateEntered, 0);
-                    contextBeingUpdated = null;
+                    _contextBeingUpdated = null;
                 }
 
                 // lock
                 if (Interlocked.Increment(ref _contextUpdateEntered) != 1) { return; }
-                contextBeingUpdated = context;
+                _contextBeingUpdated = context;
 
                 // update + refresh
                 await _contextEndpoint.UpdateContext(context);
@@ -303,7 +312,7 @@ namespace TaskFocusUI.Library.Utilities
 
                 // unlock
                 Interlocked.Exchange(ref _contextUpdateEntered, 0);
-                contextBeingUpdated = null;
+                _contextBeingUpdated = null;
             }
         }
 
