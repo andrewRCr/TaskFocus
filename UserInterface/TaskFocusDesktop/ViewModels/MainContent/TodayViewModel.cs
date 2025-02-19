@@ -59,7 +59,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
                     (x.DueDate <= DateTime.Now.Date) && !x.CleanedUp && (x.DateCompleted == null || x.DateCompleted == DateTime.Now.Date)).ToList();
                 List<TaskDisplayModel> starredTasks = _dataState.Tasks!.Where(x =>
                     (x.Starred == true) && !x.CleanedUp && (x.DateCompleted == null || x.DateCompleted == DateTime.Now.Date)).ToList();
-                List<TaskDisplayModel> todayTasks = dueTasks.Concat(starredTasks).ToList();
+                List<TaskDisplayModel> todayTasks = dueTasks.Union(starredTasks).ToList();
 
                 // ensure any newly due/overdue tasks have a TodayIndex
                 int todayTasksWithTodayIndexCount = todayTasks.Where(x => x.TodayIndex != null).ToList().Count();
