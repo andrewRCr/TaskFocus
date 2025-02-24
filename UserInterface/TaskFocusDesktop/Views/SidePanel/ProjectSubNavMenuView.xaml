@@ -86,7 +86,9 @@
                     </Behaviors:Interaction.Triggers>
 
                     <!-- collection name menu items, row 1 -> column 0 -->
-                    <ListBox x:Name="subNavMenuListBox"     
+                    <ListBox x:Name="subNavMenuListBox"  
+                             AllowDrop="True"
+                             SelectionChanged="subNavMenuListBox_SelectionChanged"
                              ScrollViewer.CanContentScroll="True"  
                              ScrollViewer.VerticalScrollBarVisibility="Auto"
                              Height="{Binding ListBoxHeight}"
@@ -108,6 +110,10 @@
                                              Style="{StaticResource NavigationListBoxItemStyle}" 
                                              PreviewMouseRightButtonDown="ListItem_PreviewMouseRightButtonDown"
                                              PreviewMouseLeftButtonDown="ListItem_PreviewMouseLeftButtonDown" 
+                                             PreviewMouseMove="ListItem_PreviewMouseMove"
+                                             PreviewDrop="ListItem_PreviewDrop"
+                                             PreviewDragEnter="ListItem_PreviewDragEnter"
+                                             PreviewDragLeave="ListItem_PreviewDragLeave"
                                              ToolTip="Right-click to edit Project"
                                              HorizontalAlignment="Stretch"
                                              HorizontalContentAlignment="Stretch" >

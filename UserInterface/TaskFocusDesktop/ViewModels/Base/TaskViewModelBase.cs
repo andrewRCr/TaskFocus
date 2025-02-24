@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Dynamic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -314,17 +315,19 @@ namespace TaskFocusDesktop.ViewModels.Base
         }
 
         // saves updated project data to server on property change
-        protected async void OnExistingProjectPropertyChanged(object sender, PropertyChangedEventArgs e)
+        protected virtual async void OnExistingProjectPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             string? changedProperty = e.PropertyName;
             ProjectDisplayModel senderProject = (ProjectDisplayModel)sender;
             _logger.Info($"{senderProject.ProjectName}'s property {changedProperty} was changed.");
 
-            await _dataService.UpdateProjectData(senderProject);
+            // only ProjectSubNavMenuVieWModel handles reorder updates
+            if (changedProperty!.Contains("Index")) { return; }
+            else { await _dataService.UpdateProjectData(senderProject); }
         }
 
         // saves updated context data to server on property change
-        protected async void OnExistingContextPropertyChanged(object sender, PropertyChangedEventArgs e)
+        protected virtual async void OnExistingContextPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             string? changedProperty = e.PropertyName;
             ContextDisplayModel senderContext = (ContextDisplayModel)sender;

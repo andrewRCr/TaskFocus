@@ -224,13 +224,6 @@ namespace TaskFocusDesktop.Views.Components
                     bool orderChanged = previousIndex != vm.LocalTasks!.IndexOf(insertedTaskItem);
                     if (orderChanged) { UpdateRemoteOrder(); }
                 }
-
-                //var vm = (TaskViewModelBase)TaskContainerListBox.DataContext;
-                //var insertedTaskItem = (TaskDisplayModel)e.Data.GetData(DataFormats.Serializable);
-                //int previousIndex = _previousLocalOrder[insertedTaskItem];
-
-                //bool orderChanged = previousIndex != vm.LocalTasks!.IndexOf(insertedTaskItem);
-                //if (orderChanged) { UpdateRemoteOrder(); }
             }
         }
 
@@ -274,16 +267,6 @@ namespace TaskFocusDesktop.Views.Components
                     vm.LocalTasks.Move(oldIndex, nextIndex);
                 }
             }
-
-            //var vm = (TaskViewModelBase)TaskContainerListBox.DataContext;
-            //int oldIndex = vm.LocalTasks!.IndexOf(insertedTaskItem);
-            //int nextIndex = vm.LocalTasks!.IndexOf(targetTaskItem);
-
-            //if (oldIndex != -1 && nextIndex != -1)
-            //{
-            //    // update local order
-            //    vm.LocalTasks.Move(oldIndex, nextIndex);
-            //}
         }
 
         public void UndoPreviewInsertTaskItem()
@@ -314,13 +297,6 @@ namespace TaskFocusDesktop.Views.Components
                 }
             }
 
-            //var vm = (TaskViewModelBase)TaskContainerListBox.DataContext;
-
-            //foreach (var taskIndexPair in _previousLocalOrder)
-            //{
-            //    vm.LocalTasks!.Move(vm.LocalTasks.IndexOf(taskIndexPair.Key), _previousLocalOrder[taskIndexPair.Key]);
-            //}
-
             _previousLocalOrder.Clear();
             _isPreviousLocalOrderStored = false;
         }
@@ -343,6 +319,10 @@ namespace TaskFocusDesktop.Views.Components
                     // will trigger a DataService.UpdateCollectionOrderingIndices call
                     item[OrderingIndex] = vm.FocusedProjectTasks.IndexOf(item);
                     Debug.WriteLine($"{item.TaskName} OrderingIndex({OrderingIndex}): {item[OrderingIndex]}");
+
+                    // ensure rebuilt local on next drag/drop
+                    _previousLocalOrder.Clear();
+                    _isPreviousLocalOrderStored = false;
                 }
             }
             else if (IsContextContainer)
@@ -381,22 +361,6 @@ namespace TaskFocusDesktop.Views.Components
                     Debug.WriteLine($"{item.TaskName} OrderingIndex({OrderingIndex}): {item[OrderingIndex]}");
                 }
             }
-
-            //var vm = (TaskViewModelBase)TaskContainerListBox.DataContext;
-            //vm.CanUpdateOrderingIndices = false;
-
-            //foreach (var item in vm.LocalTasks!)
-            //{
-            //    if (vm.LocalTasks.IndexOf(item) == vm.LocalTasks.Count - 1)
-            //    {
-            //        // on last one; can update all collection indices now
-            //        vm.CanUpdateOrderingIndices = true;
-            //    }
-
-            //    // will trigger a DataService.UpdateCollectionOrderingIndices call
-            //    item[OrderingIndex] = vm.LocalTasks.IndexOf(item);
-            //    Debug.WriteLine($"{item.TaskName} OrderingIndex({OrderingIndex}): {item[OrderingIndex]}");
-            //}
         }
 
         // when the observable collection LocalTasks is reordered via its Move method (in PreviewInsertTaskItem),

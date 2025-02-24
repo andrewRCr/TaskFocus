@@ -232,7 +232,7 @@ namespace TaskFocusUI.Library.Utilities
             }
         }
 
-        // alternate update method - updates entire collection prior to remote fetch
+        // alternate update method - updates entire task collection prior to remote fetch
         public async Task UpdateCollectionOrderingIndices(List<TaskDisplayModel> displayTasks)
         {
             foreach (TaskDisplayModel displayTask in displayTasks)
@@ -241,6 +241,20 @@ namespace TaskFocusUI.Library.Utilities
                 TaskModel task = _mapper.Map<TaskModel>(displayTask);
 
                 await _taskEndpoint.UpdateTask(task);
+            }
+
+            await FetchAllRemoteData();
+        }
+
+        // updates entire project collection prior to remote fetch
+        public async Task UpdateProjectsOrderingIndices(List<ProjectDisplayModel> displayProjects)
+        {
+            foreach (ProjectDisplayModel displayProject in displayProjects)
+            {
+                // map from ProjectDisplayModel to ProjectModel
+                ProjectModel project = _mapper.Map<ProjectModel>(displayProject);
+
+                await _projectEndpoint.UpdateProject(project);
             }
 
             await FetchAllRemoteData();
