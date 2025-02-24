@@ -1,25 +1,14 @@
-﻿using Caliburn.Micro;
-using MaterialDesignThemes.Wpf;
+﻿using MaterialDesignThemes.Wpf;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using TaskFocusDesktop.Commands;
-using TaskFocusDesktop.ViewModels.Base;
-using TaskFocusDesktop.ViewModels.MainContent;
 using TaskFocusDesktop.ViewModels.SidePanel;
-using TaskFocusDesktop.Views.Components;
 using TaskFocusUI.Library.Models;
 
 namespace TaskFocusDesktop.Views.SidePanel
@@ -29,6 +18,21 @@ namespace TaskFocusDesktop.Views.SidePanel
     /// </summary>
     public partial class ProjectSubNavMenuView : UserControl
     {
+        private bool _isPreviousLocalOrderStored = false;
+        private Dictionary<ProjectDisplayModel, int> _previousLocalOrder;
+        private string _orderingIndex = "OrderIndex";
+
+        private object? _lastSelection;
+
+        public static readonly DependencyProperty IsDraggingProperty =
+            DependencyProperty.Register("IsDragging", typeof(bool), typeof(ProjectSubNavMenuView), new PropertyMetadata(false));
+
+        public bool IsDragging
+        {
+            get { return (bool)GetValue(IsDraggingProperty); }
+            set { SetValue(IsDraggingProperty, value); }
+        }
+
         public ProjectSubNavMenuView()
         {
             InitializeComponent();
@@ -168,52 +172,10 @@ namespace TaskFocusDesktop.Views.SidePanel
             this.addNewProjectText.Visibility = Visibility.Hidden;
         }
 
-
-
-
-
-        /// DRAG / DROP
-
-        private bool _isPreviousLocalOrderStored = false;
-        private Dictionary<ProjectDisplayModel, int> _previousLocalOrder;
-        private string _orderingIndex = "OrderIndex";
-
-        private object? _lastSelection;
-
-        public static readonly DependencyProperty IsDraggingProperty =
-            DependencyProperty.Register("IsDragging", typeof(bool), typeof(ProjectSubNavMenuView), new PropertyMetadata(false));
-
-        public bool IsDragging
-        {
-            get { return (bool)GetValue(IsDraggingProperty); }
-            set { SetValue(IsDraggingProperty, value); }
-        }
-
-        public static readonly DependencyProperty ProjectItemInsertedCommandProperty =
-            DependencyProperty.Register("ProjectItemInsertedCommand", typeof(RelayCommand), typeof(ProjectSubNavMenuView), new PropertyMetadata(null));
-
-        public RelayCommand ProjectItemInsertedCommand
-        {
-            get { return (RelayCommand)GetValue(ProjectItemInsertedCommandProperty); }
-            set { SetValue(ProjectItemInsertedCommandProperty, value); }
-        }
-
         private void ListItem_PreviewMouseMove(object sender, MouseEventArgs e)
         {
             if (e.LeftButton == MouseButtonState.Pressed && sender is FrameworkElement frameworkElement)
             {
-                //List<Type> typesToIgnore = new() {
-                //    typeof(TextBox), typeof(Button), typeof(Border), typeof(Path) };
-                //string textBoxViewStr = "System.Windows.Controls.TextBoxView"; // internal WPF component; no public API
-
-                //// ignore drag if clicked on any controls
-                //if (typesToIgnore.Contains(e.OriginalSource.GetType()) || e.OriginalSource.ToString() == textBoxViewStr)
-                //{
-                //    e.Handled = true;
-                //    //Debug.WriteLine($"OriginalSourceType = {e.OriginalSource.GetType()}; IGNORED");
-                //    return;
-                //}
-
                 // flag for highlighting
                 IsDragging = true;
                 Debug.WriteLine("MOUSE DOWN - DRAGGING");

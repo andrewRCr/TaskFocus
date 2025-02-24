@@ -118,7 +118,7 @@ namespace TaskFocusDesktop.ViewModels.SidePanel
             }
         }
 
-        // saves updated task data to server on property change
+        // saves updated project data to server on property change
         protected override async void OnExistingProjectPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             string? changedProperty = e.PropertyName;

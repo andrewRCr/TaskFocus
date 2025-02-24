@@ -1,7 +1,9 @@
 ﻿using Caliburn.Micro;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
-using System.Threading;
+using System.Linq;
 using System.Threading.Tasks;
 using TaskFocusDesktop.Commands;
 using TaskFocusDesktop.EventModels;
@@ -13,7 +15,7 @@ using TaskFocusUI.Library.Utilities;
 
 namespace TaskFocusDesktop.ViewModels.SidePanel
 {
-    public class ContextSubNavMenuViewModel : TaskViewModelBase
+    public class ContextSubNavMenuViewModel : TaskViewModelBase, INotifyPropertyChanged
     {
         private int _contextCount;
         public int ContextCount
@@ -108,7 +110,7 @@ namespace TaskFocusDesktop.ViewModels.SidePanel
         {
             if (_dataState.IsDataLoaded())
             {
-                LocalContexts = new ObservableCollection<ContextDisplayModel>(_dataState.Contexts!);
+                LocalContexts = new ObservableCollection<ContextDisplayModel>(_dataState.Contexts!.OrderBy(x => x.OrderIndex));
                 foreach (ContextDisplayModel context in LocalContexts!)
                 {
                     context.PropertyChanged += OnExistingContextPropertyChanged!; // subscribe to property changed event
@@ -116,6 +118,27 @@ namespace TaskFocusDesktop.ViewModels.SidePanel
                 ContextCount = LocalContexts.Count;
                 UpdateScrollHeight(AppWindowHeight);
             }
+        }
+
+        // saves updated context data to server on property change
+        protected override async void OnExistingContextPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            string? changedProperty = e.PropertyName;
+            ContextDisplayModel senderContext = (ContextDisplayModel)sender;
+            _logger.Info($"{senderContext.ContextName}'s property {changedProperty} was changed.");
+
+            // if a reorder update, need to prevent a remote data fetch until after the entire collection
+            // has been updated. CanUpdateOrderIndices will only be true on the final task in collection
+            if (changedProperty!.Contains("Index"))
+            {
+                if (!CanUpdateOrderingIndices) { return; }
+                else
+                {
+                    List<ContextDisplayModel> contextsToUpdate = LocalContexts!.ToList();
+                    await _dataService.UpdateContextsOrderingIndices(contextsToUpdate);
+                }
+            }
+            else { await _dataService.UpdateContextData(senderContext); }
         }
 
         protected override bool HandleDataStateChanged(string propertyName, IDataState dataState)

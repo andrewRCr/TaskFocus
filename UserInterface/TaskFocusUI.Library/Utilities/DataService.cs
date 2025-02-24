@@ -240,7 +240,11 @@ namespace TaskFocusUI.Library.Utilities
                 // map from TaskDisplayModel to TaskModel
                 TaskModel task = _mapper.Map<TaskModel>(displayTask);
 
-                await _taskEndpoint.UpdateTask(task);
+                // only update if changed
+                if (_dataHelper.HasTaskDataChanged(task))
+                {
+                    await _taskEndpoint.UpdateTask(task);
+                }
             }
 
             await FetchAllRemoteData();
@@ -254,7 +258,30 @@ namespace TaskFocusUI.Library.Utilities
                 // map from ProjectDisplayModel to ProjectModel
                 ProjectModel project = _mapper.Map<ProjectModel>(displayProject);
 
-                await _projectEndpoint.UpdateProject(project);
+                // only update if changed
+                if (_dataHelper.HasProjectDataChanged(project))
+                { 
+                    await _projectEndpoint.UpdateProject(project); 
+                }
+
+            }
+
+            await FetchAllRemoteData();
+        }
+
+        // updates entire context collection prior to remote fetch
+        public async Task UpdateContextsOrderingIndices(List<ContextDisplayModel> displayContexts)
+        {
+            foreach (ContextDisplayModel displayContext in displayContexts)
+            {
+                // map from ContextDisplayModel to ContextModel
+                ContextModel context = _mapper.Map<ContextModel>(displayContext);
+
+                // only update if changed
+                if (_dataHelper.HasContextDataChanged(context))
+                {
+                    await _contextEndpoint.UpdateContext(context);
+                }
             }
 
             await FetchAllRemoteData();

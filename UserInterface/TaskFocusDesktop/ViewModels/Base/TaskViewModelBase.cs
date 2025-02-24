@@ -284,7 +284,7 @@ namespace TaskFocusDesktop.ViewModels.Base
         {
             if (_dataState.IsDataLoaded())
             {
-                LocalProjects = new ObservableCollection<ProjectDisplayModel>(_dataState.Projects!);
+                LocalProjects = new ObservableCollection<ProjectDisplayModel>(_dataState.Projects!.OrderBy(x => x.OrderIndex));
                 foreach (ProjectDisplayModel project in LocalProjects!)
                 {
                     project.PropertyChanged += OnExistingProjectPropertyChanged!; // subscribe to property changed event
@@ -296,7 +296,7 @@ namespace TaskFocusDesktop.ViewModels.Base
         {
             if (_dataState.IsDataLoaded())
             {
-                LocalContexts = new ObservableCollection<ContextDisplayModel>(_dataState.Contexts!);
+                LocalContexts = new ObservableCollection<ContextDisplayModel>(_dataState.Contexts!.OrderBy(x => x.OrderIndex));
                 foreach (ContextDisplayModel context in LocalContexts!)
                 {
                     context.PropertyChanged += OnExistingContextPropertyChanged!; // subscribe to property changed event

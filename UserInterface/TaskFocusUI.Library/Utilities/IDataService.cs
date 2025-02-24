@@ -28,5 +28,6 @@ namespace TaskFocusUI.Library.Utilities
         Task FetchRemoteProjectAndTasksById(int id);
         Task FetchRemoteContextAndTasksById(int id);
         Task UpdateProjectsOrderingIndices(List<ProjectDisplayModel> displayProjects);
+        Task UpdateContextsOrderingIndices(List<ContextDisplayModel> displayContexts);
     }
 }
