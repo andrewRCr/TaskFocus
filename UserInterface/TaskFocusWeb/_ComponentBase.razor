@@ -191,6 +191,7 @@
         if (DataState.IsDataLoaded())
         {
             LocalProjects = DataState.Projects;
+            LocalProjects!.Sort((a, b) => Nullable.Compare(a.OrderIndex, b.OrderIndex));
             foreach (ProjectDisplayModel project in LocalProjects!)
             {
                 project.PropertyChanged += OnExistingProjectPropertyChanged!; // subscribe to property changed event
@@ -203,6 +204,7 @@
         if (DataState.IsDataLoaded())
         {
             LocalContexts = DataState.Contexts;
+            LocalContexts!.Sort((a, b) => Nullable.Compare(a.OrderIndex, b.OrderIndex));
             foreach (ContextDisplayModel context in LocalContexts!)
             {
                 context.PropertyChanged += OnExistingContextPropertyChanged!; // subscribe to property changed event
