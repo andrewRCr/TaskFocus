@@ -35,13 +35,14 @@
 
             </ResourceDictionary.MergedDictionaries>
 
+            <!-- value converters -->
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
             <utilities:InvertableBooleanToVisibilityConverter x:Key="InvertableBooleanToVisibilityConverter" />
             <utilities:ActiveMainViewToVisibilityConverter x:Key="ActiveMainViewToVisibilityConverter" />
             <utilities:DictionaryItemBooleanToVisibilityConverter x:Key="DictionaryItemBooleanToVisibilityConverter" />
             <utilities:InverseBooleanConverter x:Key="InverseBooleanConverter" />
-            <utilities:IsTaskOverdueConverter x:Key="IsTaskOverdueConverter" />
-            <utilities:IsTaskDueTodayConverter x:Key="IsTaskDueTodayConverter" />
+            <utilities:DueTextStrConverter x:Key="DueTextStrConverter" />
+            <utilities:DueTextColorConverter x:Key="DueTextColorConverter" />
 
         </ResourceDictionary>
     </Application.Resources>

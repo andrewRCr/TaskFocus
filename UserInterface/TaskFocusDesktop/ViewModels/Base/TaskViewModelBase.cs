@@ -339,7 +339,7 @@ namespace TaskFocusDesktop.ViewModels.Base
         // updates task listbox and containing scrollviewer height values dynamically
         protected virtual void UpdateScrollHeight(int appWindowHeight)
         {
-            int fixedTotalOtherWindowElementsHeight = 300;
+            int fixedTotalOtherWindowElementsHeight = 250;
             int requiredTaskListHeight = 70 * TaskCount;
             MaxTaskScrollHeight = requiredTaskListHeight;
 

@@ -258,7 +258,7 @@
                                        Foreground="{StaticResource ForegroundSecondaryBrush}"
                                        Visibility="Hidden"
                                        Padding="0 1 0 0"
-                                        Margin="5 8 5 0" />
+                                       Margin="5 8 5 0" />
                         </Grid>
                         <ControlTemplate.Triggers>
 
@@ -295,6 +295,7 @@
         <Style x:Key="contextComboBoxTemplate" 
                TargetType="ComboBox" 
                BasedOn="{StaticResource MaterialDesignComboBox}">
+            
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ComboBox">
@@ -365,26 +366,57 @@
                     <ControlTemplate TargetType="DatePicker">
                         <Grid>
                             <DatePicker x:Name="dueDatePicker"
-                                        Text="Due"
-                                        SelectedDate="{Binding DueDate}"
+                                        Text="Due"     
+                                        SelectedDate="{Binding DueDate}"                                      
                                         BorderBrush="{StaticResource ForegroundTertiaryBrush}"
                                         SelectedDateChanged="DatePicker_SelectedDateChanged" />
 
                             <TextBlock x:Name="placeholderText" 
-                                          IsHitTestVisible="False"
-                                          Text="Due" 
-                                          FontSize="14"
-                                          Foreground="{StaticResource ForegroundSecondaryBrush}"
-                                          Visibility="Hidden"
-                                          Padding="0 1 0 0"
-                                          Margin="5 0 5 0" />
+                                       IsHitTestVisible="False"
+                                       Text="Due" 
+                                       FontSize="14"
+                                       Foreground="{StaticResource ForegroundSecondaryBrush}"
+                                       Visibility="Hidden"
+                                       Padding="0 1 0 0"
+                                       Margin="5 0 5 0" />
+
+                            <TextBlock x:Name="dueDateText" 
+                                       IsHitTestVisible="False"
+                                       FontSize="12"                                         
+                                       Visibility="Hidden"
+                                       Padding="0 2 2 0"
+                                       Margin="1 2 6 0" />
                         </Grid>
                         
                         <ControlTemplate.Triggers>
 
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter Property="BorderBrush" Value="{StaticResource ForegroundHighlightBrush}" />
+                                <Setter TargetName="dueDatePicker" Property="Foreground" Value="White" />
+                                <Setter TargetName="dueDateText" Property="Visibility" Value="Hidden" />
                             </Trigger>
+
+                            <MultiDataTrigger >
+                                <MultiDataTrigger.Conditions>
+                                    <Condition Binding="{Binding RelativeSource={RelativeSource Self}, 
+                                                         Path=DataContext.DueDate, 
+                                                         Converter={StaticResource IsNullConverterInstance}}" 
+                                                         Value="False" />
+                                    <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}" Value="False"/>
+                                </MultiDataTrigger.Conditions>
+                                <MultiDataTrigger.Setters>
+                                    <Setter TargetName="dueDatePicker" Property="Foreground" Value="Transparent" />
+                                    <Setter TargetName="dueDateText" Property="Visibility" Value="Visible" />
+                                    <Setter TargetName="dueDateText" Property="Text" 
+                                        Value="{Binding RelativeSource={RelativeSource Self}, 
+                                                         Path=DataContext.DueDate, 
+                                                         Converter={StaticResource DueTextStrConverter}}" />
+                                    <Setter TargetName="dueDateText" Property="Foreground" 
+                                        Value="{Binding RelativeSource={RelativeSource Self}, 
+                                                         Path=DataContext.DueDate, 
+                                                         Converter={StaticResource DueTextColorConverter}}" />
+                                </MultiDataTrigger.Setters>
+                            </MultiDataTrigger>
 
                             <DataTrigger Binding="{Binding Completed}" Value="True">
                                 <Setter Property="FontStyle" Value="Italic" />
@@ -396,7 +428,7 @@
                                 <Setter TargetName="placeholderText" Property="Foreground" Value="{StaticResource ForegroundTertiaryBrush}"/>
                             </DataTrigger>
 
-                            <MultiDataTrigger >
+                            <MultiDataTrigger>
                                 <MultiDataTrigger.Conditions>
                                     <Condition Binding="{Binding RelativeSource={RelativeSource Self}, 
                                                          Path=DataContext.DueDate, 
@@ -409,42 +441,12 @@
                                 </MultiDataTrigger.Setters>
                             </MultiDataTrigger>
 
-                            <MultiDataTrigger>
-                                <MultiDataTrigger.Conditions>
-                                    <Condition Binding="{Binding RelativeSource={RelativeSource Self}, 
-                                                         Path=DataContext.DueDate, 
-                                                         Converter={StaticResource IsNullConverterInstance}}" 
-                                                         Value="False" />
-                                    <Condition Binding="{Binding RelativeSource={RelativeSource Self}, 
-                                                                 Path=DataContext.DueDate, 
-                                                                 Converter={StaticResource IsTaskOverdueConverter}}" 
-                                                                 Value="True" />
-                                </MultiDataTrigger.Conditions>
-                                <MultiDataTrigger.Setters>
-                                    <Setter Property="Foreground" Value="{StaticResource ErrorRedBrush}" />
-                                </MultiDataTrigger.Setters>
-                            </MultiDataTrigger>
-
-                            <MultiDataTrigger>
-                                <MultiDataTrigger.Conditions>
-                                    <Condition Binding="{Binding RelativeSource={RelativeSource Self}, 
-                                                         Path=DataContext.DueDate, 
-                                                         Converter={StaticResource IsNullConverterInstance}}" 
-                                                         Value="False" />
-                                    <Condition Binding="{Binding RelativeSource={RelativeSource Self}, 
-                                                                 Path=DataContext.DueDate, 
-                                                                 Converter={StaticResource IsTaskDueTodayConverter}}" 
-                                                                 Value="True" />
-                                </MultiDataTrigger.Conditions>
-                                <MultiDataTrigger.Setters>
-                                    <Setter Property="Foreground" Value="Green" />
-                                </MultiDataTrigger.Setters>
-                            </MultiDataTrigger>
-
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
+            
+            
         </Style>
 
     </UserControl.Resources>

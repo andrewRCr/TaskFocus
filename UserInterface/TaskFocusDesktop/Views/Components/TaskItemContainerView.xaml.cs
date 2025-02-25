@@ -111,8 +111,9 @@ namespace TaskFocusDesktop.Views.Components
             if (e.LeftButton == MouseButtonState.Pressed && sender is FrameworkElement frameworkElement && CanReorder)
             {
                 List<Type> typesToIgnore = new() {
-                    typeof(CheckBox), typeof(TextBox), typeof(TextBlock), typeof(PackIcon), typeof(DatePicker), typeof(ComboBox), typeof(Button), typeof(ToggleButton), typeof(Border), typeof(Path),
-                    typeof(CustomControls.CircularButton), typeof(CustomControls.CheckBoxButton), typeof(CustomControls.TaskCollectionComboBox) };
+                    typeof(CheckBox), typeof(TextBox), typeof(TextBlock), typeof(PackIcon), typeof(DatePicker), typeof(ComboBox), 
+                    typeof(Button), typeof(ToggleButton), typeof(Border), typeof(Path), typeof(CustomControls.CircularButton), 
+                    typeof(CustomControls.CheckBoxButton), typeof(CustomControls.TaskCollectionComboBox), typeof(DatePickerTextBox) };
                 string textBoxViewStr = "System.Windows.Controls.TextBoxView"; // internal WPF component; no public API
 
                 // ignore drag if clicked on any controls
