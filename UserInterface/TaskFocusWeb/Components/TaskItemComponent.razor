@@ -123,29 +123,52 @@
                 </MudAutocomplete>
             </MudItem>
 
+
+
             <!-- due date input -->
-            <MudItem xs="8" sm="5" md="2" lg="2" xl="2">
+            <MudItem xs="8" sm="5" md="2" lg="2" xl="2"
+            @onmouseover="()=>HideDateText()"
+            @onmouseleave="()=>ShowDateText()"
+            @onfocusin="()=>HideDateText()" 
+            @onfocusout="()=>ShowDateText()">
 
-                <MudDatePicker @ref="_datePicker"
-                @bind-Date="TaskParam.DueDate"
-                OnClick="()=> _datePicker.SelectAsync()"
-                Placeholder="Due"
-                Margin="Margin.Dense"
-                DisableToolbar="true"
-                Editable="true"
-                AutoClose="false"
-                Disabled="TaskParam.Completed"
-                Style="@_dateStyleStr"
-                @onmousedown="OnItemMouseDown"
-                @onfocusout="DatePickerClose">
+                <div style="position: relative;" >
 
-                    <PickerActions>
-                        <MudButton Class="mr-auto align-self-start" OnClick="@(() => _datePicker.Clear())">Clear</MudButton>
-                        <MudButton OnClick="@(() => _datePicker.Close(false))">Cancel</MudButton>
-                        <MudButton Color="Color.Primary" OnClick="@(() => _datePicker.Close())">Ok</MudButton>
-                    </PickerActions>
+                    <MudDatePicker @ref="_datePicker" 
+                    @onfocusin="()=> _datePickerHasFocus = true"
+                    @bind-Date="TaskParam.DueDate"
+                    OnClick="()=> _datePicker.SelectAsync()" 
+                    Placeholder="Due"
+                    Margin="Margin.Dense" 
+                    DisableToolbar="true"
+                    Editable="true"
+                    AutoClose="false"
+                    Disabled="TaskParam.Completed" 
+                    Style="@_dateStyleStr"
+                    @onmousedown="OnItemMouseDown"
+                    @onfocusout="DatePickerClose">
 
-                </MudDatePicker>
+                        <PickerActions>
+                            <MudButton Class="mr-auto align-self-start" OnClick="@(() => _datePicker.Clear())">Clear</MudButton>
+                            <MudButton OnClick="@(() => _datePicker.Close(false))">Cancel</MudButton>
+                            <MudButton Color="Color.Primary" OnClick="@(() => _datePicker.Close())">Ok</MudButton>
+                        </PickerActions>
+
+                    </MudDatePicker>
+
+                    <span style="position: absolute; bottom: 0px; left: 0px;">
+
+                        <MudTextField Margin="Margin.Dense"
+                        DisableUnderLine 
+                        ReadOnly 
+                        @bind-Value=@_dateTextStr 
+                        hidden="@_dateTextHidden"
+                        Style="@_dateTextStyleStr"
+                        Variant="Variant.Text" />
+                    </span>
+
+                </div>
+
             </MudItem>
 
             <!-- delete task button  -->
@@ -216,6 +239,11 @@ Style="background-color: #27272f">
     private MudAutocomplete<string> _projectSelectInput = default!;
     private MudAutocomplete<string> _contextSelectInput = default!;
     private MudDatePicker _datePicker = default!;
+    private string _dateTextStr = string.Empty;
+    private string _dateTextStyleStr = string.Empty;
+    private string _dateTextColorStr = string.Empty;
+    private bool _dateTextHidden = true;
+    private bool _datePickerHasFocus = false;
     private string _dateStyleStr = string.Empty;
     private string _inputStyleStr = string.Empty;
 
@@ -268,6 +296,19 @@ Style="background-color: #27272f">
         }
     }
 
+    private void HideDateText() 
+    {     
+        _dateTextHidden = true; 
+        _dateStyleStr = string.Empty;
+    }
+
+    private void ShowDateText()
+    {
+        if (_datePickerHasFocus) { return; }
+        _dateTextHidden = TaskParam.DueDate == null;     
+        _dateStyleStr = _dateTextHidden ? string.Empty : "color: transparent;";
+    }
+
     protected override void OnParametersSet()
     {
         UpdateProjectContextSelectionLists();
@@ -276,14 +317,33 @@ Style="background-color: #27272f">
         _inputStyleStr = TaskParam.Completed ? "font-style: italic;" : string.Empty;
         _dragIndicatorStyleStr = TaskParam.Completed ? "color: #5e5e65;" : string.Empty;
 
-        if (TaskParam.DueDate == DateTime.Now.Date) // green if due today
+        if (TaskParam.DueDate != null)
         {
-            _dateStyleStr = "color: #008000;";
+            DateTime dueDateValue = (DateTime)TaskParam.DueDate;
+            if (dueDateValue == DateTime.Now.Date) // green if due today
+            {
+                _dateTextStr = "Today";
+                _dateStyleStr = _dateTextStyleStr = "color: #008000;";
+            }
+            else if (dueDateValue == DateTime.Today.AddDays(1))
+            {
+                _dateTextStr = "Tomorrow";
+                _dateStyleStr = _dateTextStyleStr = string.Empty;
+            }
+            else if (dueDateValue == DateTime.Today.AddDays(-1))
+            {
+                _dateTextStr = "Yesterday";
+                _dateStyleStr = _dateTextStyleStr = "color: #f64e62;";
+            }
+            else // red if overdue
+            {
+                _dateTextStr = dueDateValue.ToShortDateString();
+                _dateStyleStr = _dateTextStyleStr = dueDateValue < DateTime.Now.Date ? "color: #f64e62;" : string.Empty;
+            }
+
+            ShowDateText();
         }
-        else // red if overdue
-        {
-            _dateStyleStr = TaskParam.DueDate < DateTime.Now.Date ? "color: #f64e62;" : string.Empty;
-        }
+        else { HideDateText(); }
     }
 
     private void UpdateProjectContextSelectionLists()
@@ -345,6 +405,7 @@ Style="background-color: #27272f">
 
     private void DatePickerClose()
     {
+        _datePickerHasFocus = false;
         if (!_itemClicked) { _datePicker.Close(); }
         _itemClicked = false;
     }
