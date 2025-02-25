@@ -425,6 +425,22 @@
                                 </MultiDataTrigger.Setters>
                             </MultiDataTrigger>
 
+                            <MultiDataTrigger>
+                                <MultiDataTrigger.Conditions>
+                                    <Condition Binding="{Binding RelativeSource={RelativeSource Self}, 
+                                                         Path=DataContext.DueDate, 
+                                                         Converter={StaticResource IsNullConverterInstance}}" 
+                                                         Value="False" />
+                                    <Condition Binding="{Binding RelativeSource={RelativeSource Self}, 
+                                                                 Path=DataContext.DueDate, 
+                                                                 Converter={StaticResource IsTaskDueTodayConverter}}" 
+                                                                 Value="True" />
+                                </MultiDataTrigger.Conditions>
+                                <MultiDataTrigger.Setters>
+                                    <Setter Property="Foreground" Value="Green" />
+                                </MultiDataTrigger.Setters>
+                            </MultiDataTrigger>
+
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>

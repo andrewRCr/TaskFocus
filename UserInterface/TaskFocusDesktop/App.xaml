@@ -41,6 +41,7 @@
             <utilities:DictionaryItemBooleanToVisibilityConverter x:Key="DictionaryItemBooleanToVisibilityConverter" />
             <utilities:InverseBooleanConverter x:Key="InverseBooleanConverter" />
             <utilities:IsTaskOverdueConverter x:Key="IsTaskOverdueConverter" />
+            <utilities:IsTaskDueTodayConverter x:Key="IsTaskDueTodayConverter" />
 
         </ResourceDictionary>
     </Application.Resources>
