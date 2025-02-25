@@ -272,10 +272,18 @@ Style="background-color: #27272f">
     {
         UpdateProjectContextSelectionLists();
         if (TaskParam.Starred) { _starredClassStr = string.Empty; }
-        _dateStyleStr = TaskParam.DueDate < DateTime.Now.Date ? "color: #f64e62;" : string.Empty;
         if (TaskParam.Completed) { _dateStyleStr = "font-style: italic"; }
         _inputStyleStr = TaskParam.Completed ? "font-style: italic;" : string.Empty;
         _dragIndicatorStyleStr = TaskParam.Completed ? "color: #5e5e65;" : string.Empty;
+
+        if (TaskParam.DueDate == DateTime.Now.Date) // green if due today
+        {
+            _dateStyleStr = "color: #008000;";
+        }
+        else // red if overdue
+        {
+            _dateStyleStr = TaskParam.DueDate < DateTime.Now.Date ? "color: #f64e62;" : string.Empty;
+        }
     }
 
     private void UpdateProjectContextSelectionLists()
@@ -283,9 +291,7 @@ Style="background-color: #27272f">
         List<string> projectParamNamesOnly = new();
         List<string> contextParamNamesOnly = new();
         ProjectsParam.Sort((a, b) => Nullable.Compare(a.OrderIndex, b.OrderIndex));
-        //ProjectsParam = ProjectsParam.OrderBy(x => x.OrderIndex).ToList();
         ContextsParam.Sort((a, b) => Nullable.Compare(a.OrderIndex, b.OrderIndex));
-        //ContextsParam = ContextsParam.OrderBy(x => x.OrderIndex).ToList();
 
         foreach (ProjectDisplayModel project in ProjectsParam)
         {
