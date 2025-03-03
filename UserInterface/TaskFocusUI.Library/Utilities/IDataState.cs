@@ -9,10 +9,15 @@ namespace TaskFocusUI.Library
     public interface IDataState
     {
         List<ContextDisplayModel>? Contexts { get; set; }
-        UserModel? CurrentUser { get; set; }
+        UserDisplayModel? CurrentUser { get; set; }
         List<ProjectDisplayModel>? Projects { get; set; }
         List<TaskDisplayModel>? Tasks { get; set; }
-        UserSettingsDisplayModel UserSettings { get; set; }
+        UserSettingsDisplayModel? UserSettings { get; set; }
+
+        DateTimeOffset LastSync { get; set; }
+        List<UserModel> ChangedUserData { get; set; }
+        List<UserSettingsModel> ChangedUserSettingsData { get; set; }
+        List<TaskModel> ChangedTaskData { get; set; }
 
         event DataStateChangedHandler DataStateChanged;
 

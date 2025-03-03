@@ -1,5 +1,4 @@
 ﻿using Caliburn.Micro;
-using Nextended.Core.Extensions;
 using System;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -215,7 +214,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
         {
             IsFeedbackError = false;
 
-            if (ForgotPasswordEmailAddress.IsNullOrWhiteSpace())
+            if (string.IsNullOrWhiteSpace(ForgotPasswordEmailAddress))
             {
                 IsFeedbackError = true;
                 FeedbackMessage = "Email address cannot be empty; please try again.";

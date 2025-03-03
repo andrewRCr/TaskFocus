@@ -31,6 +31,7 @@ namespace TaskFocusDesktop.ViewModels
         private IEventAggregator _events;
         protected IWindowManager _window;
         protected IDataService _dataService;
+        protected IDataSyncService _dataSyncService;
         protected IDataHelper _dataHelper;
         protected IDataState _dataState;
         protected IAppState _appState;
@@ -141,6 +142,18 @@ namespace TaskFocusDesktop.ViewModels
             }
         }
 
+        private bool _enableManualSyncButton;
+        public bool EnableManualSyncButton
+        {
+            get { return _enableManualSyncButton; }
+            set 
+            { 
+                _enableManualSyncButton = value;
+                NotifyOfPropertyChange(() => EnableManualSyncButton);
+            }
+        }
+
+
         public string WindowMaxRestoreIcon
         {
             get
@@ -202,6 +215,7 @@ namespace TaskFocusDesktop.ViewModels
                               ILoggedInUserModel loggedInUser,
                               IEventAggregator events,
                               IDataService dataService,
+                              IDataSyncService dataSyncService,
                               IDataHelper dataHelper,
                               IDataState dataState,
                               IAppState appState,
@@ -211,6 +225,7 @@ namespace TaskFocusDesktop.ViewModels
             _loggedInUser = loggedInUser;
             _events = events;
             _dataService = dataService;
+            _dataSyncService = dataSyncService;
             _dataHelper = dataHelper;
             _dataState = dataState;
             _appState = appState;
@@ -307,7 +322,8 @@ namespace TaskFocusDesktop.ViewModels
             _appState.IsAuthenticated = true;
             UpdateMiniNavIconColor();
 
-            await _dataService.FetchAllRemoteData();
+            await _dataSyncService.InitSync();
+            EnableManualSyncButton = true;
 
             TopWidgetPanel = IoC.Get<AuthWidgetViewModel>();
             await ActivateItemAsync(TopWidgetPanel, new CancellationToken());
@@ -319,6 +335,9 @@ namespace TaskFocusDesktop.ViewModels
 
         public async Task HandleLogOut()
         {
+            await _dataSyncService.Sync();
+            EnableManualSyncButton = false;
+
             NotifyOfPropertyChange(() => IsUserLoggedIn);
             _appState.IsAuthenticated = false;
             _appState.ShouldAutoLogin = false;
@@ -330,6 +349,13 @@ namespace TaskFocusDesktop.ViewModels
             MainContentPanel = IoC.Get<HomeViewModel>();
             await ActivateItemAsync(MainContentPanel, new CancellationToken());
             ActiveMainContentView = ViewCatalog.MainContentView.Home;
+        }
+
+        public async Task ManualSync()
+        {
+            EnableManualSyncButton = false;
+            await _dataSyncService.Sync();
+            EnableManualSyncButton = true;
         }
 
         public async Task HandleAsync(RequestViewSwitchEvent message, CancellationToken cancellationToken)

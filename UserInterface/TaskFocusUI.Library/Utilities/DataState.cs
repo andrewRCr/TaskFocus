@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using TaskFocusUI.Library.Models;
 
 namespace TaskFocusUI.Library
@@ -8,8 +9,19 @@ namespace TaskFocusUI.Library
     {
         public event DataStateChangedHandler DataStateChanged = default!;
 
-        private UserModel? _currentUser;
-        public UserModel? CurrentUser
+        private DateTimeOffset _lastSync = DateTimeOffset.MinValue;
+        public DateTimeOffset LastSync
+        {
+            get { return _lastSync; }
+            set
+            {
+                _lastSync = value;
+                DataStateChanged?.Invoke(nameof(LastSync), this);
+            }
+        }
+
+        private UserDisplayModel? _currentUser;
+        public UserDisplayModel? CurrentUser
         {
             get { return _currentUser; }
             set
@@ -65,8 +77,12 @@ namespace TaskFocusUI.Library
 
         public bool IsDataLoaded()
         {
-            return Tasks != null && Projects != null && Contexts != null
-                && UserSettings != null && CurrentUser != null;
+            return CurrentUser != null && UserSettings != null &&
+                Tasks != null && Projects != null && Contexts != null;       
         }
+
+        public List<UserModel> ChangedUserData { get; set; } = new();
+        public List<UserSettingsModel> ChangedUserSettingsData { get; set; } = new();
+        public List<TaskModel> ChangedTaskData { get; set; } = new();
     }
 }

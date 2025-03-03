@@ -2,6 +2,7 @@
 
 @inherits _ComponentBase
 @inject NavigationManager NavManager
+@inject IDataService DataService
 @inject IAuthenticationService AuthService
 @inject IUserEndpoint UserEndpoint
 @using Microsoft.AspNetCore.WebUtilities
@@ -41,9 +42,9 @@
 
                         <MudText Class="pb-2 px-4 text-center">
                             <MudButton ButtonType="ButtonType.Button" 
-                                       Variant="Variant.Text" 
-                                       Color="Color.Primary" 
-                                       OnClick="ResendConfirmLink">Resend</MudButton>
+                            Variant="Variant.Text" 
+                            Color="Color.Primary" 
+                            OnClick="ResendConfirmLink">Resend</MudButton>
                         </MudText>
 
                     </MudPaper>
@@ -139,13 +140,14 @@
     {
         if (DataState.CurrentUser != null)
         {
-            UserModel updatedUserModel = DataState.CurrentUser;
+            UserModel currentUserData = await UserEndpoint.GetCurrentUserData();
+            UserModel updatedUserModel = currentUserData;
             updatedUserModel.Email = _confirmUpdatedEmailModel.NewEmail;
 
             try
             {
                 _loading = true; // indicate request processing
-                await UserEndpoint.RequestUpdateEmail(updatedUserModel);
+                await DataService.RequestUpdateEmail(updatedUserModel);
                 _loading = false;
 
                 AppState.AlertSeverity = Severity.Success;

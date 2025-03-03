@@ -116,7 +116,7 @@ namespace TaskFocusDesktop.ViewModels.Base
         }
 
         protected List<string> dataRefreshTriggers = new List<string> {
-        nameof(IDataState.Tasks), nameof(IDataState.Projects), nameof(IDataState.Contexts) };
+            nameof(IDataState.Tasks), nameof(IDataState.Projects), nameof(IDataState.Contexts) };
 
         // to be defined in child components as needed
         protected virtual bool HandleDataStateChanged(string propertyName, IDataState dataState)
@@ -127,6 +127,10 @@ namespace TaskFocusDesktop.ViewModels.Base
         private async void DataStateChanged(string propertyName, IDataState dataState)
         {
             bool changesOccured = HandleDataStateChanged(propertyName, dataState);
+            if (changesOccured)
+            {
+                //await InvokeAsync(StateHasChanged);
+            }
         }
 
         private ObservableCollection<TaskDisplayModel>? _localTasks;

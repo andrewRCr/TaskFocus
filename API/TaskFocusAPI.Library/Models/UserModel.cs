@@ -9,5 +9,8 @@ namespace TaskFocusAPI.Library.Models
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public DateTime CreatedDate { get; set; }
+        // for sync
+        public DateTimeOffset ServerLastUpdated { get; set; }
+        public DateTimeOffset ClientLastUpdated { get; set; }
     }
 }

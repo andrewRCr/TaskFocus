@@ -1,6 +1,5 @@
 ﻿using Caliburn.Micro;
 using MaterialDesignThemes.Wpf;
-using Nextended.Core.Extensions;
 using System;
 using System.Dynamic;
 using System.Threading.Tasks;
@@ -92,7 +91,7 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
         {
             if (NewTask != null)
             {
-                if (NewTask.TaskName.IsNullOrWhiteSpace())
+                if (string.IsNullOrWhiteSpace(NewTask.TaskName))
                 {
                     IsFeedbackError = true;
                     FeedbackMessage = "Task name cannot be empty; please try again.";

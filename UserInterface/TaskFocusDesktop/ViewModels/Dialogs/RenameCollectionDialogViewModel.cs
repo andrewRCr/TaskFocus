@@ -1,6 +1,5 @@
 ﻿using Caliburn.Micro;
 using MaterialDesignThemes.Wpf;
-using Nextended.Core.Extensions;
 using System;
 using System.Threading.Tasks;
 using TaskFocusDesktop.ViewModels.Base;
@@ -58,7 +57,7 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
 
                 if (SelectedProject == null) { return; }
 
-                if (UpdatedCollectionName.IsNullOrWhiteSpace())
+                if (string.IsNullOrWhiteSpace(UpdatedCollectionName))
                 {
                     IsFeedbackError = true;
                     FeedbackMessage = "Project name cannot be empty; please try again.";
@@ -92,7 +91,7 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
 
                 if (SelectedContext == null) { return; }
 
-                if (UpdatedCollectionName.IsNullOrWhiteSpace())
+                if (string.IsNullOrWhiteSpace(UpdatedCollectionName))
                 {
                     IsFeedbackError = true;
                     FeedbackMessage = "Context name cannot be empty; please try again.";

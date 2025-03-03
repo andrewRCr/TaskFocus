@@ -1,6 +1,5 @@
 ﻿using Caliburn.Micro;
 using MaterialDesignThemes.Wpf;
-using Nextended.Core.Extensions;
 using System;
 using System.Threading.Tasks;
 using TaskFocusDesktop.ViewModels.Base;
@@ -31,7 +30,7 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
 
         protected override async Task ProcessSubmitAction()
         {
-            if (NewCollectionName.IsNullOrWhiteSpace())
+            if (string.IsNullOrWhiteSpace(NewCollectionName))
             {
                 IsFeedbackError = true;
                 FeedbackMessage = "Context name cannot be empty; please try again.";

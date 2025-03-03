@@ -23,10 +23,13 @@ namespace TaskFocusUI.Library.Utilities
         private IDataHelper _dataHelper;
         private IDataState _dataState;
 
+        //private IClientSyncService _clientSyncService;
+
         private int _taskUpdateEntered = 0;
         private int _projectUpdateEntered = 0;
         private int _contextUpdateEntered = 0;
         private int _settingsUpdateEntered = 0;
+        private int _userUpdateEntered = 0;
 
         TaskModel? _taskBeingUpdated;
         ProjectModel? _projectBeingUpdated;
@@ -44,6 +47,8 @@ namespace TaskFocusUI.Library.Utilities
             _mapper = mapper;
             _dataHelper = dataHelper;
             _dataState = dataState;
+
+            //_clientSyncService = clientSyncService;
         }
 
         // wrapper for info logging when used in desktop UI w/ caliburn micro
@@ -59,6 +64,37 @@ namespace TaskFocusUI.Library.Utilities
             if (_logger != null) { _logger.LogError(message); }
             else { Debug.WriteLine($"DesktopUI - ERROR: {message}"); }
         }
+
+        //public async Task SyncClientServerData()
+        //{
+        //    try
+        //    {
+        //        //await _clientSyncService.Sync();
+        //        LogInformation("SyncClientServerData call processed successfully.");
+
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        LogError(ex.Message);
+        //        throw;
+        //    }
+        //}
+
+        //public List<TaskModel> GetClientUpdatedTasks()
+        //{
+        //    List<TaskDisplayModel> updatedDisplayTasks = _dataState.Tasks.Where(
+        //        x => x.ClientLastUpdated >= _dataState.LastSync ||
+        //        (x.Deleted != null && x.Deleted >= _dataState.LastSync)).ToList();
+
+        //    List<TaskModel> changedLocalTaskRows = new List<TaskModel>();
+        //    foreach (var displayRow in updatedDisplayTasks)
+        //    {
+        //        TaskModel row = _mapper.Map<TaskModel>(displayRow);
+        //        changedLocalTaskRows.Add(row);
+        //    }
+
+        //    return changedLocalTaskRows;
+        //}
 
         public async Task FetchAllRemoteData()
         {
@@ -140,7 +176,10 @@ namespace TaskFocusUI.Library.Utilities
         public async Task FetchRemoteUserData()
         {
             var userData = await _userEndpoint.GetCurrentUserData();
-            _dataState.CurrentUser = userData;
+            // store for comparison?
+
+            var displayUserData = _mapper.Map<UserDisplayModel>(userData);
+            _dataState.CurrentUser = displayUserData;
         }
 
         public TaskModel MapToRawTask(TaskDisplayModel displayTask)
@@ -222,9 +261,19 @@ namespace TaskFocusUI.Library.Utilities
                     task.TodayIndex = todayTasks.Count > 1 ? (todayTasks.Count - 1) : 0;
                 }
 
+                // * INSTEAD OF THIS... *
                 // update + refresh
-                await _taskEndpoint.UpdateTask(task);
-                await FetchAllRemoteData();
+                //await _taskEndpoint.UpdateTask(task);
+                //await FetchAllRemoteData();
+
+                // * ONLY CHANGE LOCALLY AND MARK FOR SYNC *
+                // update local datastate
+                TaskDisplayModel updatedDisplayTask = _mapper.Map<TaskDisplayModel>(task);
+                TaskDisplayModel clientTask = _dataState.Tasks!.Find(x => x.Id == task.Id)!;
+                clientTask = updatedDisplayTask;
+                // flag for sync
+                clientTask.ClientLastUpdated = DateTimeOffset.Now;
+                _dataState.ChangedTaskData.Add(_mapper.Map<TaskModel>(clientTask));
 
                 // unlock
                 Interlocked.Exchange(ref _taskUpdateEntered, 0);
@@ -243,7 +292,17 @@ namespace TaskFocusUI.Library.Utilities
                 // only update if changed
                 if (_dataHelper.HasTaskDataChanged(task))
                 {
-                    await _taskEndpoint.UpdateTask(task);
+                    // * INSTEAD OF THIS... *
+                    //await _taskEndpoint.UpdateTask(task);
+
+                    // * ONLY CHANGE LOCALLY AND MARK FOR SYNC *
+                    // update local datastate
+                    TaskDisplayModel updatedDisplayTask = _mapper.Map<TaskDisplayModel>(task);
+                    TaskDisplayModel clientTask = _dataState.Tasks!.Find(x => x.Id == task.Id)!;
+                    clientTask = updatedDisplayTask;
+                    // flag for sync
+                    clientTask.ClientLastUpdated = DateTimeOffset.Now;
+                    _dataState.ChangedTaskData.Add(_mapper.Map<TaskModel>(clientTask));
                 }
             }
 
@@ -375,6 +434,83 @@ namespace TaskFocusUI.Library.Utilities
                 Interlocked.Exchange(ref _settingsUpdateEntered, 0);
             }
         }
+
+        // update local datastate: user name data
+        public async Task UpdateUserNameData(UserDisplayModel displayUserModel)
+        {
+            if (_dataState.IsDataLoaded())
+            {
+                // re-map
+                UserModel user = _mapper.Map<UserModel>(displayUserModel);
+
+                //if... (check if changed from last fetch?)
+
+                // lock
+                if (Interlocked.Increment(ref _userUpdateEntered) != 1) { return; }
+
+                // * INSTEAD OF THIS... *
+                //await _userEndpoint.UpdateName(user);
+                //await FetchAllRemoteData();
+
+                // * ONLY CHANGE LOCALLY AND MARK FOR SYNC *
+                // update local datastate
+                _dataState.CurrentUser!.FirstName = user.FirstName;
+                _dataState.CurrentUser.LastName = user.LastName;
+
+                // flag for sync
+                _dataState.CurrentUser.ClientLastUpdated = DateTimeOffset.Now;
+                _dataState.ChangedUserData.Add(_mapper.Map<UserModel>(_dataState.CurrentUser));
+
+                // unlock
+                Interlocked.Exchange(ref _userUpdateEntered, 0);
+
+                Console.WriteLine("local user name updated!");
+            }
+        }
+
+        public async Task RequestUpdateEmail(UserModel user)
+        {
+            //if... (check if changed from last fetch?)
+
+            // lock
+            if (Interlocked.Increment(ref _userUpdateEntered) != 1) { return; }
+
+            await _userEndpoint.RequestUpdateEmail(user);
+            await FetchAllRemoteData();
+
+            // unlock
+            Interlocked.Exchange(ref _userUpdateEntered, 0);
+        }
+
+        public async Task<bool> CheckUserExists(UserModel user)
+        {
+            bool exists = await _userEndpoint.CheckUserExists(user);
+            return exists;
+        }
+
+        public async Task UpdatePassword(CreateUserModel updatedUserModel)
+        {
+            //if... (check if changed from last fetch?)
+
+            // lock
+            if (Interlocked.Increment(ref _userUpdateEntered) != 1) { return; }
+
+            await _userEndpoint.UpdatePassword(updatedUserModel);
+
+            // unlock
+            Interlocked.Exchange(ref _userUpdateEntered, 0);
+        }
+
+        //public async Task<bool> CheckPasswordValid(CheckPasswordModel checkPasswordModel)
+        //{
+        //    bool valid = await _userEndpoint.CheckPasswordValid(checkPasswordModel);
+        //    return valid;
+        //}
+
+        //public async Task SendPasswordChangeSuccessEmail(user)
+        //{
+
+        //}
 
         // for use when removing a project/context
         public void ShiftCollectionOrderIndices<T>(T collectionDisplayModel, List<T> collectionSource) where T : ICollectionDisplayModel
@@ -680,12 +816,21 @@ namespace TaskFocusUI.Library.Utilities
                 await HandleTaskContextChanged(task);
             }
 
-            await _taskEndpoint.AddTask(task, _apiHelper.GetLoggedInUserId());
+            // * INSTEAD OF THIS... *
+            //await _taskEndpoint.AddTask(task, _apiHelper.GetLoggedInUserId());
+            //// refresh all data
+            //await FetchRemoteTaskData();
+            //await FetchRemoteProjectData();
+            //await FetchRemoteContextData();
 
-            // refresh all data
-            await FetchRemoteTaskData();
-            await FetchRemoteProjectData();
-            await FetchRemoteContextData();
+            // * ONLY ADD LOCALLY AND MARK FOR SYNC *
+            // update local datastate
+            TaskDisplayModel updatedDisplayTask = _mapper.Map<TaskDisplayModel>(task);
+            _dataState.Tasks!.Add(updatedDisplayTask);
+            TaskDisplayModel clientTask = _dataState.Tasks!.Find(x => x.Id == task.Id)!;
+            // flag for sync
+            clientTask.ClientLastUpdated = DateTimeOffset.Now;
+            _dataState.ChangedTaskData.Add(_mapper.Map<TaskModel>(clientTask));
         }
 
         public async Task DeleteTask(TaskDisplayModel displayTask)
@@ -710,12 +855,22 @@ namespace TaskFocusUI.Library.Utilities
                 ShiftTaskCollectionSourceIndices(task, "TodayIndex");
             }
 
-            await _taskEndpoint.DeleteTask(task);
-
+            // * INSTEAD OF THIS... *
+            //await _taskEndpoint.DeleteTask(task);
             // refresh all data
-            await FetchRemoteTaskData();
-            await FetchRemoteProjectData();
-            await FetchRemoteContextData();
+            //await FetchRemoteTaskData();
+            //await FetchRemoteProjectData();
+            //await FetchRemoteContextData();
+
+            // * ONLY MARK FOR DELETE ON NEXT SYNC + DELETE LOCALLY *
+            // update local datastate
+            TaskDisplayModel clientTask = _dataState.Tasks!.Find(x => x.Id == task.Id)!;
+            clientTask.Deleted = DateTimeOffset.Now;
+            // flag for sync
+            clientTask.ClientLastUpdated = DateTimeOffset.Now;
+            _dataState.ChangedTaskData.Add(_mapper.Map<TaskModel>(clientTask));
+            // local delete
+            _dataState.Tasks!.Remove(clientTask);
         }
     }
 }

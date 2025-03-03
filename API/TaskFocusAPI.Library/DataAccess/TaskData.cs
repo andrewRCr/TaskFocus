@@ -108,6 +108,10 @@ namespace TaskFocusAPI.Library.DataAccess
             dbTask.ContextId = frontEndTask.ContextId;
             dbTask.CleanedUp = frontEndTask.CleanedUp;
 
+            // sync meta-data
+            dbTask.ClientLastUpdated = frontEndTask.ClientLastUpdated;
+            dbTask.ServerLastUpdated = frontEndTask.ServerLastUpdated;
+
             try
             {
                 _sqlDataAccess.SaveData("dbo.spTask_Update", dbTask, "TaskFocusData");

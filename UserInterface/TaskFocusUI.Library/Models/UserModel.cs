@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace TaskFocusUI.Library.Models
@@ -10,6 +12,16 @@ namespace TaskFocusUI.Library.Models
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public Dictionary<string, string> Roles { get; set; } = new Dictionary<string, string>();
+
+        // for sync
+        public DateTimeOffset ServerLastUpdated { get; set; }
+        public DateTimeOffset ClientLastUpdated { get; set; }
+
+        public UserModel Clone()
+        {
+            var serialized = JsonConvert.SerializeObject(this);
+            return JsonConvert.DeserializeObject<UserModel>(serialized)!;
+        }
 
         public string RoleList
         {

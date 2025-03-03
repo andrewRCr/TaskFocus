@@ -7,9 +7,9 @@
 @using System.ComponentModel.DataAnnotations
 
 <MudForm Model="userModel" 
-         @ref="_loginForm" 
-         @bind-IsValid="@_success" 
-         @bind-Errors="@_errors" >
+@ref="_loginForm" 
+@bind-IsValid="@_success" 
+@bind-Errors="@_errors" >
 
     <MudGrid>
         <MudStack Row="true" Class="mt-2" AlignItems="AlignItems.Center">
@@ -17,49 +17,49 @@
             <MudItem Class="col-auto">
 
                 <MudTextField @bind-Value="userModel.Email"
-                              Variant="Variant.Outlined" 
-                              Margin="Margin.Dense"
-                              Style="width: 235px"
-                              Placeholder="Email Address" 
-                              ErrorText=" " 
-                              OnlyValidateIfDirty="false"
-                              Required="true"
-                              RequiredError=" "
-                              OnKeyUp="EnterKeyPressed"
-                              Validation="@(new EmailAddressAttribute() {ErrorMessage = " "})" />
+                Variant="Variant.Outlined" 
+                Margin="Margin.Dense"
+                Style="width: 235px"
+                Placeholder="Email Address" 
+                ErrorText=" " 
+                OnlyValidateIfDirty="false"
+                Required="true"
+                RequiredError=" "
+                OnKeyUp="EnterKeyPressed"
+                Validation="@(new EmailAddressAttribute() {ErrorMessage = " "})" />
             </MudItem>
 
             <MudItem Class="col-auto">
 
                 <MudTextField @bind-Value="userModel.Password"
-                              Variant="Variant.Outlined"
-                              Margin="Margin.Dense"
-                              Placeholder="Password"
-                              Style="width: 235px"
-                              ErrorText=" "
-                              InputType="@_passwordInput"
-                              TextChanged="SetAdornment"
-                              Adornment="_passwordAdornment"
-                              AdornmentIcon="@_passwordInputIcon"
-                              OnAdornmentClick="ToggleShowPassword"
-                              AdornmentAriaLabel="Show Password"
-                              OnlyValidateIfDirty="false"
-                              Required="true"         
-                              RequiredError=" "
-                              OnKeyUp="EnterKeyPressed"
-                              Validation="@(new Func<string, string?>(PasswordValidator))" />
+                Variant="Variant.Outlined"
+                Margin="Margin.Dense"
+                Placeholder="Password"
+                Style="width: 235px"
+                ErrorText=" "
+                InputType="@_passwordInput"
+                TextChanged="SetAdornment"
+                Adornment="_passwordAdornment"
+                AdornmentIcon="@_passwordInputIcon"
+                OnAdornmentClick="ToggleShowPassword"
+                AdornmentAriaLabel="Show Password"
+                OnlyValidateIfDirty="false"
+                Required="true"         
+                RequiredError=" "
+                OnKeyUp="EnterKeyPressed"
+                Validation="@(new Func<string, string?>(PasswordValidator))" />
             </MudItem>
 
             <MudItem Class="col-auto mr-2">
 
                 <MudLoadingButton @bind-Loading="_working"
-                                  LoadingAdornment="Adornment.None"
-                                  Variant="Variant.Filled"
-                                  Color="Color.Primary"
-                                  OnClick="ValidateAndExecute">
+                LoadingAdornment="Adornment.None"
+                Variant="Variant.Filled"
+                Color="Color.Primary"
+                OnClick="ValidateAndExecute">
                     Login
                 </MudLoadingButton>
-                    
+
             </MudItem>
 
         </MudStack>
@@ -131,6 +131,7 @@
                 var result = await AuthService.LoginAsync(userModel);
                 if (result != null)
                 {
+                    await DataService.FetchRemoteUserData();
                     await DataService.FetchAllRemoteData();
                     AppState.ClearAlertMessage();
                     NavManager.NavigateTo("/inbox");

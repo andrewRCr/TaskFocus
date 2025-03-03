@@ -45,6 +45,8 @@ namespace TaskFocusDesktop
                 cfg.CreateMap<ContextDisplayModel, ContextModel>();
                 cfg.CreateMap<UserSettingsModel, UserSettingsDisplayModel>();
                 cfg.CreateMap<UserSettingsDisplayModel, UserSettingsModel>();
+                cfg.CreateMap<UserModel, UserDisplayModel>();
+                cfg.CreateMap<UserDisplayModel, UserModel>();
             });
 
             return config.CreateMapper();
@@ -96,7 +98,8 @@ namespace TaskFocusDesktop
                 .PerRequest<ITaskEndpoint, TaskEndpoint>()
                 .PerRequest<IProjectEndpoint, ProjectEndpoint>()
                 .PerRequest<IContextEndpoint, ContextEndpoint>()
-                .PerRequest<IDataService, DataService>();
+                .PerRequest<IDataService, DataService>()
+                .PerRequest<IDataSyncService, DataSyncService>();
 
             // use these singular instances
             _container

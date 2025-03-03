@@ -11,6 +11,7 @@ namespace TaskFocusUI.Library.Utilities
         Task HandleTaskContextChanged(TaskModel task);
         Task HandleTaskProjectChanged(TaskModel task);
         Task FetchAllRemoteData();
+        Task FetchRemoteUserData();
         Task FetchRemoteTaskData();
         Task FetchRemoteProjectData();
         Task FetchRemoteContextData();
@@ -29,5 +30,10 @@ namespace TaskFocusUI.Library.Utilities
         Task FetchRemoteContextAndTasksById(int id);
         Task UpdateProjectsOrderingIndices(List<ProjectDisplayModel> displayProjects);
         Task UpdateContextsOrderingIndices(List<ContextDisplayModel> displayContexts);
+        Task UpdateUserNameData(UserDisplayModel displayUserModel);
+        Task RequestUpdateEmail(UserModel user);
+        Task<bool> CheckUserExists(UserModel user);
+        Task UpdatePassword(CreateUserModel updatedUserModel);
+        //Task SyncClientServerData();
     }
 }

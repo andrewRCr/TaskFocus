@@ -262,6 +262,10 @@
 
                     <!-- Column 2, Row 3  -->
 
+                    <StackPanel Orientation="Horizontal"
+                                Grid.Column="2"                                                  
+                                Grid.Row="3" >
+
                     <customControls:CircularButton x:Name="NewTaskButton" 
                                                    Visibility="{Binding IsUserLoggedIn, 
                                                                 Converter={StaticResource BooleanToVisibilityConverter}, 
@@ -285,6 +289,23 @@
                                                  Width="26"
                                                  Foreground="{StaticResource ForegroundMainBrush}" />
                     </customControls:CircularButton>
+
+
+                    <Button x:Name="ManualSync" 
+                            Grid.Column="2"                                                  
+                            Grid.Row="3"                     
+                            HorizontalAlignment="Left" 
+                            Margin="25 15 0 0"                                              
+                            FontSize="12"                 
+                            VerticalAlignment="Center"
+                            Background="{StaticResource ForegroundHighlightBrush}"
+                            Style="{StaticResource MaterialDesignFlatButton}"
+                            Foreground="{StaticResource ForegroundMainBrush}"
+                            IsEnabled="{Binding EnableManualSyncButton}" >
+                        Sync
+                    </Button>
+
+                    </StackPanel>
 
                 </Grid>
 

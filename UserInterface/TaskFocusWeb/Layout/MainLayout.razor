@@ -1,5 +1,5 @@
 ﻿@inherits LayoutComponentBase
-@inject IDataService DataService
+@inject IDataSyncService DataSyncService
 
 <MudThemeProvider @bind-IsDarkMode="@_isDarkMode" Theme="_customTheme" />
 <MudDialogProvider />
@@ -12,22 +12,22 @@
         <AuthorizeView>
             <Authorized>
                 <MudIconButton Icon="@Icons.Material.Filled.Menu" 
-                               Color="Color.Inherit" 
-                               Class="ml-n5" 
-                               OnClick="@((e) => DrawerToggle())" />
+                Color="Color.Inherit" 
+                Class="ml-n5" 
+                OnClick="@((e) => DrawerToggle())" />
             </Authorized>
             <NotAuthorized>
                 <MudIcon Icon="@Icons.Material.Filled.OfflinePin" 
-                         Color="Color.Primary" 
-                         Class="mr-4 ml-n3" 
-                         Size="Size.Large" />
+                Color="Color.Primary" 
+                Class="mr-4 ml-n3" 
+                Size="Size.Large" />
                 <MudText Color="Color.Primary" 
-                         Typo="Typo.h5" 
-                         Class="mt-1" 
-                         Style="font-family:Bahnschrift; font-weight:700; font-size:x-large;">TaskFocus</MudText>
+                Typo="Typo.h5" 
+                Class="mt-1" 
+                Style="font-family:Bahnschrift; font-weight:700; font-size:x-large;">TaskFocus</MudText>
             </NotAuthorized>
         </AuthorizeView>
-        
+
         <MudSpacer />
 
         <AuthorizeView>
@@ -56,21 +56,21 @@
                 <MudDivider Vertical />
 
                 <MudDrawer @bind-Open="@_drawerOpen" 
-                           Elevation="25" 
-                           Width="360px" 
-                           Variant="@DrawerVariant.Responsive" 
-                           Breakpoint="Breakpoint.Md" 
-                           PreserveOpenState="true">
+                Elevation="25" 
+                Width="360px" 
+                Variant="@DrawerVariant.Responsive" 
+                Breakpoint="Breakpoint.Md" 
+                PreserveOpenState="true">
 
                     <MudDrawerHeader Class="d-flex align-center">
                         <MudIcon Icon="@Icons.Material.Filled.OfflinePin" 
-                                 Color="Color.Primary" 
-                                 Class="mr-4 ml-n3" 
-                                 Size="Size.Large" />
+                        Color="Color.Primary" 
+                        Class="mr-4 ml-n3" 
+                        Size="Size.Large" />
                         <MudText Color="Color.Primary" 
-                                 Typo="Typo.h5" 
-                                 Class="mt-1" 
-                                 Style="font-family:Bahnschrift; font-weight:700; font-size:x-large;">TaskFocus</MudText>
+                        Typo="Typo.h5" 
+                        Class="mt-1" 
+                        Style="font-family:Bahnschrift; font-weight:700; font-size:x-large;">TaskFocus</MudText>
                     </MudDrawerHeader>
 
                     <!-- nav menu  -->
@@ -104,6 +104,15 @@
                 {
                     <AddNewTaskComponent />
                 }
+
+                <MudLoadingButton @bind-Loading="_syncing"
+                LoadingAdornment="Adornment.None"
+                Variant="Variant.Filled"
+                Color="Color.Primary"
+                OnClick="ManualDataSync">
+                    Sync
+                </MudLoadingButton>
+
             </Authorized>
         </AuthorizeView>
 
@@ -121,6 +130,7 @@
     [Inject]
     protected IDataState DataState { get; private set; } = default!;
 
+    private bool _syncing = false;
     protected bool _drawerOpen = true;
     private bool _isDarkMode = true;
 
@@ -146,8 +156,15 @@
             // if DataState has no remote data loaded, load it
             if (!DataState.IsDataLoaded())
             {
-                await DataService.FetchAllRemoteData();
+                await DataSyncService.InitSync();
             }
         }
+    }
+
+    private async Task ManualDataSync()
+    {
+        _syncing = true;
+        await DataSyncService.Sync();
+        _syncing = false;
     }
 }

@@ -305,7 +305,9 @@ namespace TaskFocusAPI.Controllers
                         CreatedDate = currentUser.CreatedDate,
                         FirstName = updatedUser.FirstName,
                         LastName = updatedUser.LastName,
-                        Email = updatedUser.Email
+                        Email = updatedUser.Email,
+                        ServerLastUpdated = updatedUser.ServerLastUpdated,
+                        ClientLastUpdated = updatedUser.ClientLastUpdated
                     };
 
                     _userData.UpdateUser(updatedUserModel);

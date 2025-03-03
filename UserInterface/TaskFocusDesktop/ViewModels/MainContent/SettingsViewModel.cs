@@ -1,5 +1,6 @@
 ﻿using Caliburn.Micro;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Dynamic;
 using System.Threading.Tasks;
@@ -27,13 +28,13 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             }
         }
 
-        private UserModel _localCurrentUser = default!;
-        public UserModel LocalCurrentUser
+        private UserDisplayModel _localCurrentUser = default!;
+        public UserDisplayModel LocalCurrentUser
         {
             get { return _localCurrentUser; }
-            set 
-            { 
-                _localCurrentUser = value; 
+            set
+            {
+                _localCurrentUser = value;
                 NotifyOfPropertyChange(() => LocalCurrentUser);
             }
         }
@@ -67,6 +68,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
                                  IDataService dataService,
                                  IDataHelper dataHelper) : base(events, appState, window, dataState, dataService, dataHelper)
         {
+            dataRefreshTriggers = [nameof(IDataState.CurrentUser), nameof(IDataState.UserSettings)];
         }
 
         public RelayCommand RequestUpdateEmailDialogCommand => new RelayCommand(async execute => await RequestUpdateEmailDialog());
@@ -121,9 +123,10 @@ namespace TaskFocusDesktop.ViewModels.MainContent
 
         protected void LoadLocalUserData()
         {
-            if (_dataState.IsDataLoaded() && _dataState.CurrentUser != null)
+            if (_dataState.IsDataLoaded())
             {
                 LocalCurrentUser = _dataState.CurrentUser;
+                LocalCurrentUser.PropertyChanged += OnExistingUserPropertyChanged!; // subscribe to property changed event
             }
         }
 
@@ -136,6 +139,18 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             await _dataService.UpdateSettingsData(senderSettings);
         }
 
+        // saves updated user data to server on property change
+        protected async void OnExistingUserPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            string? changedProperty = e.PropertyName;
+            UserDisplayModel senderUser = (UserDisplayModel)sender;
+
+            if (changedProperty == "FirstName" || changedProperty == "LastName")
+            {
+                await _dataService.UpdateUserNameData(senderUser);
+            }
+        }
+
         protected override bool HandleDataStateChanged(string propertyName, IDataState dataState)
         {
             if (!dataRefreshTriggers.Contains(propertyName) || ActiveMainContentView != Utilities.ViewCatalog.MainContentView.Settings)
@@ -144,6 +159,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             }
 
             LoadLocalSettingsData();
+            LoadLocalUserData();
 
             return true;
         }

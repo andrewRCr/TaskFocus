@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.ComponentModel;
 using System.Reflection;
 
@@ -11,6 +12,11 @@ namespace TaskFocusUI.Library.Models
         public DateTime? DateCompleted { get; set; }
         public int? ProjectId { get; set; }
         public int? ContextId { get; set; }
+
+        // for sync
+        public DateTimeOffset ServerLastUpdated { get; set; }
+        public DateTimeOffset ClientLastUpdated { get; set; }
+        public DateTimeOffset? Deleted { get; set; }
 
         // indexer
         public object this[string propertyName]
@@ -35,12 +41,6 @@ namespace TaskFocusUI.Library.Models
                 PropertyInfo myPropInfo = myType.GetProperty(propertyName);
                 myPropInfo.SetValue(this, value, null);
             }
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        public void CallPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         // directly editable (by user or app) properties
@@ -165,6 +165,18 @@ namespace TaskFocusUI.Library.Models
                 _todayIndex = value;
                 CallPropertyChanged(nameof(TodayIndex));
             }
+        }
+
+        public TaskDisplayModel Clone()
+        {
+            var serialized = JsonConvert.SerializeObject(this);
+            return JsonConvert.DeserializeObject<TaskDisplayModel>(serialized)!;
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        public void CallPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

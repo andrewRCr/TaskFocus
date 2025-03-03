@@ -1,6 +1,5 @@
 ﻿using Caliburn.Micro;
 using MaterialDesignThemes.Wpf;
-using Nextended.Core.Extensions;
 using System;
 using System.Threading.Tasks;
 using TaskFocusDesktop.EventModels;
@@ -55,7 +54,7 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
 
         protected override async Task ProcessSubmitAction()
         {
-            if (UpdatedEmailAddress.IsNullOrWhiteSpace())
+            if (string.IsNullOrWhiteSpace(UpdatedEmailAddress))
             {
                 IsFeedbackError = true;
                 FeedbackMessage = "Email address cannot be empty; please try again.";

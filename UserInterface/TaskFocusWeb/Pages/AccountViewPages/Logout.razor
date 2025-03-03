@@ -2,10 +2,12 @@
 @inherits _ComponentBase
 @inject NavigationManager NavManager
 @inject IAuthenticationService AuthService
+@inject IDataSyncService DataSyncService
 
 @code {
     protected override async Task OnInitializedAsync()
     {
+        await DataSyncService.Sync();
         await AuthService.LogoutAsync();
         DataState.CurrentUser = null;
 

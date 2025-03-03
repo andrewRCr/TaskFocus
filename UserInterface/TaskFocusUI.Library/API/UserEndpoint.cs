@@ -110,6 +110,19 @@ namespace TaskFocusUI.Library.API
             }
         }
 
+        public async Task<UserModel> GetUserById()
+        {
+            using (HttpResponseMessage response = await _apiHelper.APIClient.GetAsync("/api/user/Admin/GetUserById"))
+            {
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsAsync<UserModel>();
+                    return result;
+                }
+                else { throw new Exception(response.ReasonPhrase); }
+            }
+        }
+
         public async Task<List<UserModel>> GetAllUsers()
         {
             using (HttpResponseMessage response = await _apiHelper.APIClient.GetAsync("/api/user/Admin/GetAllUsers"))
@@ -188,7 +201,9 @@ namespace TaskFocusUI.Library.API
                 updatedUserModel.FirstName,
                 updatedUserModel.LastName,
                 updatedUserModel.Email,
-                updatedUserModel.Roles
+                updatedUserModel.Roles,
+                updatedUserModel.ServerLastUpdated,
+                updatedUserModel.ClientLastUpdated
             };
 
             using (HttpResponseMessage response = await _apiHelper.APIClient.PutAsJsonAsync("/api/User/UpdateName", data))
