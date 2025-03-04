@@ -84,5 +84,7 @@ namespace TaskFocusUI.Library
         public List<UserModel> ChangedUserData { get; set; } = new();
         public List<UserSettingsModel> ChangedUserSettingsData { get; set; } = new();
         public List<TaskModel> ChangedTaskData { get; set; } = new();
+        public List<ProjectModel> ChangedProjectData { get; set; } = new();
+        public List<ContextModel> ChangedContextData { get; set; } = new();
     }
 }

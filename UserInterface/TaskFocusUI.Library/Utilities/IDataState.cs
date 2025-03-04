@@ -18,6 +18,8 @@ namespace TaskFocusUI.Library
         List<UserModel> ChangedUserData { get; set; }
         List<UserSettingsModel> ChangedUserSettingsData { get; set; }
         List<TaskModel> ChangedTaskData { get; set; }
+        List<ProjectModel> ChangedProjectData { get; set; }
+        List<ContextModel> ChangedContextData { get; set; }
 
         event DataStateChangedHandler DataStateChanged;
 
