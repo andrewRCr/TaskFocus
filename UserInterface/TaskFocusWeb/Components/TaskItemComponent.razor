@@ -275,9 +275,10 @@ Style="background-color: #27272f">
     {
         await VerifyAuthAndRedirectIfExpired();
 
-        _deleteDialogVisible = false;
         await DataService.DeleteTask(TaskParam);
         Snackbar.Add("Task deleted.", Severity.Success);
+        _deleteDialogVisible = false;
+        AppState.DialogProvider.DismissAll();
     }
 
     private void SetElementsActive(bool newActive)

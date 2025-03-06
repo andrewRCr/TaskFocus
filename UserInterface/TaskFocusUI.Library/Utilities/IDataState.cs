@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System;
 using TaskFocusUI.Library.Models;
+using System.Collections.ObjectModel;
 
 namespace TaskFocusUI.Library
 {
@@ -8,21 +9,24 @@ namespace TaskFocusUI.Library
 
     public interface IDataState
     {
-        List<ContextDisplayModel>? Contexts { get; set; }
+
         UserDisplayModel? CurrentUser { get; set; }
-        List<ProjectDisplayModel>? Projects { get; set; }
-        List<TaskDisplayModel>? Tasks { get; set; }
         UserSettingsDisplayModel? UserSettings { get; set; }
+        List<TaskDisplayModel>? Tasks { get; set; }
+        List<ProjectDisplayModel>? Projects { get; set; }
+        List<ContextDisplayModel>? Contexts { get; set; }
 
         DateTimeOffset LastSync { get; set; }
         List<UserModel> ChangedUserData { get; set; }
         List<UserSettingsModel> ChangedUserSettingsData { get; set; }
-        List<TaskModel> ChangedTaskData { get; set; }
+        List<TaskDisplayModel> ChangedTaskData { get; set; }
         List<ProjectModel> ChangedProjectData { get; set; }
         List<ContextModel> ChangedContextData { get; set; }
+        int TempTaskId { get; set; }
 
         event DataStateChangedHandler DataStateChanged;
 
+        void InvokeDataStateChanged(string propertyName);
         bool IsDataLoaded();
     }
 }

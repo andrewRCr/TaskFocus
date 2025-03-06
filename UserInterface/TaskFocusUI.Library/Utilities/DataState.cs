@@ -1,13 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using TaskFocusUI.Library.Models;
 
 namespace TaskFocusUI.Library
 {
     public class DataState : IDataState
     {
+        public DataState() {}
+
         public event DataStateChangedHandler DataStateChanged = default!;
+
+        public void InvokeDataStateChanged(string propertyName)
+        {
+            DataStateChanged?.Invoke(propertyName, this);
+        }
 
         private DateTimeOffset _lastSync = DateTimeOffset.MinValue;
         public DateTimeOffset LastSync
@@ -83,8 +89,10 @@ namespace TaskFocusUI.Library
 
         public List<UserModel> ChangedUserData { get; set; } = new();
         public List<UserSettingsModel> ChangedUserSettingsData { get; set; } = new();
-        public List<TaskModel> ChangedTaskData { get; set; } = new();
+        public List<TaskDisplayModel> ChangedTaskData { get; set; } = new();
         public List<ProjectModel> ChangedProjectData { get; set; } = new();
         public List<ContextModel> ChangedContextData { get; set; } = new();
+
+        public int TempTaskId { get; set; } = 0;
     }
 }

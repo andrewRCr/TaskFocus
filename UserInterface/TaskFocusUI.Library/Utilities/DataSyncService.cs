@@ -3,8 +3,12 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity.Core.Common.CommandTrees.ExpressionBuilder;
+using System.Data.Entity.Core.Mapping;
 using System.Diagnostics;
+using System.Drawing.Text;
+using System.IO.Pipelines;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using TaskFocusUI.Library.API;
 using TaskFocusUI.Library.Models;
@@ -75,28 +79,32 @@ namespace TaskFocusUI.Library.Utilities
             Trace.WriteLine($"starting Sync... (lastSync prior: {_dataState.LastSync}");
 
             // push all client rows locally changed since last sync to the server
-            int[] numPushedRows = await PushSync();
+            //int[] numPushedRows = await PushSync();
+            DataSyncResult pushResult = await PushSync();
             // pull all records that have changed since last sync...
             // and update the local client data with any changes (inserts, deletions, updates)
-            int[] numPulledRows = await PullSync();
+            DataSyncResult pullResult = await PullSync();
 
             _dataState.LastSync = DateTimeOffset.Now;
 
             Console.WriteLine($"Sync complete!");
-            Console.WriteLine($"PUSH: {numPushedRows[0]} rows inserted, {numPushedRows[1]} rows deleted, {numPushedRows[2]} rows updated.");
-            Console.WriteLine($"PULL: {numPulledRows[0]} rows inserted, {numPulledRows[1]} rows deleted, {numPulledRows[2]} rows updated.");
+            Console.WriteLine($"PUSH: {pushResult.numRowsInserted} rows inserted, {pushResult.numRowsDeleted} rows deleted, {pushResult.numRowsUpdated} rows updated.");
+            Console.WriteLine($"PULL: {pullResult.numRowsInserted} rows inserted, {pullResult.numRowsDeleted} rows deleted, {pullResult.numRowsUpdated} rows updated.");
             Trace.WriteLine($"Sync complete!");
-            Trace.WriteLine($"PUSH: {numPushedRows[0]} rows inserted, {numPushedRows[1]} rows deleted, {numPushedRows[2]} rows updated.");
-            Trace.WriteLine($"PULL: {numPulledRows[0]} rows inserted, {numPulledRows[1]} rows deleted, {numPulledRows[2]} rows updated.");
+            Trace.WriteLine($"PUSH: {pushResult.numRowsInserted} rows inserted, {pushResult.numRowsDeleted} rows deleted, {pushResult.numRowsUpdated} rows updated.");
+            Trace.WriteLine($"PULL: {pullResult.numRowsInserted} rows inserted, {pullResult.numRowsDeleted} rows deleted, {pullResult.numRowsUpdated} rows updated.");
+
+
         }
 
-        private async Task<int[]> PushSync()
+        private async Task<DataSyncResult> PushSync()
         {
             Console.WriteLine("Pushing changes to server...");
             Trace.WriteLine("Pushing changes to server...");
-            int numRowsInserted = 0;
-            int numRowsDeleted = 0;
-            int numRowsUpdated = 0;
+            //int numRowsInserted = 0;
+            //int numRowsDeleted = 0;
+            //int numRowsUpdated = 0;
+            DataSyncResult pushResult = new();
 
             // here, we either insert or update any server data that has been changed locally since last sync
             // we don't do any other update-triggered data processing (shifting indices, updating other data dependent on this, etc)
@@ -111,108 +119,183 @@ namespace TaskFocusUI.Library.Utilities
             // FOR USER DATA / SETTINGS DATA:
             // simply update (using either server or client data), no insert/delete possible
 
-            // USER DATA (name only; email/pw are handled separately from data
-            foreach (var clientUser in _dataState.ChangedUserData)
+            // USER DATA (name only; email/pw are handled separately from syncable data)
+            var clientUser = _dataState.ChangedUserData.FirstOrDefault(); // will only ever be one (or zero)
+            if (clientUser != null) // local changes have occured
             {
                 UserModel serverUser = await _userEndpoint.GetCurrentUserData();
-                if (serverUser.ClientLastUpdated > clientUser.ServerLastUpdated)
+
+                if (serverUser.ClientLastUpdated > clientUser!.ServerLastUpdated)
                 {
                     // conflict - server data is newer than client
                     // server wins; ignore changes and just update time
                     serverUser.ServerLastUpdated = DateTimeOffset.Now;
                     serverUser.ClientLastUpdated = clientUser.ServerLastUpdated;
                     await _userEndpoint.UpdateName(serverUser);
-
-                    Console.WriteLine("Push conflict detected! Local changes ignored; only time updated");
-                    Trace.WriteLine("Push conflict detected! Local changes ignored; only time updated");
                 }
                 else // client data is newer than server
                 {
-                    Console.WriteLine($"clientUser.ServerLastUpdated: {clientUser.ServerLastUpdated}, clientUser.ClientLastUpdated: {clientUser.ClientLastUpdated}");
-                    Trace.WriteLine($"clientUser.ServerLastUpdated: {clientUser.ServerLastUpdated}, clientUser.ClientLastUpdated: {clientUser.ClientLastUpdated}");
                     clientUser.ServerLastUpdated = DateTimeOffset.Now;
                     await _userEndpoint.UpdateName(clientUser);
                     _pushedUserData.Add(clientUser);
-                    numRowsUpdated++;
+                    pushResult.numRowsUpdated++;
                 }
-            }
-            _dataState.ChangedUserData.Clear();
 
-            //// SETTINGS DATA
+                _dataState.ChangedUserData.Clear();
+            }
+
+            // SETTINGS DATA
             //foreach (var row in _dataState.ChangedUserSettingsData)
             //    await _userEndpoint.UpdateUserSettings(row);
             //_dataState.ChangedUserSettingsData.Clear();
 
-            //// TASK DATA - NEEDS UPDATING FROM LATEST ^ USER DATA SECTION LOGIC ADJUSTMENTS
+            // TASK DATA
             foreach (var clientTask in _dataState.ChangedTaskData)
             {
-                // check task exists // how to check this efficiently? may need to make a CheckTaskExists call if this doesn't return a null value...
-                int taskId = (int)clientTask.Id!;
-                TaskModel serverTask = await _taskEndpoint.GetTaskById(taskId);
-
-                if (serverTask == null) // insert
-                {
-                    if (clientTask.ServerLastUpdated == DateTimeOffset.MinValue)
-                        clientTask.ServerLastUpdated = DateTimeOffset.Now;
-                    await _taskEndpoint.AddTask(clientTask, clientTask.UserId);
-                    _pushedTaskData.Add(clientTask);
-                    numRowsInserted++;
-                }
-                else if (clientTask.Deleted.HasValue) // delete
-                {
-                    await _taskEndpoint.DeleteTask(serverTask);
-                    numRowsDeleted++;
-                }
-                else // update
-                {
-                    if (serverTask.ClientLastUpdated > clientTask.ServerLastUpdated)
-                    {
-                        // conflict - server data is newer than client
-                        // server wins; ignore changes and just update time
-                        serverTask.ServerLastUpdated = DateTimeOffset.Now;
-                        serverTask.ClientLastUpdated = clientTask.ServerLastUpdated;
-                        await _taskEndpoint.UpdateTask(serverTask);
-
-                        Console.WriteLine("Push conflict detected! Local changes ignored; only time updated");
-                        Trace.WriteLine("Push conflict detected! Local changes ignored; only time updated");
-                    }
-                    else // client data is newer than server
-                    {
-                        Console.WriteLine($"clientTask.ServerLastUpdated: {clientTask.ServerLastUpdated}, clientTask.ClientLastUpdated: {clientTask.ClientLastUpdated}");
-                        Trace.WriteLine($"clientTask.ServerLastUpdated: {clientTask.ServerLastUpdated}, clientTask.ClientLastUpdated: {clientTask.ClientLastUpdated}");
-
-                        clientTask.ServerLastUpdated = DateTimeOffset.Now;
-                        await _taskEndpoint.UpdateTask(clientTask);
-                        _pushedTaskData.Add(clientTask);
-                        numRowsUpdated++;
-                    }
-                }
+                DataSyncResult clientTaskResult = await PushSyncableData(clientTask);
+                pushResult = _dataHelper.CombineSyncResults(pushResult, clientTaskResult);
             }
             _dataState.ChangedTaskData.Clear();
+            _dataState.TempTaskId = 0;
 
-            //// PROJECT DATA
+            // PROJECT DATA
             //foreach (var row in _dataState.ChangedProjectData)
             //    await _projectEndpoint.UpdateProject(row);
             //_dataState.ChangedProjectData.Clear();
-            //// CONTEXT DATA
+
+            // CONTEXT DATA
             //foreach (var row in _dataState.ChangedContextData)
             //    await _contextEndpoint.UpdateContext(row);
             //_dataState.ChangedContextData.Clear();
 
+
+            if (!_dataHelper.SyncChangesDetected(pushResult))
+            {
+                Trace.WriteLine("clientTask - no changes detected on push.");
+                Console.WriteLine("clientTask - no changes detected on push.");
+            }
+
             Trace.WriteLine("Push complete.");
             Console.WriteLine("Push complete.");
-            return [numRowsInserted, numRowsDeleted, numRowsUpdated];
+            return pushResult;
         }
 
-        private async Task<int[]> PullSync()
+        private async Task<DataSyncResult> PushSyncableData(ISyncableData data)
+        {
+            DataSyncResult result = new();
+
+            if (data.Id == null && data.Deleted.HasValue)
+            {
+                // was deleted locally before pushed to server; ignore
+                return result;
+            }
+
+            Trace.WriteLine("clientTask - changes detected on push!");
+            Console.WriteLine("clientTask - changes detected on push!");
+
+            if (data.Id == null) // doesn't exist on server; insert
+            {
+                if (data.ServerLastUpdated == DateTimeOffset.MinValue)
+                    data.ServerLastUpdated = DateTimeOffset.Now;
+
+                switch (data.DataType)
+                {
+                    case ESyncableDataType.Task:
+
+                        await _taskEndpoint.AddTask(_mapper.Map<TaskModel>((TaskDisplayModel)data), _dataState.CurrentUser!.Id);
+
+                        _pushedTaskData.Add(_mapper.Map<TaskModel>((TaskDisplayModel)data));
+                        data.TempLocalId = null;
+
+                        int index = _dataState.Tasks!.FindIndex(x => x.TempLocalId == data.TempLocalId);
+                        if (index != -1) { _dataState.Tasks[index] = (TaskDisplayModel)data; }
+
+                        break;
+
+                    case ESyncableDataType.Project:
+                        break;
+                    case ESyncableDataType.Context:
+                        break;
+                    case ESyncableDataType.Settings:
+                        break;
+                }
+
+                result.numRowsInserted++;
+            }
+            else if (data.Deleted.HasValue) // delete
+            {
+                switch (data.DataType)
+                {
+                    case ESyncableDataType.Task:
+
+                        TaskModel serverTask = await _taskEndpoint.GetTaskById((int)data.Id);
+                        await _taskEndpoint.DeleteTask(serverTask);
+
+                        break;
+
+                    case ESyncableDataType.Project:
+                        break;
+                    case ESyncableDataType.Context:
+                        break;
+                    case ESyncableDataType.Settings:
+                        break;
+                }
+                        
+                result.numRowsDeleted++;
+            }
+            else // update
+            {
+                switch (data.DataType)
+                {
+                    case ESyncableDataType.Task:
+
+                        TaskModel serverTask = await _taskEndpoint.GetTaskById((int)data.Id);
+                        if (serverTask.ClientLastUpdated > data.ServerLastUpdated)
+                        {
+                            // conflict - server data is newer than client
+                            // server wins; ignore changes and just update time
+                            serverTask.ServerLastUpdated = DateTimeOffset.Now;
+                            serverTask.ClientLastUpdated = data.ServerLastUpdated;
+                            await _taskEndpoint.UpdateTask(serverTask);
+
+                            Console.WriteLine("Push conflict detected! Local changes ignored; only time updated");
+                            Trace.WriteLine("Push conflict detected! Local changes ignored; only time updated");
+                        }
+                        else // client data is newer than server
+                        {
+                            Console.WriteLine($"clientTask.ServerLastUpdated: {data.ServerLastUpdated}, clientTask.ClientLastUpdated: {data.ClientLastUpdated}");
+                            Trace.WriteLine($"clientTask.ServerLastUpdated: {data.ServerLastUpdated}, clientTask.ClientLastUpdated: {data.ClientLastUpdated}");
+
+                            data.ServerLastUpdated = DateTimeOffset.Now;
+                            await _taskEndpoint.UpdateTask(_mapper.Map<TaskModel>(data));
+
+                            _pushedTaskData.Add(_mapper.Map<TaskModel>((TaskDisplayModel)data));
+                            int index = _dataState.Tasks!.FindIndex(x => x.Id == data.Id);
+                            if (index != -1) { _dataState.Tasks[index] = (TaskDisplayModel)data; }
+
+                            result.numRowsUpdated++;
+                        }
+                        break;
+
+                    case ESyncableDataType.Project:
+                        break;
+                    case ESyncableDataType.Context:
+                        break;
+                    case ESyncableDataType.Settings:
+                        break;
+                }
+            }
+
+            return result;
+        }
+
+
+        // gets all records that have changed since LastSync
+        // updates local client data with any changes (inserts, deletions, updates)
+        private async Task<DataSyncResult> PullSync()
         {
             Console.WriteLine("Pulling changes from server...");
-            int numRowsInserted = 0;
-            int numRowsDeleted = 0;
-            int numRowsUpdated = 0;
-
-            // pull sync is just getting all records that have changed since that LastSync...
-            // ... and updating the local client data with any changes (inserts, deletions, updates)
+            DataSyncResult pullResult = new();
 
             // USER DATA
             UserModel serverCurrentUser = await _userEndpoint.GetCurrentUserData();
@@ -224,104 +307,51 @@ namespace TaskFocusUI.Library.Utilities
             {
                 // do not pull if we just pushed the change
                 var pushedServerUser = _pushedUserData.Where(x => x.Id == serverUser.Id);
-                if (pushedServerUser.Count() != 0)
-                {
-                    Trace.WriteLine("continue...");
-                    Console.WriteLine("continue...");
-                    continue;
-                }
+                if (pushedServerUser.Count() != 0) { continue; }
 
-                Trace.WriteLine("serverCurrentUser - changes detected on pull!");
-                Trace.WriteLine($"serverUser.ServerLastUpdated: {serverUser.ServerLastUpdated}; LastSync: {_dataState.LastSync}; a >= b: {serverUser.ServerLastUpdated >= _dataState.LastSync}");
-                Console.WriteLine("serverCurrentUser - changes detected on pull!");
-                Console.WriteLine($"serverUser.ServerLastUpdated: {serverUser.ServerLastUpdated}; LastSync: {_dataState.LastSync}; a >= b: {serverUser.ServerLastUpdated >= _dataState.LastSync}");
+                //Trace.WriteLine("serverCurrentUser - changes detected on pull!");
+                //Trace.WriteLine($"serverUser.ServerLastUpdated: {serverUser.ServerLastUpdated}; LastSync: {_dataState.LastSync}; a >= b: {serverUser.ServerLastUpdated >= _dataState.LastSync}");
+                //Console.WriteLine("serverCurrentUser - changes detected on pull!");
+                //Console.WriteLine($"serverUser.ServerLastUpdated: {serverUser.ServerLastUpdated}; LastSync: {_dataState.LastSync}; a >= b: {serverUser.ServerLastUpdated >= _dataState.LastSync}");
 
                 UserDisplayModel displayServerUser = _mapper.Map<UserDisplayModel>(serverUser);
                 displayServerUser.ServerLastUpdated = DateTimeOffset.Now;
                 // update local data store + store copy for comparison
                 _dataState.CurrentUser = displayServerUser;
                 //_dataHelper.UserDataLastFetch = _dataState.CurrentUser;
-                numRowsUpdated++;
+                pullResult.numRowsUpdated++;
             }
 
-            if (changedRemoteUserRows.Count == 0)
-            {
-                Trace.WriteLine("serverCurrentUser - no changes detected on pull.");
-                Trace.WriteLine($"serverUser.ServerLastUpdated: {serverCurrentUser.ServerLastUpdated}; LastSync: {_dataState.LastSync}; a >= b: {serverCurrentUser.ServerLastUpdated >= _dataState.LastSync}");
-                Console.WriteLine("serverCurrentUser - no changes detected on pull.");
-                Console.WriteLine($"serverUser.ServerLastUpdated: {serverCurrentUser.ServerLastUpdated}; LastSync: {_dataState.LastSync}; a >= b: {serverCurrentUser.ServerLastUpdated >= _dataState.LastSync}");
-            }
+            //if (changedRemoteUserRows.Count == 0)
+            //{
+            //    Trace.WriteLine("serverCurrentUser - no changes detected on pull.");
+            //    Trace.WriteLine($"serverUser.ServerLastUpdated: {serverCurrentUser.ServerLastUpdated}; LastSync: {_dataState.LastSync}; a >= b: {serverCurrentUser.ServerLastUpdated >= _dataState.LastSync}");
+            //    Console.WriteLine("serverCurrentUser - no changes detected on pull.");
+            //    Console.WriteLine($"serverUser.ServerLastUpdated: {serverCurrentUser.ServerLastUpdated}; LastSync: {_dataState.LastSync}; a >= b: {serverCurrentUser.ServerLastUpdated >= _dataState.LastSync}");
+            //}
 
             _pushedUserData.Clear();
 
             // SETTINGS DATA
 
             // TASK DATA
+            DataSyncResult tasksPullResult = new();
             List<TaskModel> serverTasks = await _taskEndpoint.GetAllTasksForUser();
             var changedRemoteTaskRows = serverTasks.Where(
                 x => x.ServerLastUpdated >= _dataState.LastSync).ToList();
 
+            // handle local inserts/updates (originating from another client)
             foreach (var serverTask in changedRemoteTaskRows)
             {
-                // do not pull if we just pushed the change
-                var pushedServerTask = _pushedTaskData.Where(x => x.Id == serverTask.Id);
-                if (pushedServerTask.Count() != 0)
-                {
-                    Trace.WriteLine("continue...");
-                    Console.WriteLine("continue...");
-                    continue;
-                }
-
-                Trace.WriteLine("serverTask - changes detected on pull!");
-                //Trace.WriteLine($"serverTask.ServerLastUpdated: {serverTask.ServerLastUpdated}; LastSync: {_dataState.LastSync}; a >= b: {serverTask.ServerLastUpdated >= _dataState.LastSync}");
-                Console.WriteLine("serverTask - changes detected on pull!");
-                //Console.WriteLine($"serverTask.ServerLastUpdated: {serverTask.ServerLastUpdated}; LastSync: {_dataState.LastSync}; a >= b: {serverTask.ServerLastUpdated >= _dataState.LastSync}");
-
-                TaskDisplayModel displayServerTask = _mapper.Map<TaskDisplayModel>(serverTask);
-                TaskDisplayModel? clientTask = _dataState.Tasks!.Find(x => x.Id == displayServerTask.Id);
-
-                if (clientTask == null) // insert
-                {
-                    _dataState.Tasks.Add(displayServerTask.Clone());
-                    numRowsInserted++;
-                }
-                // DELETE: this won't work, as Deleted isn't tracked server-side. 
-                // if the task has been deleted by another client app and then synced to the server, it's GONE.
-                // you could do the same thing server side we're doing per-client side, meaning, instead of deleting
-                // right away, flag as Deleted and wait until sync to actually process that deletion.
-                // the problem is, server side, you won't know when all clients have synced that deletion.
-                // the reason for this is there could be any number of clients! 
-                // you'd need to implement some kind of per-client incremental unique ID tracking system
-                // for server-side to keep up with all clients its ever synced with, and add all changed rows
-                // on each client sync to a table (ChangedUnpulledTaskData, with a column for ClientID ??)
-                // and then mimic the same behavior (instead of serverTasks = await _taskEndpoint.GetAllTasksForUser(); on Pull,
-                // you'd have a call for like GetChangedUnpulledTaskData(string clientID) returning that client's changed rows only).
-                // ALL THIS is messy and would only server to resolve conflicts that are very unlikely to happen if we just
-                // instead push and then pull and trust that if we have any rows the server doesn't at that point, delete them locally.
-                // i.e., server wins on deletions from other clients, no questions.
-                //else if (serverTask.Deleted.HasValue) // delete
-                //{
-                //    _dataState.Tasks.Remove(clientTask);
-                //}
-                else // update
-                { 
-                    clientTask = displayServerTask;
-                    numRowsUpdated++;
-                }
+                DataSyncResult serverTaskResult = PullSyncableData(_mapper.Map<TaskDisplayModel>(serverTask));
+                tasksPullResult = _dataHelper.CombineSyncResults(tasksPullResult, serverTaskResult);
             }
 
-            // TASKS - PULL DETECTED SERVER-SIDE DELETIONS (meaning, originating from another client)
-            foreach (var clientDisplayTask in _dataState.Tasks!)
-            {
-                TaskModel? serverTask = serverTasks.Find(x => x.Id == clientDisplayTask.Id);
-                if (serverTask == null) // not found on server? delete locally
-                {
-                    _dataState.Tasks.Remove(clientDisplayTask);
-                    numRowsDeleted++;
-                }
-            }
+            // handle local deletions (originating from another client)
+            DataSyncResult taskDeletionResult = await PullServerDataDeletions(ESyncableDataType.Task);
+            tasksPullResult = _dataHelper.CombineSyncResults(tasksPullResult, taskDeletionResult); 
 
-            if (changedRemoteTaskRows.Count == 0 && numRowsDeleted == 0)
+            if (changedRemoteTaskRows.Count == 0 && tasksPullResult.numRowsDeleted == 0)
             {
                 Trace.WriteLine("serverTask - no changes detected on pull.");
                 Console.WriteLine("serverTask - no changes detected on pull.");
@@ -331,13 +361,99 @@ namespace TaskFocusUI.Library.Utilities
             _dataHelper.TasksLastFetch = serverTasks;
             _pushedTaskData.Clear();
 
+            // trigger UI update if needed + add to total pull result
+            if (_dataHelper.SyncChangesDetected(tasksPullResult))
+            {
+                _dataState.InvokeDataStateChanged("Tasks");
+                pullResult = _dataHelper.CombineSyncResults(pullResult, tasksPullResult);
+            }
+
             // PROJECT DATA
 
             // CONTEXT DATA
 
             Console.WriteLine("Pull complete.");
             Trace.WriteLine("Pull complete.");
-            return [numRowsInserted, numRowsDeleted, numRowsUpdated];
+            //return [numRowsInserted, numRowsDeleted, numRowsUpdated];
+            return pullResult;
+        }
+
+        // handles local insert/deletes based on remote data row
+        private DataSyncResult PullSyncableData(ISyncableData data)
+        {
+            DataSyncResult result = new();
+
+            switch (data.DataType)
+            {
+                case ESyncableDataType.Task:
+
+                    // do not pull if we just pushed the change
+                    var pushedServerTask = _pushedTaskData.Where(x => x.Id == data.Id);
+                    if (pushedServerTask.Any()) { return result; }
+
+                    TaskDisplayModel displayServerTask = (TaskDisplayModel)data;
+                    TaskDisplayModel? clientTask = _dataState.Tasks!.Where(
+                        x => x.Id == displayServerTask.Id).FirstOrDefault();
+
+                    if (clientTask == null) // insert
+                    {
+                        _dataState.Tasks!.Add(displayServerTask.Clone());
+                        result.numRowsInserted++;
+                    }
+                    else // update
+                    {
+                        int i = _dataState.Tasks!.IndexOf(clientTask);
+                        _dataState.Tasks![i] = displayServerTask;
+                        result.numRowsUpdated++;
+                    }
+
+                    break;
+
+                case ESyncableDataType.Project:
+                    break;
+                case ESyncableDataType.Context:
+                    break;
+                case ESyncableDataType.Settings:
+                    break;
+                default:
+                    break;
+            }
+
+            return result;
+        }
+
+        // handles local deletions based on remote data type
+        private async Task<DataSyncResult> PullServerDataDeletions(ESyncableDataType dataType)
+        {
+            DataSyncResult pullDeletionsResult = new();
+
+            switch (dataType)
+            {
+                case ESyncableDataType.Task:
+
+                    List<TaskModel> serverTasks = await _taskEndpoint.GetAllTasksForUser();
+
+                    foreach (var clientDisplayTask in _dataState.Tasks!.ToList())
+                    {
+                        TaskModel? serverTask = serverTasks.Find(x => x.Id == clientDisplayTask.Id);
+                        if (serverTask == null) // not found on server? delete locally
+                        {
+                            _dataState.Tasks!.Remove(clientDisplayTask);
+                            pullDeletionsResult.numRowsDeleted++;
+                        }
+                    }
+
+                    break;
+
+                case ESyncableDataType.Project:
+                    break;
+                case ESyncableDataType.Context:
+                    break;
+                default:
+                    break;
+            }
+
+            return pullDeletionsResult;
         }
     }
 }

@@ -23,15 +23,13 @@ namespace TaskFocusUI.Library.Utilities
         private IDataHelper _dataHelper;
         private IDataState _dataState;
 
-        //private IClientSyncService _clientSyncService;
-
         private int _taskUpdateEntered = 0;
         private int _projectUpdateEntered = 0;
         private int _contextUpdateEntered = 0;
         private int _settingsUpdateEntered = 0;
         private int _userUpdateEntered = 0;
 
-        TaskModel? _taskBeingUpdated;
+        TaskDisplayModel? _taskBeingUpdated;
         ProjectModel? _projectBeingUpdated;
         ContextModel? _contextBeingUpdated;
 
@@ -47,8 +45,6 @@ namespace TaskFocusUI.Library.Utilities
             _mapper = mapper;
             _dataHelper = dataHelper;
             _dataState = dataState;
-
-            //_clientSyncService = clientSyncService;
         }
 
         // wrapper for info logging when used in desktop UI w/ caliburn micro
@@ -64,37 +60,6 @@ namespace TaskFocusUI.Library.Utilities
             if (_logger != null) { _logger.LogError(message); }
             else { Debug.WriteLine($"DesktopUI - ERROR: {message}"); }
         }
-
-        //public async Task SyncClientServerData()
-        //{
-        //    try
-        //    {
-        //        //await _clientSyncService.Sync();
-        //        LogInformation("SyncClientServerData call processed successfully.");
-
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        LogError(ex.Message);
-        //        throw;
-        //    }
-        //}
-
-        //public List<TaskModel> GetClientUpdatedTasks()
-        //{
-        //    List<TaskDisplayModel> updatedDisplayTasks = _dataState.Tasks.Where(
-        //        x => x.ClientLastUpdated >= _dataState.LastSync ||
-        //        (x.Deleted != null && x.Deleted >= _dataState.LastSync)).ToList();
-
-        //    List<TaskModel> changedLocalTaskRows = new List<TaskModel>();
-        //    foreach (var displayRow in updatedDisplayTasks)
-        //    {
-        //        TaskModel row = _mapper.Map<TaskModel>(displayRow);
-        //        changedLocalTaskRows.Add(row);
-        //    }
-
-        //    return changedLocalTaskRows;
-        //}
 
         public async Task FetchAllRemoteData()
         {
@@ -187,93 +152,169 @@ namespace TaskFocusUI.Library.Utilities
             return _mapper.Map<TaskModel>(displayTask);
         }
 
-        // post updated task data to API for a single task
-        public async Task UpdateTaskData(TaskDisplayModel displayTask, bool forceUpdate = false)
+        public async Task AddTask(TaskDisplayModel displayTask)
         {
             // map from TaskDisplayModel to TaskModel
             TaskModel task = _mapper.Map<TaskModel>(displayTask);
 
-            if (_dataHelper.HasTaskDataChanged(task) || forceUpdate)
+            if (string.IsNullOrWhiteSpace(task.TaskName)) { return; }
+
+            if (task.ProjectName == null || task.ContextName == null)
             {
-                if (_taskBeingUpdated != null && task.Id != _taskBeingUpdated.Id)
+                List<TaskDisplayModel> inboxTasks = _dataState.Tasks!
+                    .Where(x => x.ProjectId == null || x.ContextId == null).ToList();
+
+                task.InboxIndex = inboxTasks.Count > 0 ? inboxTasks.Count : 0;
+                //LogInformation($"{task.TaskName}: new InboxIndex is {task.InboxIndex}");
+            }
+
+            if (task.ProjectName != null)
+            {
+                await HandleTaskProjectChanged(task);
+            }
+            if (task.ContextName != null)
+            {
+                await HandleTaskContextChanged(task);
+            }
+
+            // * INSTEAD OF THIS... *
+            //await _taskEndpoint.AddTask(task, _apiHelper.GetLoggedInUserId());
+            //// refresh all data
+            //await FetchRemoteTaskData();
+            //await FetchRemoteProjectData();
+            //await FetchRemoteContextData();
+
+            // * ONLY ADD LOCALLY AND MARK FOR SYNC *
+            // update local datastate
+            TaskDisplayModel updatedDisplayTask = _mapper.Map<TaskDisplayModel>(task);
+            // flag for sync
+            updatedDisplayTask.ClientLastUpdated = DateTimeOffset.Now;
+            // give temp local tracking id
+            updatedDisplayTask.TempLocalId = ++_dataState.TempTaskId;
+            _dataState.ChangedTaskData.Add(updatedDisplayTask);
+            _dataState.Tasks!.Add(updatedDisplayTask);
+            // trigger UI update
+            _dataState.InvokeDataStateChanged("Tasks");
+        }
+
+        public async Task DeleteTask(TaskDisplayModel displayTask)
+        {
+            // map from TaskDisplayModel to TaskModel
+            TaskModel task = _mapper.Map<TaskModel>(displayTask);
+
+            if (task.ProjectId == null || task.ContextId == null)
+            {
+                ShiftTaskCollectionSourceIndices(task, "InboxIndex");
+            }
+            if (task.ProjectId != null)
+            {
+                ShiftTaskCollectionSourceIndices(task, "ProjectIndex");
+            }
+            if (task.ContextId != null)
+            {
+                ShiftTaskCollectionSourceIndices(task, "ContextIndex");
+            }
+            if (task.Starred)
+            {
+                ShiftTaskCollectionSourceIndices(task, "TodayIndex");
+            }
+
+            // * INSTEAD OF THIS... *
+            //await _taskEndpoint.DeleteTask(task);
+            // refresh all data
+            //await FetchRemoteTaskData();
+            //await FetchRemoteProjectData();
+            //await FetchRemoteContextData();
+
+            // * ONLY MARK FOR DELETE ON NEXT SYNC + DELETE LOCALLY *
+            // update local datastate
+
+            if (task.Id == null) // never existed on server; insert was pending push
+            {
+                // local delete
+                _dataState.Tasks!.Remove(displayTask);
+                var changedTask = _dataState.ChangedTaskData.Find(x => x.TempLocalId == displayTask.TempLocalId);
+                bool removed = _dataState.ChangedTaskData.Remove(changedTask!);
+                // trigger UI update
+                _dataState.InvokeDataStateChanged("Tasks");
+
+                if (removed)
+                    Console.WriteLine("never existed on server; removed from changed task data");
+                else
+                    Console.WriteLine("never existed on server; COULDN'T FIND IN CHANGEDTASKDATA TO REMOVE!");
+            }
+            else
+            {
+                TaskDisplayModel clientTask = _dataState.Tasks!.Find(x => x.Id == task.Id)!;
+                clientTask.Deleted = DateTimeOffset.Now;
+                // flag for sync
+                clientTask.ClientLastUpdated = DateTimeOffset.Now;
+
+                // if had an update pending push, don't add a duplicate to changedTaskData
+                var alreadyQueued = _dataState.ChangedTaskData.Where(
+                    x => x.Id == clientTask.Id);
+                if (alreadyQueued.Count() == 0) { _dataState.ChangedTaskData.Add(clientTask); }
+
+                // local delete
+                _dataState.Tasks!.Remove(clientTask);
+                // trigger UI update
+                _dataState.InvokeDataStateChanged("Tasks");
+            }
+        }
+
+        // process updated task data locally + flag for sync
+        public async Task UpdateTaskData(TaskDisplayModel displayTask, bool forceUpdate = false)
+        {
+            TaskModel task = _mapper.Map<TaskModel>(displayTask);
+            TaskDataCompareResult compareResult = _dataHelper.HasTaskDataChanged(displayTask);
+
+            if (compareResult.HasChanged || forceUpdate)
+            {
+                if (_taskBeingUpdated != null)
                 {
-                    // unlock
-                    Interlocked.Exchange(ref _taskUpdateEntered, 0);
-                    _taskBeingUpdated = null;
+                    if (task.Id == null && displayTask.TempLocalId != _taskBeingUpdated.Id ||
+                        task.Id != _taskBeingUpdated.Id)
+                    {
+                        // unlock
+                        Interlocked.Exchange(ref _taskUpdateEntered, 0);
+                        _taskBeingUpdated = null;
+                    }
                 }
 
                 // lock
                 if (Interlocked.Increment(ref _taskUpdateEntered) != 1) { return; }
-                _taskBeingUpdated = task;
+                _taskBeingUpdated = displayTask;
 
-                if (_dataHelper.HasTaskProjectNameChanged(task))
-                {
-                    await HandleTaskProjectChanged(task);
-                }
+                // PROCESS UPDATE
+                // handle change of collection task belongs to
+                if (compareResult.ProjectNameChanged) { await HandleTaskProjectChanged(task); }
+                if (compareResult.ContextNameChanged) { await HandleTaskContextChanged(task); }
+                // handle any adjustments to which view pages the task appears in
+                HandleTaskViewChanges(task);
 
-                if (_dataHelper.HasTaskContextNameChanged(task))
-                {
-                    await HandleTaskContextChanged(task);
-                }
-
-                // if has both project and context, task is no longer in inbox
-                if (task.InboxIndex != null && ((task.ProjectId != null && task.ContextId != null) || (task.CleanedUp)))
-                {
-                    ShiftTaskCollectionSourceIndices(task, "InboxIndex");
-                    task.InboxIndex = null;
-                }
-
-                // no longer in Today view
-                if (task.TodayIndex != null && (
-                    (!task.Starred && !_dataHelper.IsTaskDueOrOverDue(task))) || // neither starred nor due/overdue
-                    (task.Completed && task.DateCompleted != DateTime.Now.Date) || // completed earlier than today
-                    (task.CleanedUp))
-                {
-                    ShiftTaskCollectionSourceIndices(task, "TodayIndex");
-                    task.TodayIndex = null;
-                }
-
-                if (task.ProjectIndex != null && task.CleanedUp)
-                {
-                    ShiftTaskCollectionSourceIndices(task, "ProjectIndex");
-                    task.ProjectIndex = null;
-                }
-
-                if (task.ContextIndex != null && task.CleanedUp)
-                {
-                    ShiftTaskCollectionSourceIndices(task, "ContextIndex");
-                    task.ContextIndex = null;
-                }
-
-                // task should now be in Today view
-                if (task.TodayIndex == null && (task.Starred || _dataHelper.IsTaskDueOrOverDue(task)) &&
-                    !(task.Completed && task.DateCompleted != DateTime.Now.Date))
-                {
-                    List<TaskDisplayModel> starredTasks = _dataState.Tasks!
-                        .Where(x => x.Starred).ToList();
-
-                    List<TaskDisplayModel> dueTasks = _dataState.Tasks!
-                        .Where(x => x.DueDate <= DateTime.Now.Date).ToList();
-
-                    List<TaskDisplayModel> todayTasks = dueTasks.Concat(starredTasks).ToList();
-                    todayTasks = todayTasks.DistinctBy(x => x.Id).ToList();
-
-                    task.TodayIndex = todayTasks.Count > 1 ? (todayTasks.Count - 1) : 0;
-                }
-
-                // * INSTEAD OF THIS... *
-                // update + refresh
-                //await _taskEndpoint.UpdateTask(task);
-                //await FetchAllRemoteData();
-
-                // * ONLY CHANGE LOCALLY AND MARK FOR SYNC *
-                // update local datastate
+                // change locally and mark for sync
                 TaskDisplayModel updatedDisplayTask = _mapper.Map<TaskDisplayModel>(task);
-                TaskDisplayModel clientTask = _dataState.Tasks!.Find(x => x.Id == task.Id)!;
-                clientTask = updatedDisplayTask;
-                // flag for sync
-                clientTask.ClientLastUpdated = DateTimeOffset.Now;
-                _dataState.ChangedTaskData.Add(_mapper.Map<TaskModel>(clientTask));
+                if (displayTask.Id == null)
+                {
+                    // task hasn't yet been inserted on server; pending push
+                    updatedDisplayTask.ClientLastUpdated = DateTimeOffset.Now;
+
+                    var queuedNewTask = _dataState.ChangedTaskData.Where(
+                        x => x.TempLocalId == displayTask.TempLocalId).FirstOrDefault();
+
+                    queuedNewTask = updatedDisplayTask; // modify
+                }
+                else
+                {
+                    TaskDisplayModel clientTask = _dataState.Tasks!.Find(x => x.Id == task.Id)!;
+                    clientTask = updatedDisplayTask; // modify
+                    clientTask.ClientLastUpdated = DateTimeOffset.Now; // flag for sync
+
+                    // don't duplicate if already had another update pending prior to push
+                    var alreadyQueued = _dataState.ChangedTaskData.Where(
+                        x => x.Id == clientTask.Id);
+                    if (!alreadyQueued.Any()) {  _dataState.ChangedTaskData.Add(clientTask); }
+                }
 
                 // unlock
                 Interlocked.Exchange(ref _taskUpdateEntered, 0);
@@ -281,319 +322,51 @@ namespace TaskFocusUI.Library.Utilities
             }
         }
 
-        // alternate update method - updates entire task collection prior to remote fetch
-        public async Task UpdateCollectionOrderingIndices(List<TaskDisplayModel> displayTasks)
+        public void HandleTaskViewChanges(TaskModel task)
         {
-            foreach (TaskDisplayModel displayTask in displayTasks)
+            // if has both project and context, task is no longer in inbox
+            if (task.InboxIndex != null && ((task.ProjectId != null && task.ContextId != null) || (task.CleanedUp)))
             {
-                // map from TaskDisplayModel to TaskModel
-                TaskModel task = _mapper.Map<TaskModel>(displayTask);
-
-                // only update if changed
-                if (_dataHelper.HasTaskDataChanged(task))
-                {
-                    // * INSTEAD OF THIS... *
-                    //await _taskEndpoint.UpdateTask(task);
-
-                    // * ONLY CHANGE LOCALLY AND MARK FOR SYNC *
-                    // update local datastate
-                    TaskDisplayModel updatedDisplayTask = _mapper.Map<TaskDisplayModel>(task);
-                    TaskDisplayModel clientTask = _dataState.Tasks!.Find(x => x.Id == task.Id)!;
-                    clientTask = updatedDisplayTask;
-                    // flag for sync
-                    clientTask.ClientLastUpdated = DateTimeOffset.Now;
-                    _dataState.ChangedTaskData.Add(_mapper.Map<TaskModel>(clientTask));
-                }
+                ShiftTaskCollectionSourceIndices(task, "InboxIndex");
+                task.InboxIndex = null;
             }
 
-            await FetchAllRemoteData();
-        }
-
-        // updates entire project collection prior to remote fetch
-        public async Task UpdateProjectsOrderingIndices(List<ProjectDisplayModel> displayProjects)
-        {
-            foreach (ProjectDisplayModel displayProject in displayProjects)
+            // if task is no longer in Today view
+            if (task.TodayIndex != null && (
+                (!task.Starred && !_dataHelper.IsTaskDueOrOverDue(task))) || // neither starred nor due/overdue
+                (task.Completed && task.DateCompleted != DateTime.Now.Date) || // completed earlier than today
+                (task.CleanedUp))
             {
-                // map from ProjectDisplayModel to ProjectModel
-                ProjectModel project = _mapper.Map<ProjectModel>(displayProject);
-
-                // only update if changed
-                if (_dataHelper.HasProjectDataChanged(project))
-                { 
-                    await _projectEndpoint.UpdateProject(project); 
-                }
-
+                ShiftTaskCollectionSourceIndices(task, "TodayIndex");
+                task.TodayIndex = null;
             }
 
-            await FetchAllRemoteData();
-        }
-
-        // updates entire context collection prior to remote fetch
-        public async Task UpdateContextsOrderingIndices(List<ContextDisplayModel> displayContexts)
-        {
-            foreach (ContextDisplayModel displayContext in displayContexts)
+            if (task.ProjectIndex != null && task.CleanedUp)
             {
-                // map from ContextDisplayModel to ContextModel
-                ContextModel context = _mapper.Map<ContextModel>(displayContext);
-
-                // only update if changed
-                if (_dataHelper.HasContextDataChanged(context))
-                {
-                    await _contextEndpoint.UpdateContext(context);
-                }
+                ShiftTaskCollectionSourceIndices(task, "ProjectIndex");
+                task.ProjectIndex = null;
             }
 
-            await FetchAllRemoteData();
-        }
-
-        // post updated project data to API for a single project
-        public async Task UpdateProjectData(ProjectDisplayModel displayProject)
-        {
-            // map from ProjectDisplayModel to ProjectModel
-            ProjectModel project = _mapper.Map<ProjectModel>(displayProject);
-
-            if (_dataHelper.HasProjectDataChanged(project))
+            if (task.ContextIndex != null && task.CleanedUp)
             {
-                if (!_dataHelper.IsUpdatedProjectNameUnique(project))
-                {
-                    LogError("Unable to update project: project names must be unique.");
-                    return;
-                }
-
-                if (_projectBeingUpdated != null && project.Id != _projectBeingUpdated.Id)
-                {
-                    // unlock
-                    Interlocked.Exchange(ref _projectUpdateEntered, 0);
-                    _projectBeingUpdated = null;
-                }
-
-                // lock
-                if (Interlocked.Increment(ref _projectUpdateEntered) != 1) { return; }
-                _projectBeingUpdated = project;
-
-                // update + refresh
-                await _projectEndpoint.UpdateProject(project);
-                await FetchAllRemoteData();
-
-                // unlock
-                Interlocked.Exchange(ref _projectUpdateEntered, 0);
-                _projectBeingUpdated = null;
+                ShiftTaskCollectionSourceIndices(task, "ContextIndex");
+                task.ContextIndex = null;
             }
-        }
 
-        // post updated context data to API for a single context
-        public async Task UpdateContextData(ContextDisplayModel displayContext)
-        {
-            // map from ContextDisplayModel to ContextModel
-            ContextModel context = _mapper.Map<ContextModel>(displayContext);
-
-            if (_dataHelper.HasContextDataChanged(context))
+            // if task should now be in Today view
+            if (task.TodayIndex == null && (task.Starred || _dataHelper.IsTaskDueOrOverDue(task)) &&
+                !(task.Completed && task.DateCompleted != DateTime.Now.Date))
             {
-                if (!_dataHelper.IsUpdatedContextNameUnique(context))
-                {
-                    LogError("Unable to update context: context names must be unique.");
-                    return;
-                }
+                List<TaskDisplayModel> starredTasks = _dataState.Tasks!
+                    .Where(x => x.Starred).ToList();
 
-                if (_contextBeingUpdated != null && context.Id != _contextBeingUpdated.Id)
-                {
-                    // unlock
-                    Interlocked.Exchange(ref _contextUpdateEntered, 0);
-                    _contextBeingUpdated = null;
-                }
+                List<TaskDisplayModel> dueTasks = _dataState.Tasks!
+                    .Where(x => x.DueDate <= DateTime.Now.Date).ToList();
 
-                // lock
-                if (Interlocked.Increment(ref _contextUpdateEntered) != 1) { return; }
-                _contextBeingUpdated = context;
+                List<TaskDisplayModel> todayTasks = dueTasks.Concat(starredTasks).ToList();
+                todayTasks = todayTasks.DistinctBy(x => x.Id).ToList();
 
-                // update + refresh
-                await _contextEndpoint.UpdateContext(context);
-                await FetchAllRemoteData();
-
-                // unlock
-                Interlocked.Exchange(ref _contextUpdateEntered, 0);
-                _contextBeingUpdated = null;
-            }
-        }
-
-        // updated user settings data to API
-        public async Task UpdateSettingsData(UserSettingsDisplayModel displaySettings)
-        {
-            // re-map
-            UserSettingsModel settings = _mapper.Map<UserSettingsModel>(displaySettings);
-
-            if (_dataHelper.HasSettingsDataChanged(settings))
-            {
-                // lock
-                if (Interlocked.Increment(ref _settingsUpdateEntered) != 1) { return; }
-
-                await _userEndpoint.UpdateUserSettings(settings);
-                await FetchAllRemoteData();
-
-                // unlock
-                Interlocked.Exchange(ref _settingsUpdateEntered, 0);
-            }
-        }
-
-        // update local datastate: user name data
-        public async Task UpdateUserNameData(UserDisplayModel displayUserModel)
-        {
-            if (_dataState.IsDataLoaded())
-            {
-                // re-map
-                UserModel user = _mapper.Map<UserModel>(displayUserModel);
-
-                //if... (check if changed from last fetch?)
-
-                // lock
-                if (Interlocked.Increment(ref _userUpdateEntered) != 1) { return; }
-
-                // * INSTEAD OF THIS... *
-                //await _userEndpoint.UpdateName(user);
-                //await FetchAllRemoteData();
-
-                // * ONLY CHANGE LOCALLY AND MARK FOR SYNC *
-                // update local datastate
-                _dataState.CurrentUser!.FirstName = user.FirstName;
-                _dataState.CurrentUser.LastName = user.LastName;
-
-                // flag for sync
-                _dataState.CurrentUser.ClientLastUpdated = DateTimeOffset.Now;
-                _dataState.ChangedUserData.Add(_mapper.Map<UserModel>(_dataState.CurrentUser));
-
-                // unlock
-                Interlocked.Exchange(ref _userUpdateEntered, 0);
-
-                Console.WriteLine("local user name updated!");
-            }
-        }
-
-        public async Task RequestUpdateEmail(UserModel user)
-        {
-            //if... (check if changed from last fetch?)
-
-            // lock
-            if (Interlocked.Increment(ref _userUpdateEntered) != 1) { return; }
-
-            await _userEndpoint.RequestUpdateEmail(user);
-            await FetchAllRemoteData();
-
-            // unlock
-            Interlocked.Exchange(ref _userUpdateEntered, 0);
-        }
-
-        public async Task<bool> CheckUserExists(UserModel user)
-        {
-            bool exists = await _userEndpoint.CheckUserExists(user);
-            return exists;
-        }
-
-        public async Task UpdatePassword(CreateUserModel updatedUserModel)
-        {
-            //if... (check if changed from last fetch?)
-
-            // lock
-            if (Interlocked.Increment(ref _userUpdateEntered) != 1) { return; }
-
-            await _userEndpoint.UpdatePassword(updatedUserModel);
-
-            // unlock
-            Interlocked.Exchange(ref _userUpdateEntered, 0);
-        }
-
-        //public async Task<bool> CheckPasswordValid(CheckPasswordModel checkPasswordModel)
-        //{
-        //    bool valid = await _userEndpoint.CheckPasswordValid(checkPasswordModel);
-        //    return valid;
-        //}
-
-        //public async Task SendPasswordChangeSuccessEmail(user)
-        //{
-
-        //}
-
-        // for use when removing a project/context
-        public void ShiftCollectionOrderIndices<T>(T collectionDisplayModel, List<T> collectionSource) where T : ICollectionDisplayModel
-        {
-            int? previouslyAssignedCollectionIndex = collectionDisplayModel.OrderIndex;
-
-            foreach (T item in collectionSource)
-            {
-                bool shiftNeeded = item.OrderIndex > previouslyAssignedCollectionIndex;
-                if (shiftNeeded) { item.OrderIndex--; }
-            }
-        }
-
-        // for use when removing a task *from* the inbox or a project/context
-        public void ShiftTaskCollectionSourceIndices(TaskModel task, string indexType)
-        {
-            int? previouslyAssignedCollectionIndex = null;
-            int? previouslyAssignedCollectionId = null;
-            List<TaskDisplayModel>? previousCollectionTasks = null;
-
-            switch (indexType)
-            {
-                case "InboxIndex": // task is being moved out of the inbox
-                    previouslyAssignedCollectionIndex = task.InboxIndex;
-                    previousCollectionTasks = _dataState.Tasks!
-                        .Where(x => x.ProjectId == null || x.ContextId == null).ToList();
-                    foreach (TaskDisplayModel previousCollectionTask in previousCollectionTasks)
-                    {
-                        bool shiftNeeded = previousCollectionTask.InboxIndex > previouslyAssignedCollectionIndex;
-                        if (shiftNeeded) { previousCollectionTask.InboxIndex--; }
-                    }
-
-                    break;
-
-                case "ProjectIndex": // task is being moved out of an existing project
-                    if (task.ProjectId != null || task.ContextId != null)
-                    {
-                        previouslyAssignedCollectionIndex = task.ProjectIndex;
-                        previouslyAssignedCollectionId = task.ProjectId;
-                        previousCollectionTasks = _dataState.Tasks!
-                            .Where(x => x.ProjectId == previouslyAssignedCollectionId).ToList();
-                        foreach (TaskDisplayModel previousCollectionTask in previousCollectionTasks)
-                        {
-                            bool shiftNeeded = previousCollectionTask.ProjectIndex > previouslyAssignedCollectionIndex;
-                            if (shiftNeeded) { previousCollectionTask.ProjectIndex--; }
-                        }
-                    }
-                    break;
-
-                case "ContextIndex": // task is being moved out of an existing context
-                    if (task.ContextId != null || task.ProjectId != null)
-                    {
-                        previouslyAssignedCollectionIndex = task.ContextIndex;
-                        previouslyAssignedCollectionId = task.ContextId;
-                        previousCollectionTasks = _dataState.Tasks!
-                            .Where(x => x.ContextId == previouslyAssignedCollectionId).ToList();
-                        foreach (TaskDisplayModel previousCollectionTask in previousCollectionTasks)
-                        {
-                            bool shiftNeeded = previousCollectionTask.ContextIndex > previouslyAssignedCollectionIndex;
-                            if (shiftNeeded) { previousCollectionTask.ContextIndex--; }
-                        }
-                    }
-                    break;
-
-                case "TodayIndex": // task is having its Starred prop set to False / due date changed to no longer due/overdue
-                    if (!task.Starred || !_dataHelper.IsTaskDueOrOverDue(task))
-                    {
-                        previouslyAssignedCollectionIndex = task.TodayIndex;
-                        List<TaskDisplayModel> dueTasks = _dataState.Tasks!
-                            .Where(x => x.DueDate <= DateTime.Now.Date).ToList();
-                        List<TaskDisplayModel> starredTasks = _dataState.Tasks!
-                            .Where(x => x.Starred).ToList();
-                        previousCollectionTasks = dueTasks.Concat(starredTasks).ToList();
-                        foreach (TaskDisplayModel previousCollectionTask in previousCollectionTasks)
-                        {
-                            bool shiftNeeded = previousCollectionTask.TodayIndex > previouslyAssignedCollectionIndex;
-                            if (shiftNeeded) { previousCollectionTask.TodayIndex--; }
-                        }
-                    }
-                    break;
-
-                default:
-                    break;
+                task.TodayIndex = todayTasks.Count > 1 ? (todayTasks.Count - 1) : 0;
             }
         }
 
@@ -701,6 +474,155 @@ namespace TaskFocusUI.Library.Utilities
             }
         }
 
+        // for use when removing a task *from* the inbox or a project/context
+        public void ShiftTaskCollectionSourceIndices(TaskModel task, string indexType)
+        {
+            int? previouslyAssignedCollectionIndex = null;
+            int? previouslyAssignedCollectionId = null;
+            List<TaskDisplayModel>? previousCollectionTasks = null;
+
+            switch (indexType)
+            {
+                case "InboxIndex": // task is being moved out of the inbox
+                    previouslyAssignedCollectionIndex = task.InboxIndex;
+                    previousCollectionTasks = _dataState.Tasks!
+                        .Where(x => x.ProjectId == null || x.ContextId == null).ToList();
+                    foreach (TaskDisplayModel previousCollectionTask in previousCollectionTasks)
+                    {
+                        bool shiftNeeded = previousCollectionTask.InboxIndex > previouslyAssignedCollectionIndex;
+                        if (shiftNeeded) { previousCollectionTask.InboxIndex--; }
+                    }
+
+                    break;
+
+                case "ProjectIndex": // task is being moved out of an existing project
+                    if (task.ProjectId != null || task.ContextId != null)
+                    {
+                        previouslyAssignedCollectionIndex = task.ProjectIndex;
+                        previouslyAssignedCollectionId = task.ProjectId;
+                        previousCollectionTasks = _dataState.Tasks!
+                            .Where(x => x.ProjectId == previouslyAssignedCollectionId).ToList();
+                        foreach (TaskDisplayModel previousCollectionTask in previousCollectionTasks)
+                        {
+                            bool shiftNeeded = previousCollectionTask.ProjectIndex > previouslyAssignedCollectionIndex;
+                            if (shiftNeeded) { previousCollectionTask.ProjectIndex--; }
+                        }
+                    }
+                    break;
+
+                case "ContextIndex": // task is being moved out of an existing context
+                    if (task.ContextId != null || task.ProjectId != null)
+                    {
+                        previouslyAssignedCollectionIndex = task.ContextIndex;
+                        previouslyAssignedCollectionId = task.ContextId;
+                        previousCollectionTasks = _dataState.Tasks!
+                            .Where(x => x.ContextId == previouslyAssignedCollectionId).ToList();
+                        foreach (TaskDisplayModel previousCollectionTask in previousCollectionTasks)
+                        {
+                            bool shiftNeeded = previousCollectionTask.ContextIndex > previouslyAssignedCollectionIndex;
+                            if (shiftNeeded) { previousCollectionTask.ContextIndex--; }
+                        }
+                    }
+                    break;
+
+                case "TodayIndex": // task is having its Starred prop set to False / due date changed to no longer due/overdue
+                    if (!task.Starred || !_dataHelper.IsTaskDueOrOverDue(task))
+                    {
+                        previouslyAssignedCollectionIndex = task.TodayIndex;
+                        List<TaskDisplayModel> dueTasks = _dataState.Tasks!
+                            .Where(x => x.DueDate <= DateTime.Now.Date).ToList();
+                        List<TaskDisplayModel> starredTasks = _dataState.Tasks!
+                            .Where(x => x.Starred).ToList();
+                        previousCollectionTasks = dueTasks.Concat(starredTasks).ToList();
+                        foreach (TaskDisplayModel previousCollectionTask in previousCollectionTasks)
+                        {
+                            bool shiftNeeded = previousCollectionTask.TodayIndex > previouslyAssignedCollectionIndex;
+                            if (shiftNeeded) { previousCollectionTask.TodayIndex--; }
+                        }
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        // alternate update method - updates entire task collection prior to remote fetch
+        public async Task UpdateCollectionOrderingIndices(List<TaskDisplayModel> displayTasks)
+        {
+            foreach (TaskDisplayModel displayTask in displayTasks)
+            {
+                TaskModel task = _mapper.Map<TaskModel>(displayTask);
+                TaskDataCompareResult compareResult= _dataHelper.HasTaskDataChanged(displayTask);
+                // only update if changed
+                if (compareResult.HasChanged)
+                {
+                    // * INSTEAD OF THIS... *
+                    //await _taskEndpoint.UpdateTask(task);
+
+                    // * ONLY CHANGE LOCALLY AND MARK FOR SYNC *
+                    // update local datastate
+                    TaskDisplayModel updatedDisplayTask = _mapper.Map<TaskDisplayModel>(task);
+                    TaskDisplayModel clientTask = _dataState.Tasks!.Find(x => x.Id == task.Id)!;
+                    clientTask = updatedDisplayTask;
+                    // flag for sync
+                    clientTask.ClientLastUpdated = DateTimeOffset.Now;
+                    _dataState.ChangedTaskData.Add(clientTask);
+                }
+            }
+
+            await FetchAllRemoteData();
+        }
+
+        // updates entire project collection prior to remote fetch
+        public async Task UpdateProjectsOrderingIndices(List<ProjectDisplayModel> displayProjects)
+        {
+            foreach (ProjectDisplayModel displayProject in displayProjects)
+            {
+                // map from ProjectDisplayModel to ProjectModel
+                ProjectModel project = _mapper.Map<ProjectModel>(displayProject);
+
+                // only update if changed
+                if (_dataHelper.HasProjectDataChanged(project))
+                { 
+                    await _projectEndpoint.UpdateProject(project); 
+                }
+
+            }
+
+            await FetchAllRemoteData();
+        }
+
+        // updates entire context collection prior to remote fetch
+        public async Task UpdateContextsOrderingIndices(List<ContextDisplayModel> displayContexts)
+        {
+            foreach (ContextDisplayModel displayContext in displayContexts)
+            {
+                // map from ContextDisplayModel to ContextModel
+                ContextModel context = _mapper.Map<ContextModel>(displayContext);
+
+                // only update if changed
+                if (_dataHelper.HasContextDataChanged(context))
+                {
+                    await _contextEndpoint.UpdateContext(context);
+                }
+            }
+
+            await FetchAllRemoteData();
+        }
+
+        // for use when removing a project/context
+        public void ShiftCollectionOrderIndices<T>(T collectionDisplayModel, List<T> collectionSource) where T : ICollectionDisplayModel
+        {
+            int? previouslyAssignedCollectionIndex = collectionDisplayModel.OrderIndex;
+
+            foreach (T item in collectionSource)
+            {
+                bool shiftNeeded = item.OrderIndex > previouslyAssignedCollectionIndex;
+                if (shiftNeeded) { item.OrderIndex--; }
+            }
+        }
+
         public async Task AddProject(ProjectModel newProject)
         {
             if (string.IsNullOrWhiteSpace(newProject.ProjectName)) { return; }
@@ -744,6 +666,41 @@ namespace TaskFocusUI.Library.Utilities
             await FetchRemoteTaskData();
             await FetchRemoteProjectData();
             await FetchRemoteContextData();
+        }
+
+        // post updated project data to API for a single project
+        public async Task UpdateProjectData(ProjectDisplayModel displayProject)
+        {
+            // map from ProjectDisplayModel to ProjectModel
+            ProjectModel project = _mapper.Map<ProjectModel>(displayProject);
+
+            if (_dataHelper.HasProjectDataChanged(project))
+            {
+                if (!_dataHelper.IsUpdatedProjectNameUnique(project))
+                {
+                    LogError("Unable to update project: project names must be unique.");
+                    return;
+                }
+
+                if (_projectBeingUpdated != null && project.Id != _projectBeingUpdated.Id)
+                {
+                    // unlock
+                    Interlocked.Exchange(ref _projectUpdateEntered, 0);
+                    _projectBeingUpdated = null;
+                }
+
+                // lock
+                if (Interlocked.Increment(ref _projectUpdateEntered) != 1) { return; }
+                _projectBeingUpdated = project;
+
+                // update + refresh
+                await _projectEndpoint.UpdateProject(project);
+                await FetchAllRemoteData();
+
+                // unlock
+                Interlocked.Exchange(ref _projectUpdateEntered, 0);
+                _projectBeingUpdated = null;
+            }
         }
 
         public async Task AddContext(ContextModel newContext)
@@ -791,86 +748,124 @@ namespace TaskFocusUI.Library.Utilities
             await FetchRemoteContextData();
         }
 
-        public async Task AddTask(TaskDisplayModel displayTask)
+        // post updated context data to API for a single context
+        public async Task UpdateContextData(ContextDisplayModel displayContext)
         {
-            // map from TaskDisplayModel to TaskModel
-            TaskModel task = _mapper.Map<TaskModel>(displayTask);
+            // map from ContextDisplayModel to ContextModel
+            ContextModel context = _mapper.Map<ContextModel>(displayContext);
 
-            if (string.IsNullOrWhiteSpace(task.TaskName)) { return; }
-
-            if (task.ProjectName == null || task.ContextName == null)
+            if (_dataHelper.HasContextDataChanged(context))
             {
-                List<TaskDisplayModel> inboxTasks = _dataState.Tasks!
-                    .Where(x => x.ProjectId == null || x.ContextId == null).ToList();
+                if (!_dataHelper.IsUpdatedContextNameUnique(context))
+                {
+                    LogError("Unable to update context: context names must be unique.");
+                    return;
+                }
 
-                task.InboxIndex = inboxTasks.Count > 0 ? inboxTasks.Count : 0;
-                //LogInformation($"{task.TaskName}: new InboxIndex is {task.InboxIndex}");
+                if (_contextBeingUpdated != null && context.Id != _contextBeingUpdated.Id)
+                {
+                    // unlock
+                    Interlocked.Exchange(ref _contextUpdateEntered, 0);
+                    _contextBeingUpdated = null;
+                }
+
+                // lock
+                if (Interlocked.Increment(ref _contextUpdateEntered) != 1) { return; }
+                _contextBeingUpdated = context;
+
+                // update + refresh
+                await _contextEndpoint.UpdateContext(context);
+                await FetchAllRemoteData();
+
+                // unlock
+                Interlocked.Exchange(ref _contextUpdateEntered, 0);
+                _contextBeingUpdated = null;
             }
-
-            if (task.ProjectName != null)
-            {
-                await HandleTaskProjectChanged(task);
-            }
-            if (task.ContextName != null)
-            {
-                await HandleTaskContextChanged(task);
-            }
-
-            // * INSTEAD OF THIS... *
-            //await _taskEndpoint.AddTask(task, _apiHelper.GetLoggedInUserId());
-            //// refresh all data
-            //await FetchRemoteTaskData();
-            //await FetchRemoteProjectData();
-            //await FetchRemoteContextData();
-
-            // * ONLY ADD LOCALLY AND MARK FOR SYNC *
-            // update local datastate
-            TaskDisplayModel updatedDisplayTask = _mapper.Map<TaskDisplayModel>(task);
-            _dataState.Tasks!.Add(updatedDisplayTask);
-            TaskDisplayModel clientTask = _dataState.Tasks!.Find(x => x.Id == task.Id)!;
-            // flag for sync
-            clientTask.ClientLastUpdated = DateTimeOffset.Now;
-            _dataState.ChangedTaskData.Add(_mapper.Map<TaskModel>(clientTask));
         }
 
-        public async Task DeleteTask(TaskDisplayModel displayTask)
+        // update local datastate: user name data
+        public async Task UpdateUserNameData(UserDisplayModel displayUserModel)
         {
-            // map from TaskDisplayModel to TaskModel
-            TaskModel task = _mapper.Map<TaskModel>(displayTask);
+            if (_dataState.IsDataLoaded())
+            {
+                // re-map
+                UserModel user = _mapper.Map<UserModel>(displayUserModel);
 
-            if (task.ProjectId == null || task.ContextId == null)
-            {
-                ShiftTaskCollectionSourceIndices(task, "InboxIndex");
-            }
-            if (task.ProjectId != null)
-            {
-                ShiftTaskCollectionSourceIndices(task, "ProjectIndex");
-            }
-            if (task.ContextId != null)
-            {
-                ShiftTaskCollectionSourceIndices(task, "ContextIndex");
-            }
-            if (task.Starred)
-            {
-                ShiftTaskCollectionSourceIndices(task, "TodayIndex");
-            }
+                //if... (check if changed from last fetch?)
 
-            // * INSTEAD OF THIS... *
-            //await _taskEndpoint.DeleteTask(task);
-            // refresh all data
-            //await FetchRemoteTaskData();
-            //await FetchRemoteProjectData();
-            //await FetchRemoteContextData();
+                // lock
+                if (Interlocked.Increment(ref _userUpdateEntered) != 1) { return; }
 
-            // * ONLY MARK FOR DELETE ON NEXT SYNC + DELETE LOCALLY *
-            // update local datastate
-            TaskDisplayModel clientTask = _dataState.Tasks!.Find(x => x.Id == task.Id)!;
-            clientTask.Deleted = DateTimeOffset.Now;
-            // flag for sync
-            clientTask.ClientLastUpdated = DateTimeOffset.Now;
-            _dataState.ChangedTaskData.Add(_mapper.Map<TaskModel>(clientTask));
-            // local delete
-            _dataState.Tasks!.Remove(clientTask);
+                // * INSTEAD OF THIS... *
+                //await _userEndpoint.UpdateName(user);
+                //await FetchAllRemoteData();
+
+                // * ONLY CHANGE LOCALLY AND MARK FOR SYNC *
+                // update local datastate
+                _dataState.CurrentUser!.FirstName = user.FirstName;
+                _dataState.CurrentUser.LastName = user.LastName;
+
+                // flag for sync
+                _dataState.CurrentUser.ClientLastUpdated = DateTimeOffset.Now;
+                _dataState.ChangedUserData.Add(_mapper.Map<UserModel>(_dataState.CurrentUser));
+
+                // unlock
+                Interlocked.Exchange(ref _userUpdateEntered, 0);
+
+                Console.WriteLine("local user name updated!");
+            }
+        }
+
+        public async Task RequestUpdateEmail(UserModel user)
+        {
+            //if... (check if changed from last fetch?)
+
+            // lock
+            if (Interlocked.Increment(ref _userUpdateEntered) != 1) { return; }
+
+            await _userEndpoint.RequestUpdateEmail(user);
+            await FetchAllRemoteData();
+
+            // unlock
+            Interlocked.Exchange(ref _userUpdateEntered, 0);
+        }
+
+        public async Task<bool> CheckUserExists(UserModel user)
+        {
+            bool exists = await _userEndpoint.CheckUserExists(user);
+            return exists;
+        }
+
+        public async Task UpdatePassword(CreateUserModel updatedUserModel)
+        {
+            //if... (check if changed from last fetch?)
+
+            // lock
+            if (Interlocked.Increment(ref _userUpdateEntered) != 1) { return; }
+
+            await _userEndpoint.UpdatePassword(updatedUserModel);
+
+            // unlock
+            Interlocked.Exchange(ref _userUpdateEntered, 0);
+        }
+
+        // updated user settings data to API
+        public async Task UpdateSettingsData(UserSettingsDisplayModel displaySettings)
+        {
+            // re-map
+            UserSettingsModel settings = _mapper.Map<UserSettingsModel>(displaySettings);
+
+            if (_dataHelper.HasSettingsDataChanged(settings))
+            {
+                // lock
+                if (Interlocked.Increment(ref _settingsUpdateEntered) != 1) { return; }
+
+                await _userEndpoint.UpdateUserSettings(settings);
+                await FetchAllRemoteData();
+
+                // unlock
+                Interlocked.Exchange(ref _settingsUpdateEntered, 0);
+            }
         }
     }
 }

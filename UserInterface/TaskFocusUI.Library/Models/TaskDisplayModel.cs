@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace TaskFocusUI.Library.Models
 {
-    public class TaskDisplayModel : INotifyPropertyChanged
+    public class TaskDisplayModel : INotifyPropertyChanged, ISyncableData
     {
         public int? Id { get; set; }
         public string UserId { get; set; }
@@ -14,9 +14,12 @@ namespace TaskFocusUI.Library.Models
         public int? ContextId { get; set; }
 
         // for sync
+        public ESyncableDataType DataType { get; } = ESyncableDataType.Task;
         public DateTimeOffset ServerLastUpdated { get; set; }
         public DateTimeOffset ClientLastUpdated { get; set; }
         public DateTimeOffset? Deleted { get; set; }
+        // for local tracking of new adds pre-push
+        public int? TempLocalId { get; set; }
 
         // indexer
         public object this[string propertyName]

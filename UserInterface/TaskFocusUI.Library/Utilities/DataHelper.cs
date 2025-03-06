@@ -1,54 +1,85 @@
-﻿using Newtonsoft.Json;
+﻿using AutoMapper;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 using TaskFocusUI.Library.Models;
 
 namespace TaskFocusUI.Library.Utilities
 {
+    public struct TaskDataCompareResult
+    {
+        public bool HasChanged;
+        public bool ProjectNameChanged;
+        public bool ContextNameChanged;
+    }
+
+    public struct DataSyncResult
+    {
+        public int numRowsInserted = 0;
+        public int numRowsDeleted = 0;
+        public int numRowsUpdated = 0;
+
+        public DataSyncResult() { }
+    }
+
     public class DataHelper : IDataHelper
     {
-        public List<TaskModel> TasksLastFetch { get; set; }
-        public List<ProjectModel> ProjectsLastFetch { get; set; }
-        public List<ContextModel> ContextsLastFetch { get; set; }
-        public UserSettingsModel UserSettingsLastFetch { get; set; }
+        private IMapper _mapper;
+        private IDataState _dataState;
 
-        public ProjectDisplayModel FocusedProject { get; set; }
-        public List<TaskDisplayModel> FocusedProjectTasks { get; set; }
-        public ContextDisplayModel FocusedContext { get; set; }
-        public List<TaskDisplayModel> FocusedContextTasks { get; set; }
+        public List<TaskModel>? TasksLastFetch { get; set; }
+        public List<ProjectModel>? ProjectsLastFetch { get; set; }
+        public List<ContextModel>? ContextsLastFetch { get; set; }
+        public UserSettingsModel? UserSettingsLastFetch { get; set; }
 
-        public bool HasTaskDataChanged(TaskModel frontEndTask)
+        public ProjectDisplayModel? FocusedProject { get; set; }
+        public List<TaskDisplayModel>? FocusedProjectTasks { get; set; }
+        public ContextDisplayModel? FocusedContext { get; set; }
+        public List<TaskDisplayModel>? FocusedContextTasks { get; set; }
+
+        public DataHelper(IMapper mapper, IDataState dataState)
         {
-            TaskModel taskLastFetch = TasksLastFetch.Find(x => x.Id == frontEndTask.Id);
+            _mapper = mapper;
+            _dataState = dataState;
+        }
 
-            bool IsDataEqual(TaskModel taskA, TaskModel taskB)
+        public TaskDataCompareResult HasTaskDataChanged(TaskDisplayModel displayTask)
+        {
+            TaskModel compareAgainstTask;
+
+            if (displayTask.Id == null && displayTask.TempLocalId != null)
             {
-                return taskA.TaskName == taskB.TaskName &&
-                    taskA.Completed == taskB.Completed &&
-                    taskA.ProjectName == taskB.ProjectName &&
-                    taskA.ContextName == taskB.ContextName &&
-                    taskA.DueDate == taskB.DueDate &&
-                    taskA.InboxIndex == taskB.InboxIndex &&
-                    taskA.ProjectIndex == taskB.ProjectIndex &&
-                    taskA.ContextIndex == taskB.ContextIndex &&
-                    taskA.Starred == taskB.Starred &&
-                    taskA.TodayIndex == taskB.TodayIndex &&
-                    taskA.CleanedUp == taskB.CleanedUp;
+                TaskDisplayModel unpushedTask = _dataState.ChangedTaskData.Find(x => x.TempLocalId == displayTask.TempLocalId)!;
+                compareAgainstTask = _mapper.Map<TaskModel>(unpushedTask);
+            }
+            else
+            {
+                TaskModel taskLastFetch = TasksLastFetch!.Find(x => x.Id == displayTask.Id)!;
+                compareAgainstTask = taskLastFetch;
             }
 
-            return !IsDataEqual(frontEndTask, taskLastFetch);
-        }
+            static bool AreUserEditablePropertiesEqual(TaskModel taskA, TaskModel taskB)
+            {
+                return taskA.TaskName == taskB.TaskName &&
+                       taskA.Completed == taskB.Completed &&
+                       taskA.ProjectName == taskB.ProjectName &&
+                       taskA.ContextName == taskB.ContextName &&
+                       taskA.DueDate == taskB.DueDate &&
+                       taskA.InboxIndex == taskB.InboxIndex &&
+                       taskA.ProjectIndex == taskB.ProjectIndex &&
+                       taskA.ContextIndex == taskB.ContextIndex &&
+                       taskA.Starred == taskB.Starred &&
+                       taskA.TodayIndex == taskB.TodayIndex &&
+                       taskA.CleanedUp == taskB.CleanedUp;
+            }
 
-        public bool HasTaskProjectNameChanged(TaskModel frontEndTask)
-        {
-            TaskModel taskLastFetch = TasksLastFetch.Find(x => x.Id == frontEndTask.Id);
-            return frontEndTask.ProjectName != taskLastFetch.ProjectName;
-        }
-
-        public bool HasTaskContextNameChanged(TaskModel frontEndTask)
-        {
-            TaskModel taskLastFetch = TasksLastFetch.Find(x => x.Id == frontEndTask.Id);
-            return frontEndTask.ContextName != taskLastFetch.ContextName;
+            return new() {
+                HasChanged = !AreUserEditablePropertiesEqual(_mapper.Map<TaskModel>(displayTask), compareAgainstTask),
+                ProjectNameChanged = displayTask.ProjectName != compareAgainstTask.ProjectName,
+                ContextNameChanged = displayTask.ContextName != compareAgainstTask.ContextName
+            };
         }
 
         public bool IsTaskDueOrOverDue(TaskModel frontEndTask)
@@ -82,7 +113,7 @@ namespace TaskFocusUI.Library.Utilities
                     return false;
                 }
             }
-            
+
             return true;
         }
 
@@ -148,6 +179,21 @@ namespace TaskFocusUI.Library.Utilities
             }
 
             return !IsDataEqual(frontEndSettings, UserSettingsLastFetch);
+        }
+
+        public DataSyncResult CombineSyncResults(DataSyncResult resultA, DataSyncResult resultB)
+        {
+            DataSyncResult combinedResult;
+            combinedResult.numRowsInserted = resultA.numRowsInserted + resultB.numRowsInserted;
+            combinedResult.numRowsDeleted = resultA.numRowsDeleted + resultB.numRowsDeleted;
+            combinedResult.numRowsUpdated = resultA.numRowsUpdated + resultB.numRowsUpdated;
+
+            return combinedResult;
+        }
+
+        public bool SyncChangesDetected(DataSyncResult result)
+        {
+            return result.numRowsInserted != 0 || result.numRowsDeleted != 0 || result.numRowsUpdated != 0;
         }
     }
 }

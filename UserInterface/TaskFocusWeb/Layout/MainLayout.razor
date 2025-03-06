@@ -2,7 +2,7 @@
 @inject IDataSyncService DataSyncService
 
 <MudThemeProvider @bind-IsDarkMode="@_isDarkMode" Theme="_customTheme" />
-<MudDialogProvider />
+<MudDialogProvider @ref="AppState.DialogProvider" />
 <MudSnackbarProvider />
 
 <MudLayout>

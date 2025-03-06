@@ -178,7 +178,7 @@
     {
         if (DataState.IsDataLoaded())
         {
-            LocalTasks = DataState.Tasks;
+            LocalTasks = DataState.Tasks!.ToList();
             foreach (TaskDisplayModel task in LocalTasks!)
             {
                 task.PropertyChanged += OnExistingTaskPropertyChanged!; // subscribe to property changed event

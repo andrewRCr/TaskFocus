@@ -90,7 +90,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             }
 
             LoadAllLocalData();
-            Debug.WriteLine("InboxViewModel: returned true on HandleDataStateChanged!");
+            //Debug.WriteLine("InboxViewModel: returned true on HandleDataStateChanged!");
             return true;
         }
     }

@@ -1,4 +1,6 @@
-﻿namespace TaskFocusWeb
+﻿using MudBlazor;
+
+namespace TaskFocusWeb
 {
     public delegate void AppStateChangedHandler(String propertyName, AppState state);
 
@@ -94,5 +96,13 @@
             _alertSeverity = MudBlazor.Severity.Error;
             AlertMessage = "There was an error when attempting to log in. Please try again.";
         }
+
+        private MudDialogProvider _dialogProvider;
+        public MudDialogProvider DialogProvider
+        {
+            get { return _dialogProvider; }
+            set { _dialogProvider = value; }
+        }
+
     }
 }
