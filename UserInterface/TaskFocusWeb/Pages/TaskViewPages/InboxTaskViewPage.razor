@@ -1,4 +1,5 @@
 ﻿@page "/inbox"
+@using System.Diagnostics
 @inherits _TaskViewPageBase
 
 <PageTitle>TaskFocus: Inbox</PageTitle>
@@ -10,17 +11,17 @@
         <MudTreeView T="TaskContainerComponent" Width="100%">
 
             <MudTreeViewItem T="TaskContainerComponent"
-                             Expanded="true"
-                             Icon="@Icons.Material.Filled.Inbox"
-                             Text="Inbox"
-                             TextTypo="Typo.button">
+            Expanded="true"
+            Icon="@Icons.Material.Filled.Inbox"
+            Text="Inbox"
+            TextTypo="Typo.button">
 
                 <TaskContainerComponent ContainerTaskItemsParam="@LocalTasks"
-                                        ContainerIdentifierParam="Inbox"
-                                        ContainerOrderingTypeParam="Inbox"
-                                        ContainerItemsSelectorParam="@ItemsSelector"
-                                        ContainerProjectsParam="@LocalProjects"
-                                        ContainerContextsParam="@LocalContexts" />
+                ContainerIdentifierParam="Inbox"
+                ContainerOrderingTypeParam="Inbox"
+                ContainerItemsSelectorParam="@ItemsSelector"
+                ContainerProjectsParam="@LocalProjects"
+                ContainerContextsParam="@LocalContexts" />
             </MudTreeViewItem>
         </MudTreeView>
     }
@@ -29,10 +30,10 @@
         <MudTreeView T="MudContainer" Width="75%">
 
             <MudTreeViewItem T="MudContainer"
-                             Expanded="true"
-                             Icon="@Icons.Material.Filled.Inbox"
-                             Text="Inbox"
-                             TextTypo="Typo.button">
+            Expanded="true"
+            Icon="@Icons.Material.Filled.Inbox"
+            Text="Inbox"
+            TextTypo="Typo.button">
 
                 <MudContainer MaxWidth="MaxWidth.Medium">
                     <MudPaper Elevation="25" Class="pa-0 my-2">
@@ -68,8 +69,10 @@
         {
             List<TaskDisplayModel> inboxTasks = DataState.Tasks!.Where(
                 x => (x.ProjectId == null || x.ContextId == null) && !x.CleanedUp).ToList();
-            inboxTasks.OrderBy(x => x.InboxIndex);
-            LocalTasks = inboxTasks;
+            Console.WriteLine($"WEB: inboxTasks count: {inboxTasks.Count}");
+            Console.WriteLine($"WEB: dataState.Tasks count: {DataState.Tasks!.Count}");
+            var orderedInboxTasks = inboxTasks.OrderBy(x => x.InboxIndex);
+            LocalTasks = orderedInboxTasks.ToList();
 
             foreach (TaskDisplayModel task in LocalTasks!)
             {
@@ -101,6 +104,7 @@
         if (AppState.CanRefresh)
         {
             LoadAllLocalData();
+            Trace.WriteLine("InboxTaskViewPage: returned true on HandleDataStateChanged");
         }
 
         return AppState.CanRefresh;

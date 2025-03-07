@@ -1,10 +1,11 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.ComponentModel;
 using System.Reflection;
 
 namespace TaskFocusUI.Library.Models
 {
-    public class ProjectDisplayModel : INotifyPropertyChanged, ICollectionDisplayModel
+    public class ProjectDisplayModel : INotifyPropertyChanged, ICollectionDisplayModel, ISyncableData
     {
         public int? Id { get; set; }
         public string UserId { get; set; }
@@ -13,6 +14,14 @@ namespace TaskFocusUI.Library.Models
         public DateTime? DueDate { get; set; }
         public bool Completed { get; set; } = false;
         public DateTime? DateCompleted { get; set; }
+
+        // for sync
+        public ESyncableDataType DataType { get; } = ESyncableDataType.Project;
+        public DateTimeOffset ServerLastUpdated { get; set; }
+        public DateTimeOffset ClientLastUpdated { get; set; }
+        public DateTimeOffset? Deleted { get; set; }
+        // for local tracking of new adds pre-push
+        public int? TempLocalId { get; set; }
 
         // indexer
         public object this[string propertyName]
@@ -39,12 +48,6 @@ namespace TaskFocusUI.Library.Models
             }
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-        public void CallPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
         // user-editable properties
         // ====================
         private string _projectName;
@@ -67,6 +70,18 @@ namespace TaskFocusUI.Library.Models
                 _orderIndex = value;
                 CallPropertyChanged(nameof(OrderIndex));
             }
+        }
+
+        public ProjectDisplayModel Clone()
+        {
+            var serialized = JsonConvert.SerializeObject(this);
+            return JsonConvert.DeserializeObject<ProjectDisplayModel>(serialized)!;
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        public void CallPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

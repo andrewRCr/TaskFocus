@@ -201,23 +201,7 @@ namespace TaskFocusUI.Library.Utilities
         {
             // map from TaskDisplayModel to TaskModel
             TaskModel task = _mapper.Map<TaskModel>(displayTask);
-
-            if (task.ProjectId == null || task.ContextId == null)
-            {
-                ShiftTaskCollectionSourceIndices(task, "InboxIndex");
-            }
-            if (task.ProjectId != null)
-            {
-                ShiftTaskCollectionSourceIndices(task, "ProjectIndex");
-            }
-            if (task.ContextId != null)
-            {
-                ShiftTaskCollectionSourceIndices(task, "ContextIndex");
-            }
-            if (task.Starred)
-            {
-                ShiftTaskCollectionSourceIndices(task, "TodayIndex");
-            }
+            HandleIndexShiftsOnTaskDeletion(task);
 
             // * INSTEAD OF THIS... *
             //await _taskEndpoint.DeleteTask(task);
@@ -261,6 +245,27 @@ namespace TaskFocusUI.Library.Utilities
                 _dataState.InvokeDataStateChanged("Tasks");
             }
         }
+
+        public void HandleIndexShiftsOnTaskDeletion(TaskModel task)
+        {
+            if (task.ProjectId == null || task.ContextId == null)
+            {
+                ShiftTaskCollectionSourceIndices(task, "InboxIndex");
+            }
+            if (task.ProjectId != null)
+            {
+                ShiftTaskCollectionSourceIndices(task, "ProjectIndex");
+            }
+            if (task.ContextId != null)
+            {
+                ShiftTaskCollectionSourceIndices(task, "ContextIndex");
+            }
+            if (task.Starred)
+            {
+                ShiftTaskCollectionSourceIndices(task, "TodayIndex");
+            }
+        }
+
 
         // process updated task data locally + flag for sync
         public async Task UpdateTaskData(TaskDisplayModel displayTask, bool forceUpdate = false)
@@ -571,7 +576,7 @@ namespace TaskFocusUI.Library.Utilities
                 }
             }
 
-            await FetchAllRemoteData();
+            //await FetchAllRemoteData();
         }
 
         // updates entire project collection prior to remote fetch

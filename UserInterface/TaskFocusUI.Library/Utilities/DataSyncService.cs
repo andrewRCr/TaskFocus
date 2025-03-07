@@ -101,6 +101,7 @@ namespace TaskFocusUI.Library.Utilities
         {
             Console.WriteLine("Pushing changes to server...");
             Trace.WriteLine("Pushing changes to server...");
+            Console.WriteLine($"dataState.Tasks count: {_dataState.Tasks.Count}");
             //int numRowsInserted = 0;
             //int numRowsDeleted = 0;
             //int numRowsUpdated = 0;
@@ -150,6 +151,7 @@ namespace TaskFocusUI.Library.Utilities
             //_dataState.ChangedUserSettingsData.Clear();
 
             // TASK DATA
+            Console.WriteLine($"changedTaskData count: {_dataState.ChangedTaskData.Count}");
             foreach (var clientTask in _dataState.ChangedTaskData)
             {
                 DataSyncResult clientTaskResult = await PushSyncableData(clientTask);
@@ -177,11 +179,15 @@ namespace TaskFocusUI.Library.Utilities
 
             Trace.WriteLine("Push complete.");
             Console.WriteLine("Push complete.");
+            Console.WriteLine($"dataState.Tasks count: {_dataState.Tasks.Count}");
             return pushResult;
         }
 
         private async Task<DataSyncResult> PushSyncableData(ISyncableData data)
         {
+            Console.WriteLine($"PushSyncableData() start");
+            Console.WriteLine($"dataState.Tasks count: {_dataState.Tasks.Count}");
+
             DataSyncResult result = new();
 
             if (data.Id == null && data.Deleted.HasValue)
@@ -202,13 +208,18 @@ namespace TaskFocusUI.Library.Utilities
                 {
                     case ESyncableDataType.Task:
 
-                        await _taskEndpoint.AddTask(_mapper.Map<TaskModel>((TaskDisplayModel)data), _dataState.CurrentUser!.Id);
+                        TaskModel insertedTask = await _taskEndpoint.AddTask(_mapper.Map<TaskModel>((TaskDisplayModel)data), _dataState.CurrentUser!.Id);
+                        Console.WriteLine($"inserted task with new server-made id: {insertedTask.Id}");
 
                         _pushedTaskData.Add(_mapper.Map<TaskModel>((TaskDisplayModel)data));
-                        data.TempLocalId = null;
 
                         int index = _dataState.Tasks!.FindIndex(x => x.TempLocalId == data.TempLocalId);
-                        if (index != -1) { _dataState.Tasks[index] = (TaskDisplayModel)data; }
+                        _dataState.Tasks![index].Id = insertedTask.Id; // update with new server-granted id
+                        _dataState.Tasks![index].TempLocalId = null; //
+
+                        //if (index != -1) { _dataState.Tasks[index] = (TaskDisplayModel)data; }
+                        //Console.WriteLine($"removing local pre-push version of {_dataState.Tasks![index].TaskName}");
+                        //_dataState.Tasks!.RemoveAt(index); // remove local version, to be replaced shortly by pulled one with an Id given by server
 
                         break;
 
@@ -295,6 +306,9 @@ namespace TaskFocusUI.Library.Utilities
         private async Task<DataSyncResult> PullSync()
         {
             Console.WriteLine("Pulling changes from server...");
+            Console.WriteLine($"PullSync() start");
+            Console.WriteLine($"dataState.Tasks count: {_dataState.Tasks.Count}");
+            Console.WriteLine($"dataState.Tasks count: {_dataState.Tasks.Count}");
             DataSyncResult pullResult = new();
 
             // USER DATA
@@ -340,9 +354,12 @@ namespace TaskFocusUI.Library.Utilities
             var changedRemoteTaskRows = serverTasks.Where(
                 x => x.ServerLastUpdated >= _dataState.LastSync).ToList();
 
+            Console.WriteLine($"changedRemoteTaskRows count: {changedRemoteTaskRows.Count}");
+
             // handle local inserts/updates (originating from another client)
             foreach (var serverTask in changedRemoteTaskRows)
             {
+                Console.WriteLine($"PullSync found changedRemoteTaskRow: {serverTask.TaskName}");
                 DataSyncResult serverTaskResult = PullSyncableData(_mapper.Map<TaskDisplayModel>(serverTask));
                 tasksPullResult = _dataHelper.CombineSyncResults(tasksPullResult, serverTaskResult);
             }
@@ -374,13 +391,15 @@ namespace TaskFocusUI.Library.Utilities
 
             Console.WriteLine("Pull complete.");
             Trace.WriteLine("Pull complete.");
-            //return [numRowsInserted, numRowsDeleted, numRowsUpdated];
+            Console.WriteLine($"dataState.Tasks count: {_dataState.Tasks.Count}");
             return pullResult;
         }
 
         // handles local insert/deletes based on remote data row
         private DataSyncResult PullSyncableData(ISyncableData data)
         {
+            Console.WriteLine($"PullSyncableData() start");
+            Console.WriteLine($"dataState.Tasks count: {_dataState.Tasks.Count}");
             DataSyncResult result = new();
 
             switch (data.DataType)
@@ -398,6 +417,7 @@ namespace TaskFocusUI.Library.Utilities
                     if (clientTask == null) // insert
                     {
                         _dataState.Tasks!.Add(displayServerTask.Clone());
+                        Console.WriteLine($"added local task on PullSyncableData: {displayServerTask.TaskName}");
                         result.numRowsInserted++;
                     }
                     else // update
@@ -425,6 +445,8 @@ namespace TaskFocusUI.Library.Utilities
         // handles local deletions based on remote data type
         private async Task<DataSyncResult> PullServerDataDeletions(ESyncableDataType dataType)
         {
+            Console.WriteLine($"PullServerDataDeletions() start");
+            Console.WriteLine($"dataState.Tasks count: {_dataState.Tasks.Count}");
             DataSyncResult pullDeletionsResult = new();
 
             switch (dataType)
@@ -438,6 +460,8 @@ namespace TaskFocusUI.Library.Utilities
                         TaskModel? serverTask = serverTasks.Find(x => x.Id == clientDisplayTask.Id);
                         if (serverTask == null) // not found on server? delete locally
                         {
+                            Console.WriteLine($"PullServerDataDeletions found local row deleted on server: {clientDisplayTask.TaskName}");
+                            _dataService.HandleIndexShiftsOnTaskDeletion(_mapper.Map<TaskModel>(clientDisplayTask));
                             _dataState.Tasks!.Remove(clientDisplayTask);
                             pullDeletionsResult.numRowsDeleted++;
                         }

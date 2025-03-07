@@ -54,12 +54,13 @@ namespace TaskFocusAPI.Library.DataAccess
             return allContextTasks;
         }
 
-        public void AddTask(TaskModel newTask, string userId)
+        public TaskModel AddTask(TaskModel newTask, string userId)
         {
             newTask.UserId = userId;
             if (newTask.Completed) { newTask.DateCompleted = DateTime.Now; }
 
-            _sqlDataAccess.SaveData("dbo.spTask_Insert", newTask, "TaskFocusData");
+            var insertedRow = _sqlDataAccess.SaveDataAndLoadInsertedRow("dbo.spTask_Insert", newTask, "TaskFocusData");
+            return insertedRow.FirstOrDefault();
         }
 
         public void DeleteTask(TaskModel taskToDelete)

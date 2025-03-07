@@ -22,5 +22,6 @@ BEGIN
 	SET NOCOUNT ON;
 
 	INSERT INTO dbo.Task(UserId, TaskName, Completed, DateCompleted, ContextId, ProjectId, DueDate, InboxIndex, ProjectIndex, ContextIndex, Starred, TodayIndex, CleanedUp, ClientLastUpdated, ServerLastUpdated)
+	OUTPUT inserted.*
 	VALUES(@UserId, @TaskName, cast(@Completed as bit), @DateCompleted, @ContextId, @ProjectId, @DueDate, @InboxIndex, @ProjectIndex, @ContextIndex, @Starred, @TodayIndex, @CleanedUp, @ClientLastUpdated, @ServerLastUpdated);
 END

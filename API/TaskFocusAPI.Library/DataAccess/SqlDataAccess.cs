@@ -47,6 +47,15 @@ namespace TaskFocusAPI.Library.DataAccess
             }
         }
 
+        public List<T> SaveDataAndLoadInsertedRow<T>(string storedProcedure, T parameters, string connectionStringName)
+        {
+            using (IDbConnection connection = new SqlConnection(GetConnectionString(connectionStringName)))
+            {
+                List<T> rows = connection.Query<T>(storedProcedure, parameters, commandType: CommandType.StoredProcedure).ToList();
+                return rows;
+            }
+        }
+
         public void StartTransaction(string connectionStringName)
         {
             _connection = new SqlConnection(GetConnectionString(connectionStringName));

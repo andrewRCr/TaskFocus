@@ -34,6 +34,7 @@ namespace TaskFocusUI.Library.Utilities
         Task RequestUpdateEmail(UserModel user);
         Task<bool> CheckUserExists(UserModel user);
         Task UpdatePassword(CreateUserModel updatedUserModel);
+        void HandleIndexShiftsOnTaskDeletion(TaskModel task);
         //Task SyncClientServerData();
     }
 }

@@ -112,7 +112,7 @@ namespace TaskFocusDesktop.Views.Components
             {
                 List<Type> typesToIgnore = new() {
                     typeof(CheckBox), typeof(TextBox), typeof(TextBlock), typeof(PackIcon), typeof(DatePicker), typeof(ComboBox), 
-                    typeof(Button), typeof(ToggleButton), typeof(Border), typeof(Path), typeof(CustomControls.CircularButton), 
+                    typeof(Button), typeof(ToggleButton), typeof(CustomControls.CircularButton), 
                     typeof(CustomControls.CheckBoxButton), typeof(CustomControls.TaskCollectionComboBox), typeof(DatePickerTextBox) };
                 string textBoxViewStr = "System.Windows.Controls.TextBoxView"; // internal WPF component; no public API
 

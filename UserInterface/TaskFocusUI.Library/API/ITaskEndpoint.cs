@@ -8,7 +8,7 @@ namespace TaskFocusUI.Library.API
     {
         Task<List<TaskModel>> GetAllTasksForUser();
         Task<List<TaskModel>> GetInboxTasksForUser();
-        Task AddTask(TaskModel task, string userId);
+        Task<TaskModel> AddTask(TaskModel task, string userId);
         Task DeleteTask(TaskModel task);
         Task UpdateTask(TaskModel task);
         Task<TaskModel> GetTaskById(int taskId);
