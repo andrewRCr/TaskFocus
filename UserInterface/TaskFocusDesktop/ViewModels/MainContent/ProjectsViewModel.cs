@@ -132,7 +132,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
                 else
                 {
                     List<TaskDisplayModel> tasksToUpdate = FocusedProjectTasks!.ToList();
-                    await _dataService.UpdateCollectionOrderingIndices(tasksToUpdate);
+                    await _dataService.UpdateTaskViewOrderingIndices(tasksToUpdate);
                 }
             }
             else { await _dataService.UpdateTaskData(senderTask); }

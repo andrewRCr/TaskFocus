@@ -319,6 +319,7 @@ Style="background-color: #27272f">
 
         if (TaskParam.DueDate != null)
         {
+            Console.WriteLine("breakpoint hit");
             DateTime dueDateValue = (DateTime)TaskParam.DueDate;
             if (dueDateValue == DateTime.Now.Date) // green if due today
             {
@@ -480,6 +481,7 @@ Style="background-color: #27272f">
             return false;
         }
 
+        Console.WriteLine("HandleDataState breakpoint hit");
         UpdateParametersFromDataState();
         return true;
     }

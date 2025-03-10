@@ -90,9 +90,11 @@ namespace TaskFocusUI.Library
         public List<UserModel> ChangedUserData { get; set; } = new();
         public List<UserSettingsModel> ChangedUserSettingsData { get; set; } = new();
         public List<TaskDisplayModel> ChangedTaskData { get; set; } = new();
-        public List<ProjectModel> ChangedProjectData { get; set; } = new();
-        public List<ContextModel> ChangedContextData { get; set; } = new();
+        public List<ProjectDisplayModel> ChangedProjectData { get; set; } = new();
+        public List<ContextDisplayModel> ChangedContextData { get; set; } = new();
 
         public int TempTaskId { get; set; } = 0;
+        public int TempProjectId { get; set; } = 0;
+        public int TempContextId { get; set; } = 0;
     }
 }

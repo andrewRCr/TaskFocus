@@ -3,25 +3,25 @@
 @if (ContainerTaskItemsParam.Count > 0)
 {
     <MudDropContainer @ref=_container
-                      T="TaskDisplayModel"
-                      Items="@ContainerTaskItemsParam"
-                      ItemsSelector="@ContainerItemsSelectorParam"
-                      ItemPicked="()=>SetCanRefresh(false)"
-                      ItemDropped="OnItemDropped">
+    T="TaskDisplayModel"
+    Items="@ContainerTaskItemsParam"
+    ItemsSelector="@ContainerItemsSelectorParam"
+    ItemPicked="()=>SetCanRefresh(false)"
+    ItemDropped="OnItemDropped">
 
         <ChildContent>
             <MudDropZone T="TaskDisplayModel"
-                         Identifier="@ContainerIdentifierParam"
-                         AllowReorder="@CanReorderParam"
-                         ItemIsDisabled="(task)=>IsDraggingDisabled(task)"
-                         Class="rounded mud-background-gray px-2 py-1 ma-2" />
+            Identifier="@ContainerIdentifierParam"
+            AllowReorder="@CanReorderParam"
+            ItemIsDisabled="(task)=>IsDraggingDisabled(task)"
+            Class="rounded mud-background-gray px-2 py-1 ma-2" />
         </ChildContent>
 
         <ItemRenderer>
             <MudPaper Elevation="25" Class="pa-0 my-2">
                 <TaskItemComponent TaskParam="@context"
-                                   ProjectsParam="@ContainerProjectsParam"
-                                   ContextsParam="@ContainerContextsParam" />
+                ProjectsParam="@ContainerProjectsParam"
+                ContextsParam="@ContainerContextsParam" />
             </MudPaper>
         </ItemRenderer>
 
@@ -65,9 +65,11 @@ else
 
     protected override void CustomAuthenticatedOnInit()
     {
+        Console.WriteLine("hit outside breakpoint");
         if (CanReorderParam)
         {
             _orderingIndex = ContainerOrderingTypeParam + "Index";
+            Console.WriteLine("hit inside breakpoint");
             ContainerTaskItemsParam = ContainerTaskItemsParam.OrderBy(x => x[_orderingIndex]).ToList();
         }
     }
@@ -92,6 +94,7 @@ else
 
     private void UpdateLocalOrder(MudItemDropInfo<TaskDisplayModel> reorderedDropItem)
     {
+        Console.WriteLine($"{reorderedDropItem.Item.TodayIndex}");
         int oldIndex = (int)reorderedDropItem.Item![_orderingIndex]!;
         var newIndex = reorderedDropItem.IndexInZone;
 

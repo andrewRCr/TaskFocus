@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using TaskFocusUI.Library.Models;
@@ -51,7 +52,8 @@ namespace TaskFocusUI.Library.Utilities
 
             if (displayTask.Id == null && displayTask.TempLocalId != null)
             {
-                TaskDisplayModel unpushedTask = _dataState.ChangedTaskData.Find(x => x.TempLocalId == displayTask.TempLocalId)!;
+                TaskDisplayModel unpushedTask = _dataState.ChangedTaskData.Find(
+                    x => x.TempLocalId == displayTask.TempLocalId)!;
                 compareAgainstTask = _mapper.Map<TaskModel>(unpushedTask);
             }
             else
@@ -92,37 +94,68 @@ namespace TaskFocusUI.Library.Utilities
             return false;
         }
 
-        public bool HasProjectDataChanged(ProjectModel frontEndProject)
+        public bool HasProjectDataChanged(ProjectDisplayModel displayProject)
         {
-            ProjectModel projectLastFetch = ProjectsLastFetch.Find(x => x.Id == frontEndProject.Id);
+            ProjectModel compareAgainstProject;
 
-            bool IsDataEqual(ProjectModel projectA, ProjectModel projectB)
+            if (displayProject.Id == null && displayProject.TempLocalId != null)
             {
-                return JsonConvert.SerializeObject(projectA) == JsonConvert.SerializeObject(projectB);
+                ProjectDisplayModel unpushedProject = _dataState.ChangedProjectData!.Find(
+                    x => x.TempLocalId == displayProject.TempLocalId)!;
+                compareAgainstProject = _mapper.Map<ProjectModel>(unpushedProject);
+            }
+            else
+            {
+                ProjectModel projectLastFetch = ProjectsLastFetch!.Find(x => x.Id == displayProject.Id)!;
+                compareAgainstProject = projectLastFetch;
             }
 
-            return !IsDataEqual(frontEndProject, projectLastFetch);
+            static bool AreUserEditablePropertiesEqual(ProjectModel projectA, ProjectModel projectB)
+            {
+                return projectA.ProjectName == projectB.ProjectName &&
+                       projectA.OrderIndex == projectB.OrderIndex;
+            }
+
+            return !AreUserEditablePropertiesEqual(_mapper.Map<ProjectModel>(displayProject), compareAgainstProject);
         }
 
         public bool IsNewProjectNameUnique(string proposedProjectName)
         {
-            foreach (ProjectModel project in ProjectsLastFetch)
+            var unpushedProjects = _dataState.ChangedProjectData.Where(
+                x => x.Id == null && x.TempLocalId != null);
+
+            if (ProjectsLastFetch!.Count == 0 && !unpushedProjects.Any()) { return true; }
+
+            foreach (ProjectModel project in ProjectsLastFetch!)
             {
-                if (project.ProjectName.ToLower() == proposedProjectName.ToLower())
-                {
-                    return false;
-                }
+                if (project.ProjectName.ToLower() == proposedProjectName.ToLower()) { return false; }
+            }
+            foreach (ProjectDisplayModel project in unpushedProjects)
+            {
+                if (project.ProjectName.ToLower() == proposedProjectName.ToLower()) { return false; }
             }
 
             return true;
         }
 
-        public bool IsUpdatedProjectNameUnique(ProjectModel updatedFrontEndProject)
+        public bool IsUpdatedProjectNameUnique(ProjectDisplayModel updatedDisplayProject)
         {
-            foreach (ProjectModel project in ProjectsLastFetch)
+            var unpushedProjects = _dataState.ChangedProjectData.Where(
+    x => x.Id == null && x.TempLocalId != null);
+
+            foreach (ProjectModel project in ProjectsLastFetch!)
             {
-                if (project.Id == updatedFrontEndProject.Id) { continue; }
-                if (project.ProjectName.ToLower() == updatedFrontEndProject.ProjectName.ToLower())
+                if (project.Id == updatedDisplayProject.Id) { continue; }
+                if (project.ProjectName.ToLower() == updatedDisplayProject.ProjectName.ToLower())
+                {
+                    return false;
+                }
+            }
+
+            foreach (ProjectDisplayModel project in unpushedProjects)
+            {
+                if (project.TempLocalId == updatedDisplayProject.TempLocalId) { continue; }
+                if (project.ProjectName.ToLower() == updatedDisplayProject.ProjectName.ToLower())
                 {
                     return false;
                 }

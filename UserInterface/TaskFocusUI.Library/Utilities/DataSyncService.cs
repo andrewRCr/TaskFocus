@@ -161,9 +161,14 @@ namespace TaskFocusUI.Library.Utilities
             _dataState.TempTaskId = 0;
 
             // PROJECT DATA
-            //foreach (var row in _dataState.ChangedProjectData)
-            //    await _projectEndpoint.UpdateProject(row);
-            //_dataState.ChangedProjectData.Clear();
+            Console.WriteLine($"changedProjectData count: {_dataState.ChangedProjectData.Count}");
+            foreach (var clientProject in _dataState.ChangedProjectData)
+            {
+                DataSyncResult clientProjectResult = await PushSyncableData(clientProject);
+                pushResult = _dataHelper.CombineSyncResults(pushResult, clientProjectResult);
+            }
+            _dataState.ChangedProjectData.Clear();
+            _dataState.TempProjectId = 0;
 
             // CONTEXT DATA
             //foreach (var row in _dataState.ChangedContextData)
@@ -173,20 +178,20 @@ namespace TaskFocusUI.Library.Utilities
 
             if (!_dataHelper.SyncChangesDetected(pushResult))
             {
-                Trace.WriteLine("clientTask - no changes detected on push.");
-                Console.WriteLine("clientTask - no changes detected on push.");
+                Trace.WriteLine("no changes detected on push.");
+                Console.WriteLine("no changes detected on push.");
             }
 
             Trace.WriteLine("Push complete.");
             Console.WriteLine("Push complete.");
-            Console.WriteLine($"dataState.Tasks count: {_dataState.Tasks.Count}");
+            //Console.WriteLine($"dataState.Tasks count: {_dataState.Tasks.Count}");
             return pushResult;
         }
 
         private async Task<DataSyncResult> PushSyncableData(ISyncableData data)
         {
             Console.WriteLine($"PushSyncableData() start");
-            Console.WriteLine($"dataState.Tasks count: {_dataState.Tasks.Count}");
+           // Console.WriteLine($"dataState.Tasks count: {_dataState.Tasks.Count}");
 
             DataSyncResult result = new();
 
@@ -196,8 +201,8 @@ namespace TaskFocusUI.Library.Utilities
                 return result;
             }
 
-            Trace.WriteLine("clientTask - changes detected on push!");
-            Console.WriteLine("clientTask - changes detected on push!");
+            Trace.WriteLine("changes detected on push!");
+            Console.WriteLine("changes detected on push!");
 
             if (data.Id == null) // doesn't exist on server; insert
             {
@@ -213,9 +218,9 @@ namespace TaskFocusUI.Library.Utilities
 
                         _pushedTaskData.Add(_mapper.Map<TaskModel>((TaskDisplayModel)data));
 
-                        int index = _dataState.Tasks!.FindIndex(x => x.TempLocalId == data.TempLocalId);
-                        _dataState.Tasks![index].Id = insertedTask.Id; // update with new server-granted id
-                        _dataState.Tasks![index].TempLocalId = null; //
+                        int taskIndex = _dataState.Tasks!.FindIndex(x => x.TempLocalId == data.TempLocalId);
+                        _dataState.Tasks![taskIndex].Id = insertedTask.Id; // update with new server-granted id
+                        _dataState.Tasks![taskIndex].TempLocalId = null; //
 
                         //if (index != -1) { _dataState.Tasks[index] = (TaskDisplayModel)data; }
                         //Console.WriteLine($"removing local pre-push version of {_dataState.Tasks![index].TaskName}");
@@ -224,7 +229,18 @@ namespace TaskFocusUI.Library.Utilities
                         break;
 
                     case ESyncableDataType.Project:
+
+                        ProjectModel insertedProject = await _projectEndpoint.AddProject(_mapper.Map<ProjectModel>((ProjectDisplayModel)data), _dataState.CurrentUser!.Id);
+                        Console.WriteLine($"inserted project with new server-made id: {insertedProject.Id}");
+
+                        _pushedProjectData.Add(_mapper.Map<ProjectModel>((ProjectDisplayModel)data));
+
+                        int projectIndex = _dataState.Projects!.FindIndex(x => x.TempLocalId == data.TempLocalId);
+                        _dataState.Projects![projectIndex].Id = insertedProject.Id; // update with new server-granted id
+                        _dataState.Projects![projectIndex].TempLocalId = null; //
+
                         break;
+
                     case ESyncableDataType.Context:
                         break;
                     case ESyncableDataType.Settings:
@@ -245,7 +261,12 @@ namespace TaskFocusUI.Library.Utilities
                         break;
 
                     case ESyncableDataType.Project:
+
+                        ProjectModel serverProject = await _projectEndpoint.GetProjectById((int)data.Id);
+                        await _projectEndpoint.DeleteProject(serverProject);
+                        
                         break;
+
                     case ESyncableDataType.Context:
                         break;
                     case ESyncableDataType.Settings:
@@ -289,7 +310,35 @@ namespace TaskFocusUI.Library.Utilities
                         break;
 
                     case ESyncableDataType.Project:
+
+                        ProjectModel serverProject = await _projectEndpoint.GetProjectById((int)data.Id);
+                        if (serverProject.ClientLastUpdated > data.ServerLastUpdated)
+                        {
+                            // conflict - server data is newer than client
+                            // server wins; ignore changes and just update time
+                            serverProject.ServerLastUpdated = DateTimeOffset.Now;
+                            serverProject.ClientLastUpdated = data.ServerLastUpdated;
+                            await _projectEndpoint.UpdateProject(serverProject);
+
+                            Console.WriteLine("Push conflict detected! Local changes ignored; only time updated");
+                            Trace.WriteLine("Push conflict detected! Local changes ignored; only time updated");
+                        }
+                        else // client data is newer than server
+                        {
+                            Console.WriteLine($"clientTask.ServerLastUpdated: {data.ServerLastUpdated}, clientTask.ClientLastUpdated: {data.ClientLastUpdated}");
+                            Trace.WriteLine($"clientTask.ServerLastUpdated: {data.ServerLastUpdated}, clientTask.ClientLastUpdated: {data.ClientLastUpdated}");
+
+                            data.ServerLastUpdated = DateTimeOffset.Now;
+                            await _projectEndpoint.UpdateProject(_mapper.Map<ProjectModel>(data));
+
+                            _pushedProjectData.Add(_mapper.Map<ProjectModel>((ProjectDisplayModel)data));
+                            int index = _dataState.Projects!.FindIndex(x => x.Id == data.Id);
+                            if (index != -1) { _dataState.Projects[index] = (ProjectDisplayModel)data; }
+
+                            result.numRowsUpdated++;
+                        }
                         break;
+
                     case ESyncableDataType.Context:
                         break;
                     case ESyncableDataType.Settings:
@@ -307,8 +356,8 @@ namespace TaskFocusUI.Library.Utilities
         {
             Console.WriteLine("Pulling changes from server...");
             Console.WriteLine($"PullSync() start");
-            Console.WriteLine($"dataState.Tasks count: {_dataState.Tasks.Count}");
-            Console.WriteLine($"dataState.Tasks count: {_dataState.Tasks.Count}");
+            //Console.WriteLine($"dataState.Tasks count: {_dataState.Tasks.Count}");
+            //Console.WriteLine($"dataState.Tasks count: {_dataState.Tasks.Count}");
             DataSyncResult pullResult = new();
 
             // USER DATA
@@ -386,12 +435,47 @@ namespace TaskFocusUI.Library.Utilities
             }
 
             // PROJECT DATA
+            DataSyncResult projectsPullResult = new();
+            List<ProjectModel> serverProjects = await _projectEndpoint.GetAllProjectsForUser();
+            var changedRemoteProjectRows = serverProjects.Where(
+                x => x.ServerLastUpdated >= _dataState.LastSync).ToList();
+
+            Console.WriteLine($"changedRemoteProjectRows count: {changedRemoteProjectRows.Count}");
+
+            // handle local inserts/updates (originating from another client)
+            foreach (var serverProject in changedRemoteProjectRows)
+            {
+                Console.WriteLine($"PullSync found changedRemoteProjectRow: {serverProject.ProjectName}");
+                DataSyncResult serverProjectResult = PullSyncableData(_mapper.Map<ProjectDisplayModel>(serverProject));
+                projectsPullResult = _dataHelper.CombineSyncResults(projectsPullResult, serverProjectResult);
+            }
+
+            // handle local deletions (originating from another client)
+            DataSyncResult projectDeletionResult = await PullServerDataDeletions(ESyncableDataType.Project);
+            projectsPullResult = _dataHelper.CombineSyncResults(projectsPullResult, projectDeletionResult);
+
+            if (changedRemoteProjectRows.Count == 0 && projectsPullResult.numRowsDeleted == 0)
+            {
+                Trace.WriteLine("projects - no changes detected on pull.");
+                Console.WriteLine("projects - no changes detected on pull.");
+            }
+
+            // store copy for comparison + cleanup temp push history
+            _dataHelper.ProjectsLastFetch = serverProjects;
+            _pushedProjectData.Clear();
+
+            // trigger UI update if needed + add to total pull result
+            if (_dataHelper.SyncChangesDetected(projectsPullResult))
+            {
+                _dataState.InvokeDataStateChanged("Projects");
+                pullResult = _dataHelper.CombineSyncResults(pullResult, projectsPullResult);
+            }
 
             // CONTEXT DATA
 
             Console.WriteLine("Pull complete.");
             Trace.WriteLine("Pull complete.");
-            Console.WriteLine($"dataState.Tasks count: {_dataState.Tasks.Count}");
+            //Console.WriteLine($"dataState.Tasks count: {_dataState.Tasks.Count}");
             return pullResult;
         }
 
@@ -399,7 +483,7 @@ namespace TaskFocusUI.Library.Utilities
         private DataSyncResult PullSyncableData(ISyncableData data)
         {
             Console.WriteLine($"PullSyncableData() start");
-            Console.WriteLine($"dataState.Tasks count: {_dataState.Tasks.Count}");
+            //Console.WriteLine($"dataState.Tasks count: {_dataState.Tasks.Count}");
             DataSyncResult result = new();
 
             switch (data.DataType)
@@ -430,7 +514,29 @@ namespace TaskFocusUI.Library.Utilities
                     break;
 
                 case ESyncableDataType.Project:
+
+                    // do not pull if we just pushed the change
+                    var pushedServerProject = _pushedProjectData.Where(x => x.Id == data.Id);
+                    if (pushedServerProject.Any()) { return result; }
+
+                    ProjectDisplayModel displayServerProject = (ProjectDisplayModel)data;
+                    ProjectDisplayModel? clientProject = _dataState.Projects!.Where(
+                        x => x.Id == displayServerProject.Id).FirstOrDefault();
+
+                    if (clientProject == null) // insert
+                    {
+                        _dataState.Projects!.Add(displayServerProject.Clone());
+                        Console.WriteLine($"added local project on PullSyncableData: {displayServerProject.ProjectName}");
+                        result.numRowsInserted++;
+                    }
+                    else // update
+                    {
+                        int i = _dataState.Projects!.IndexOf(clientProject);
+                        _dataState.Projects![i] = displayServerProject;
+                        result.numRowsUpdated++;
+                    }
                     break;
+
                 case ESyncableDataType.Context:
                     break;
                 case ESyncableDataType.Settings:
@@ -446,7 +552,7 @@ namespace TaskFocusUI.Library.Utilities
         private async Task<DataSyncResult> PullServerDataDeletions(ESyncableDataType dataType)
         {
             Console.WriteLine($"PullServerDataDeletions() start");
-            Console.WriteLine($"dataState.Tasks count: {_dataState.Tasks.Count}");
+            //Console.WriteLine($"dataState.Tasks count: {_dataState.Tasks.Count}");
             DataSyncResult pullDeletionsResult = new();
 
             switch (dataType)
@@ -470,7 +576,24 @@ namespace TaskFocusUI.Library.Utilities
                     break;
 
                 case ESyncableDataType.Project:
+
+                    List<ProjectModel> serverProjects = await _projectEndpoint.GetAllProjectsForUser();
+
+                    foreach (var clientDisplayProject in _dataState.Projects!.ToList())
+                    {
+                        ProjectModel? serverProject = serverProjects.Find(x => x.Id == clientDisplayProject.Id);
+                        if (serverProject == null) // not found on server? delete locally
+                        {
+                            Console.WriteLine($"PullServerDataDeletions found local row deleted on server: {clientDisplayProject.ProjectName}");
+                            // ensure other projects have updated OrderIndex values
+                            _dataService.ShiftCollectionOrderIndices(clientDisplayProject, _dataState.Projects!);
+                            _dataState.Projects!.Remove(clientDisplayProject);
+                            pullDeletionsResult.numRowsDeleted++;
+                        }
+                    }
+
                     break;
+
                 case ESyncableDataType.Context:
                     break;
                 default:

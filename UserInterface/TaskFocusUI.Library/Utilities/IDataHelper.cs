@@ -16,14 +16,14 @@ namespace TaskFocusUI.Library.Utilities
         List<TaskDisplayModel>? FocusedContextTasks { get; set; }
 
         TaskDataCompareResult HasTaskDataChanged(TaskDisplayModel displayTask);
-        bool HasProjectDataChanged(ProjectModel frontEndProject);
-        bool HasContextDataChanged(ContextModel frontEndContext);
-        bool HasSettingsDataChanged(UserSettingsModel frontEndSettings);
+        bool HasProjectDataChanged(ProjectDisplayModel displayProject);
+        bool HasContextDataChanged(ContextModel displayContext);
+        bool HasSettingsDataChanged(UserSettingsModel displaySettings);
 
         bool IsTaskDueOrOverDue(TaskModel frontEndTask);
         bool IsNewProjectNameUnique(string proposedProjectName);
         bool IsNewContextNameUnique(string proposedContextName);
-        bool IsUpdatedProjectNameUnique(ProjectModel updatedFrontEndProject);
+        bool IsUpdatedProjectNameUnique(ProjectDisplayModel updatedDisplayProject);
         bool IsUpdatedContextNameUnique(ContextModel updatedFrontEndContext);
         DataSyncResult CombineSyncResults(DataSyncResult resultA, DataSyncResult resultB);
         bool SyncChangesDetected(DataSyncResult result);

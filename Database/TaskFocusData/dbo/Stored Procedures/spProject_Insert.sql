@@ -15,5 +15,6 @@ BEGIN
 	SET NOCOUNT ON;
 
 	INSERT INTO dbo.Project(UserId, ProjectName, ContextId, DueDate, Completed, DateCompleted, OrderIndex, ClientLastUpdated, ServerLastUpdated)
+	OUTPUT inserted.*
 	VALUES(@UserId, @ProjectName, @ContextId, @DueDate, cast(@Completed as bit), @DateCompleted, @OrderIndex, @ClientLastUpdated, @ServerLastUpdated);
 END

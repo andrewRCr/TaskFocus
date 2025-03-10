@@ -76,7 +76,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
                 else
                 {
                     List<TaskDisplayModel> tasksToUpdate = LocalTasks!.ToList();
-                    await _dataService.UpdateCollectionOrderingIndices(tasksToUpdate);               
+                    await _dataService.UpdateTaskViewOrderingIndices(tasksToUpdate);               
                 }
             }
             else { await _dataService.UpdateTaskData(senderTask); }

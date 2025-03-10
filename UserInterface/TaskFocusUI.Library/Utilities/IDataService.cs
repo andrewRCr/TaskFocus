@@ -6,35 +6,39 @@ namespace TaskFocusUI.Library.Utilities
 {
     public interface IDataService
     {
-        Task AddContext(ContextModel newContext);
-        Task AddProject(ProjectModel newProject);
-        Task HandleTaskContextChanged(TaskModel task);
-        Task HandleTaskProjectChanged(TaskModel task);
         Task FetchAllRemoteData();
         Task FetchRemoteUserData();
         Task FetchRemoteTaskData();
         Task FetchRemoteProjectData();
         Task FetchRemoteContextData();
-        Task UpdateContextData(ContextDisplayModel displayContext);
-        Task UpdateProjectData(ProjectDisplayModel displayProject);
-        Task UpdateTaskData(TaskDisplayModel displayTask, bool forceUpdate = false);
-        Task DeleteTask(TaskDisplayModel displayTask);
-        Task AddTask(TaskDisplayModel displayTask);
-        Task DeleteProject(ProjectDisplayModel displayProject);
-        Task DeleteContext(ContextDisplayModel displayContext);
-        Task UpdateSettingsData(UserSettingsDisplayModel displaySettings);
-        TaskModel MapToRawTask(TaskDisplayModel displayTask);
-        void ShiftTaskCollectionSourceIndices(TaskModel task, string indexType);
-        Task UpdateCollectionOrderingIndices(List<TaskDisplayModel> displayTasks);
         Task FetchRemoteProjectAndTasksById(int id);
         Task FetchRemoteContextAndTasksById(int id);
-        Task UpdateProjectsOrderingIndices(List<ProjectDisplayModel> displayProjects);
+
+        Task AddTask(TaskDisplayModel displayTask);
+        Task DeleteTask(TaskDisplayModel displayTask);
+        Task UpdateTaskData(TaskDisplayModel displayTask, bool forceUpdate = false);
+        void UpdateTaskViewOrderingIndices(List<TaskDisplayModel> displayTasks);
+        void ShiftTaskCollectionSourceIndices(TaskModel task, string indexType);
+        void HandleIndexShiftsOnTaskDeletion(TaskModel task);
+        Task HandleTaskProjectChanged(TaskModel task);
+        Task HandleTaskContextChanged(TaskModel task);
+
+        Task AddProject(ProjectModel newProject);
+        Task DeleteProject(ProjectDisplayModel displayProject);
+        Task UpdateProjectData(ProjectDisplayModel displayProject);
+        void UpdateProjectsOrderingIndices(List<ProjectDisplayModel> displayProjects);
+
+        Task AddContext(ContextModel newContext);
+        Task DeleteContext(ContextDisplayModel displayContext);
+        Task UpdateContextData(ContextDisplayModel displayContext);
         Task UpdateContextsOrderingIndices(List<ContextDisplayModel> displayContexts);
+
+        void ShiftCollectionOrderIndices<T>(T collectionDisplayModel, List<T> collectionSource) where T : ICollectionDisplayModel;
+
+        Task<bool> CheckUserExists(UserModel user);
         Task UpdateUserNameData(UserDisplayModel displayUserModel);
         Task RequestUpdateEmail(UserModel user);
-        Task<bool> CheckUserExists(UserModel user);
         Task UpdatePassword(CreateUserModel updatedUserModel);
-        void HandleIndexShiftsOnTaskDeletion(TaskModel task);
-        //Task SyncClientServerData();
+        Task UpdateSettingsData(UserSettingsDisplayModel displaySettings);
     }
 }

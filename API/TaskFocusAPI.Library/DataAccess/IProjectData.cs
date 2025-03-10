@@ -7,7 +7,7 @@ namespace TaskFocusAPI.Library.DataAccess
     {
         ProjectModel GetProjectById(int projectId);
         List<ProjectModel> GetAllProjectsForUser(string userId);
-        void AddProject(ProjectModel newProject, string userId);
+        ProjectModel AddProject(ProjectModel newProject, string userId);
         void DeleteProject(ProjectModel projectToDelete);
         void UpdateProjectData(ProjectModel frontEndProject);
     }

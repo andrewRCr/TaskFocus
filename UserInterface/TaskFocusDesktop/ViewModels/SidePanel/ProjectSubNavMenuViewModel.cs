@@ -133,7 +133,7 @@ namespace TaskFocusDesktop.ViewModels.SidePanel
                 else
                 {
                     List<ProjectDisplayModel> projectsToUpdate = LocalProjects!.ToList();
-                    await _dataService.UpdateProjectsOrderingIndices(projectsToUpdate);
+                    _dataService.UpdateProjectsOrderingIndices(projectsToUpdate);
                 }
             }
             else { await _dataService.UpdateProjectData(senderProject); }

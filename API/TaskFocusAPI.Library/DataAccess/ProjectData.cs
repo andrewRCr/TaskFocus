@@ -30,12 +30,13 @@ namespace TaskFocusAPI.Library.DataAccess
             return projects;
         }
 
-        public void AddProject(ProjectModel newProject, string userId)
+        public ProjectModel AddProject(ProjectModel newProject, string userId)
         {
             newProject.UserId = userId;
             if (newProject.Completed) { newProject.DateCompleted = DateTime.Now; }
 
-            _sqlDataAccess.SaveData("dbo.spProject_Insert", newProject, "TaskFocusData");
+            var insertedRow = _sqlDataAccess.SaveDataAndLoadInsertedRow("dbo.spProject_Insert", newProject, "TaskFocusData");
+            return insertedRow.FirstOrDefault();
         }
         public void UpdateProjectData(ProjectModel frontEndProject)
         {
