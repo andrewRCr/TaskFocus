@@ -12,9 +12,13 @@ using TaskFocusDesktop.Utilities;
 using TaskFocusDesktop.ViewModels;
 using TaskFocusUI.Library;
 using TaskFocusUI.Library.API;
+using TaskFocusUI.Library.Data.Services;
+using TaskFocusUI.Library.Data.State;
 using TaskFocusUI.Library.Logging;
 using TaskFocusUI.Library.Models;
-using TaskFocusUI.Library.Utilities;
+using TaskFocusUI.Library.Data.Services.Synchronization;
+using TaskFocusUI.Library.Data.Services.Access;
+using TaskFocusUI.Library.Data.Utilities;
 
 namespace TaskFocusDesktop
 {

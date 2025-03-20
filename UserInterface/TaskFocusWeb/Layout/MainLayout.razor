@@ -1,4 +1,7 @@
-﻿@inherits LayoutComponentBase
+﻿@using TaskFocusUI.Library.Data.Services
+@using TaskFocusUI.Library.Data.Services.Synchronization
+@using TaskFocusUI.Library.Data.State
+@inherits LayoutComponentBase
 @inject IDataSyncService DataSyncService
 
 <MudThemeProvider @bind-IsDarkMode="@_isDarkMode" Theme="_customTheme" />
@@ -164,7 +167,9 @@
     private async Task ManualDataSync()
     {
         _syncing = true;
+
         await DataSyncService.Sync();
+
         _syncing = false;
     }
 }

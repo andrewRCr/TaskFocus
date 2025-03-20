@@ -1,12 +1,14 @@
 ﻿@page "/register"
 
-@inherits _ComponentBase
+@inherits _ComponentStateAwareBase
 @inject IDataService DataService
 @inject IUserEndpoint UserEndpoint
 @inject IAuthenticationService AuthService
 @inject NavigationManager NavManager
-@using System.Text.RegularExpressions
 @using System.ComponentModel.DataAnnotations
+@using System.Text.RegularExpressions
+@using TaskFocusUI.Library.Data.Services
+@using TaskFocusUI.Library.Data.Services.Access
 
 @if (!string.IsNullOrWhiteSpace(errorMessage))
 {

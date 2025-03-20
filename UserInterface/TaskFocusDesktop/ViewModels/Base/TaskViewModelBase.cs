@@ -11,9 +11,10 @@ using System.Threading.Tasks;
 using System.Windows;
 using TaskFocusDesktop.Commands;
 using TaskFocusDesktop.EventModels;
-using TaskFocusUI.Library;
+using TaskFocusUI.Library.Data.State;
 using TaskFocusUI.Library.Models;
-using TaskFocusUI.Library.Utilities;
+using TaskFocusUI.Library.Data.Services.Access;
+using TaskFocusUI.Library.Data.Utilities;
 
 namespace TaskFocusDesktop.ViewModels.Base
 {
@@ -100,7 +101,7 @@ namespace TaskFocusDesktop.ViewModels.Base
         {
             if (SelectedTaskItem != null)
             {
-                await _dataService.DeleteTask(SelectedTaskItem);
+                _dataService.DeleteTask(SelectedTaskItem);
             }
         }
 
@@ -116,7 +117,7 @@ namespace TaskFocusDesktop.ViewModels.Base
         }
 
         protected List<string> dataRefreshTriggers = new List<string> {
-            nameof(IDataState.Tasks), nameof(IDataState.Projects), nameof(IDataState.Contexts) };
+            "Tasks", "Projects", "Contexts" };
 
         // to be defined in child components as needed
         protected virtual bool HandleDataStateChanged(string propertyName, IDataState dataState)
@@ -249,7 +250,7 @@ namespace TaskFocusDesktop.ViewModels.Base
                         int daysPassedSinceTaskCompletion = interval.Days;
 
                         // check if should delete
-                        int deleteIntervalSetting = _dataState.UserSettings.DeleteDelayDays;
+                        int deleteIntervalSetting = _dataState.UserSettings!.DeleteDelayDays;
                         if (daysPassedSinceTaskCompletion > deleteIntervalSetting)
                         {
                             Task.Run(() => _dataService.DeleteTask(task).Wait());

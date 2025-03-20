@@ -1,8 +1,9 @@
 ﻿@page "/"
-@inherits _ComponentBase
+@inherits _ComponentStateAwareBase
 @inject NavigationManager NavManager
 @inject IUserEndpoint UserEndpoint
 @using System.ComponentModel.DataAnnotations
+@using TaskFocusUI.Library.Data.State
 
 <PageTitle>TaskFocus</PageTitle>
 

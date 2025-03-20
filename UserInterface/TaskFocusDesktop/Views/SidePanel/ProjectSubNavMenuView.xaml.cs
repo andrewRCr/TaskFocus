@@ -241,7 +241,7 @@ namespace TaskFocusDesktop.Views.SidePanel
                 int previousIndex = _previousLocalOrder[insertedProjectItem];
 
                 bool orderChanged = previousIndex != vm.LocalProjects!.IndexOf(insertedProjectItem);
-                if (orderChanged) { UpdateRemoteOrder(); }
+                if (orderChanged) { UpdateDataStateOrder(); }
             }
         }
 
@@ -272,7 +272,7 @@ namespace TaskFocusDesktop.Views.SidePanel
             _isPreviousLocalOrderStored = false;
         }
 
-        private void UpdateRemoteOrder()
+        private void UpdateDataStateOrder()
         {
             var vm = (ProjectSubNavMenuViewModel)subNavMenuListBox.DataContext;
             vm.CanUpdateOrderingIndices = false;
@@ -285,7 +285,7 @@ namespace TaskFocusDesktop.Views.SidePanel
                     vm.CanUpdateOrderingIndices = true;
                 }
 
-                // will trigger a DataService.UpdateProjectsOrderingIndices call
+                // will trigger a local update with new index
                 item[_orderingIndex] = vm.LocalProjects.IndexOf(item);
                 Debug.WriteLine($"{item.ProjectName} OrderIndex: {item[_orderingIndex]}");
 

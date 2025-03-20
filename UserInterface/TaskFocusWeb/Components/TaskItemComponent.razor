@@ -1,6 +1,9 @@
 ﻿@using MudBlazor.Extensions.Options
 @using MudBlazor.Services
-@inherits _ComponentBase
+@using TaskFocusUI.Library.Data.Services
+@using TaskFocusUI.Library.Data.Services.Access
+@using TaskFocusUI.Library.Data.State
+@inherits _ComponentStateAwareBase
 @implements IBrowserViewportObserver
 @implements IAsyncDisposable
 
@@ -72,7 +75,7 @@
                 Strict="false"
                 CoerceText="true"
                 SelectOnClick="true"
-                SelectValueOnTab="true"
+                SelectValueOnTab="true"            
                 Style="@_inputStyleStr"
                 Disabled="TaskParam.Completed"
                 OnClearButtonClick="()=>FocusSelectInputAfterClear(_projectSelectInput)">
@@ -134,14 +137,13 @@
 
                 <div style="position: relative;" >
 
-                    <MudDatePicker @ref="_datePicker" 
-                    @onfocusin="()=> _datePickerHasFocus = true"
+                    <MudDatePicker @ref="_datePicker"                  
                     @bind-Date="TaskParam.DueDate"
                     OnClick="()=> _datePicker.SelectAsync()" 
                     Placeholder="Due"
                     Margin="Margin.Dense" 
                     DisableToolbar="true"
-                    Editable="true"
+                    Editable="false"
                     AutoClose="false"
                     Disabled="TaskParam.Completed" 
                     Style="@_dateStyleStr"
@@ -242,7 +244,6 @@ Style="background-color: #27272f">
     private string _dateTextStr = string.Empty;
     private string _dateTextStyleStr = string.Empty;
     private bool _dateTextHidden = true;
-    private bool _datePickerHasFocus = false;
     private string _dateStyleStr = string.Empty;
     private string _inputStyleStr = string.Empty;
 
@@ -275,7 +276,7 @@ Style="background-color: #27272f">
     {
         await VerifyAuthAndRedirectIfExpired();
 
-        await DataService.DeleteTask(TaskParam);
+        DataService.DeleteTask(TaskParam);
         Snackbar.Add("Task deleted.", Severity.Success);
         _deleteDialogVisible = false;
         AppState.DialogProvider.DismissAll();
@@ -304,8 +305,7 @@ Style="background-color: #27272f">
 
     private void ShowDateText()
     {
-        if (_datePickerHasFocus) { return; }
-        _dateTextHidden = TaskParam.DueDate == null;     
+        _dateTextHidden = TaskParam.DueDate == null;   
         _dateStyleStr = _dateTextHidden ? string.Empty : "color: transparent;";
     }
 
@@ -319,7 +319,6 @@ Style="background-color: #27272f">
 
         if (TaskParam.DueDate != null)
         {
-            Console.WriteLine("breakpoint hit");
             DateTime dueDateValue = (DateTime)TaskParam.DueDate;
             if (dueDateValue == DateTime.Now.Date) // green if due today
             {
@@ -342,7 +341,8 @@ Style="background-color: #27272f">
                 _dateStyleStr = _dateTextStyleStr = dueDateValue < DateTime.Now.Date ? "color: #f64e62;" : string.Empty;
             }
 
-            ShowDateText();
+            _dateTextHidden = TaskParam.DueDate == null;
+            _dateStyleStr = _dateTextHidden ? string.Empty : "color: transparent;";
         }
         else { HideDateText(); }
     }
@@ -372,15 +372,15 @@ Style="background-color: #27272f">
     {
         if (DataState.IsDataLoaded())
         {
-            TaskDisplayModel? stateTask = DataState.Tasks!.Find(x => x.Id == TaskParam.Id);
+            TaskDisplayModel? stateTask = DataService.GetDataStateTasks()!.Find(x => x.Id == TaskParam.Id);
             if (stateTask != null)
             {
                 TaskParam = stateTask;
             }
 
-            ProjectsParam = DataState.Projects!;
-            ContextsParam = DataState.Contexts!;
-            UpdateProjectContextSelectionLists();
+            ProjectsParam = DataService.GetDataStateProjects()!;
+            ContextsParam = DataService.GetDataStateContexts()!;
+            OnParametersSet();
         }
     }
 
@@ -406,7 +406,6 @@ Style="background-color: #27272f">
 
     private void DatePickerClose()
     {
-        _datePickerHasFocus = false;
         if (!_itemClicked) { _datePicker.Close(); }
         _itemClicked = false;
     }
@@ -481,7 +480,6 @@ Style="background-color: #27272f">
             return false;
         }
 
-        Console.WriteLine("HandleDataState breakpoint hit");
         UpdateParametersFromDataState();
         return true;
     }

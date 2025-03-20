@@ -1,4 +1,5 @@
-﻿@inherits _ComponentBase
+﻿@using TaskFocusUI.Library.Data.State
+@inherits _ComponentStateAwareBase
 
 @if (IsProjectsSubMenu)
 {
@@ -101,19 +102,20 @@ else
             {
                 ContainerCollectionParam.RemoveAt(oldIndex);
                 ContainerCollectionParam.Insert(newIndex, oldItem);
-                UpdateRemoteOrder(ContainerCollectionParam);
+                UpdateDataStateOrder(ContainerCollectionParam);
             }
         }
     }
 
-    private void UpdateRemoteOrder<T>(List<T> ContainerCollectionParam) where T : ICollectionDisplayModel
+    private void UpdateDataStateOrder<T>(List<T> ContainerCollectionParam) where T : ICollectionDisplayModel
     {
         AppState.CanRefresh = false;
 
-        foreach (var item in ContainerCollectionParam)
+        foreach (var item in ContainerCollectionParam.ToList())
         {
-            // will trigger an API UpdateProjectData/UpdateContextData call
-            item.OrderIndex = ContainerCollectionParam.IndexOf(item);
+            // will trigger a PropertyChanged -> UpdateProjectData/UpdateContextData call
+            bool changed = item.OrderIndex != ContainerCollectionParam.IndexOf(item);
+            if (changed) item.OrderIndex = ContainerCollectionParam.IndexOf(item);
         }
 
         AppState.CanRefresh = true;
@@ -121,8 +123,8 @@ else
 
     protected override bool HandleDataStateChanged(String propertyName, IDataState dataState)
     {
-        if (IsProjectsSubMenu && propertyName != nameof(dataState.Projects) || 
-            !IsProjectsSubMenu && propertyName != nameof(dataState.Contexts))
+        if (IsProjectsSubMenu && propertyName != "Projects" || 
+            !IsProjectsSubMenu && propertyName != "Contexts")
         {
             return false;
         }

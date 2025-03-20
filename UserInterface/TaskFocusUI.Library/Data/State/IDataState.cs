@@ -3,17 +3,20 @@ using System;
 using TaskFocusUI.Library.Models;
 using System.Collections.ObjectModel;
 
-namespace TaskFocusUI.Library
+namespace TaskFocusUI.Library.Data.State
 {
-    public delegate void DataStateChangedHandler(String propertyName, IDataState dataState);
+    public delegate void DataStateChangedHandler(string propertyName, IDataState dataState);
 
     public interface IDataState
     {
         UserDisplayModel? CurrentUser { get; set; }
         UserSettingsDisplayModel? UserSettings { get; set; }
-        List<TaskDisplayModel>? Tasks { get; set; }
-        List<ProjectDisplayModel>? Projects { get; set; }
-        List<ContextDisplayModel>? Contexts { get; set; }
+        //List<TaskDisplayModel>? Tasks { get; set; }
+        //List<TaskDisplayModel>? WorkingTasks { get; set; }
+        //List<ProjectDisplayModel>? Projects { get; set; }
+        //List<ProjectDisplayModel>? WorkingProjects { get; set; }
+        //List<ContextDisplayModel>? Contexts { get; set; }
+        //List<ContextDisplayModel>? WorkingContexts { get; set; }
 
         DateTimeOffset LastSync { get; set; }
         List<UserModel> ChangedUserData { get; set; }

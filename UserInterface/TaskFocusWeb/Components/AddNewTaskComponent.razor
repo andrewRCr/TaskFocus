@@ -1,4 +1,6 @@
-﻿@inherits _ComponentBase
+﻿@using TaskFocusUI.Library.Data.Services
+@using TaskFocusUI.Library.Data.Services.Access
+@inherits _ComponentStateAwareBase
 @inject IDataService DataService
 @inject ISnackbar Snackbar
 
@@ -176,8 +178,6 @@
     protected override void CustomAuthenticatedOnInit()
     {
         _newTask = new();
-        LoadLocalProjectData();
-        LoadLocalContextData();
         UpdateProjectContextSelectionLists();
         _focusedProjectIdStr = AppState.FocusedProjectIdStr;
         _focusedContextIdStr = AppState.FocusedContextIdStr;
@@ -205,10 +205,10 @@
 
     private void UpdateProjectContextSelectionLists()
     {
-        if (LocalProjects != null && LocalProjects.Count > 0)
+        if (DataService.GetDataStateProjects() != null && DataService.GetDataStateProjects()!.Count > 0)
         {
             List<string> projectParamNamesOnly = new();
-            foreach (ProjectDisplayModel project in LocalProjects!)
+            foreach (ProjectDisplayModel project in DataService.GetDataStateProjects()!)
             { projectParamNamesOnly.Add(project.ProjectName); }
 
             _projectNames = projectParamNamesOnly.ToArray();
@@ -216,10 +216,10 @@
         else
         { _isProjectInputDisabled = true; }
 
-        if (LocalContexts != null && LocalContexts.Count > 0)
+        if (DataService.GetDataStateContexts() != null && DataService.GetDataStateContexts()!.Count > 0)
         {
             List<string> contextParamNamesOnly = new();
-            foreach (ContextDisplayModel context in LocalContexts!)
+            foreach (ContextDisplayModel context in DataService.GetDataStateContexts()!)
             { contextParamNamesOnly.Add(context.ContextName); }
 
             _contextNames = contextParamNamesOnly.ToArray();
@@ -274,7 +274,7 @@
         bool isValid = int.TryParse(_focusedProjectIdStr, out integerProjectId);
         if (isValid)
         {
-            ProjectParam = DataState.Projects!.Find(x => x.Id == integerProjectId)!;
+            ProjectParam = DataService.GetDataStateProjects()!.Find(x => x.Id == integerProjectId)!;
         }
     }
 
@@ -283,7 +283,7 @@
         bool isValid = int.TryParse(_focusedContextIdStr, out integerContextId);
         if (isValid)
         {
-            ContextParam = DataState.Contexts!.Find(x => x.Id == integerContextId)!;
+            ContextParam = DataService.GetDataStateContexts()!.Find(x => x.Id == integerContextId)!;
         }
     }
 }

@@ -5,8 +5,9 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using TaskFocusDesktop.EventModels;
 using TaskFocusDesktop.ViewModels.Base;
-using TaskFocusUI.Library;
 using TaskFocusUI.Library.API;
+using TaskFocusUI.Library.Data.Services.Access;
+using TaskFocusUI.Library.Data.State;
 using TaskFocusUI.Library.Models;
 using TaskFocusUI.Library.Utilities;
 

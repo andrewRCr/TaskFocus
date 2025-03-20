@@ -1,13 +1,16 @@
 ﻿@page "/settings"
 
-@inherits _ComponentBase
+@inherits _ComponentStateAwareBase
 @inject IDataService DataService
 @inject IUserEndpoint UserEndpoint
 @inject IAuthenticationService AuthService
 @inject ISnackbar Snackbar
 @inject NavigationManager NavManager
-@using System.Text.RegularExpressions
 @using System.ComponentModel.DataAnnotations
+@using System.Text.RegularExpressions
+@using TaskFocusUI.Library.Data.Services
+@using TaskFocusUI.Library.Data.Services.Access
+@using TaskFocusUI.Library.Data.State
 
 @inject ILogger<SettingsViewPage> Logger
 

@@ -3,17 +3,17 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity.Core.Common.CommandTrees.ExpressionBuilder;
-using System.Data.Entity.Core.Mapping;
 using System.Diagnostics;
-using System.Drawing.Text;
-using System.IO.Pipelines;
 using System.Linq;
-using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using TaskFocusUI.Library.API;
+using TaskFocusUI.Library.Data.Services.Access;
+using TaskFocusUI.Library.Data.State;
+using TaskFocusUI.Library.Data.Utilities;
 using TaskFocusUI.Library.Models;
 
-namespace TaskFocusUI.Library.Utilities
+namespace TaskFocusUI.Library.Data.Services.Synchronization
 {
     public class DataSyncService : IDataSyncService
     {
@@ -67,8 +67,30 @@ namespace TaskFocusUI.Library.Utilities
         {
             await _dataService.FetchAllRemoteData();   
             _dataState.LastSync = DateTimeOffset.Now; // log
-            Console.WriteLine($"InitSync complete; DataState populated.");
-            Trace.WriteLine($"InitSync complete; DataState populated.");
+            //Console.WriteLine($"InitSync complete; DataState populated.");
+            //Trace.WriteLine($"InitSync complete; DataState populated.");
+            _logger.LogInformation("InitSync complete; DataState populated");
+
+            // periodic sync
+            TimeSpan interval = TimeSpan.FromSeconds(60);
+            await PeriodicSync(interval);
+        }
+
+        public async Task PeriodicSync(TimeSpan interval, CancellationToken cancellationToken = default)
+        {
+            using PeriodicTimer timer = new(interval);
+            while (true)
+            {
+                try
+                {
+                    await timer.WaitForNextTickAsync(cancellationToken);
+                    await Sync();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex.Message);
+                }
+            }
         }
 
         // syncs at row level; LastUpdated determines who wins at the server
@@ -101,7 +123,7 @@ namespace TaskFocusUI.Library.Utilities
         {
             Console.WriteLine("Pushing changes to server...");
             Trace.WriteLine("Pushing changes to server...");
-            Console.WriteLine($"dataState.Tasks count: {_dataState.Tasks.Count}");
+            Console.WriteLine($"dataState.Tasks count: {_dataState.GetTasks()!.Count}");
             //int numRowsInserted = 0;
             //int numRowsDeleted = 0;
             //int numRowsUpdated = 0;
@@ -218,9 +240,9 @@ namespace TaskFocusUI.Library.Utilities
 
                         _pushedTaskData.Add(_mapper.Map<TaskModel>((TaskDisplayModel)data));
 
-                        int taskIndex = _dataState.Tasks!.FindIndex(x => x.TempLocalId == data.TempLocalId);
-                        _dataState.Tasks![taskIndex].Id = insertedTask.Id; // update with new server-granted id
-                        _dataState.Tasks![taskIndex].TempLocalId = null; //
+                        int taskIndex = _dataState.GetTasks()!.FindIndex(x => x.TempLocalId == data.TempLocalId);
+                        _dataState.GetTasks()![taskIndex].Id = insertedTask.Id; // update with new server-granted id
+                        _dataState.GetTasks()![taskIndex].TempLocalId = null; //
 
                         //if (index != -1) { _dataState.Tasks[index] = (TaskDisplayModel)data; }
                         //Console.WriteLine($"removing local pre-push version of {_dataState.Tasks![index].TaskName}");
@@ -235,9 +257,9 @@ namespace TaskFocusUI.Library.Utilities
 
                         _pushedProjectData.Add(_mapper.Map<ProjectModel>((ProjectDisplayModel)data));
 
-                        int projectIndex = _dataState.Projects!.FindIndex(x => x.TempLocalId == data.TempLocalId);
-                        _dataState.Projects![projectIndex].Id = insertedProject.Id; // update with new server-granted id
-                        _dataState.Projects![projectIndex].TempLocalId = null; //
+                        int projectIndex = _dataState.GetProjects()!.FindIndex(x => x.TempLocalId == data.TempLocalId);
+                        _dataState.GetProjects()![projectIndex].Id = insertedProject.Id; // update with new server-granted id
+                        _dataState.GetProjects()![projectIndex].TempLocalId = null; //
 
                         break;
 
@@ -302,8 +324,8 @@ namespace TaskFocusUI.Library.Utilities
                             await _taskEndpoint.UpdateTask(_mapper.Map<TaskModel>(data));
 
                             _pushedTaskData.Add(_mapper.Map<TaskModel>((TaskDisplayModel)data));
-                            int index = _dataState.Tasks!.FindIndex(x => x.Id == data.Id);
-                            if (index != -1) { _dataState.Tasks[index] = (TaskDisplayModel)data; }
+                            int index = _dataState.GetTasks()!.FindIndex(x => x.Id == data.Id);
+                            if (index != -1) { _dataState.GetTasks()![index] = (TaskDisplayModel)data; }
 
                             result.numRowsUpdated++;
                         }
@@ -332,8 +354,8 @@ namespace TaskFocusUI.Library.Utilities
                             await _projectEndpoint.UpdateProject(_mapper.Map<ProjectModel>(data));
 
                             _pushedProjectData.Add(_mapper.Map<ProjectModel>((ProjectDisplayModel)data));
-                            int index = _dataState.Projects!.FindIndex(x => x.Id == data.Id);
-                            if (index != -1) { _dataState.Projects[index] = (ProjectDisplayModel)data; }
+                            int index = _dataState.GetProjects()!.FindIndex(x => x.Id == data.Id);
+                            if (index != -1) { _dataState.GetProjects()![index] = (ProjectDisplayModel)data; }
 
                             result.numRowsUpdated++;
                         }
@@ -424,7 +446,8 @@ namespace TaskFocusUI.Library.Utilities
             }
 
             // store copy for comparison + cleanup temp push history
-            _dataHelper.TasksLastFetch = serverTasks;
+            //_dataHelper.TasksLastFetch = serverTasks;
+            //_dataState.WorkingTasks = serverTasks;
             _pushedTaskData.Clear();
 
             // trigger UI update if needed + add to total pull result
@@ -461,7 +484,7 @@ namespace TaskFocusUI.Library.Utilities
             }
 
             // store copy for comparison + cleanup temp push history
-            _dataHelper.ProjectsLastFetch = serverProjects;
+            //_dataHelper.ProjectsLastFetch = serverProjects;
             _pushedProjectData.Clear();
 
             // trigger UI update if needed + add to total pull result
@@ -495,19 +518,19 @@ namespace TaskFocusUI.Library.Utilities
                     if (pushedServerTask.Any()) { return result; }
 
                     TaskDisplayModel displayServerTask = (TaskDisplayModel)data;
-                    TaskDisplayModel? clientTask = _dataState.Tasks!.Where(
+                    TaskDisplayModel? clientTask = _dataState.GetTasks()!.Where(
                         x => x.Id == displayServerTask.Id).FirstOrDefault();
 
                     if (clientTask == null) // insert
                     {
-                        _dataState.Tasks!.Add(displayServerTask.Clone());
+                        _dataState.GetTasks()!.Add(displayServerTask.Clone());
                         Console.WriteLine($"added local task on PullSyncableData: {displayServerTask.TaskName}");
                         result.numRowsInserted++;
                     }
                     else // update
                     {
-                        int i = _dataState.Tasks!.IndexOf(clientTask);
-                        _dataState.Tasks![i] = displayServerTask;
+                        int i = _dataState.GetTasks()!.IndexOf(clientTask);
+                        _dataState.GetTasks()![i] = displayServerTask;
                         result.numRowsUpdated++;
                     }
 
@@ -520,19 +543,19 @@ namespace TaskFocusUI.Library.Utilities
                     if (pushedServerProject.Any()) { return result; }
 
                     ProjectDisplayModel displayServerProject = (ProjectDisplayModel)data;
-                    ProjectDisplayModel? clientProject = _dataState.Projects!.Where(
+                    ProjectDisplayModel? clientProject = _dataState.GetProjects()!.Where(
                         x => x.Id == displayServerProject.Id).FirstOrDefault();
 
                     if (clientProject == null) // insert
                     {
-                        _dataState.Projects!.Add(displayServerProject.Clone());
+                        _dataState.GetProjects()!.Add(displayServerProject.Clone());
                         Console.WriteLine($"added local project on PullSyncableData: {displayServerProject.ProjectName}");
                         result.numRowsInserted++;
                     }
                     else // update
                     {
-                        int i = _dataState.Projects!.IndexOf(clientProject);
-                        _dataState.Projects![i] = displayServerProject;
+                        int i = _dataState.GetProjects()!.IndexOf(clientProject);
+                        _dataState.GetProjects()![i] = displayServerProject;
                         result.numRowsUpdated++;
                     }
                     break;
@@ -561,14 +584,14 @@ namespace TaskFocusUI.Library.Utilities
 
                     List<TaskModel> serverTasks = await _taskEndpoint.GetAllTasksForUser();
 
-                    foreach (var clientDisplayTask in _dataState.Tasks!.ToList())
+                    foreach (var clientDisplayTask in _dataState.GetTasks()!.ToList())
                     {
                         TaskModel? serverTask = serverTasks.Find(x => x.Id == clientDisplayTask.Id);
                         if (serverTask == null) // not found on server? delete locally
                         {
                             Console.WriteLine($"PullServerDataDeletions found local row deleted on server: {clientDisplayTask.TaskName}");
-                            _dataService.HandleIndexShiftsOnTaskDeletion(_mapper.Map<TaskModel>(clientDisplayTask));
-                            _dataState.Tasks!.Remove(clientDisplayTask);
+                            _dataService.HandleIndexShiftsOnTaskDeletion(clientDisplayTask);
+                            _dataState.GetTasks()!.Remove(clientDisplayTask);
                             pullDeletionsResult.numRowsDeleted++;
                         }
                     }
@@ -579,15 +602,15 @@ namespace TaskFocusUI.Library.Utilities
 
                     List<ProjectModel> serverProjects = await _projectEndpoint.GetAllProjectsForUser();
 
-                    foreach (var clientDisplayProject in _dataState.Projects!.ToList())
+                    foreach (var clientDisplayProject in _dataState.GetProjects()!.ToList())
                     {
                         ProjectModel? serverProject = serverProjects.Find(x => x.Id == clientDisplayProject.Id);
                         if (serverProject == null) // not found on server? delete locally
                         {
                             Console.WriteLine($"PullServerDataDeletions found local row deleted on server: {clientDisplayProject.ProjectName}");
                             // ensure other projects have updated OrderIndex values
-                            _dataService.ShiftCollectionOrderIndices(clientDisplayProject, _dataState.Projects!);
-                            _dataState.Projects!.Remove(clientDisplayProject);
+                            _dataService.ShiftCollectionOrderIndices(clientDisplayProject, _dataState.GetProjects()!);
+                            _dataState.GetProjects()!.Remove(clientDisplayProject);
                             pullDeletionsResult.numRowsDeleted++;
                         }
                     }

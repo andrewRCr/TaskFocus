@@ -103,6 +103,5 @@ namespace TaskFocusWeb
             get { return _dialogProvider; }
             set { _dialogProvider = value; }
         }
-
     }
 }

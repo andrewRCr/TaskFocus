@@ -3,17 +3,17 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Threading.Tasks;
+using TaskFocusUI.Library.Data.State;
 using TaskFocusUI.Library.Models;
 
-namespace TaskFocusUI.Library.Utilities
+namespace TaskFocusUI.Library.Data.Utilities
 {
     public struct TaskDataCompareResult
     {
         public bool HasChanged;
         public bool ProjectNameChanged;
         public bool ContextNameChanged;
+        public bool IndicesOnly;
     }
 
     public struct DataSyncResult
@@ -30,11 +30,12 @@ namespace TaskFocusUI.Library.Utilities
         private IMapper _mapper;
         private IDataState _dataState;
 
-        public List<TaskModel>? TasksLastFetch { get; set; }
-        public List<ProjectModel>? ProjectsLastFetch { get; set; }
-        public List<ContextModel>? ContextsLastFetch { get; set; }
+        //public List<TaskModel>? TasksLastFetch { get; set; }
+        //public List<ProjectModel>? ProjectsLastFetch { get; set; }
+        //public List<ContextModel>? ContextsLastFetch { get; set; }
         public UserSettingsModel? UserSettingsLastFetch { get; set; }
 
+        // TODO: do these being located here (in this class) make sense? 
         public ProjectDisplayModel? FocusedProject { get; set; }
         public List<TaskDisplayModel>? FocusedProjectTasks { get; set; }
         public ContextDisplayModel? FocusedContext { get; set; }
@@ -58,33 +59,53 @@ namespace TaskFocusUI.Library.Utilities
             }
             else
             {
-                TaskModel taskLastFetch = TasksLastFetch!.Find(x => x.Id == displayTask.Id)!;
-                compareAgainstTask = taskLastFetch;
+                //TaskModel taskLastFetch = TasksLastFetch!.Find(x => x.Id == displayTask.Id)!;
+                //compareAgainstTask = taskLastFetch;
+
+                TaskDisplayModel dataStateTask = _dataState.GetTasks()!.Find(
+                    x => x.Id == displayTask.Id)!;
+                compareAgainstTask = _mapper.Map<TaskModel>(dataStateTask);
             }
 
             static bool AreUserEditablePropertiesEqual(TaskModel taskA, TaskModel taskB)
+            {
+                return AreNonIndexPropertiesEqual(taskA, taskB) && AreIndexPropertiesEqual(taskA, taskB);
+            }
+
+            static bool AreNonIndexPropertiesEqual(TaskModel taskA, TaskModel taskB)
             {
                 return taskA.TaskName == taskB.TaskName &&
                        taskA.Completed == taskB.Completed &&
                        taskA.ProjectName == taskB.ProjectName &&
                        taskA.ContextName == taskB.ContextName &&
                        taskA.DueDate == taskB.DueDate &&
-                       taskA.InboxIndex == taskB.InboxIndex &&
-                       taskA.ProjectIndex == taskB.ProjectIndex &&
-                       taskA.ContextIndex == taskB.ContextIndex &&
                        taskA.Starred == taskB.Starred &&
-                       taskA.TodayIndex == taskB.TodayIndex &&
                        taskA.CleanedUp == taskB.CleanedUp;
             }
 
-            return new() {
-                HasChanged = !AreUserEditablePropertiesEqual(_mapper.Map<TaskModel>(displayTask), compareAgainstTask),
+            static bool AreIndexPropertiesEqual(TaskModel taskA, TaskModel taskB)
+            {
+                return taskA.InboxIndex == taskB.InboxIndex &&
+                       taskA.ProjectIndex == taskB.ProjectIndex &&
+                       taskA.ContextIndex == taskB.ContextIndex &&
+                       taskA.TodayIndex == taskB.TodayIndex;
+            }
+
+            TaskModel task = _mapper.Map<TaskModel>(displayTask);
+            bool hasChanged = !AreUserEditablePropertiesEqual(task, compareAgainstTask);
+            //Console.WriteLine($"{task.TaskName} hasChanged: {hasChanged}");
+            //Console.WriteLine($"passedTask: {task.TaskName} compareAgainstTask: {compareAgainstTask.TaskName}");
+
+            return new()
+            {
+                HasChanged = hasChanged,
                 ProjectNameChanged = displayTask.ProjectName != compareAgainstTask.ProjectName,
-                ContextNameChanged = displayTask.ContextName != compareAgainstTask.ContextName
+                ContextNameChanged = displayTask.ContextName != compareAgainstTask.ContextName,
+                IndicesOnly = AreNonIndexPropertiesEqual(task, compareAgainstTask) && hasChanged
             };
         }
 
-        public bool IsTaskDueOrOverDue(TaskModel frontEndTask)
+        public bool IsTaskDueOrOverDue(TaskDisplayModel frontEndTask)
         {
             if (frontEndTask.DueDate != null)
             {
@@ -106,8 +127,9 @@ namespace TaskFocusUI.Library.Utilities
             }
             else
             {
-                ProjectModel projectLastFetch = ProjectsLastFetch!.Find(x => x.Id == displayProject.Id)!;
-                compareAgainstProject = projectLastFetch;
+                //ProjectModel projectLastFetch = ProjectsLastFetch!.Find(x => x.Id == displayProject.Id)!;
+                ProjectDisplayModel dataStateProject = _dataState.GetProjects()!.Find(x => x.Id == displayProject.Id)!;
+                compareAgainstProject = _mapper.Map<ProjectModel>(dataStateProject);
             }
 
             static bool AreUserEditablePropertiesEqual(ProjectModel projectA, ProjectModel projectB)
@@ -124,9 +146,9 @@ namespace TaskFocusUI.Library.Utilities
             var unpushedProjects = _dataState.ChangedProjectData.Where(
                 x => x.Id == null && x.TempLocalId != null);
 
-            if (ProjectsLastFetch!.Count == 0 && !unpushedProjects.Any()) { return true; }
+            if (_dataState.GetProjects()!.Count == 0 && !unpushedProjects.Any()) { return true; }
 
-            foreach (ProjectModel project in ProjectsLastFetch!)
+            foreach (ProjectDisplayModel project in _dataState.GetProjects()!)
             {
                 if (project.ProjectName.ToLower() == proposedProjectName.ToLower()) { return false; }
             }
@@ -143,7 +165,7 @@ namespace TaskFocusUI.Library.Utilities
             var unpushedProjects = _dataState.ChangedProjectData.Where(
     x => x.Id == null && x.TempLocalId != null);
 
-            foreach (ProjectModel project in ProjectsLastFetch!)
+            foreach (ProjectDisplayModel project in _dataState.GetProjects()!)
             {
                 if (project.Id == updatedDisplayProject.Id) { continue; }
                 if (project.ProjectName.ToLower() == updatedDisplayProject.ProjectName.ToLower())
@@ -164,22 +186,35 @@ namespace TaskFocusUI.Library.Utilities
             return true;
         }
 
-        public bool HasContextDataChanged(ContextModel frontEndContext)
+        public bool HasContextDataChanged(ContextDisplayModel displayContext)
         {
-            ContextModel contextLastFetch = ContextsLastFetch.Find(x => x.Id == frontEndContext.Id);
+            ContextDisplayModel compareAgainstContext;
 
-            bool IsDataEqual(ContextModel contextA, ContextModel contextB)
+            if (displayContext.Id == null && displayContext.TempLocalId != null)
             {
-                return JsonConvert.SerializeObject(contextA) == JsonConvert.SerializeObject(contextB);
+                ContextDisplayModel unpushedContext = _dataState.ChangedContextData!.Find(
+                    x => x.TempLocalId == displayContext.TempLocalId)!;
+                compareAgainstContext = unpushedContext;
+            }
+            else
+            {
+                ContextDisplayModel dataStateContext = _dataState.GetContexts()!.Find(x => x.Id == displayContext.Id)!;
+                compareAgainstContext = dataStateContext;
             }
 
-            return !IsDataEqual(frontEndContext, contextLastFetch);
+            static bool AreUserEditablePropertiesEqual(ContextDisplayModel contextA, ContextDisplayModel contextB)
+            {
+                return contextA.ContextName == contextB.ContextName &&
+                       contextA.OrderIndex == contextB.OrderIndex;
+            }
+
+            return !AreUserEditablePropertiesEqual(displayContext, compareAgainstContext);
         }
 
 
         public bool IsNewContextNameUnique(string proposedContextName)
         {
-            foreach (ContextModel context in ContextsLastFetch)
+            foreach (ContextDisplayModel context in _dataState.GetContexts()!)
             {
                 if (context.ContextName.ToLower() == proposedContextName.ToLower())
                 {
@@ -192,7 +227,7 @@ namespace TaskFocusUI.Library.Utilities
 
         public bool IsUpdatedContextNameUnique(ContextModel updatedFrontEndContext)
         {
-            foreach (ContextModel context in ContextsLastFetch)
+            foreach (ContextDisplayModel context in _dataState.GetContexts()!)
             {
                 if (context.Id == updatedFrontEndContext.Id) { continue; }
                 if (context.ContextName.ToLower() == updatedFrontEndContext.ContextName.ToLower())

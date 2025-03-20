@@ -1,5 +1,7 @@
 ﻿@page "/logout"
-@inherits _ComponentBase
+@using TaskFocusUI.Library.Data.Services
+@using TaskFocusUI.Library.Data.Services.Synchronization
+@inherits _ComponentStateAwareBase
 @inject NavigationManager NavManager
 @inject IAuthenticationService AuthService
 @inject IDataSyncService DataSyncService

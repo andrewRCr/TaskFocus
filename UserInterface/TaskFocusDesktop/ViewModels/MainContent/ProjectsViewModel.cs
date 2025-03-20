@@ -8,7 +8,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using TaskFocusDesktop.EventModels;
 using TaskFocusDesktop.ViewModels.Base;
-using TaskFocusUI.Library;
+using TaskFocusUI.Library.Data.Services.Access;
+using TaskFocusUI.Library.Data.State;
 using TaskFocusUI.Library.Models;
 using TaskFocusUI.Library.Utilities;
 
@@ -115,27 +116,6 @@ namespace TaskFocusDesktop.ViewModels.MainContent
                 FocusedProjectName = null;
                 FocusedProjectTasks = null;
             }
-        }
-
-        // saves updated task data to server on property change
-        protected override async void OnExistingTaskPropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            string? changedProperty = e.PropertyName;
-            TaskDisplayModel senderTask = (TaskDisplayModel)sender;
-            _logger.Info($"{senderTask.TaskName}'s property {changedProperty} was changed.");
-
-            // if a reorder update, need to prevent a remote data fetch until after the entire collection
-            // has been updated. CanUpdateOrderIndices will only be true on the final task in collection
-            if (changedProperty!.Contains("Index"))
-            {
-                if (!CanUpdateOrderingIndices) { return; }
-                else
-                {
-                    List<TaskDisplayModel> tasksToUpdate = FocusedProjectTasks!.ToList();
-                    await _dataService.UpdateTaskViewOrderingIndices(tasksToUpdate);
-                }
-            }
-            else { await _dataService.UpdateTaskData(senderTask); }
         }
 
         protected override bool HandleDataStateChanged(string propertyName, IDataState dataState)

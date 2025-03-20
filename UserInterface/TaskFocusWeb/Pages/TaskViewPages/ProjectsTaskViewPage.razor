@@ -1,6 +1,9 @@
 ﻿@page "/projects"
+@using TaskFocusUI.Library.Data.Services
+@using TaskFocusUI.Library.Data.Services.Access
+@using TaskFocusUI.Library.Data.State
 @inherits _TaskViewPageBase
-@inject IProjectEndpoint ProjectEndpoint
+@inject IDataService DataService
 
 <PageTitle>TaskFocus: Projects</PageTitle>
 
@@ -12,16 +15,16 @@
             <MudTreeView T="TaskContainerComponent" Width="100%">
 
                 <MudTreeViewItem T="TaskContainerComponent" 
-                                 Expanded="true" 
-                                 Icon="@Icons.Material.Filled.Assignment" 
-                                 Text="@ProjectParam.ProjectName" TextTypo="Typo.button">
+                Expanded="true" 
+                Icon="@Icons.Material.Filled.Assignment" 
+                Text="@ProjectParam.ProjectName" TextTypo="Typo.button">
 
-                    <TaskContainerComponent ContainerTaskItemsParam="@LocalTasks!.Where(x=>(x.ProjectId == ProjectParam.Id) && !x.CleanedUp).ToList()"
-                                            ContainerIdentifierParam="@ProjectParam.ProjectName"
-                                            ContainerOrderingTypeParam="Project"
-                                            ContainerItemsSelectorParam="@((item, dropzone) => item.ProjectName == dropzone)"
-                                            ContainerProjectsParam="@LocalProjects"
-                                            ContainerContextsParam="@LocalContexts" />
+                    <TaskContainerComponent ContainerTaskItemsParam="@DataService.GetDataStateTasks()!.Where(x=>(x.ProjectId == ProjectParam.Id) && !x.CleanedUp).ToList()"
+                    ContainerIdentifierParam="@ProjectParam.ProjectName"
+                    ContainerOrderingTypeParam="Project"
+                    ContainerItemsSelectorParam="@((item, dropzone) => item.ProjectName == dropzone)"
+                    ContainerProjectsParam="@LocalProjects"
+                    ContainerContextsParam="@LocalContexts" />
                 </MudTreeViewItem>
             </MudTreeView>
         }
@@ -31,17 +34,17 @@
                 @foreach (ProjectDisplayModel project in LocalProjects!)
                 {
                     <MudTreeViewItem T="TaskContainerComponent" 
-                                     Expanded="true" 
-                                     Icon="@Icons.Material.Filled.Assignment" 
-                                     Text="@project.ProjectName" 
-                                     TextTypo="Typo.button">
+                    Expanded="true" 
+                    Icon="@Icons.Material.Filled.Assignment" 
+                    Text="@project.ProjectName" 
+                    TextTypo="Typo.button">
 
-                        <TaskContainerComponent ContainerTaskItemsParam="@LocalTasks!.Where(x=>(x.ProjectId == project.Id) && !x.CleanedUp).ToList()"
-                                                ContainerIdentifierParam="@project.ProjectName"
-                                                ContainerOrderingTypeParam="Project"
-                                                ContainerItemsSelectorParam="@((item, dropzone) => item.ProjectName == dropzone)"
-                                                ContainerProjectsParam="@LocalProjects"
-                                                ContainerContextsParam="@LocalContexts" />
+                        <TaskContainerComponent ContainerTaskItemsParam="@DataService.GetDataStateTasks()!.Where(x=>(x.ProjectId == project.Id) && !x.CleanedUp).ToList()"
+                        ContainerIdentifierParam="@project.ProjectName"
+                        ContainerOrderingTypeParam="Project"
+                        ContainerItemsSelectorParam="@((item, dropzone) => item.ProjectName == dropzone)"
+                        ContainerProjectsParam="@LocalProjects"
+                        ContainerContextsParam="@LocalContexts" />
                     </MudTreeViewItem>  
                 }
             </MudTreeView>
@@ -51,10 +54,10 @@
             <MudTreeView T="MudContainer" Width="75%">
 
                 <MudTreeViewItem T="MudContainer"
-                                 Expanded="true"
-                                 Icon="@Icons.Material.Filled.Assignment"
-                                 Text=""
-                                 TextTypo="Typo.button">
+                Expanded="true"
+                Icon="@Icons.Material.Filled.Assignment"
+                Text=""
+                TextTypo="Typo.button">
 
                     <MudContainer MaxWidth="MaxWidth.Medium">
                         <MudPaper Elevation="25" Class="pa-0 my-2">
@@ -97,12 +100,17 @@
         _focusedProjectIdStr = AppState.FocusedProjectIdStr;
     }
 
+    protected override bool IsLocalDataLoaded()
+    {
+        return LocalTasks != null && LocalProjects != null & LocalContexts != null;
+    }
+
     protected void GetProjectFromId()
     {
         isValid = int.TryParse(_focusedProjectIdStr, out integerProjectId);
         if (isValid)
         {
-            ProjectParam = DataState.Projects!.Find(x => x.Id == integerProjectId)!;
+            ProjectParam = DataService.GetDataStateProjects()!.Find(x => x.Id == integerProjectId)!;
         }
     }
 

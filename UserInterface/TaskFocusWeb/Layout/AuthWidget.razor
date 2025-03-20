@@ -1,4 +1,5 @@
-﻿@inherits _ComponentBase
+﻿@using TaskFocusUI.Library.Data.State
+@inherits _ComponentStateAwareBase
 
 <MudLink Href="/settings">@_currentUserEmail</MudLink>
 <MudIcon Icon="@Icons.Material.Filled.Logout" Color="Color.Inherit" Class="ml-6 mr-3" />

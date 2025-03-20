@@ -1,13 +1,13 @@
 ﻿using System.Collections.Generic;
 using TaskFocusUI.Library.Models;
 
-namespace TaskFocusUI.Library.Utilities
+namespace TaskFocusUI.Library.Data.Utilities
 {
     public interface IDataHelper
     {
-        List<TaskModel>? TasksLastFetch { get; set; }
-        List<ProjectModel>? ProjectsLastFetch { get; set; }
-        List<ContextModel>? ContextsLastFetch { get; set; }
+        //List<TaskModel>? TasksLastFetch { get; set; }
+        //List<ProjectModel>? ProjectsLastFetch { get; set; }
+        //List<ContextModel>? ContextsLastFetch { get; set; }
         UserSettingsModel? UserSettingsLastFetch { get; set; }
 
         ProjectDisplayModel? FocusedProject { get; set; }
@@ -17,10 +17,10 @@ namespace TaskFocusUI.Library.Utilities
 
         TaskDataCompareResult HasTaskDataChanged(TaskDisplayModel displayTask);
         bool HasProjectDataChanged(ProjectDisplayModel displayProject);
-        bool HasContextDataChanged(ContextModel displayContext);
+        bool HasContextDataChanged(ContextDisplayModel displayContext);
         bool HasSettingsDataChanged(UserSettingsModel displaySettings);
 
-        bool IsTaskDueOrOverDue(TaskModel frontEndTask);
+        bool IsTaskDueOrOverDue(TaskDisplayModel frontEndTask);
         bool IsNewProjectNameUnique(string proposedProjectName);
         bool IsNewContextNameUnique(string proposedContextName);
         bool IsUpdatedProjectNameUnique(ProjectDisplayModel updatedDisplayProject);

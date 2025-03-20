@@ -9,9 +9,10 @@ using TaskFocusDesktop.Commands;
 using TaskFocusDesktop.EventModels;
 using TaskFocusDesktop.Utilities;
 using TaskFocusDesktop.ViewModels.Base;
-using TaskFocusUI.Library;
+using TaskFocusUI.Library.Data.State;
 using TaskFocusUI.Library.Models;
-using TaskFocusUI.Library.Utilities;
+using TaskFocusUI.Library.Data.Services.Access;
+using TaskFocusUI.Library.Data.Utilities;
 
 namespace TaskFocusDesktop.ViewModels.SidePanel
 {
@@ -108,7 +109,7 @@ namespace TaskFocusDesktop.ViewModels.SidePanel
         {
             if (_dataState.IsDataLoaded())
             {
-                LocalProjects = new ObservableCollection<ProjectDisplayModel>(_dataState.Projects!.OrderBy(x => x.OrderIndex));
+                LocalProjects = new ObservableCollection<ProjectDisplayModel>(_dataService.GetDataStateProjects()!.OrderBy(x => x.OrderIndex));
                 foreach (ProjectDisplayModel project in LocalProjects!)
                 {
                     project.PropertyChanged += OnExistingProjectPropertyChanged!; // subscribe to property changed event
@@ -118,26 +119,26 @@ namespace TaskFocusDesktop.ViewModels.SidePanel
             }
         }
 
-        // saves updated project data to server on property change
-        protected override async void OnExistingProjectPropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            string? changedProperty = e.PropertyName;
-            ProjectDisplayModel senderProject = (ProjectDisplayModel)sender;
-            _logger.Info($"{senderProject.ProjectName}'s property {changedProperty} was changed.");
+        //// saves updated project data to server on property change
+        //protected override async void OnExistingProjectPropertyChanged(object sender, PropertyChangedEventArgs e)
+        //{
+        //    string? changedProperty = e.PropertyName;
+        //    ProjectDisplayModel senderProject = (ProjectDisplayModel)sender;
+        //    _logger.Info($"{senderProject.ProjectName}'s property {changedProperty} was changed.");
 
-            // if a reorder update, need to prevent a remote data fetch until after the entire collection
-            // has been updated. CanUpdateOrderIndices will only be true on the final task in collection
-            if (changedProperty!.Contains("Index"))
-            {
-                if (!CanUpdateOrderingIndices) { return; }
-                else
-                {
-                    List<ProjectDisplayModel> projectsToUpdate = LocalProjects!.ToList();
-                    _dataService.UpdateProjectsOrderingIndices(projectsToUpdate);
-                }
-            }
-            else { await _dataService.UpdateProjectData(senderProject); }
-        }
+        //    // if a reorder update, need to prevent a remote data fetch until after the entire collection
+        //    // has been updated. CanUpdateOrderIndices will only be true on the final task in collection
+        //    if (changedProperty!.Contains("Index"))
+        //    {
+        //        if (!CanUpdateOrderingIndices) { return; }
+        //        else
+        //        {
+        //            List<ProjectDisplayModel> projectsToUpdate = LocalProjects!.ToList();
+        //            _dataService.UpdateProjectsOrderingIndices(projectsToUpdate);
+        //        }
+        //    }
+        //    else { await _dataService.UpdateProjectData(senderProject); }
+        //}
 
         protected override bool HandleDataStateChanged(string propertyName, IDataState dataState)
         {

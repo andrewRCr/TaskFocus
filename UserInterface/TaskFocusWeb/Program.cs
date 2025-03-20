@@ -9,9 +9,12 @@ using MudBlazor.Services;
 using TaskFocusUI.Library.API;
 using TaskFocusUI.Library.Logging;
 using TaskFocusUI.Library.Models;
-using TaskFocusUI.Library.Utilities;
 using TaskFocusWeb.Authentication;
-using TaskFocusUI.Library;
+using TaskFocusUI.Library.Data.State;
+using TaskFocusUI.Library.Data.Services;
+using TaskFocusUI.Library.Data.Services.Synchronization;
+using TaskFocusUI.Library.Data.Services.Access;
+using TaskFocusUI.Library.Data.Utilities;
 
 namespace TaskFocusWeb
 {
@@ -49,10 +52,6 @@ namespace TaskFocusWeb
             builder.Services.AddSingleton<IDataHelper, DataHelper>();
             builder.Services.AddScoped<IDataService, DataService>();
             builder.Services.AddScoped<IDataSyncService, DataSyncService>();
-
-            // TEMP - DELETE once fully migrated to DataSyncService:
-            //builder.Services.AddScoped<IClientSyncService, ClientSyncService>();
-            //builder.Services.AddScoped<IServerSyncService, ServerSyncService>();
 
             IMapper ConfigureAutomapper()
             {

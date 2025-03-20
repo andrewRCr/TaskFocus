@@ -1,6 +1,9 @@
 ﻿@page "/contexts"
+@using TaskFocusUI.Library.Data.Services
+@using TaskFocusUI.Library.Data.Services.Access
+@using TaskFocusUI.Library.Data.State
 @inherits _TaskViewPageBase
-@inject IContextEndpoint ContextEndpoint
+@inject IDataService DataService
 
 <PageTitle>TaskFocus: Contexts</PageTitle>
 
@@ -98,12 +101,17 @@
         _focusedContextIdStr = AppState.FocusedContextIdStr;
     }
 
+    protected override bool IsLocalDataLoaded()
+    {
+        return LocalTasks != null && LocalProjects != null & LocalContexts != null;
+    }
+
     protected void GetContextFromId()
     {
         isValid = int.TryParse(_focusedContextIdStr, out integerContextId);
         if (isValid)
         {
-            ContextParam = DataState.Contexts!.Find(x => x.Id == integerContextId)!;
+            ContextParam = DataService.GetDataStateContexts()!.Find(x => x.Id == integerContextId)!;
         }
     }
 

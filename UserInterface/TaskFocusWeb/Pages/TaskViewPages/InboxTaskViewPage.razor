@@ -1,12 +1,15 @@
 ﻿@page "/inbox"
 @using System.Diagnostics
+@using TaskFocusUI.Library.Data.Services
+@using TaskFocusUI.Library.Data.Services.Access
 @inherits _TaskViewPageBase
+@inject IDataService DataService
 
 <PageTitle>TaskFocus: Inbox</PageTitle>
 
 @if (IsLocalDataLoaded())
 {
-    if (LocalTasks!.Count() > 0)
+    if (_inboxTasks!.Count() > 0)
     {
         <MudTreeView T="TaskContainerComponent" Width="100%">
 
@@ -16,7 +19,7 @@
             Text="Inbox"
             TextTypo="Typo.button">
 
-                <TaskContainerComponent ContainerTaskItemsParam="@LocalTasks"
+                <TaskContainerComponent ContainerTaskItemsParam="@_inboxTasks"
                 ContainerIdentifierParam="Inbox"
                 ContainerOrderingTypeParam="Inbox"
                 ContainerItemsSelectorParam="@ItemsSelector"
@@ -58,55 +61,34 @@
 </MudContainer>
 
 @code {
+    private List<TaskDisplayModel>? _inboxTasks;
+
     protected override void CustomAuthenticatedOnInit()
     {
         LoadAllLocalData();
+    }
+
+    protected override bool IsLocalDataLoaded()
+    {
+        return _inboxTasks != null && LocalProjects != null && LocalContexts != null;
     }
 
     protected override void LoadLocalTaskData()
     {
         if (DataState.IsDataLoaded())
         {
-            List<TaskDisplayModel> inboxTasks = DataState.Tasks!.Where(
+            List<TaskDisplayModel> unorderedInboxTasks = DataService.GetDataStateTasks()!.Where(
                 x => (x.ProjectId == null || x.ContextId == null) && !x.CleanedUp).ToList();
-            Console.WriteLine($"WEB: inboxTasks count: {inboxTasks.Count}");
-            Console.WriteLine($"WEB: dataState.Tasks count: {DataState.Tasks!.Count}");
-            var orderedInboxTasks = inboxTasks.OrderBy(x => x.InboxIndex);
-            LocalTasks = orderedInboxTasks.ToList();
 
-            foreach (TaskDisplayModel task in LocalTasks!)
-            {
-                task.PropertyChanged += OnExistingTaskPropertyChanged!; // subscribe to property changed event
-            }
+            _inboxTasks = unorderedInboxTasks.OrderBy(x => x.InboxIndex).ToList();
+            SubscribeToTaskPropertyChangedEvents(_inboxTasks);
         }
     }
 
-    public override bool ItemsSelector(TaskDisplayModel item, string dropzone)
+    public override void Dispose()
     {
-        return true;
-    }
-
-    protected override bool HandleAppStateChanged(string propertyName, AppState appState)
-    {
-        if (!appRefreshTriggers.Contains(propertyName)) { return false; }
-        if (AppState.CanRefresh) { LoadAlertMessage(); }
-
-        return AppState.CanRefresh;
-    }
-
-    protected override bool HandleDataStateChanged(string propertyName, IDataState dataState)
-    {
-        if (!dataRefreshTriggers.Contains(propertyName))
-        {
-            return false;
-        }
-
-        if (AppState.CanRefresh)
-        {
-            LoadAllLocalData();
-            Trace.WriteLine("InboxTaskViewPage: returned true on HandleDataStateChanged");
-        }
-
-        return AppState.CanRefresh;
+        // unsubscribe from event handlers
+        base.Dispose(); // for -= AppStateChanged; -= DataStateChanged;
+        UnsubscribeFromTaskPropertyChangedEvents(_inboxTasks);
     }
 }

@@ -1,11 +1,14 @@
 ﻿@page "/unconfirmedupdatedemail"
 
-@inherits _ComponentBase
+@inherits _ComponentStateAwareBase
 @inject NavigationManager NavManager
 @inject IDataService DataService
 @inject IAuthenticationService AuthService
 @inject IUserEndpoint UserEndpoint
 @using Microsoft.AspNetCore.WebUtilities
+@using TaskFocusUI.Library.Data.Services
+@using TaskFocusUI.Library.Data.Services.Access
+@using TaskFocusUI.Library.Data.State
 
 <PageTitle>TaskFocus</PageTitle>
 

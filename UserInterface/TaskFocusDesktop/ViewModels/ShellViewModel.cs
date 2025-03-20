@@ -12,8 +12,10 @@ using TaskFocusDesktop.ViewModels.Dialogs;
 using TaskFocusDesktop.ViewModels.MainContent;
 using TaskFocusDesktop.ViewModels.SidePanel;
 using TaskFocusDesktop.ViewModels.TopPanel;
-using TaskFocusUI.Library;
 using TaskFocusUI.Library.API;
+using TaskFocusUI.Library.Data.Services.Access;
+using TaskFocusUI.Library.Data.Services.Synchronization;
+using TaskFocusUI.Library.Data.State;
 using TaskFocusUI.Library.Models;
 using TaskFocusUI.Library.Utilities;
 

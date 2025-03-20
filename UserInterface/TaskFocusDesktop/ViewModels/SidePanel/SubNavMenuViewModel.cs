@@ -4,8 +4,9 @@ using System.Threading.Tasks;
 using TaskFocusDesktop.EventModels;
 using TaskFocusDesktop.Utilities;
 using TaskFocusDesktop.ViewModels.Base;
-using TaskFocusUI.Library;
-using TaskFocusUI.Library.Utilities;
+using TaskFocusUI.Library.Data.State;
+using TaskFocusUI.Library.Data.Services.Access;
+using TaskFocusUI.Library.Data.Utilities;
 
 namespace TaskFocusDesktop.ViewModels.SidePanel
 {

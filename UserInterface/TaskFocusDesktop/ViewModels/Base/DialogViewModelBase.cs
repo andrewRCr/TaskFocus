@@ -2,8 +2,9 @@
 using MaterialDesignThemes.Wpf;
 using System.Threading.Tasks;
 using TaskFocusDesktop.Commands;
-using TaskFocusUI.Library;
-using TaskFocusUI.Library.Utilities;
+using TaskFocusUI.Library.Data.State;
+using TaskFocusUI.Library.Data.Services.Access;
+using TaskFocusUI.Library.Data.Utilities;
 
 namespace TaskFocusDesktop.ViewModels.Base
 {
