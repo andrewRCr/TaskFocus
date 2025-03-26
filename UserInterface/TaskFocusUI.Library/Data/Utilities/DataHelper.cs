@@ -16,6 +16,12 @@ namespace TaskFocusUI.Library.Data.Utilities
         public bool IndicesOnly;
     }
 
+    public struct ProjectDataCompareResult
+    {
+        public bool HasChanged;
+        public bool ProjectNameChanged;
+    }
+
     public struct DataSyncResult
     {
         public int numRowsInserted = 0;
@@ -115,7 +121,7 @@ namespace TaskFocusUI.Library.Data.Utilities
             return false;
         }
 
-        public bool HasProjectDataChanged(ProjectDisplayModel displayProject)
+        public ProjectDataCompareResult HasProjectDataChanged(ProjectDisplayModel displayProject)
         {
             ProjectModel compareAgainstProject;
 
@@ -138,7 +144,13 @@ namespace TaskFocusUI.Library.Data.Utilities
                        projectA.OrderIndex == projectB.OrderIndex;
             }
 
-            return !AreUserEditablePropertiesEqual(_mapper.Map<ProjectModel>(displayProject), compareAgainstProject);
+            //return !AreUserEditablePropertiesEqual(_mapper.Map<ProjectModel>(displayProject), compareAgainstProject);
+
+            return new()
+            {
+                HasChanged = !AreUserEditablePropertiesEqual(_mapper.Map<ProjectModel>(displayProject), compareAgainstProject),
+                ProjectNameChanged = displayProject.ProjectName != compareAgainstProject.ProjectName
+            };
         }
 
         public bool IsNewProjectNameUnique(string proposedProjectName)

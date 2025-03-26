@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Xml.Schema;
+using TaskFocusUI.Library.Data.State;
 using TaskFocusUI.Library.Models;
 
 namespace TaskFocusUI.Library.Data.Services.Access
@@ -9,14 +10,19 @@ namespace TaskFocusUI.Library.Data.Services.Access
     {
         public static void HandleIndexShiftsOnTaskDeletion(this IDataService iface, TaskDisplayModel task)
         {
-            iface.HandleIndexShiftsOnTaskDeletion(task);
+            ((IDataServiceInternal)iface).HandleIndexShiftsOnTaskDeletion(task);
         }
 
         public static void ShiftCollectionOrderIndices<T>(this IDataService iface,
                                                           T collectionDisplayModel,
                                                           List<T> collectionSource) where T : ICollectionDisplayModel
         {
-            iface.ShiftCollectionOrderIndices(collectionDisplayModel, collectionSource);
+            ((IDataServiceInternal)iface).ShiftCollectionOrderIndices(collectionDisplayModel, collectionSource);
+        }
+
+        public static void UpdateAllWorkingDataAfterPull(this IDataService iface)
+        {
+            ((IDataServiceInternal)iface).UpdateAllWorkingDataAfterPull();
         }
     }
 }

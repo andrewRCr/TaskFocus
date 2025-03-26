@@ -124,22 +124,36 @@ namespace TaskFocusUI.Library.Data.Services
                 ProjectDisplayModel? assignedProject = FindAssignedProject();
                 if (assignedProject == null)
                 {
-                    ProjectModel newProject = new ProjectModel { ProjectName = task.ProjectName };
-                    assignedProject = AddProject(newProject);
+                    // for now, do nothing; this should never be triggered
+                    // leaving here in case in the future may change UI
+                    // to allow user to directly assign and create at the same time
 
-                    task.ProjectIndex = 0;
+                    //ProjectModel newProject = new ProjectModel { ProjectName = task.ProjectName };
+                    //assignedProject = AddProject(newProject);
+                    //task.ProjectIndex = 0;
+                    //task.ProjectId =  assignedProject!.Id;
                 }
                 else
                 {
                     // determine project index for task
-                    List<TaskDisplayModel> projectTasks = _dataState.GetTasks()!
-                        .Where(x => x.ProjectId == assignedProject.Id).ToList();
+                    List<TaskDisplayModel> projectTasks = new();
+                    if (assignedProject.Id != null)
+                    {
+                        projectTasks = _dataState.GetTasks()!
+                            .Where(x => x.ProjectId == assignedProject.Id).ToList();
+                        task.ProjectId = assignedProject!.Id;
+                    }
+                    //else
+                    //{
+                    //    projectTasks = _dataState.GetTasks()!
+                    //        .Where(x => x.ProjectId == assignedProject.TempLocalId).ToList();
+                    //    task.ProjectId = assignedProject!.TempLocalId;
+                    //}
 
                     task.ProjectIndex = projectTasks.Count;
+                    LogInformation($"{task.TaskName}: new ProjectId is {task.ProjectId}, projectName {task.ProjectName}");
                     //LogInformation($"{task.TaskName}: new ProjectIndex is {task.ProjectIndex}");
-                }
-
-                task.ProjectId = assignedProject!.Id;
+                }           
             }
         }
 
@@ -293,17 +307,15 @@ namespace TaskFocusUI.Library.Data.Services
                 if (compareResult.ContextNameChanged) { await HandleTaskContextChanged(workingTask); }
                 // handle any adjustments to which view pages the task appears in
                 HandleTaskViewChanges(workingTask);
+
+                Console.WriteLine(workingTask.ProjectId);
             }
 
             // update data state Tasks object from WorkingTasks copy
             workingTask.ClientLastUpdated = DateTimeOffset.Now; // flag for sync
             if (workingTask.Id == null) // task hasn't yet been inserted on server; pending push
             {
-
-                //workingTask.TempLocalId = workingTask.TempLocalId;
-
                 // update standard client data state copy
-                //var dataStateTask = _dataState.Tasks!.Find(x => x.TempLocalId == workingTask.TempLocalId);
                 var dataStateTask = _dataState.GetTasks()!.Find(x => x.TempLocalId == workingTask.TempLocalId);
                 if (dataStateTask != null) dataStateTask.ValueAssign(workingTask);
 
@@ -315,7 +327,6 @@ namespace TaskFocusUI.Library.Data.Services
             else
             {
                 // update standard client data state copy
-                //var dataStateTask = _dataState.Tasks!.Find(x => x.Id == workingTask.Id);
                 var dataStateTask = _dataState.GetTasks()!.Find(x => x.Id == workingTask.Id);
                 if (dataStateTask != null) dataStateTask.ValueAssign(workingTask);
 
@@ -325,6 +336,17 @@ namespace TaskFocusUI.Library.Data.Services
                     x => x.Id == workingTask.Id);
                 if (!alreadyQueued.Any()) { _dataState.ChangedTaskData.Add(workingTask.Clone()); }
             }
+
+            var dataStateTask1 = _dataState.GetTasks()!.Find(x => x.Id == workingTask.Id);
+            var dataStateWorkingTask = _dataState.GetWorkingTasks()!.Find(x => x.Id == workingTask.Id);
+            Console.WriteLine($"at processLocalTaskUpdate end, dataStateTask projectId: {dataStateTask1.ProjectId}, dataStateWorkingTask projectId: {dataStateWorkingTask.ProjectId}");
+        }
+
+        // updates local "working" copy of task data, for use after sync
+        private void UpdateWorkingTasksFromDataState()
+        {
+            List<TaskDisplayModel> workingDisplayTaskList = _dataState.GetTasks()!.ConvertAll(task => task.Clone());
+            _dataState.SetWorkingTasks(workingDisplayTaskList);
         }
 
         void IDataServiceInternal.HandleIndexShiftsOnTaskDeletion(TaskDisplayModel task)
@@ -374,8 +396,9 @@ namespace TaskFocusUI.Library.Data.Services
             var displayTaskList = _mapper.Map<List<TaskDisplayModel>>(taskList);
             _dataState.SetTasks(displayTaskList);
 
-            List<TaskDisplayModel> workingDisplayTaskList = displayTaskList.ConvertAll(task => task.Clone());
-            _dataState.SetWorkingTasks(workingDisplayTaskList);
+            //List<TaskDisplayModel> workingDisplayTaskList = displayTaskList.ConvertAll(task => task.Clone());
+            //_dataState.SetWorkingTasks(workingDisplayTaskList);
+            UpdateWorkingTasksFromDataState();
 
             _dataState.InvokeDataStateChanged("Tasks");
         }
@@ -416,6 +439,7 @@ namespace TaskFocusUI.Library.Data.Services
             _dataState.InvokeDataStateChanged("Tasks");
         }
 
+        // validates request, processes local delete, flags for sync, refreshes UI
         public void DeleteTask(TaskDisplayModel workingTask)
         {
             this.HandleIndexShiftsOnTaskDeletion(workingTask);
@@ -427,7 +451,7 @@ namespace TaskFocusUI.Library.Data.Services
                 var dataStateTask = _dataState.GetTasks()!.Find(x => x.TempLocalId == workingTask.TempLocalId);
                 if (dataStateTask != null) _dataState.GetTasks()!.Remove(dataStateTask);
                 var changedTask = _dataState.ChangedTaskData.Find(x => x.TempLocalId == workingTask.TempLocalId);
-                _dataState.ChangedTaskData.Remove(changedTask!);
+                if (changedTask != null) _dataState.ChangedTaskData.Remove(changedTask!);
                 _dataState.GetWorkingTasks()!.Remove(workingTask);
             }
             else
@@ -443,7 +467,7 @@ namespace TaskFocusUI.Library.Data.Services
                 if (alreadyQueued.Count() == 0) { _dataState.ChangedTaskData.Add(dataStateTask.Clone()); }
 
                 // local delete
-                _dataState.GetTasks()!.Remove(dataStateTask);
+                if (dataStateTask != null) _dataState.GetTasks()!.Remove(dataStateTask);
                 _dataState.GetWorkingTasks()!.Remove(workingTask);
             }
 

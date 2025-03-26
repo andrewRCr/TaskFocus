@@ -16,7 +16,7 @@ namespace TaskFocusUI.Library.Data.Utilities
         List<TaskDisplayModel>? FocusedContextTasks { get; set; }
 
         TaskDataCompareResult HasTaskDataChanged(TaskDisplayModel displayTask);
-        bool HasProjectDataChanged(ProjectDisplayModel displayProject);
+        ProjectDataCompareResult HasProjectDataChanged(ProjectDisplayModel displayProject);
         bool HasContextDataChanged(ContextDisplayModel displayContext);
         bool HasSettingsDataChanged(UserSettingsModel displaySettings);
 

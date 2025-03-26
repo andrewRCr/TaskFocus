@@ -19,7 +19,9 @@
                 Icon="@Icons.Material.Filled.Assignment" 
                 Text="@ProjectParam.ProjectName" TextTypo="Typo.button">
 
-                    <TaskContainerComponent ContainerTaskItemsParam="@DataService.GetDataStateTasks()!.Where(x=>(x.ProjectId == ProjectParam.Id) && !x.CleanedUp).ToList()"
+                    <TaskContainerComponent 
+                    ContainerTaskItemsParam="@DataService.GetDataStateTasks()!.Where(
+                        x => (x.ProjectId != null) && (x.ProjectId == ProjectParam.Id) && !x.CleanedUp).ToList()"
                     ContainerIdentifierParam="@ProjectParam.ProjectName"
                     ContainerOrderingTypeParam="Project"
                     ContainerItemsSelectorParam="@((item, dropzone) => item.ProjectName == dropzone)"
@@ -39,7 +41,9 @@
                     Text="@project.ProjectName" 
                     TextTypo="Typo.button">
 
-                        <TaskContainerComponent ContainerTaskItemsParam="@DataService.GetDataStateTasks()!.Where(x=>(x.ProjectId == project.Id) && !x.CleanedUp).ToList()"
+                        <TaskContainerComponent 
+                        ContainerTaskItemsParam="@DataService.GetDataStateTasks()!.Where(
+                            x => (x.ProjectId != null) && (x.ProjectId == project.Id) && !x.CleanedUp).ToList()"
                         ContainerIdentifierParam="@project.ProjectName"
                         ContainerOrderingTypeParam="Project"
                         ContainerItemsSelectorParam="@((item, dropzone) => item.ProjectName == dropzone)"
@@ -98,6 +102,15 @@
     {
         LoadAllLocalData();
         _focusedProjectIdStr = AppState.FocusedProjectIdStr;
+
+        if (LocalProjects != null)
+        {
+            foreach (var item in LocalProjects!)
+            {
+                Console.WriteLine($"{item.ProjectName} {item.Id}");
+            }
+        }
+        else { Console.WriteLine("LocalProjects null on CustomAuthInit on ProjectsTsskViewPage"); }
     }
 
     protected override bool IsLocalDataLoaded()
@@ -144,12 +157,15 @@
     {
         if (!dataRefreshTriggers.Contains(propertyName))
         {
+        
+            Console.WriteLine($"ProjectsViewPageBase: returned FALSE on HandleDataStateChanged. changed property causing FALSE return: {propertyName}");
             return false;
         }
 
         if (AppState.CanRefresh)
         {
             LoadAllLocalData();
+            Console.WriteLine($"ProjectsViewPageBase: returned true on HandleDataStateChanged. changed property causing True return: {propertyName}");
         }
 
         return AppState.CanRefresh;

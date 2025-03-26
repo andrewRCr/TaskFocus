@@ -1,8 +1,10 @@
 ﻿@using TaskFocusUI.Library.Data.Services
 @using TaskFocusUI.Library.Data.Services.Access
+@using TaskFocusUI.Library.Data.Services.Synchronization
 @using TaskFocusUI.Library.Data.State
 @inherits _ComponentStateAwareBase
 @inject IDataService DataService
+@inject IDataSyncService DataSyncService
 @inject ISnackbar Snackbar
 
 <MudNavMenu Bordered="true" Style="width: 300px;">
@@ -238,6 +240,7 @@ Style="background-color: #27272f" >
             ProjectModel newProject = new();
             newProject.ProjectName = _newCollectionName;
             DataService.AddProject(newProject);
+            await DataSyncService.Sync();
         }
         else
         {
@@ -268,6 +271,7 @@ Style="background-color: #27272f" >
         {
             LoadLocalProjectData();
             LoadLocalContextData();
+            //Console.WriteLine($"SubNavMenu: returned true on HandleDataStateChanged. changed property causing True return: {propertyName}");
         }
 
         return AppState.CanRefresh;

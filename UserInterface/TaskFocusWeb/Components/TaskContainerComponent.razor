@@ -70,6 +70,12 @@ else
         {
             _orderingIndex = ContainerOrderingTypeParam + "Index";
             ContainerTaskItemsParam = ContainerTaskItemsParam.OrderBy(x => x[_orderingIndex]).ToList();
+
+            Console.WriteLine($"{ContainerIdentifierParam} ContainerTaskItemsParam COUNT: {ContainerTaskItemsParam.Count}");
+            foreach (var item in ContainerTaskItemsParam)
+            {
+                Console.WriteLine($"{ContainerIdentifierParam} ContainerTaskItemsParam task: {item.TaskName}");
+            }
         }
     }
 
@@ -87,16 +93,8 @@ else
     private void RefreshContainer()
     {
         ContainerTaskItemsParam = ContainerTaskItemsParam.OrderBy(x => x[_orderingIndex]).ToList();
-        StateHasChanged(); // update the binding to the container
         _container.Refresh(); // container refreshes internal state
-        //Console.WriteLine("TaskContainerComponent: refreshed container!");
-
-        // foreach (TaskDisplayModel task in ContainerTaskItemsParam!)
-        // {
-        //     //task.PropertyChanged += OnExistingTaskPropertyChanged!; // subscribe to property changed event
-
-        //     //Console.WriteLine($"{task.TaskName}'s ContainerTaskItemsParam Index: {ContainerTaskItemsParam!.FindIndex(x => x.TaskName == task.TaskName)}, InboxIndex: {task.InboxIndex}");
-        // }
+        StateHasChanged(); // update the binding to the container
     }
 
     private void UpdateLocalOrder(MudItemDropInfo<TaskDisplayModel> reorderedDropItem)
@@ -138,7 +136,9 @@ else
 
         if (AppState.CanRefresh)
         {
-            if (CanReorderParam && _container != null) { RefreshContainer(); }           
+            if (CanReorderParam && _container != null) { 
+                RefreshContainer(); 
+            }           
         }
 
         return AppState.CanRefresh;

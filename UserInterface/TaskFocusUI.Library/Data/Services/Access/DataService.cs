@@ -54,6 +54,13 @@ namespace TaskFocusUI.Library.Data.Services
             else { Debug.WriteLine($"DesktopUI - ERROR: {message}"); }
         }
 
+        // NEEDS TO BE MADE INTERNAL
+        void IDataServiceInternal.UpdateAllWorkingDataAfterPull()
+        {
+            UpdateWorkingTasksFromDataState();
+            UpdateWorkingProjectsFromDataState();
+        }
+
         // for use when removing a project/context
         void IDataServiceInternal.ShiftCollectionOrderIndices<T>(T collectionDisplayModel, List<T> collectionSource)
         {

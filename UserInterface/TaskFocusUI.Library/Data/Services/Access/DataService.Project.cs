@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using TaskFocusUI.Library.Data.Services.Access;
 using TaskFocusUI.Library.Data.State;
+using TaskFocusUI.Library.Data.Utilities;
 using TaskFocusUI.Library.Models;
 
 namespace TaskFocusUI.Library.Data.Services
@@ -16,6 +17,68 @@ namespace TaskFocusUI.Library.Data.Services
 
         // helper methods
         // ====================
+
+        private async Task ProcessLocalProjectUpdate(ProjectDisplayModel workingProject, bool nameChanged = false)
+        {
+            if (nameChanged)
+            {
+                // handle project's tasks - update assigned project name
+                List<TaskDisplayModel> projectTasks;
+                if (workingProject.Id != null)
+                {
+
+                    projectTasks = _dataState.GetWorkingTasks()!.Where(x => x.ProjectId == workingProject.Id).ToList();
+                    foreach (TaskDisplayModel task in projectTasks)
+                    {
+                        task.ProjectName = workingProject.ProjectName;
+                        await UpdateTaskData(task);
+                    }
+                }
+                //else // new project, not added on server yet
+                //{
+                //    projectTasks = _dataState.GetWorkingTasks()!.Where(x => x.ProjectId == workingProject.TempLocalId).ToList();
+                //}
+
+                //foreach (TaskDisplayModel task in projectTasks)
+                //{
+                //    task.ProjectName = workingProject.ProjectName;
+                //    await UpdateTaskData(task);
+                //}
+            }
+
+            // update data state Projects object from WorkingProjects copy
+            workingProject.ClientLastUpdated = DateTimeOffset.Now; // flag for sync
+            if (workingProject.Id == null) // project hasn't yet been inserted on server; pending push
+            {
+                // update standard client data state copy
+                var dataStateProject = _dataState.GetProjects()!.Find(x => x.TempLocalId == workingProject.TempLocalId);
+                if (dataStateProject != null) dataStateProject.ValueAssign(workingProject);
+
+                // update changedProjectData copy of task
+                // note: only need to track pending property changes in changedProjectData if project has never been pushed
+                var queuedChangedProject = _dataState.ChangedProjectData!.Find(x => x.TempLocalId == workingProject.TempLocalId);
+                if (queuedChangedProject != null) queuedChangedProject.ValueAssign(workingProject);
+            }
+            else
+            {
+                // update standard client data state copy
+                var dataStateProject = _dataState.GetProjects()!.Find(x => x.Id == workingProject.Id);
+                if (dataStateProject != null) dataStateProject.ValueAssign(workingProject);
+
+                // add copy to ChangedProjectData
+                // don't duplicate if already had another update prior to push
+                var alreadyQueued = _dataState.ChangedProjectData.Where(
+                    x => x.Id == workingProject.Id);
+                if (!alreadyQueued.Any()) { _dataState.ChangedProjectData.Add(workingProject.Clone()); }
+            }
+        }
+
+        // updates local "working" copy of project data, for use after sync
+        private void UpdateWorkingProjectsFromDataState()
+        {
+            List<ProjectDisplayModel> workingProjectList = _dataState.GetProjects()!.ConvertAll(project => project.Clone());
+            _dataState.SetWorkingProjects(workingProjectList);
+        }
 
         // do I need this? not currently being called... TODO: re-examine why it's in use for Tasks; is it only needed there and not for Projects/Contexts?
         public bool IsProjectCurrentlyBeingUpdated(ProjectDisplayModel project)
@@ -47,8 +110,9 @@ namespace TaskFocusUI.Library.Data.Services
             var displayProjectList = _mapper.Map<List<ProjectDisplayModel>>(projectList);
             _dataState.SetProjects(displayProjectList);
 
-            List<ProjectDisplayModel> workingDisplayProjectList = displayProjectList.ConvertAll(project => project.Clone());
-            _dataState.SetWorkingProjects(workingDisplayProjectList);
+            //List<ProjectDisplayModel> workingDisplayProjectList = displayProjectList.ConvertAll(project => project.Clone());
+            //_dataState.SetWorkingProjects(workingDisplayProjectList);
+            UpdateWorkingProjectsFromDataState();
 
             _dataState.InvokeDataStateChanged("Projects");
         }
@@ -79,7 +143,7 @@ namespace TaskFocusUI.Library.Data.Services
             // map to display model
             ProjectDisplayModel newDisplayProject = _mapper.Map<ProjectDisplayModel>(newProject);
             // determine OrderIndex for project
-            newProject.OrderIndex = _dataState.GetProjects()!.Count;
+            newDisplayProject.OrderIndex = _dataState.GetProjects()!.Count;
             // give temp local tracking id
             newDisplayProject.TempLocalId = ++_dataState.TempProjectId;
 
@@ -96,17 +160,19 @@ namespace TaskFocusUI.Library.Data.Services
             return newDisplayProject;
         }
 
-        // TODO: needs updating, modeled after Task equivalent
-        public async Task DeleteProject(ProjectDisplayModel displayProject)
+        // validates request, processes local delete, flags for sync, refreshes UI
+        public async Task DeleteProject(ProjectDisplayModel workingProject)
         {
             // map from ProjectDisplayModel to ProjectModel
-            ProjectModel project = _mapper.Map<ProjectModel>(displayProject);
+            ProjectModel project = _mapper.Map<ProjectModel>(workingProject);
 
             // ensure other projects have updated OrderIndex values
-            this.ShiftCollectionOrderIndices(displayProject, _dataState.GetProjects()!);
+            this.ShiftCollectionOrderIndices(workingProject, _dataState.GetWorkingProjects()!.ToList());
+            // ^ this updates those tasks' orderIndex value, but doesn't flag for sync / do additional processing
+            // that will be caught and processed in the next step when UpdateTaskData is called
 
             // handle project's tasks - remove assigned project
-            List<TaskDisplayModel> projectTasks = _dataState.GetTasks()!.Where(x => x.ProjectId == project.Id).ToList();
+            List<TaskDisplayModel> projectTasks = _dataState.GetWorkingTasks()!.Where(x => x.ProjectId == project.Id).ToList();
             foreach (TaskDisplayModel task in projectTasks)
             {
                 task.ProjectName = null;
@@ -117,12 +183,13 @@ namespace TaskFocusUI.Library.Data.Services
             if (project.Id == null) // never existed on server; insert was pending push
             {
                 // local delete
-                _dataState.GetProjects()!.Remove(displayProject);
-                var changedProject = _dataState.ChangedProjectData.Find(x => x.TempLocalId == displayProject.TempLocalId);
-                bool removed = _dataState.ChangedProjectData.Remove(changedProject!);
-                // trigger UI update
-                _dataState.InvokeDataStateChanged("Projects");
-
+                var dataStateProject = _dataState.GetProjects()!.Find(x => x.TempLocalId == workingProject.TempLocalId);
+                if (dataStateProject != null) _dataState.GetProjects()!.Remove(dataStateProject);
+                var changedProject = _dataState.ChangedProjectData.Find(x => x.TempLocalId == workingProject.TempLocalId);
+                bool removed = false;
+                if (changedProject != null) removed = _dataState.ChangedProjectData.Remove(changedProject);
+                _dataState.GetWorkingProjects()!.Remove(workingProject);
+                
                 if (removed)
                     Console.WriteLine("never existed on server; removed from changed project data");
                 else
@@ -130,31 +197,31 @@ namespace TaskFocusUI.Library.Data.Services
             }
             else
             {
-                ProjectDisplayModel clientProject = _dataState.GetProjects()!.Find(x => x.Id == project.Id)!;
-                clientProject.Deleted = DateTimeOffset.Now;
-                // flag for sync
-                clientProject.ClientLastUpdated = DateTimeOffset.Now;
+                ProjectDisplayModel dataStateProject = _dataState.GetProjects()!.Find(x => x.Id == project.Id)!;
+                // flag for server delete on sync
+                dataStateProject.Deleted = DateTimeOffset.Now;
+                dataStateProject.ClientLastUpdated = DateTimeOffset.Now;
 
                 // if had an update pending push, don't add a duplicate to changedProjectData
                 var alreadyQueued = _dataState.ChangedProjectData.Where(
-                    x => x.Id == clientProject.Id);
-                if (alreadyQueued.Count() == 0) { _dataState.ChangedProjectData.Add(clientProject.Clone()); }
+                    x => x.Id == dataStateProject.Id);
+                if (alreadyQueued.Count() == 0) { _dataState.ChangedProjectData.Add(dataStateProject.Clone()); }
 
                 // local delete
-                _dataState.GetProjects()!.Remove(clientProject);
-                // trigger UI update
-                _dataState.InvokeDataStateChanged("Projects");
+                if (dataStateProject != null) _dataState.GetProjects()!.Remove(dataStateProject);
+                _dataState.GetWorkingProjects()!.Remove(workingProject);
             }
+
+            // trigger UI update
+            _dataState.InvokeDataStateChanged("Projects");
         }
 
-        // TODO: needs updating, modeled after Task equivalent
         // validates request, performs additional processing, flags for sync, refreshes UI
         public async Task UpdateProjectData(ProjectDisplayModel workingProject)
         {
-            // map from ProjectDisplayModel to ProjectModel
-            ProjectModel project = _mapper.Map<ProjectModel>(workingProject);
+            ProjectDataCompareResult compareResult = _dataHelper.HasProjectDataChanged(workingProject);
 
-            if (_dataHelper.HasProjectDataChanged(workingProject))
+            if (compareResult.HasChanged)
             {
                 if (!_dataHelper.IsUpdatedProjectNameUnique(workingProject))
                 {
@@ -164,8 +231,8 @@ namespace TaskFocusUI.Library.Data.Services
 
                 if (_projectBeingUpdated != null)
                 {
-                    if (project.Id == null && workingProject.TempLocalId != _projectBeingUpdated.TempLocalId ||
-                        project.Id != _projectBeingUpdated.Id)
+                    if (workingProject.Id == null && workingProject.TempLocalId != _projectBeingUpdated.TempLocalId ||
+                        workingProject.Id != _projectBeingUpdated.Id)
                     {
                         // unlock
                         Interlocked.Exchange(ref _projectUpdateEntered, 0);
@@ -173,36 +240,12 @@ namespace TaskFocusUI.Library.Data.Services
                     }
                 }
 
-                // lock
+                // lock, to prevent other property changes during processing from triggering new Update calls
                 if (Interlocked.Increment(ref _projectUpdateEntered) != 1) { return; }
                 _projectBeingUpdated = workingProject;
 
-                // change locally and mark for sync
-                if (workingProject.Id == null) // project hasn't yet been inserted on server; pending push
-                {
-                    // update standard client data state copy
-                    var dataStateProject = _dataState.GetProjects()!.Find(x => x.TempLocalId == workingProject.TempLocalId);
-                    if (dataStateProject != null) dataStateProject.ValueAssign(workingProject);
+                await ProcessLocalProjectUpdate(workingProject, compareResult.ProjectNameChanged);
 
-                    // update changedProjectData copy of task
-                    // note: only need to track pending property changes in changedProjectData if project has never been pushed
-                    var queuedChangedProject = _dataState.ChangedProjectData!.Find(x => x.TempLocalId == workingProject.TempLocalId);
-                    if (queuedChangedProject != null) queuedChangedProject.ValueAssign(workingProject);
-                }
-                else
-                {
-                    // update standard client data state copy
-                    var dataStateProject = _dataState.GetProjects()!.Find(x => x.Id == workingProject.Id);
-                    if (dataStateProject != null) dataStateProject.ValueAssign(workingProject);
-
-                    // add copy to ChangedProjectData
-                    // don't duplicate if already had another update prior to push
-                    var alreadyQueued = _dataState.ChangedProjectData.Where(
-                        x => x.Id == workingProject.Id);
-                    if (!alreadyQueued.Any()) { _dataState.ChangedProjectData.Add(workingProject.Clone()); }
-                }
-
-                workingProject.ClientLastUpdated = DateTimeOffset.Now; // flag for sync
                 // unlock
                 Interlocked.Exchange(ref _projectUpdateEntered, 0);
                 _projectBeingUpdated = null;

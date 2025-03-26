@@ -165,6 +165,7 @@ Style="background-color: #27272f">
 
         _renameDialogVisible = false;
 
+        AppState.DialogProvider.DismissAll();
         Snackbar.Add($"{_collectionTypeName} renamed.", Severity.Success);
     }
 
@@ -176,6 +177,7 @@ Style="background-color: #27272f">
         if (IsProjectsSubMenu) { await DataService.DeleteProject(ProjectParam); }
         else { await DataService.DeleteContext(ContextParam); }
 
+        AppState.DialogProvider.DismissAll();
         Snackbar.Add($"{_collectionTypeName} deleted.", Severity.Success);
     }
 

@@ -185,12 +185,16 @@ namespace TaskFocusUI.Library.Models
         public void ValueAssign(TaskDisplayModel source)
         {
             Id = source.Id;
+            UserId = source.UserId;
             TaskName = source.TaskName;
+            ProjectId = source.ProjectId;
             ProjectName = source.ProjectName;
+            ContextId = source.ContextId;
             ContextName = source.ContextName;
             DueDate = source.DueDate;
             Starred = source.Starred;
             Completed = source.Completed;
+            DateCompleted = source.DateCompleted;
             CleanedUp = source.CleanedUp;
             InboxIndex = source.InboxIndex;
             TodayIndex = source.TodayIndex;

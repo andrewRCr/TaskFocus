@@ -7,5 +7,6 @@ namespace TaskFocusUI.Library.Data.Services.Access
     {
         void HandleIndexShiftsOnTaskDeletion(TaskDisplayModel task);
         void ShiftCollectionOrderIndices<T>(T collectionDisplayModel, List<T> collectionSource) where T : ICollectionDisplayModel;
+        void UpdateAllWorkingDataAfterPull();
     }
 }

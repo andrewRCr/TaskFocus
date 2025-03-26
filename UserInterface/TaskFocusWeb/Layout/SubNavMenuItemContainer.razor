@@ -79,14 +79,14 @@ else
         if (IsProjectsSubMenu)
         {
             ContainerProjectsParam = ContainerProjectsParam.OrderBy(x => x.OrderIndex).ToList();
-            StateHasChanged(); // update the binding to the container
             _projectContainer.Refresh(); // container refreshes internal state
+            StateHasChanged(); // update the binding to the container
         }
         else
         {
             ContainerContextsParam = ContainerContextsParam.OrderBy(x => x.OrderIndex).ToList();
-            StateHasChanged(); 
             _contextContainer.Refresh();
+            StateHasChanged();
         }
     }
 
@@ -132,6 +132,7 @@ else
         if (AppState.CanRefresh)
         {
             RefreshContainer();
+            //Console.WriteLine($"SubNavMenuItemContainer: returned true on HandleDataStateChanged. changed property causing True return: {propertyName}");
         }
 
         return AppState.CanRefresh;

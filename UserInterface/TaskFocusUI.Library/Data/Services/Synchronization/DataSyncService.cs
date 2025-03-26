@@ -73,7 +73,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
 
             // periodic sync
             TimeSpan interval = TimeSpan.FromSeconds(60);
-            await PeriodicSync(interval);
+            //await PeriodicSync(interval);
         }
 
         public async Task PeriodicSync(TimeSpan interval, CancellationToken cancellationToken = default)
@@ -107,6 +107,8 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             // and update the local client data with any changes (inserts, deletions, updates)
             DataSyncResult pullResult = await PullSync();
 
+            // update "working" copies of local data from newly synced data state + log completion
+            _dataService.UpdateAllWorkingDataAfterPull();
             _dataState.LastSync = DateTimeOffset.Now;
 
             Console.WriteLine($"Sync complete!");
