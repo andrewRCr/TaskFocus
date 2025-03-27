@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using TaskFocusUI.Library.API;
 using TaskFocusUI.Library.Data.Services.Access;
+using TaskFocusUI.Library.Data.Services.Synchronization;
 using TaskFocusUI.Library.Data.State;
 using TaskFocusUI.Library.Data.Utilities;
 
@@ -40,21 +41,21 @@ namespace TaskFocusUI.Library.Data.Services
         // helper methods
         // ====================
 
-        // wrapper for info logging when used in desktop UI w/ caliburn micro
+        // wrapper for info logging in either client
         private void LogInformation(string message)
         {
-            if (_logger != null) { _logger.LogInformation(message);}
-            else { Debug.WriteLine($"DesktopUI - INFO: {message}");}
+            if (_logger != null) { _logger.LogInformation(message); }
+            else { Debug.WriteLine($"DesktopUI - INFO: {message}"); }
         }
 
-        // wrapper for error logging when used in desktop UI w/ caliburn micro
+        // wrapper for info logging in either client
         private void LogError(string message)
         {
             if (_logger != null) { _logger.LogError(message); }
             else { Debug.WriteLine($"DesktopUI - ERROR: {message}"); }
         }
 
-        // NEEDS TO BE MADE INTERNAL
+        // makes working copy clones of new data state
         void IDataServiceInternal.UpdateAllWorkingDataAfterPull()
         {
             UpdateWorkingTasksFromDataState();
@@ -71,6 +72,15 @@ namespace TaskFocusUI.Library.Data.Services
                 bool shiftNeeded = item.OrderIndex > previouslyAssignedCollectionIndex;
                 if (shiftNeeded) { item.OrderIndex--; }
             }
+        }
+
+        // for handling manual sync request events
+        public event EventHandler<string>? SyncRequestHandler;
+
+        // for invoking manual sync request events
+        public void InvokeSyncRequest(string sourceName)
+        {
+            SyncRequestHandler?.Invoke(this, sourceName);
         }
 
         // data state CRUD operations

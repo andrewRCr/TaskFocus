@@ -71,11 +71,11 @@ else
             _orderingIndex = ContainerOrderingTypeParam + "Index";
             ContainerTaskItemsParam = ContainerTaskItemsParam.OrderBy(x => x[_orderingIndex]).ToList();
 
-            Console.WriteLine($"{ContainerIdentifierParam} ContainerTaskItemsParam COUNT: {ContainerTaskItemsParam.Count}");
-            foreach (var item in ContainerTaskItemsParam)
-            {
-                Console.WriteLine($"{ContainerIdentifierParam} ContainerTaskItemsParam task: {item.TaskName}");
-            }
+            // Console.WriteLine($"{ContainerIdentifierParam} ContainerTaskItemsParam COUNT: {ContainerTaskItemsParam.Count}");
+            // foreach (var item in ContainerTaskItemsParam)
+            // {
+            //     Console.WriteLine($"{ContainerIdentifierParam} ContainerTaskItemsParam task: {item.TaskName}");
+            // }
         }
     }
 

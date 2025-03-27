@@ -155,8 +155,10 @@ namespace TaskFocusUI.Library.Data.Services
             _dataState.GetWorkingProjects()!.Add(newDisplayProject.Clone());
             _dataState.GetProjects()!.Add(newDisplayProject.Clone());
 
-            // trigger UI update
+            // trigger UI update + request sync
             _dataState.InvokeDataStateChanged("Projects");
+            InvokeSyncRequest(nameof(AddProject));                           
+
             return newDisplayProject;
         }
 

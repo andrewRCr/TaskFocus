@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Data.Entity.Core.Common.CommandTrees.ExpressionBuilder;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using TaskFocusUI.Library.API;
@@ -34,6 +35,8 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
         private List<ProjectModel> _pushedProjectData;
         private List<ContextModel> _pushedContextData;
 
+        private bool _syncInProgress = false;
+
         public DataSyncService(ILogger<DataSyncService> logger,
                                IMapper mapper,
                                IDataHelper dataHelper,
@@ -60,23 +63,64 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             _pushedTaskData = new();
             _pushedProjectData = new();
             _pushedContextData = new();
+
+            _dataService.SyncRequestHandler += DataService_SyncRequested;
         }
 
-        // populate empty DataState + initialize on client launch
-        public async Task InitSync()
+        // helper methods
+        // ====================
+
+        // wrapper for info logging in either client
+        private void LogInformation(string message)
         {
-            await _dataService.FetchAllRemoteData();   
-            _dataState.LastSync = DateTimeOffset.Now; // log
-            //Console.WriteLine($"InitSync complete; DataState populated.");
-            //Trace.WriteLine($"InitSync complete; DataState populated.");
-            _logger.LogInformation("InitSync complete; DataState populated");
-
-            // periodic sync
-            TimeSpan interval = TimeSpan.FromSeconds(60);
-            //await PeriodicSync(interval);
+            if (_logger != null) { _logger.LogInformation(message); }
+            else { Debug.WriteLine($"DesktopUI - INFO: {message}"); }
         }
 
-        public async Task PeriodicSync(TimeSpan interval, CancellationToken cancellationToken = default)
+        // wrapper for info logging in either client
+        private void LogError(string message)
+        {
+            if (_logger != null) { _logger.LogError(message); }
+            else { Debug.WriteLine($"DesktopUI - ERROR: {message}"); }
+        }
+
+        private async void DataService_SyncRequested(object? sender, string e)
+        {
+            bool success = await TrySync();
+            if (success) LogInformation($"{e}'s requested sync operation has been handled.");
+            else { LogError($"{e}'s requested sync operation failed."); }
+        }
+
+        // attempts to Sync(), and re-attempts if an exception is raised
+        private async Task<bool> TrySync()
+        {
+            var numRetryAttempts = 3;
+            var retryDelay = 1000;
+            bool isInitialSync = _dataState.LastSync == DateTimeOffset.MinValue;
+
+            for (int i = 0; i < numRetryAttempts; i++)
+            {
+                try
+                {
+                    // attempt sync; if successful, break loop
+                    if (isInitialSync) await InitSync();
+                    else await Sync();
+
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    // the operation throws an error - log and reattempt
+                    LogError($"Sync retry attempt {i + 1}: Exception : {ex.Message}");
+                    if (i == numRetryAttempts - 1) return false;
+                    await Task.Delay(retryDelay);
+                }
+            }
+            return true;
+        }
+
+        // calls TrySync() on passed interval
+        private async Task PeriodicSync(TimeSpan interval, CancellationToken cancellationToken = default)
         {
             using PeriodicTimer timer = new(interval);
             while (true)
@@ -84,24 +128,48 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                 try
                 {
                     await timer.WaitForNextTickAsync(cancellationToken);
-                    await Sync();
+                    await TrySync();
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex.Message);
+                    LogError(ex.Message);
                 }
             }
         }
 
+        // on client launch, populate empty DataState + initialize PeriodicSync
+        public async Task InitSync()
+        {
+            LogInformation("InitSync called");
+            try
+            {
+                await _dataService.FetchAllRemoteData();
+                _dataState.LastSync = DateTimeOffset.Now; // log
+                LogInformation("InitSync complete; DataState populated");
+
+                // initialize periodic sync
+                TimeSpan interval = TimeSpan.FromSeconds(60);
+                //await PeriodicSync(interval); TODO: temporarily disabled during testing
+            }
+            catch (Exception ex)
+            {
+                LogError(ex.Message);
+                throw;
+            }
+        }
+
+        // synchronization logic
+        // ====================
+
         // syncs at row level; LastUpdated determines who wins at the server
         public async Task Sync()
         {
-            // debug
-            Console.WriteLine($"starting Sync... (lastSync prior: {_dataState.LastSync}");
-            Trace.WriteLine($"starting Sync... (lastSync prior: {_dataState.LastSync}");
+            if (_syncInProgress) throw new Exception("Sync already in progress; operation aborted.");
+
+            _syncInProgress = true;
+            LogInformation($"starting Sync... (lastSync prior: {_dataState.LastSync}");
 
             // push all client rows locally changed since last sync to the server
-            //int[] numPushedRows = await PushSync();
             DataSyncResult pushResult = await PushSync();
             // pull all records that have changed since last sync...
             // and update the local client data with any changes (inserts, deletions, updates)
@@ -111,24 +179,15 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             _dataService.UpdateAllWorkingDataAfterPull();
             _dataState.LastSync = DateTimeOffset.Now;
 
-            Console.WriteLine($"Sync complete!");
-            Console.WriteLine($"PUSH: {pushResult.numRowsInserted} rows inserted, {pushResult.numRowsDeleted} rows deleted, {pushResult.numRowsUpdated} rows updated.");
-            Console.WriteLine($"PULL: {pullResult.numRowsInserted} rows inserted, {pullResult.numRowsDeleted} rows deleted, {pullResult.numRowsUpdated} rows updated.");
-            Trace.WriteLine($"Sync complete!");
-            Trace.WriteLine($"PUSH: {pushResult.numRowsInserted} rows inserted, {pushResult.numRowsDeleted} rows deleted, {pushResult.numRowsUpdated} rows updated.");
-            Trace.WriteLine($"PULL: {pullResult.numRowsInserted} rows inserted, {pullResult.numRowsDeleted} rows deleted, {pullResult.numRowsUpdated} rows updated.");
-
-
+            LogInformation("Sync complete!");
+            LogInformation($"PUSH: {pushResult.numRowsInserted} rows inserted, {pushResult.numRowsDeleted} rows deleted, {pushResult.numRowsUpdated} rows updated.");
+            LogInformation($"PULL: {pullResult.numRowsInserted} rows inserted, {pullResult.numRowsDeleted} rows deleted, {pullResult.numRowsUpdated} rows updated.");
+            _syncInProgress = false;
         }
 
         private async Task<DataSyncResult> PushSync()
         {
-            Console.WriteLine("Pushing changes to server...");
-            Trace.WriteLine("Pushing changes to server...");
-            Console.WriteLine($"dataState.Tasks count: {_dataState.GetTasks()!.Count}");
-            //int numRowsInserted = 0;
-            //int numRowsDeleted = 0;
-            //int numRowsUpdated = 0;
+            LogInformation("Pushing changes to server...");
             DataSyncResult pushResult = new();
 
             // here, we either insert or update any server data that has been changed locally since last sync
@@ -146,7 +205,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
 
             // USER DATA (name only; email/pw are handled separately from syncable data)
             var clientUser = _dataState.ChangedUserData.FirstOrDefault(); // will only ever be one (or zero)
-            if (clientUser != null) // local changes have occured
+            if (clientUser != null) // local changes have occurred
             {
                 UserModel serverUser = await _userEndpoint.GetCurrentUserData();
 
@@ -372,7 +431,6 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
 
             return result;
         }
-
 
         // gets all records that have changed since LastSync
         // updates local client data with any changes (inserts, deletions, updates)

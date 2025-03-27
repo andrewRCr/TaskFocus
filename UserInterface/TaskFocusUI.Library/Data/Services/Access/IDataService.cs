@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using TaskFocusUI.Library.Models;
 
@@ -6,6 +7,9 @@ namespace TaskFocusUI.Library.Data.Services.Access
 {
     public interface IDataService
     {
+        event EventHandler<string>? SyncRequestHandler;
+        void InvokeSyncRequest(string sourceName);
+
         Task FetchAllRemoteData();
         Task FetchRemoteUserData();
         Task FetchRemoteTaskData();

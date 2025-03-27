@@ -1,7 +1,4 @@
 ﻿@page "/projects"
-@using TaskFocusUI.Library.Data.Services
-@using TaskFocusUI.Library.Data.Services.Access
-@using TaskFocusUI.Library.Data.State
 @inherits _TaskViewPageBase
 @inject IDataService DataService
 
@@ -103,14 +100,14 @@
         LoadAllLocalData();
         _focusedProjectIdStr = AppState.FocusedProjectIdStr;
 
-        if (LocalProjects != null)
-        {
-            foreach (var item in LocalProjects!)
-            {
-                Console.WriteLine($"{item.ProjectName} {item.Id}");
-            }
-        }
-        else { Console.WriteLine("LocalProjects null on CustomAuthInit on ProjectsTsskViewPage"); }
+        // if (LocalProjects != null)
+        // {
+        //     foreach (var item in LocalProjects!)
+        //     {
+        //         Console.WriteLine($"{item.ProjectName} {item.Id}");
+        //     }
+        // }
+        // else { Console.WriteLine("LocalProjects null on CustomAuthInit on ProjectsTsskViewPage"); }
     }
 
     protected override bool IsLocalDataLoaded()

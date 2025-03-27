@@ -1,7 +1,5 @@
-﻿@using TaskFocusUI.Library.Data.Services
-@using TaskFocusUI.Library.Data.Services.Synchronization
-@using TaskFocusUI.Library.Data.State
-@inherits LayoutComponentBase
+﻿@inherits LayoutComponentBase
+@inject IDataService DataService
 @inject IDataSyncService DataSyncService
 
 <MudThemeProvider @bind-IsDarkMode="@_isDarkMode" Theme="_customTheme" />
@@ -159,16 +157,19 @@
             // if DataState has no remote data loaded, load it
             if (!DataState.IsDataLoaded())
             {
-                await DataSyncService.InitSync();
+                //await DataSyncService.InitSync();
+                DataService.InvokeSyncRequest($"{this.ToString()}: {nameof(OnInitializedAsync)}");
             }
         }
     }
 
+    // TODO: TEMPORARY; only for testing. remove 
     private async Task ManualDataSync()
     {
         _syncing = true;
 
-        await DataSyncService.Sync();
+        //await DataSyncService.Sync();
+        DataService.InvokeSyncRequest($"{this.ToString()}: {nameof(ManualDataSync)}");
 
         _syncing = false;
     }
