@@ -24,16 +24,18 @@ namespace TaskFocusUI.Library.Data.Services.Access
 
         Task AddTask(TaskDisplayModel displayTask);
         void DeleteTask(TaskDisplayModel displayTask);
-        Task UpdateTaskData(TaskDisplayModel displayTask, bool forceUpdate = false);
+        void UpdateTaskData(TaskDisplayModel displayTask, bool forceUpdate = false);
         bool IsTaskCurrentlyBeingUpdated(TaskDisplayModel task);
 
         ProjectDisplayModel? AddProject(ProjectModel newProject);
         Task DeleteProject(ProjectDisplayModel displayProject);
         Task UpdateProjectData(ProjectDisplayModel displayProject);
+        bool IsProjectCurrentlyBeingUpdated(ProjectDisplayModel project);
 
-        Task AddContext(ContextModel newContext);
+        ContextDisplayModel? AddContext(ContextModel newContext);
         Task DeleteContext(ContextDisplayModel displayContext);
         Task UpdateContextData(ContextDisplayModel displayContext);
+        bool IsContextCurrentlyBeingUpdated(ContextDisplayModel context);
 
         Task<bool> CheckUserExists(UserModel user);
         Task UpdateUserNameData(UserDisplayModel displayUserModel);

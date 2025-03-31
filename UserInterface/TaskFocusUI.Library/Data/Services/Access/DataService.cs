@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using TaskFocusUI.Library.API;
 using TaskFocusUI.Library.Data.Services.Access;
-using TaskFocusUI.Library.Data.Services.Synchronization;
 using TaskFocusUI.Library.Data.State;
 using TaskFocusUI.Library.Data.Utilities;
 

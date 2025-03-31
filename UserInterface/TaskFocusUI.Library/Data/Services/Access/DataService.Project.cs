@@ -31,19 +31,9 @@ namespace TaskFocusUI.Library.Data.Services
                     foreach (TaskDisplayModel task in projectTasks)
                     {
                         task.ProjectName = workingProject.ProjectName;
-                        await UpdateTaskData(task);
+                        UpdateTaskData(task);
                     }
                 }
-                //else // new project, not added on server yet
-                //{
-                //    projectTasks = _dataState.GetWorkingTasks()!.Where(x => x.ProjectId == workingProject.TempLocalId).ToList();
-                //}
-
-                //foreach (TaskDisplayModel task in projectTasks)
-                //{
-                //    task.ProjectName = workingProject.ProjectName;
-                //    await UpdateTaskData(task);
-                //}
             }
 
             // update data state Projects object from WorkingProjects copy
@@ -128,7 +118,6 @@ namespace TaskFocusUI.Library.Data.Services
             _dataHelper.FocusedProjectTasks = displayProjectTasks;
         }
 
-        // TODO: needs testing after new changes
         // validates request, processes local add, flags for sync, refreshes UI
         public ProjectDisplayModel? AddProject(ProjectModel newProject)
         {
@@ -178,7 +167,7 @@ namespace TaskFocusUI.Library.Data.Services
             foreach (TaskDisplayModel task in projectTasks)
             {
                 task.ProjectName = null;
-                await UpdateTaskData(task);
+                UpdateTaskData(task);
             }
 
             // update local data state
@@ -188,14 +177,8 @@ namespace TaskFocusUI.Library.Data.Services
                 var dataStateProject = _dataState.GetProjects()!.Find(x => x.TempLocalId == workingProject.TempLocalId);
                 if (dataStateProject != null) _dataState.GetProjects()!.Remove(dataStateProject);
                 var changedProject = _dataState.ChangedProjectData.Find(x => x.TempLocalId == workingProject.TempLocalId);
-                bool removed = false;
-                if (changedProject != null) removed = _dataState.ChangedProjectData.Remove(changedProject);
-                _dataState.GetWorkingProjects()!.Remove(workingProject);
-                
-                if (removed)
-                    Console.WriteLine("never existed on server; removed from changed project data");
-                else
-                    Console.WriteLine("never existed on server; COULDN'T FIND IN CHANGEDPROJECTDATA TO REMOVE!");
+                if (changedProject != null) _dataState.ChangedProjectData.Remove(changedProject);
+                _dataState.GetWorkingProjects()!.Remove(workingProject);              
             }
             else
             {
@@ -231,15 +214,11 @@ namespace TaskFocusUI.Library.Data.Services
                     return;
                 }
 
-                if (_projectBeingUpdated != null)
+                if (!IsProjectCurrentlyBeingUpdated(workingProject))
                 {
-                    if (workingProject.Id == null && workingProject.TempLocalId != _projectBeingUpdated.TempLocalId ||
-                        workingProject.Id != _projectBeingUpdated.Id)
-                    {
-                        // unlock
-                        Interlocked.Exchange(ref _projectUpdateEntered, 0);
-                        _projectBeingUpdated = null;
-                    }
+                    // unlock
+                    Interlocked.Exchange(ref _projectUpdateEntered, 0);
+                    _projectBeingUpdated = null;                 
                 }
 
                 // lock, to prevent other property changes during processing from triggering new Update calls

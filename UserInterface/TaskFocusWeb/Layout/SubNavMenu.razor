@@ -240,13 +240,12 @@ Style="background-color: #27272f" >
             ProjectModel newProject = new();
             newProject.ProjectName = _newCollectionName;
             DataService.AddProject(newProject);
-            //await DataSyncService.Sync();
         }
         else
         {
             ContextModel newContext = new();
             newContext.ContextName = _newCollectionName;
-            await DataService.AddContext(newContext);
+            DataService.AddContext(newContext);
         }
 
         _newCollectionName = string.Empty;

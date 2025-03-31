@@ -8,7 +8,7 @@ namespace TaskFocusUI.Library.API
     {
         Task<ContextModel> GetContextById(int contextId);
         Task<List<ContextModel>> GetAllContextsForUser();
-        Task AddContext(ContextModel newContext, string userId);
+        Task<ContextModel> AddContext(ContextModel newContext, string userId);
         Task DeleteContext(ContextModel contextToDelete);
         Task UpdateContext(ContextModel contextToUpdate);
     }

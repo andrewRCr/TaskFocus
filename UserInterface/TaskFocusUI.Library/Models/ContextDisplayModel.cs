@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace TaskFocusUI.Library.Models
 {
-    public class ContextDisplayModel : INotifyPropertyChanged, ICollectionDisplayModel
+    public class ContextDisplayModel : INotifyPropertyChanged, ICollectionDisplayModel, ISyncableData
     {
         public int? Id { get; set; }
         public string UserId { get; set; }

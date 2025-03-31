@@ -106,7 +106,7 @@
         {
             Console.WriteLine($"workingTask property changed: {senderTask.TaskName}'s property {changedProperty}");
             //Console.WriteLine($"dataState version is: {dataStateTask![changedProperty!]}");
-            await DataService.UpdateTaskData(senderTask);
+            DataService.UpdateTaskData(senderTask);
         }
     }
 

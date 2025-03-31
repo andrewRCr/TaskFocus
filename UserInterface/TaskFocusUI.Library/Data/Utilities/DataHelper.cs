@@ -22,6 +22,12 @@ namespace TaskFocusUI.Library.Data.Utilities
         public bool ProjectNameChanged;
     }
 
+    public struct ContextDataCompareResult
+    {
+        public bool HasChanged;
+        public bool ContextNameChanged;
+    }
+
     public struct DataSyncResult
     {
         public int numRowsInserted = 0;
@@ -65,9 +71,6 @@ namespace TaskFocusUI.Library.Data.Utilities
             }
             else
             {
-                //TaskModel taskLastFetch = TasksLastFetch!.Find(x => x.Id == displayTask.Id)!;
-                //compareAgainstTask = taskLastFetch;
-
                 TaskDisplayModel dataStateTask = _dataState.GetTasks()!.Find(
                     x => x.Id == displayTask.Id)!;
                 compareAgainstTask = _mapper.Map<TaskModel>(dataStateTask);
@@ -99,8 +102,6 @@ namespace TaskFocusUI.Library.Data.Utilities
 
             TaskModel task = _mapper.Map<TaskModel>(displayTask);
             bool hasChanged = !AreUserEditablePropertiesEqual(task, compareAgainstTask);
-            //Console.WriteLine($"{task.TaskName} hasChanged: {hasChanged}");
-            //Console.WriteLine($"passedTask: {task.TaskName} compareAgainstTask: {compareAgainstTask.TaskName}");
 
             return new()
             {
@@ -133,7 +134,6 @@ namespace TaskFocusUI.Library.Data.Utilities
             }
             else
             {
-                //ProjectModel projectLastFetch = ProjectsLastFetch!.Find(x => x.Id == displayProject.Id)!;
                 ProjectDisplayModel dataStateProject = _dataState.GetProjects()!.Find(x => x.Id == displayProject.Id)!;
                 compareAgainstProject = _mapper.Map<ProjectModel>(dataStateProject);
             }
@@ -143,8 +143,6 @@ namespace TaskFocusUI.Library.Data.Utilities
                 return projectA.ProjectName == projectB.ProjectName &&
                        projectA.OrderIndex == projectB.OrderIndex;
             }
-
-            //return !AreUserEditablePropertiesEqual(_mapper.Map<ProjectModel>(displayProject), compareAgainstProject);
 
             return new()
             {
@@ -198,7 +196,7 @@ namespace TaskFocusUI.Library.Data.Utilities
             return true;
         }
 
-        public bool HasContextDataChanged(ContextDisplayModel displayContext)
+        public ContextDataCompareResult HasContextDataChanged(ContextDisplayModel displayContext)
         {
             ContextDisplayModel compareAgainstContext;
 
@@ -220,29 +218,51 @@ namespace TaskFocusUI.Library.Data.Utilities
                        contextA.OrderIndex == contextB.OrderIndex;
             }
 
-            return !AreUserEditablePropertiesEqual(displayContext, compareAgainstContext);
+            return new()
+            {
+                HasChanged = !AreUserEditablePropertiesEqual(displayContext, compareAgainstContext),
+                ContextNameChanged = displayContext.ContextName != compareAgainstContext.ContextName
+            };
         }
 
 
         public bool IsNewContextNameUnique(string proposedContextName)
         {
+            var unpushedContexts = _dataState.ChangedContextData.Where(
+                x => x.Id == null && x.TempLocalId != null);
+
+            if (_dataState.GetContexts()!.Count == 0 && !unpushedContexts.Any()) { return true; }
+
             foreach (ContextDisplayModel context in _dataState.GetContexts()!)
             {
-                if (context.ContextName.ToLower() == proposedContextName.ToLower())
-                {
-                    return false;
-                }
+                if (context.ContextName.ToLower() == proposedContextName.ToLower()) { return false; }
+            }
+            foreach (ContextDisplayModel context in unpushedContexts)
+            {
+                if (context.ContextName.ToLower() == proposedContextName.ToLower()) { return false; }
             }
 
             return true;
         }
 
-        public bool IsUpdatedContextNameUnique(ContextModel updatedFrontEndContext)
+        public bool IsUpdatedContextNameUnique(ContextDisplayModel updatedDisplayContext)
         {
+            var unpushedContexts = _dataState.ChangedContextData.Where(
+    x => x.Id == null && x.TempLocalId != null);
+
             foreach (ContextDisplayModel context in _dataState.GetContexts()!)
             {
-                if (context.Id == updatedFrontEndContext.Id) { continue; }
-                if (context.ContextName.ToLower() == updatedFrontEndContext.ContextName.ToLower())
+                if (context.Id == updatedDisplayContext.Id) { continue; }
+                if (context.ContextName.ToLower() == updatedDisplayContext.ContextName.ToLower())
+                {
+                    return false;
+                }
+            }
+
+            foreach (ContextDisplayModel context in unpushedContexts)
+            {
+                if (context.TempLocalId == updatedDisplayContext.TempLocalId) { continue; }
+                if (context.ContextName.ToLower() == updatedDisplayContext.ContextName.ToLower())
                 {
                     return false;
                 }

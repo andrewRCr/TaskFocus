@@ -258,6 +258,16 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             //    await _contextEndpoint.UpdateContext(row);
             //_dataState.ChangedContextData.Clear();
 
+            Console.WriteLine($"changedContextData count: {_dataState.ChangedContextData.Count}");
+            foreach (var clientContext in _dataState.ChangedContextData)
+            {
+                DataSyncResult clientContextResult = await PushSyncableData(clientContext);
+                pushResult = _dataHelper.CombineSyncResults(pushResult, clientContextResult);
+            }
+            _dataState.ChangedContextData.Clear();
+            _dataState.TempContextId = 0;
+
+            // finalize, return result
 
             if (!_dataHelper.SyncChangesDetected(pushResult))
             {
@@ -325,6 +335,16 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                         break;
 
                     case ESyncableDataType.Context:
+
+                        ContextModel insertedContext= await _contextEndpoint.AddContext(_mapper.Map<ContextModel>((ContextDisplayModel)data), _dataState.CurrentUser!.Id);
+                        Console.WriteLine($"inserted context with new server-made id: {insertedContext.Id}");
+
+                        _pushedContextData.Add(_mapper.Map<ContextModel>((ContextDisplayModel)data));
+
+                        int contextIndex = _dataState.GetContexts()!.FindIndex(x => x.TempLocalId == data.TempLocalId);
+                        _dataState.GetProjects()![contextIndex].Id = insertedContext.Id; // update with new server-granted id
+                        _dataState.GetProjects()![contextIndex].TempLocalId = null; //
+
                         break;
                     case ESyncableDataType.Settings:
                         break;
@@ -351,6 +371,10 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                         break;
 
                     case ESyncableDataType.Context:
+
+                        ContextModel serverContext = await _contextEndpoint.GetContextById((int) data.Id);
+                        await _contextEndpoint.DeleteContext(serverContext);
+
                         break;
                     case ESyncableDataType.Settings:
                         break;
@@ -408,8 +432,8 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                         }
                         else // client data is newer than server
                         {
-                            Console.WriteLine($"clientTask.ServerLastUpdated: {data.ServerLastUpdated}, clientTask.ClientLastUpdated: {data.ClientLastUpdated}");
-                            Trace.WriteLine($"clientTask.ServerLastUpdated: {data.ServerLastUpdated}, clientTask.ClientLastUpdated: {data.ClientLastUpdated}");
+                            Console.WriteLine($"clientProject.ServerLastUpdated: {data.ServerLastUpdated}, clientProject.ClientLastUpdated: {data.ClientLastUpdated}");
+                            Trace.WriteLine($"clientProject.ServerLastUpdated: {data.ServerLastUpdated}, clientProject.ClientLastUpdated: {data.ClientLastUpdated}");
 
                             data.ServerLastUpdated = DateTimeOffset.Now;
                             await _projectEndpoint.UpdateProject(_mapper.Map<ProjectModel>(data));
@@ -423,6 +447,31 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                         break;
 
                     case ESyncableDataType.Context:
+
+                        ContextModel serverContext = await _contextEndpoint.GetContextById((int)data.Id);
+                        if (serverContext.ClientLastUpdated > data.ServerLastUpdated)
+                        {
+                            // conflict - server data is newer than client
+                            // server wins; ignore changes and just update time
+                            serverContext.ServerLastUpdated = DateTimeOffset.Now;
+                            serverContext.ClientLastUpdated = data.ServerLastUpdated;
+                            await _contextEndpoint.UpdateContext(serverContext);
+
+                            LogInformation("Push conflict detected! Local changes ignored; only time updated");
+                        }
+                        else // client data is newer than server
+                        {
+                            LogInformation($"clientContext.ServerLastUpdated: {data.ServerLastUpdated}, clientContext.ClientLastUpdated: {data.ClientLastUpdated}");
+
+                            data.ServerLastUpdated = DateTimeOffset.Now;
+                            await _contextEndpoint.UpdateContext(_mapper.Map<ContextModel>(data));
+
+                            _pushedContextData.Add(_mapper.Map<ContextModel>((ContextDisplayModel)data));
+                            int index = _dataState.GetContexts()!.FindIndex(x => x.Id == data.Id);
+                            if (index != -1) { _dataState.GetContexts()![index] = (ContextDisplayModel)data; }
+
+                            result.numRowsUpdated++;
+                        }
                         break;
                     case ESyncableDataType.Settings:
                         break;
@@ -436,8 +485,8 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
         // updates local client data with any changes (inserts, deletions, updates)
         private async Task<DataSyncResult> PullSync()
         {
-            Console.WriteLine("Pulling changes from server...");
-            Console.WriteLine($"PullSync() start");
+            LogInformation("Pulling changes from server...");
+            LogInformation($"PullSync() start");
             //Console.WriteLine($"dataState.Tasks count: {_dataState.Tasks.Count}");
             //Console.WriteLine($"dataState.Tasks count: {_dataState.Tasks.Count}");
             DataSyncResult pullResult = new();
@@ -485,12 +534,12 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             var changedRemoteTaskRows = serverTasks.Where(
                 x => x.ServerLastUpdated >= _dataState.LastSync).ToList();
 
-            Console.WriteLine($"changedRemoteTaskRows count: {changedRemoteTaskRows.Count}");
+            LogInformation($"changedRemoteTaskRows count: {changedRemoteTaskRows.Count}");
 
             // handle local inserts/updates (originating from another client)
             foreach (var serverTask in changedRemoteTaskRows)
             {
-                Console.WriteLine($"PullSync found changedRemoteTaskRow: {serverTask.TaskName}");
+                LogInformation($"PullSync found changedRemoteTaskRow: {serverTask.TaskName}");
                 DataSyncResult serverTaskResult = PullSyncableData(_mapper.Map<TaskDisplayModel>(serverTask));
                 tasksPullResult = _dataHelper.CombineSyncResults(tasksPullResult, serverTaskResult);
             }
@@ -501,8 +550,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
 
             if (changedRemoteTaskRows.Count == 0 && tasksPullResult.numRowsDeleted == 0)
             {
-                Trace.WriteLine("serverTask - no changes detected on pull.");
-                Console.WriteLine("serverTask - no changes detected on pull.");
+                LogInformation("serverTask - no changes detected on pull.");
             }
 
             // store copy for comparison + cleanup temp push history
@@ -523,12 +571,12 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             var changedRemoteProjectRows = serverProjects.Where(
                 x => x.ServerLastUpdated >= _dataState.LastSync).ToList();
 
-            Console.WriteLine($"changedRemoteProjectRows count: {changedRemoteProjectRows.Count}");
+            LogInformation($"changedRemoteProjectRows count: {changedRemoteProjectRows.Count}");
 
             // handle local inserts/updates (originating from another client)
             foreach (var serverProject in changedRemoteProjectRows)
             {
-                Console.WriteLine($"PullSync found changedRemoteProjectRow: {serverProject.ProjectName}");
+                LogInformation($"PullSync found changedRemoteProjectRow: {serverProject.ProjectName}");
                 DataSyncResult serverProjectResult = PullSyncableData(_mapper.Map<ProjectDisplayModel>(serverProject));
                 projectsPullResult = _dataHelper.CombineSyncResults(projectsPullResult, serverProjectResult);
             }
@@ -539,12 +587,10 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
 
             if (changedRemoteProjectRows.Count == 0 && projectsPullResult.numRowsDeleted == 0)
             {
-                Trace.WriteLine("projects - no changes detected on pull.");
-                Console.WriteLine("projects - no changes detected on pull.");
+                LogInformation("Projects - no changes detected on pull.");
             }
 
-            // store copy for comparison + cleanup temp push history
-            //_dataHelper.ProjectsLastFetch = serverProjects;
+            // cleanup temp push history
             _pushedProjectData.Clear();
 
             // trigger UI update if needed + add to total pull result
@@ -555,10 +601,42 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             }
 
             // CONTEXT DATA
+            DataSyncResult contextsPullResult = new();
+            List<ContextModel> serverContexts = await _contextEndpoint.GetAllContextsForUser();
+            var changedRemoteContextRows = serverContexts.Where(
+                x => x.ServerLastUpdated >= _dataState.LastSync).ToList();
 
-            Console.WriteLine("Pull complete.");
-            Trace.WriteLine("Pull complete.");
-            //Console.WriteLine($"dataState.Tasks count: {_dataState.Tasks.Count}");
+            LogInformation($"changedRemoteContextRows count: {changedRemoteContextRows.Count}");
+
+            // handle local inserts/updates (originating from another client)
+            foreach (var serverContext in changedRemoteContextRows)
+            {
+                LogInformation($"PullSync found changedRemoteContextRows: {serverContext.ContextName}");
+                DataSyncResult serverContextResult = PullSyncableData(_mapper.Map<ContextDisplayModel>(serverContext));
+                contextsPullResult = _dataHelper.CombineSyncResults(contextsPullResult, serverContextResult);
+            }
+
+            // handle local deletions (originating from another client)
+            DataSyncResult contextDeletionResult = await PullServerDataDeletions(ESyncableDataType.Context);
+            contextsPullResult = _dataHelper.CombineSyncResults(contextsPullResult, contextDeletionResult);
+
+            if (changedRemoteContextRows.Count == 0 && contextsPullResult.numRowsDeleted == 0)
+            {
+                LogInformation("Contexts - no changes detected on pull.");
+            }
+
+            // cleanup temp push history
+            _pushedContextData.Clear();
+
+            // trigger UI update if needed + add to total pull result
+            if (_dataHelper.SyncChangesDetected(contextsPullResult))
+            {
+                _dataState.InvokeDataStateChanged("Contexts");
+                pullResult = _dataHelper.CombineSyncResults(pullResult, contextsPullResult);
+            }
+
+            // finalize / return result
+            LogInformation("Pull complete.");
             return pullResult;
         }
 
@@ -609,7 +687,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                     if (clientProject == null) // insert
                     {
                         _dataState.GetProjects()!.Add(displayServerProject.Clone());
-                        Console.WriteLine($"added local project on PullSyncableData: {displayServerProject.ProjectName}");
+                        LogInformation($"added local project on PullSyncableData: {displayServerProject.ProjectName}");
                         result.numRowsInserted++;
                     }
                     else // update
@@ -621,6 +699,27 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                     break;
 
                 case ESyncableDataType.Context:
+
+                    // do not pull if we just pushed the change
+                    var pushedServerContext = _pushedContextData.Where(x => x.Id == data.Id);
+                    if (pushedServerContext.Any()) { return result; }
+
+                    ContextDisplayModel displayServerContext = (ContextDisplayModel)data;
+                    ContextDisplayModel? clientContext = _dataState.GetContexts()!.Where(
+                        x => x.Id == displayServerContext.Id).FirstOrDefault();
+
+                    if (clientContext == null) // insert
+                    {
+                        _dataState.GetContexts()!.Add(displayServerContext.Clone());
+                        LogInformation($"added local context on PullSyncableData: {displayServerContext.ContextName}");
+                        result.numRowsInserted++;
+                    }
+                    else // update
+                    {
+                        int i = _dataState.GetContexts()!.IndexOf(clientContext);
+                        _dataState.GetContexts()![i] = displayServerContext;
+                        result.numRowsUpdated++;
+                    }
                     break;
                 case ESyncableDataType.Settings:
                     break;
@@ -667,7 +766,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                         ProjectModel? serverProject = serverProjects.Find(x => x.Id == clientDisplayProject.Id);
                         if (serverProject == null) // not found on server? delete locally
                         {
-                            Console.WriteLine($"PullServerDataDeletions found local row deleted on server: {clientDisplayProject.ProjectName}");
+                            LogInformation($"PullServerDataDeletions found local row deleted on server: {clientDisplayProject.ProjectName}");
                             // ensure other projects have updated OrderIndex values
                             _dataService.ShiftCollectionOrderIndices(clientDisplayProject, _dataState.GetProjects()!);
                             _dataState.GetProjects()!.Remove(clientDisplayProject);
@@ -678,7 +777,23 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                     break;
 
                 case ESyncableDataType.Context:
+
+                    List<ContextModel> serverContexts = await _contextEndpoint.GetAllContextsForUser();
+
+                    foreach (var clientDisplayContext in _dataState.GetContexts()!.ToList())
+                    {
+                        ContextModel? serverContext = serverContexts.Find(x => x.Id == clientDisplayContext.Id);
+                        if (serverContext == null) // not found on server? delete locally
+                        {
+                            LogInformation($"PullServerDataDeletions found local row deleted on server: {clientDisplayContext.ContextName}");
+                            // ensure other contexts have updated OrderIndex values
+                            _dataService.ShiftCollectionOrderIndices(clientDisplayContext, _dataState.GetContexts()!);
+                            _dataState.GetContexts()!.Remove(clientDisplayContext);
+                            pullDeletionsResult.numRowsDeleted++;
+                        }
+                    }
                     break;
+
                 default:
                     break;
             }

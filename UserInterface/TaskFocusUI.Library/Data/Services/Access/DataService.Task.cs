@@ -157,7 +157,7 @@ namespace TaskFocusUI.Library.Data.Services
             }
         }
 
-        private async Task HandleTaskContextChanged(TaskDisplayModel task)
+        private void HandleTaskContextChanged(TaskDisplayModel task)
         {
             ShiftTaskCollectionSourceIndices(task, "ContextIndex");
 
@@ -172,7 +172,6 @@ namespace TaskFocusUI.Library.Data.Services
                     List<TaskDisplayModel> inboxTasks = _dataState.GetTasks()!
                         .Where(x => x.ProjectId == null || x.ContextId == null).ToList();
 
-                    //task.InboxIndex = inboxTasks.Count > 0 ? inboxTasks.Count : 0;
                     task.InboxIndex = inboxTasks.Count;
                     //LogInformation($"{task.TaskName}: new InboxIndex is {task.InboxIndex}");
                 }
@@ -190,24 +189,30 @@ namespace TaskFocusUI.Library.Data.Services
                 ContextDisplayModel? assignedContext = FindAssignedContext();
                 if (assignedContext == null)
                 {
-                    ContextModel newContext = new ContextModel { ContextName = task.ContextName };
-                    await AddContext(newContext);
+                    // for now, do nothing; this should never be triggered
+                    // leaving here in case in the future may change UI
+                    // to allow user to directly assign and create at the same time
 
-                    assignedContext = FindAssignedContext();
-                    task.ContextIndex = 0;
+                    //ContextModel newContext = new ContextModel { ContextName = task.ContextName };
+                    //assignedContext = AddContext(newContext);
+                    //task.ContextIndex = 0;
+                    //task.ContextId = assignedContext!.Id;
                 }
                 else
                 {
                     // determine context index for task
-                    List<TaskDisplayModel> contextTasks = _dataState.GetTasks()!
-                        .Where(x => x.ContextId == assignedContext.Id).ToList();
+                    List<TaskDisplayModel> contextTasks = new();
+                    if (assignedContext.Id != null)
+                    {
+                        contextTasks = _dataState.GetTasks()!
+                            .Where(x => x.ContextId == assignedContext.Id).ToList();
+                        task.ContextId = assignedContext!.Id;
+                    }
 
-                    //task.ContextIndex = contextTasks.Count > 0 ? contextTasks.Count : 0;
                     task.ContextIndex = contextTasks.Count;
-                    //LogInformation($"{task.TaskName}: new ContextIndex is {task.ContextIndex}");
+                    LogInformation($"{task.TaskName}: new ContextId is {task.ContextId}, contextName {task.ContextName}");
+                    //LogInformation($"{task.TaskName}: new ContextIndex is {task.ContextIndex}")
                 }
-
-                task.ContextId = assignedContext!.Id;
             }
         }
 
@@ -298,17 +303,17 @@ namespace TaskFocusUI.Library.Data.Services
         }
 
         // processes updated task data locally + flags for sync
-        private async Task ProcessLocalTaskUpdate(TaskDataCompareResult compareResult, TaskDisplayModel workingTask)
+        private void ProcessLocalTaskUpdate(TaskDataCompareResult compareResult, TaskDisplayModel workingTask)
         {
             if (!compareResult.IndicesOnly)
             {
                 // handle change of collection task belongs to
                 if (compareResult.ProjectNameChanged) { HandleTaskProjectChanged(workingTask); }
-                if (compareResult.ContextNameChanged) { await HandleTaskContextChanged(workingTask); }
+                if (compareResult.ContextNameChanged) { HandleTaskContextChanged(workingTask); }
                 // handle any adjustments to which view pages the task appears in
                 HandleTaskViewChanges(workingTask);
 
-                Console.WriteLine(workingTask.ProjectId);
+                //LogInformation(workingTask.ProjectId.ToString());
             }
 
             // update data state Tasks object from WorkingTasks copy
@@ -339,7 +344,7 @@ namespace TaskFocusUI.Library.Data.Services
 
             var dataStateTask1 = _dataState.GetTasks()!.Find(x => x.Id == workingTask.Id);
             var dataStateWorkingTask = _dataState.GetWorkingTasks()!.Find(x => x.Id == workingTask.Id);
-            Console.WriteLine($"at processLocalTaskUpdate end, dataStateTask projectId: {dataStateTask1.ProjectId}, dataStateWorkingTask projectId: {dataStateWorkingTask.ProjectId}");
+            LogInformation($"at processLocalTaskUpdate end, dataStateTask projectId: {dataStateTask1.ProjectId}, dataStateWorkingTask projectId: {dataStateWorkingTask.ProjectId}");
         }
 
         // updates local "working" copy of task data, for use after sync
@@ -418,7 +423,7 @@ namespace TaskFocusUI.Library.Data.Services
             }
 
             if (workingTask.ProjectName != null) HandleTaskProjectChanged(workingTask);
-            if (workingTask.ContextName != null) await HandleTaskContextChanged(workingTask);
+            if (workingTask.ContextName != null) HandleTaskContextChanged(workingTask);
 
             // give temp local tracking id
             workingTask.TempLocalId = ++_dataState.TempTaskId;
@@ -476,7 +481,7 @@ namespace TaskFocusUI.Library.Data.Services
         }
 
         // validates request, performs additional processing, refreshes UI
-        public async Task UpdateTaskData(TaskDisplayModel workingTask, bool forceUpdate = false)
+        public void UpdateTaskData(TaskDisplayModel workingTask, bool forceUpdate = false)
         {
             TaskDataCompareResult compareResult = _dataHelper.HasTaskDataChanged(workingTask);
 
@@ -500,7 +505,7 @@ namespace TaskFocusUI.Library.Data.Services
 
                 // do any additional required processing (updating indices, etc)
                 // as well as update non-working local copies + flag for sync
-                await ProcessLocalTaskUpdate(compareResult, workingTask);
+                ProcessLocalTaskUpdate(compareResult, workingTask);
 
                 // unlock
                 Interlocked.Exchange(ref _taskUpdateEntered, 0);

@@ -81,7 +81,7 @@
         foreach (TaskDisplayModel task in oldCompletedTodayTasks)
         {
             // force update: will detect and remove TodayIndex, as well as shift other task indices accordingly if needed
-            await DataService.UpdateTaskData(task, true);
+            DataService.UpdateTaskData(task, true);
         }
     }
 

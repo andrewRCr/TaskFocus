@@ -17,14 +17,14 @@ namespace TaskFocusUI.Library.Data.Utilities
 
         TaskDataCompareResult HasTaskDataChanged(TaskDisplayModel displayTask);
         ProjectDataCompareResult HasProjectDataChanged(ProjectDisplayModel displayProject);
-        bool HasContextDataChanged(ContextDisplayModel displayContext);
+        ContextDataCompareResult HasContextDataChanged(ContextDisplayModel displayContext);
         bool HasSettingsDataChanged(UserSettingsModel displaySettings);
 
         bool IsTaskDueOrOverDue(TaskDisplayModel frontEndTask);
         bool IsNewProjectNameUnique(string proposedProjectName);
         bool IsNewContextNameUnique(string proposedContextName);
         bool IsUpdatedProjectNameUnique(ProjectDisplayModel updatedDisplayProject);
-        bool IsUpdatedContextNameUnique(ContextModel updatedFrontEndContext);
+        bool IsUpdatedContextNameUnique(ContextDisplayModel updatedDisplayContext);
         DataSyncResult CombineSyncResults(DataSyncResult resultA, DataSyncResult resultB);
         bool SyncChangesDetected(DataSyncResult result);
     }

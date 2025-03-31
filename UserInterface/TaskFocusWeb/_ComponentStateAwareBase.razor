@@ -181,7 +181,11 @@
         string? changedProperty = e.PropertyName;
         ProjectDisplayModel senderProject = (ProjectDisplayModel)sender;
 
-        await DataService.UpdateProjectData(senderProject);
+        if (!DataService.IsProjectCurrentlyBeingUpdated(senderProject))
+        {
+
+            await DataService.UpdateProjectData(senderProject);
+        }
     }
 
     // saves updated context data to local data state on property change
@@ -192,7 +196,10 @@
         string? changedProperty = e.PropertyName;
         ContextDisplayModel senderContext = (ContextDisplayModel)sender;
 
-        await DataService.UpdateContextData(senderContext);
+        if (!DataService.IsContextCurrentlyBeingUpdated(senderContext))
+        {
+            await DataService.UpdateContextData(senderContext);
+        }
     }
 
     // TODO: this needs to be updated, performed as part of Sync most likely
