@@ -361,7 +361,7 @@
         AppState.ShowProjectSubMenu = false;
         AppState.ShowContextSubMenu = false;
 
-        dataRefreshTriggers = new List<string> { nameof(DataState.UserSettings), nameof(DataState.CurrentUser) };
+        dataRefreshTriggers = new List<string> { nameof(ESyncableUserDataType.Settings), nameof(ESyncableUserDataType.User) };
         LoadAlertMessage();
     }
 
@@ -548,7 +548,7 @@
     {
         if (DataState.IsDataLoaded())
         {
-            LocalSettings = DataState.UserSettings;
+            LocalSettings = DataService.GetDataStateUserSettings()!;
             LocalSettings.PropertyChanged += OnExistingSettingsPropertyChanged!; // subscribe to property changed event
             SetRadioTextColor();
             _cleanDaysTextStr = LocalSettings.CleanUpDelayDays > 1 ? "days" : "day";
@@ -560,9 +560,9 @@
 
     protected void LoadLocalUserData()
     {
-        if (DataState.IsDataLoaded() && DataState.CurrentUser != null)
+        if (DataState.IsDataLoaded())
         {
-            LocalCurrentUser = DataState.CurrentUser;
+            LocalCurrentUser = DataService.GetDataStateCurrentUser()!;
             LocalCurrentUser.PropertyChanged += OnExistingUserPropertyChanged!; // subscribe to property changed event
 
             _userModel.Id = LocalCurrentUser.Id;
@@ -582,7 +582,7 @@
         UserSettingsDisplayModel senderSettings = (UserSettingsDisplayModel)sender;
 
         await VerifyAuthAndRedirectIfExpired();
-        await DataService.UpdateSettingsData(senderSettings);
+        DataService.UpdateSettingsData(senderSettings);
     }
 
     protected async void OnExistingUserPropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -592,7 +592,7 @@
 
         // will only be triggered by name changes; other properties handled via dialogs
         await VerifyAuthAndRedirectIfExpired();
-        await DataService.UpdateUserNameData(senderUser);
+        DataService.UpdateUserNameData(senderUser);
     }
 
     protected override bool HandleDataStateChanged(string propertyName, IDataState dataState)

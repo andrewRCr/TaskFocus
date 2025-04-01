@@ -4,8 +4,6 @@ namespace TaskFocusUI.Library.Models
 {
     public enum ESyncableDataType
     {
-        User,
-        Settings,
         Task,
         Project,
         Context

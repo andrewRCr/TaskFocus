@@ -4,27 +4,15 @@ using System.ComponentModel;
 
 namespace TaskFocusUI.Library.Models
 {
-    public class UserDisplayModel : INotifyPropertyChanged
+    public class UserDisplayModel : INotifyPropertyChanged, ISyncableUserData
     {
-        //public ClientUserModel() {}
-        //public ClientUserModel(UserModel row)
-        //{
-        //    Id = row.Id;
-        //    Email = row.Email;
-        //    FirstName = row.FirstName;
-        //    LastName = row.LastName;
-        //    //CreatedDate = row.CreatedDate;
-        //    //ClientLastUpdated = row.ClientLastUpdated;
-        //    LastUpdated = row.LastUpdated;
-        //    Deleted = row.Deleted;
-        //}
-
         public string Id { get; set; }
         public string Email { get; set; }
 
+        // for sync
+        public ESyncableUserDataType DataType { get; } = ESyncableUserDataType.User;
         public DateTimeOffset ServerLastUpdated { get; set; }
         public DateTimeOffset ClientLastUpdated { get; set; }
-        public DateTimeOffset? Deleted { get; set; }
 
         // user-editable properties
         // ====================
@@ -56,7 +44,18 @@ namespace TaskFocusUI.Library.Models
             return JsonConvert.DeserializeObject<UserDisplayModel>(serialized)!;
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        // for updating while maintaining references
+        public void ValueAssign(UserDisplayModel source)
+        {
+            Id = source.Id;
+            Email = source.Email;
+            FirstName = source.FirstName;
+            LastName = source.LastName;
+            ServerLastUpdated = source.ServerLastUpdated;
+            ClientLastUpdated = source.ClientLastUpdated;
+        }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
         public void CallPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

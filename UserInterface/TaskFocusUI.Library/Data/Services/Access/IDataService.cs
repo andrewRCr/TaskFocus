@@ -18,6 +18,8 @@ namespace TaskFocusUI.Library.Data.Services.Access
         Task FetchRemoteProjectAndTasksById(int id);
         Task FetchRemoteContextAndTasksById(int id);
 
+        UserDisplayModel? GetDataStateCurrentUser();
+        UserSettingsDisplayModel? GetDataStateUserSettings();
         List<TaskDisplayModel>? GetDataStateTasks();
         List<ProjectDisplayModel>? GetDataStateProjects();
         List<ContextDisplayModel>? GetDataStateContexts();
@@ -38,10 +40,11 @@ namespace TaskFocusUI.Library.Data.Services.Access
         bool IsContextCurrentlyBeingUpdated(ContextDisplayModel context);
 
         Task<bool> CheckUserExists(UserModel user);
-        Task UpdateUserNameData(UserDisplayModel displayUserModel);
+        void UpdateUserNameData(UserDisplayModel displayUserModel);
         Task RequestUpdateEmail(UserModel user);
         Task UpdatePassword(CreateUserModel updatedUserModel);
-        Task UpdateSettingsData(UserSettingsDisplayModel displaySettings);
+        void UpdateSettingsData(UserSettingsDisplayModel workingSettings);
+        void OnUserLogout();
 
         // made private:
         //void ShiftTaskCollectionSourceIndices(TaskModel task, string indexType);

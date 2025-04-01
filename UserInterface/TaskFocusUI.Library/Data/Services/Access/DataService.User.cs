@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using TaskFocusUI.Library.Data.State;
 using TaskFocusUI.Library.Models;
 
 namespace TaskFocusUI.Library.Data.Services
@@ -12,72 +13,73 @@ namespace TaskFocusUI.Library.Data.Services
         // helper methods
         // ====================
 
-        public async Task<bool> CheckUserExists(UserModel user)
+        // updates local "working" copy of current user data, for use after sync
+        private void UpdateWorkingCurrentUserFromDataState()
         {
-            bool exists = await _userEndpoint.CheckUserExists(user);
-            return exists;
+            UserDisplayModel workingCurrentUser = _dataState.GetCurrentUser()!.Clone();
+            _dataState.SetWorkingCurrentUser(workingCurrentUser);
+        }
+
+        public async Task<bool> CheckUserExists(UserModel user) => await _userEndpoint.CheckUserExists(user);
+
+        public void OnUserLogout()
+        {
+            _dataState.SetCurrentUser(null);
+            UpdateWorkingCurrentUserFromDataState();
         }
 
         // data state CRUD operations
         // ====================
 
         // for front-end access to data state
-        //public List<UserDisplayModel>? GetDataStateUser() => _dataState.GetWorkingUser();
+        public UserDisplayModel? GetDataStateCurrentUser() => _dataState.GetWorkingCurrentUser();
 
         // for populating local data state
         public async Task FetchRemoteUserData()
         {
             var userData = await _userEndpoint.GetCurrentUserData();
-            // store for comparison?
-
             var displayUserData = _mapper.Map<UserDisplayModel>(userData);
-            _dataState.CurrentUser = displayUserData;
+            _dataState.SetCurrentUser(displayUserData);
+            UpdateWorkingCurrentUserFromDataState();
+
+            _dataState.InvokeDataStateChanged("User"); // TODO: necessary? on set PropertyChanged call should be sufficient if nameof handled right
         }
 
-        // TODO: needs updating, modeled after Task equivalent
+        // TODO: needs testing after recent updates
         // update local data state: user name data (only)
         // validates request, performs additional processing, flags for sync, refreshes UI
-        public async Task UpdateUserNameData(UserDisplayModel displayUserModel)
+        public void UpdateUserNameData(UserDisplayModel workingCurrentUser)
         {
             if (_dataState.IsDataLoaded())
             {
-                // re-map
-                UserModel user = _mapper.Map<UserModel>(displayUserModel);
+                if (_dataHelper.HasUserDataChanged(workingCurrentUser))
+                {
+                    // lock
+                    if (Interlocked.Increment(ref _userUpdateEntered) != 1) { return; }
 
-                //if... (check if changed from last fetch?)
+                    // update local data state
+                    workingCurrentUser.ClientLastUpdated = DateTimeOffset.Now; // flag for sync
+                    _dataState.GetCurrentUser()!.ValueAssign(workingCurrentUser);
 
-                // lock
-                if (Interlocked.Increment(ref _userUpdateEntered) != 1) { return; }
+                    // add to changedUserData
+                    // don't duplicate if already had another update prior to push
+                    if (_dataState.ChangedUserData == null) _dataState.ChangedUserData = workingCurrentUser.Clone();
 
-                // * INSTEAD OF THIS... *
-                //await _userEndpoint.UpdateName(user);
-                //await FetchAllRemoteData();
-
-                // * ONLY CHANGE LOCALLY AND MARK FOR SYNC *
-                // update local datastate
-                _dataState.CurrentUser!.FirstName = user.FirstName;
-                _dataState.CurrentUser.LastName = user.LastName;
-
-                // flag for sync
-                _dataState.CurrentUser.ClientLastUpdated = DateTimeOffset.Now;
-                _dataState.ChangedUserData.Add(_mapper.Map<UserModel>(_dataState.CurrentUser));
-
-                // unlock
-                Interlocked.Exchange(ref _userUpdateEntered, 0);
-
-                Console.WriteLine("local user name updated!");
+                    // unlock + trigger UI update
+                    Interlocked.Exchange(ref _userUpdateEntered, 0);
+                    _dataState.InvokeDataStateChanged("User"); // TODO: necessary? on set PropertyChanged call should be sufficient if nameof handled right
+                }
             }
         }
 
         public async Task RequestUpdateEmail(UserModel user)
         {
-            //if... (check if changed from last fetch?)
-
             // lock
             if (Interlocked.Increment(ref _userUpdateEntered) != 1) { return; }
 
             await _userEndpoint.RequestUpdateEmail(user);
-            await FetchAllRemoteData();
+            // ensure local data state updated, as this property is user-editable and visible
+            InvokeSyncRequest(nameof(RequestUpdateEmail)); 
 
             // unlock
             Interlocked.Exchange(ref _userUpdateEntered, 0);
@@ -85,8 +87,6 @@ namespace TaskFocusUI.Library.Data.Services
 
         public async Task UpdatePassword(CreateUserModel updatedUserModel)
         {
-            //if... (check if changed from last fetch?)
-
             // lock
             if (Interlocked.Increment(ref _userUpdateEntered) != 1) { return; }
 

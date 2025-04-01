@@ -235,41 +235,41 @@ namespace TaskFocusDesktop.ViewModels.Base
             LoadLocalProjectData();
             LoadLocalContextData();
 
-            PerformTaskCleanup();
+            //PerformTaskCleanup();
         }
 
-        protected void PerformTaskCleanup()
-        {
-            if (LocalTasks != null && _dataState.IsDataLoaded())
-            {
-                foreach (TaskDisplayModel task in LocalTasks)
-                {
-                    if (task.Completed)
-                    {
-                        TimeSpan interval = (DateTime.Now - (DateTime)task.DateCompleted!);
-                        int daysPassedSinceTaskCompletion = interval.Days;
+        //protected void PerformTaskCleanup()
+        //{
+        //    if (LocalTasks != null && _dataState.IsDataLoaded())
+        //    {
+        //        foreach (TaskDisplayModel task in LocalTasks)
+        //        {
+        //            if (task.Completed)
+        //            {
+        //                TimeSpan interval = (DateTime.Now - (DateTime)task.DateCompleted!);
+        //                int daysPassedSinceTaskCompletion = interval.Days;
 
-                        // check if should delete
-                        int deleteIntervalSetting = _dataState.UserSettings!.DeleteDelayDays;
-                        if (daysPassedSinceTaskCompletion > deleteIntervalSetting)
-                        {
-                            Task.Run(() => _dataService.DeleteTask(task).Wait());
-                        }
+        //                // check if should delete
+        //                int deleteIntervalSetting = _dataState.UserSettings!.DeleteDelayDays;
+        //                if (daysPassedSinceTaskCompletion > deleteIntervalSetting)
+        //                {
+        //                    Task.Run(() => _dataService.DeleteTask(task).Wait());
+        //                }
 
-                        // handle CleanedUp status
-                        else if (!task.CleanedUp)
-                        {
-                            if (_dataState.UserSettings.CleanUpImmediately) { task.CleanedUp = true; }
-                            else
-                            {
-                                int cleanupIntervalSetting = _dataState.UserSettings.CleanUpDelayDays;
-                                if (daysPassedSinceTaskCompletion > cleanupIntervalSetting) { task.CleanedUp = true; }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        //                // handle CleanedUp status
+        //                else if (!task.CleanedUp)
+        //                {
+        //                    if (_dataState.UserSettings.CleanUpImmediately) { task.CleanedUp = true; }
+        //                    else
+        //                    {
+        //                        int cleanupIntervalSetting = _dataState.UserSettings.CleanUpDelayDays;
+        //                        if (daysPassedSinceTaskCompletion > cleanupIntervalSetting) { task.CleanedUp = true; }
+        //                    }
+        //                }
+        //            }
+        //        }
+        //    }
+        //}
 
         protected virtual void LoadLocalTaskData()
         {

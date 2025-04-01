@@ -16,16 +16,10 @@ namespace TaskFocusUI.Library.Data.Utilities
         public bool IndicesOnly;
     }
 
-    public struct ProjectDataCompareResult
+    public struct CollectionDataCompareResult
     {
         public bool HasChanged;
-        public bool ProjectNameChanged;
-    }
-
-    public struct ContextDataCompareResult
-    {
-        public bool HasChanged;
-        public bool ContextNameChanged;
+        public bool CollectionNameChanged;
     }
 
     public struct DataSyncResult
@@ -41,11 +35,6 @@ namespace TaskFocusUI.Library.Data.Utilities
     {
         private IMapper _mapper;
         private IDataState _dataState;
-
-        //public List<TaskModel>? TasksLastFetch { get; set; }
-        //public List<ProjectModel>? ProjectsLastFetch { get; set; }
-        //public List<ContextModel>? ContextsLastFetch { get; set; }
-        public UserSettingsModel? UserSettingsLastFetch { get; set; }
 
         // TODO: do these being located here (in this class) make sense? 
         public ProjectDisplayModel? FocusedProject { get; set; }
@@ -122,7 +111,7 @@ namespace TaskFocusUI.Library.Data.Utilities
             return false;
         }
 
-        public ProjectDataCompareResult HasProjectDataChanged(ProjectDisplayModel displayProject)
+        public CollectionDataCompareResult HasProjectDataChanged(ProjectDisplayModel displayProject)
         {
             ProjectModel compareAgainstProject;
 
@@ -147,7 +136,7 @@ namespace TaskFocusUI.Library.Data.Utilities
             return new()
             {
                 HasChanged = !AreUserEditablePropertiesEqual(_mapper.Map<ProjectModel>(displayProject), compareAgainstProject),
-                ProjectNameChanged = displayProject.ProjectName != compareAgainstProject.ProjectName
+                CollectionNameChanged = displayProject.ProjectName != compareAgainstProject.ProjectName
             };
         }
 
@@ -196,7 +185,7 @@ namespace TaskFocusUI.Library.Data.Utilities
             return true;
         }
 
-        public ContextDataCompareResult HasContextDataChanged(ContextDisplayModel displayContext)
+        public CollectionDataCompareResult HasContextDataChanged(ContextDisplayModel displayContext)
         {
             ContextDisplayModel compareAgainstContext;
 
@@ -221,7 +210,7 @@ namespace TaskFocusUI.Library.Data.Utilities
             return new()
             {
                 HasChanged = !AreUserEditablePropertiesEqual(displayContext, compareAgainstContext),
-                ContextNameChanged = displayContext.ContextName != compareAgainstContext.ContextName
+                CollectionNameChanged = displayContext.ContextName != compareAgainstContext.ContextName
             };
         }
 
@@ -271,14 +260,27 @@ namespace TaskFocusUI.Library.Data.Utilities
             return true;
         }
 
-        public bool HasSettingsDataChanged(UserSettingsModel frontEndSettings)
+        public bool HasSettingsDataChanged(UserSettingsDisplayModel workingSettings)
         {
-            bool IsDataEqual(UserSettingsModel settingsA, UserSettingsModel settingsB)
+            static bool AreUserEditablePropertiesEqual(UserSettingsDisplayModel settingsA, UserSettingsDisplayModel settingsB)
             {
-                return JsonConvert.SerializeObject(settingsA) == JsonConvert.SerializeObject(settingsB);
+                return settingsA.CleanUpImmediately == settingsB.CleanUpImmediately &&
+                       settingsA.CleanUpDelayDays == settingsB.CleanUpDelayDays &&
+                       settingsA.DeleteDelayDays == settingsB.DeleteDelayDays;
             }
 
-            return !IsDataEqual(frontEndSettings, UserSettingsLastFetch);
+            return !AreUserEditablePropertiesEqual(workingSettings, _dataState.GetUserSettings()!);
+        }
+
+        public bool HasUserDataChanged(UserDisplayModel workingUser)
+        {
+            static bool AreUserEditablePropertiesEqual(UserDisplayModel userDataA, UserDisplayModel userDataB)
+            {
+                return userDataA.FirstName == userDataB.FirstName &&
+                       userDataA.LastName == userDataB.LastName;
+            }
+
+            return !AreUserEditablePropertiesEqual(workingUser, _dataState.GetCurrentUser()!);
         }
 
         public DataSyncResult CombineSyncResults(DataSyncResult resultA, DataSyncResult resultB)

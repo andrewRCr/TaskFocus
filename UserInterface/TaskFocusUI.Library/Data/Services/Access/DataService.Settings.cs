@@ -1,5 +1,7 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
+using TaskFocusUI.Library.Data.State;
 using TaskFocusUI.Library.Models;
 
 namespace TaskFocusUI.Library.Data.Services
@@ -11,39 +13,51 @@ namespace TaskFocusUI.Library.Data.Services
         // helper methods
         // ====================
 
+        // updates local "working" copy of settings data, for use after sync
+        private void UpdateWorkingSettingsFromDataState()
+        {
+            UserSettingsDisplayModel workingUserSettings = _dataState.GetUserSettings()!.Clone();
+            _dataState.SetWorkingUserSettings(workingUserSettings);
+        }
+
         // data state CRUD operations
         // ====================
 
         // for front-end access to data state
-        //public List<UserSettingsDisplayModel>? GetDataStateUserSettings() => _dataState.GetWorkingUserSettings();
+        public UserSettingsDisplayModel? GetDataStateUserSettings() => _dataState.GetWorkingUserSettings();
 
         // for populating local data state
         public async Task FetchRemoteSettingsData()
         {
             var userSettings = await _userEndpoint.GetCurrentUserSettings();
-            _dataHelper.UserSettingsLastFetch = userSettings; // store for comparison
-
             var displayUserSettings = _mapper.Map<UserSettingsDisplayModel>(userSettings);
-            _dataState.UserSettings = displayUserSettings;
+
+            _dataState.SetUserSettings(displayUserSettings);
+            UpdateWorkingSettingsFromDataState();
+
+            _dataState.InvokeDataStateChanged("Settings"); // TODO: necessary? on set PropertyChanged call should be sufficient if nameof handled right
         }
 
-        // TODO: needs updating, modeled after Task equivalent
+        // TODO: needs testing after recent updates
         // validates request, performs additional processing, flags for sync, refreshes UI
-        public async Task UpdateSettingsData(UserSettingsDisplayModel displaySettings)
+        public void UpdateSettingsData(UserSettingsDisplayModel workingSettings)
         {
-            // re-map
-            UserSettingsModel settings = _mapper.Map<UserSettingsModel>(displaySettings);
-
-            if (_dataHelper.HasSettingsDataChanged(settings))
+            if (_dataHelper.HasSettingsDataChanged(workingSettings))
             {
                 // lock
                 if (Interlocked.Increment(ref _settingsUpdateEntered) != 1) { return; }
 
-                await _userEndpoint.UpdateUserSettings(settings);
-                await FetchAllRemoteData();
+                // update data state Settings object from WorkingSettings copy
+                workingSettings.ClientLastUpdated = DateTimeOffset.Now; // flag for sync
+                _dataState.GetUserSettings()!.ValueAssign(workingSettings);
 
-                // unlock
+                // add copy to ChangedSettingsData
+                // don't duplicate if already had another update prior to push
+                if (_dataState.ChangedUserSettingsData == null) _dataState.ChangedUserSettingsData = workingSettings.Clone();
+
+                // unlock + trigger UI update
                 Interlocked.Exchange(ref _settingsUpdateEntered, 0);
+                _dataState.InvokeDataStateChanged("Settings"); // TODO: necessary? on set PropertyChanged call should be sufficient if nameof handled right
             }
         }
     }

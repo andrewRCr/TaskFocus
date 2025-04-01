@@ -26,5 +26,10 @@ namespace TaskFocusUI.Library.Data.Services.Access
         {
             ((IDataServiceInternal)iface).UpdateAllWorkingDataAfterPull();
         }
+
+        public static void PerformCompletedTaskCleanup(this IDataService iface)
+        {
+            ((IDataServiceInternal)iface).PerformCompletedTaskCleanup();
+        }
     }
 }

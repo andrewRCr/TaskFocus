@@ -28,36 +28,46 @@ namespace TaskFocusUI.Library.Data.State
         }
 
         private UserDisplayModel? _currentUser;
-        public UserDisplayModel? CurrentUser
+        UserDisplayModel? IDataStateInternal.CurrentUser
         {
             get { return _currentUser; }
             set
             {
                 _currentUser = value;
-                DataStateChanged?.Invoke(nameof(CurrentUser), this);
+                DataStateChanged?.Invoke(nameof(IDataStateInternal.CurrentUser), this);
             }
         }
 
+        private UserDisplayModel? _workingCurrentUser;
+        UserDisplayModel? IDataStateInternal.WorkingCurrentUser
+        {
+            get { return _workingCurrentUser; }
+            set { _workingCurrentUser = value; }
+        }
+
         private UserSettingsDisplayModel? _userSettings = default!;
-        public UserSettingsDisplayModel? UserSettings
+        UserSettingsDisplayModel? IDataStateInternal.UserSettings
         {
             get { return _userSettings; }
             set
             {
                 _userSettings = value;
-                DataStateChanged?.Invoke(nameof(UserSettings), this);
+                DataStateChanged?.Invoke(nameof(IDataStateInternal.UserSettings), this);
             }
+        }
+
+        private UserSettingsDisplayModel? _workingUserSettings;
+        UserSettingsDisplayModel? IDataStateInternal.WorkingUserSettings
+        {
+            get { return _workingUserSettings; }
+            set { _workingUserSettings = value; }
         }
 
         private List<TaskDisplayModel>? _tasks;
         List<TaskDisplayModel>? IDataStateInternal.Tasks
         {
             get { return _tasks; } 
-            set 
-            { 
-                _tasks = value;
-                //DataStateChanged.Invoke(nameof(IDataStateInternal.Tasks), this);
-            }
+            set {  _tasks = value; }
         }
 
         private List<TaskDisplayModel>? _workingTasks;
@@ -67,37 +77,11 @@ namespace TaskFocusUI.Library.Data.State
             set { _workingTasks = value; }
         }
 
-        //private List<TaskDisplayModel>? _tasks;
-        //public List<TaskDisplayModel>? Tasks
-        //{
-        //    get { return _tasks; }
-        //    set
-        //    {
-        //        _tasks = value;
-        //        //DataStateChanged.Invoke(nameof(Tasks), this);
-        //    }
-        //}
-
-        //private List<TaskDisplayModel>? _workingTasks;
-        //public List<TaskDisplayModel>? WorkingTasks
-        //{
-        //    get { return _workingTasks; }
-        //    set
-        //    {
-        //        _workingTasks = value;
-        //        DataStateChanged?.Invoke(nameof(WorkingTasks), this);
-        //    }
-        //}
-
         private List<ProjectDisplayModel>? _projects;
         List<ProjectDisplayModel>? IDataStateInternal.Projects 
         { 
             get { return _projects; }
-            set
-            {
-                _projects = value;
-               // DataStateChanged.Invoke(nameof(IDataStateInternal.Projects), this);
-            }
+            set {_projects = value; }
         }
 
         private List<ProjectDisplayModel>? _workingProjects;
@@ -111,11 +95,7 @@ namespace TaskFocusUI.Library.Data.State
         List<ContextDisplayModel>? IDataStateInternal.Contexts
         {
             get => _contexts;
-            set
-            {
-                _contexts = value;
-                //DataStateChanged?.Invoke(nameof(IDataStateInternal.Contexts), this);
-            }
+            set { _contexts = value; }
         }
 
         private List<ContextDisplayModel>? _workingContexts;
@@ -127,32 +107,15 @@ namespace TaskFocusUI.Library.Data.State
 
         public bool IsDataLoaded()
         {
-            //return CurrentUser != null && UserSettings != null &&
-            //    Tasks != null && Projects != null && Contexts != null;
-
-            //bool loaded = CurrentUser != null && UserSettings != null &&
-            //    _tasks != null && _workingTasks != null && 
-            //    _projects != null && _workingProjects != null &&
-            //    _contexts != null && _workingContexts != null;
-
-            //if (!loaded)
-            //{
-            //    Console.WriteLine($"_tasks: {_tasks != null}");
-            //    Console.WriteLine($"_workingTasks: {_workingTasks != null}");
-            //    Console.WriteLine($"_projects: {_projects != null}");
-            //    Console.WriteLine($"_workingProjects: {_workingProjects != null}");
-            //    Console.WriteLine($"_contexts: {_contexts != null}");
-            //    Console.WriteLine($"_workingContexts: {_workingContexts != null}");
-            //}
-
-            return CurrentUser != null && UserSettings != null &&
-                _tasks != null && _workingTasks != null &&
-                _projects != null && _workingProjects != null &&
-                _contexts != null && _workingContexts != null;
+            return _currentUser != null && _workingCurrentUser != null &&
+                   _userSettings != null && _workingUserSettings != null &&
+                   _tasks != null && _workingTasks != null &&
+                   _projects != null && _workingProjects != null &&
+                   _contexts != null && _workingContexts != null;
         }
 
-        public List<UserModel> ChangedUserData { get; set; } = new();
-        public List<UserSettingsModel> ChangedUserSettingsData { get; set; } = new();
+        public UserDisplayModel ChangedUserData { get; set; } = new();
+        public UserSettingsDisplayModel ChangedUserSettingsData { get; set; } = new();
         public List<TaskDisplayModel> ChangedTaskData { get; set; } = new();
         public List<ProjectDisplayModel> ChangedProjectData { get; set; } = new();
         public List<ContextDisplayModel> ChangedContextData { get; set; } = new();

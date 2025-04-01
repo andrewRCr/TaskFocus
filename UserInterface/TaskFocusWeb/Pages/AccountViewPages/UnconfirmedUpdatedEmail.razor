@@ -99,7 +99,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        dataRefreshTriggers = new List<string> { nameof(DataState.CurrentUser) };
+        dataRefreshTriggers = new List<string> { nameof(ESyncableUserDataType.User) };
         await VerifyAuth();
         await CheckEmailUpdatedStatus();
         LoadAlertMessage();
@@ -141,7 +141,7 @@
 
     private async Task ResendConfirmLink()
     {
-        if (DataState.CurrentUser != null)
+        if (DataService.GetDataStateCurrentUser != null)
         {
             UserModel currentUserData = await UserEndpoint.GetCurrentUserData();
             UserModel updatedUserModel = currentUserData;

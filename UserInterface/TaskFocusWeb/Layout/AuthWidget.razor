@@ -10,7 +10,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        dataRefreshTriggers = new List<string> { nameof(DataState.CurrentUser) };
+        dataRefreshTriggers = new List<string> { nameof(ESyncableUserDataType.User) };
 
         var authState = await AuthState;
         _isAuthenticated = authState.User.Identity!.IsAuthenticated;

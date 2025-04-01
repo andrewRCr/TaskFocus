@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity.Core.Common.CommandTrees.ExpressionBuilder;
 using System.Diagnostics;
+using System.IO.Pipelines;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -29,8 +30,8 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
         private IProjectEndpoint _projectEndpoint;
         private IContextEndpoint _contextEndpoint;
 
-        private List<UserModel> _pushedUserData;
-        private List<UserSettingsModel> _pushedUserSettingsData;
+        private UserDisplayModel? _pushedUserData;
+        private UserSettingsDisplayModel? _pushedUserSettingsData;
         private List<TaskModel> _pushedTaskData;
         private List<ProjectModel> _pushedProjectData;
         private List<ContextModel> _pushedContextData;
@@ -144,6 +145,8 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             try
             {
                 await _dataService.FetchAllRemoteData();
+                // process any time-relevant changes to task state for next sync
+                _dataService.PerformCompletedTaskCleanup();
                 _dataState.LastSync = DateTimeOffset.Now; // log
                 LogInformation("InitSync complete; DataState populated");
 
@@ -168,6 +171,9 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
 
             _syncInProgress = true;
             LogInformation($"starting Sync... (lastSync prior: {_dataState.LastSync}");
+
+            // process any time-relevant changes to task state
+            _dataService.PerformCompletedTaskCleanup();
 
             // push all client rows locally changed since last sync to the server
             DataSyncResult pushResult = await PushSync();
@@ -204,34 +210,64 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             // simply update (using either server or client data), no insert/delete possible
 
             // USER DATA (name only; email/pw are handled separately from syncable data)
-            var clientUser = _dataState.ChangedUserData.FirstOrDefault(); // will only ever be one (or zero)
-            if (clientUser != null) // local changes have occurred
+            //var clientUser = _dataState.ChangedUserData.FirstOrDefault(); // will only ever be one (or zero)
+            var changedClientUser = _dataState.ChangedUserData;
+            if (changedClientUser != null) // local changes have occurred
             {
-                UserModel serverUser = await _userEndpoint.GetCurrentUserData();
+                LogInformation("changed UserData detected");
+                await PushSyncableUserData(changedClientUser);
+                _dataState.ChangedUserData = null;
 
-                if (serverUser.ClientLastUpdated > clientUser!.ServerLastUpdated)
-                {
-                    // conflict - server data is newer than client
-                    // server wins; ignore changes and just update time
-                    serverUser.ServerLastUpdated = DateTimeOffset.Now;
-                    serverUser.ClientLastUpdated = clientUser.ServerLastUpdated;
-                    await _userEndpoint.UpdateName(serverUser);
-                }
-                else // client data is newer than server
-                {
-                    clientUser.ServerLastUpdated = DateTimeOffset.Now;
-                    await _userEndpoint.UpdateName(clientUser);
-                    _pushedUserData.Add(clientUser);
-                    pushResult.numRowsUpdated++;
-                }
+                //UserModel serverUser = await _userEndpoint.GetCurrentUserData();
 
-                _dataState.ChangedUserData.Clear();
+                //if (serverUser.ClientLastUpdated > clientUser!.ServerLastUpdated)
+                //{
+                //    // conflict - server data is newer than client
+                //    // server wins; ignore changes and just update time
+                //    serverUser.ServerLastUpdated = DateTimeOffset.Now;
+                //    serverUser.ClientLastUpdated = clientUser.ServerLastUpdated;
+                //    await _userEndpoint.UpdateName(serverUser);
+                //}
+                //else // client data is newer than server
+                //{
+                //    clientUser.ServerLastUpdated = DateTimeOffset.Now;
+                //    await _userEndpoint.UpdateName(_mapper.Map<UserModel>(clientUser));
+                //    //_pushedUserData.Add(clientUser);
+                //    _pushedUserData = clientUser;
+                //    pushResult.numRowsUpdated++;
+                //}
+
+                //_dataState.ChangedUserData.Clear();
+                //_dataState.ChangedUserData = null;
             }
 
             // SETTINGS DATA
-            //foreach (var row in _dataState.ChangedUserSettingsData)
-            //    await _userEndpoint.UpdateUserSettings(row);
-            //_dataState.ChangedUserSettingsData.Clear();
+            var changedClientSettings = _dataState.ChangedUserSettingsData;
+            if (changedClientSettings != null) // local changes have occurred
+            {
+                LogInformation("changed UserSettingsData detected");
+                await PushSyncableUserData(changedClientSettings);
+                _dataState.ChangedUserSettingsData = null;
+
+                //UserSettingsModel serverSettings = await _userEndpoint.GetCurrentUserSettings();
+                //if (serverSettings.ClientLastUpdated > clientSettings!.ServerLastUpdated)
+                //{
+                //    // conflict - server data is newer than client
+                //    // server wins; ignore changes and just update time
+                //    serverSettings.ServerLastUpdated = DateTimeOffset.Now;
+                //    serverSettings.ClientLastUpdated = clientSettings.ServerLastUpdated;
+                //    await _userEndpoint.UpdateUserSettings(serverSettings);
+                //}
+                //else // client data is newer than server
+                //{
+                //    clientSettings.ServerLastUpdated = DateTimeOffset.Now;
+                //    await _userEndpoint.UpdateUserSettings(_mapper.Map<UserSettingsModel>(clientSettings));
+                //    _pushedUserSettingsData = clientSettings;
+                //    pushResult.numRowsUpdated++;
+                //}
+
+                //_dataState.ChangedUserSettingsData = null;        
+            }
 
             // TASK DATA
             Console.WriteLine($"changedTaskData count: {_dataState.ChangedTaskData.Count}");
@@ -254,10 +290,6 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             _dataState.TempProjectId = 0;
 
             // CONTEXT DATA
-            //foreach (var row in _dataState.ChangedContextData)
-            //    await _contextEndpoint.UpdateContext(row);
-            //_dataState.ChangedContextData.Clear();
-
             Console.WriteLine($"changedContextData count: {_dataState.ChangedContextData.Count}");
             foreach (var clientContext in _dataState.ChangedContextData)
             {
@@ -279,6 +311,70 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             Console.WriteLine("Push complete.");
             //Console.WriteLine($"dataState.Tasks count: {_dataState.Tasks.Count}");
             return pushResult;
+        }
+
+        private async Task<DataSyncResult> PushSyncableUserData(ISyncableUserData userData)
+        {
+            LogInformation($"PushSyncableUserData() start");
+            DataSyncResult result = new();
+
+            ESyncableUserDataType changedDataType = userData.DataType;
+            ISyncableUserData changedClientData = userData;
+            ISyncableUserData serverData = changedDataType == ESyncableUserDataType.User ?
+                await _userEndpoint.GetCurrentUserData() : await _userEndpoint.GetCurrentUserSettings();
+
+            bool serverWon = false;
+            if (serverData.ClientLastUpdated > changedClientData!.ServerLastUpdated)
+            {
+                // conflict - server data is newer than client
+                // server wins; ignore changes and just update time
+                serverData.ServerLastUpdated = DateTimeOffset.Now;
+                serverData.ClientLastUpdated = changedClientData.ServerLastUpdated;
+                serverWon = true;
+            }
+            else // client data is newer than server
+            {
+                changedClientData.ServerLastUpdated = DateTimeOffset.Now;
+            }
+
+            switch (changedDataType)
+            {
+                case ESyncableUserDataType.User:
+
+                    UserDisplayModel changedClientUser = (UserDisplayModel)changedClientData;
+                    UserDisplayModel serverUser = (UserDisplayModel)serverData;
+                    if (serverWon)
+                    {
+                        await _userEndpoint.UpdateName(_mapper.Map<UserModel>(serverUser));
+                    }
+                    else
+                    {
+                        _pushedUserData = changedClientUser;
+                        result.numRowsUpdated++;
+                    }
+
+                    break;
+
+                case ESyncableUserDataType.Settings:
+
+                    UserSettingsDisplayModel changedClientSettings = (UserSettingsDisplayModel)changedClientData;
+                    UserSettingsDisplayModel serverSettings = (UserSettingsDisplayModel)serverData;
+                    if (serverWon)
+                    {                        
+                        await _userEndpoint.UpdateUserSettings(_mapper.Map<UserSettingsModel>(serverSettings));
+                    }
+                    else
+                    {
+                        _pushedUserSettingsData = changedClientSettings;
+                        result.numRowsUpdated++;
+                    }
+
+                    break;
+                default:
+                    break;
+            }              
+           
+            return result;
         }
 
         private async Task<DataSyncResult> PushSyncableData(ISyncableData data)
@@ -306,7 +402,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                 {
                     case ESyncableDataType.Task:
 
-                        TaskModel insertedTask = await _taskEndpoint.AddTask(_mapper.Map<TaskModel>((TaskDisplayModel)data), _dataState.CurrentUser!.Id);
+                        TaskModel insertedTask = await _taskEndpoint.AddTask(_mapper.Map<TaskModel>((TaskDisplayModel)data), _dataState.GetCurrentUser()!.Id);
                         Console.WriteLine($"inserted task with new server-made id: {insertedTask.Id}");
 
                         _pushedTaskData.Add(_mapper.Map<TaskModel>((TaskDisplayModel)data));
@@ -323,7 +419,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
 
                     case ESyncableDataType.Project:
 
-                        ProjectModel insertedProject = await _projectEndpoint.AddProject(_mapper.Map<ProjectModel>((ProjectDisplayModel)data), _dataState.CurrentUser!.Id);
+                        ProjectModel insertedProject = await _projectEndpoint.AddProject(_mapper.Map<ProjectModel>((ProjectDisplayModel)data), _dataState.GetCurrentUser()!.Id);
                         Console.WriteLine($"inserted project with new server-made id: {insertedProject.Id}");
 
                         _pushedProjectData.Add(_mapper.Map<ProjectModel>((ProjectDisplayModel)data));
@@ -336,7 +432,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
 
                     case ESyncableDataType.Context:
 
-                        ContextModel insertedContext= await _contextEndpoint.AddContext(_mapper.Map<ContextModel>((ContextDisplayModel)data), _dataState.CurrentUser!.Id);
+                        ContextModel insertedContext= await _contextEndpoint.AddContext(_mapper.Map<ContextModel>((ContextDisplayModel)data), _dataState.GetCurrentUser()!.Id);
                         Console.WriteLine($"inserted context with new server-made id: {insertedContext.Id}");
 
                         _pushedContextData.Add(_mapper.Map<ContextModel>((ContextDisplayModel)data));
@@ -345,8 +441,6 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                         _dataState.GetProjects()![contextIndex].Id = insertedContext.Id; // update with new server-granted id
                         _dataState.GetProjects()![contextIndex].TempLocalId = null; //
 
-                        break;
-                    case ESyncableDataType.Settings:
                         break;
                 }
 
@@ -375,8 +469,6 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                         ContextModel serverContext = await _contextEndpoint.GetContextById((int) data.Id);
                         await _contextEndpoint.DeleteContext(serverContext);
 
-                        break;
-                    case ESyncableDataType.Settings:
                         break;
                 }
                         
@@ -473,8 +565,6 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                             result.numRowsUpdated++;
                         }
                         break;
-                    case ESyncableDataType.Settings:
-                        break;
                 }
             }
 
@@ -488,33 +578,41 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             LogInformation("Pulling changes from server...");
             LogInformation($"PullSync() start");
             //Console.WriteLine($"dataState.Tasks count: {_dataState.Tasks.Count}");
-            //Console.WriteLine($"dataState.Tasks count: {_dataState.Tasks.Count}");
             DataSyncResult pullResult = new();
 
             // USER DATA
-            UserModel serverCurrentUser = await _userEndpoint.GetCurrentUserData();
-            IList<UserModel> serverUserRows = [serverCurrentUser];
-            var changedRemoteUserRows = serverUserRows.Where(
-                x => x.ServerLastUpdated >= _dataState.LastSync).ToList();
-
-            foreach (var serverUser in changedRemoteUserRows)
+            UserModel serverUser = await _userEndpoint.GetCurrentUserData();
+            if (serverUser.ServerLastUpdated >= _dataState.LastSync) // remote changes have occurred
             {
-                // do not pull if we just pushed the change
-                var pushedServerUser = _pushedUserData.Where(x => x.Id == serverUser.Id);
-                if (pushedServerUser.Count() != 0) { continue; }
-
-                //Trace.WriteLine("serverCurrentUser - changes detected on pull!");
-                //Trace.WriteLine($"serverUser.ServerLastUpdated: {serverUser.ServerLastUpdated}; LastSync: {_dataState.LastSync}; a >= b: {serverUser.ServerLastUpdated >= _dataState.LastSync}");
-                //Console.WriteLine("serverCurrentUser - changes detected on pull!");
-                //Console.WriteLine($"serverUser.ServerLastUpdated: {serverUser.ServerLastUpdated}; LastSync: {_dataState.LastSync}; a >= b: {serverUser.ServerLastUpdated >= _dataState.LastSync}");
-
-                UserDisplayModel displayServerUser = _mapper.Map<UserDisplayModel>(serverUser);
-                displayServerUser.ServerLastUpdated = DateTimeOffset.Now;
-                // update local data store + store copy for comparison
-                _dataState.CurrentUser = displayServerUser;
-                //_dataHelper.UserDataLastFetch = _dataState.CurrentUser;
-                pullResult.numRowsUpdated++;
+                LogInformation("changed UserData detected");
+                await PullSyncableUserData(serverUser);
             }
+            _pushedUserData = null; // no longer needed for reference
+
+            //UserModel serverCurrentUser = await _userEndpoint.GetCurrentUserData();
+            //IList<UserModel> serverUserRows = [serverCurrentUser];
+            //var changedRemoteUserRows = serverUserRows.Where(
+            //    x => x.ServerLastUpdated >= _dataState.LastSync).ToList();
+
+            //foreach (var serverUser in changedRemoteUserRows)
+            //{
+            //    // do not pull if we just pushed the change
+            //    //var pushedServerUser = _pushedUserData.Where(x => x.Id == serverUser.Id);
+            //    var pushedServerUser = _pushedUserData;
+            //    //if (pushedServerUser.Count() != 0) { continue; }
+            //    if (pushedServerUser != null) { continue; }
+
+            //    //Trace.WriteLine("serverCurrentUser - changes detected on pull!");
+            //    //Trace.WriteLine($"serverUser.ServerLastUpdated: {serverUser.ServerLastUpdated}; LastSync: {_dataState.LastSync}; a >= b: {serverUser.ServerLastUpdated >= _dataState.LastSync}");
+            //    //Console.WriteLine("serverCurrentUser - changes detected on pull!");
+            //    //Console.WriteLine($"serverUser.ServerLastUpdated: {serverUser.ServerLastUpdated}; LastSync: {_dataState.LastSync}; a >= b: {serverUser.ServerLastUpdated >= _dataState.LastSync}");
+
+            //    UserDisplayModel displayServerUser = _mapper.Map<UserDisplayModel>(serverUser);
+            //    displayServerUser.ServerLastUpdated = DateTimeOffset.Now;
+            //    // update local data store
+            //    _dataState.CurrentUser = displayServerUser;
+            //    pullResult.numRowsUpdated++;
+            //}
 
             //if (changedRemoteUserRows.Count == 0)
             //{
@@ -524,9 +622,30 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             //    Console.WriteLine($"serverUser.ServerLastUpdated: {serverCurrentUser.ServerLastUpdated}; LastSync: {_dataState.LastSync}; a >= b: {serverCurrentUser.ServerLastUpdated >= _dataState.LastSync}");
             //}
 
-            _pushedUserData.Clear();
+            //_pushedUserData.Clear();
+            //_pushedUserData = null; // no longer needed for reference
 
             // SETTINGS DATA
+            UserSettingsModel serverSettings = await _userEndpoint.GetCurrentUserSettings();
+            if (serverSettings.ServerLastUpdated >= _dataState.LastSync) // remote changes have occurred
+            {
+                LogInformation("changed UserSettingsData detected");
+                await PullSyncableUserData(serverSettings);
+                
+                //// only pull if we didn't just push the change
+                //if (_pushedUserSettingsData == null)
+                //{
+                //    LogInformation($"PullSync found changedRemoteUserSettings");
+
+                //    UserSettingsDisplayModel displayServerSettings = _mapper.Map<UserSettingsDisplayModel>(serverSettings);
+                //    displayServerSettings.ServerLastUpdated = DateTimeOffset.Now;
+                //    // update local data store
+                //    _dataState.SetUserSettings(displayServerSettings);
+                //    pullResult.numRowsUpdated++;
+                //}           
+            }
+            _pushedUserSettingsData = null; // no longer needed for reference
+
 
             // TASK DATA
             DataSyncResult tasksPullResult = new();
@@ -640,6 +759,50 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             return pullResult;
         }
 
+        private async Task<DataSyncResult> PullSyncableUserData(ISyncableUserData userData)
+        {
+            LogInformation($"PullSyncableUserData() start");
+            DataSyncResult result = new();
+
+            ISyncableUserData serverData = userData.DataType == ESyncableUserDataType.User ?
+                await _userEndpoint.GetCurrentUserData() : await _userEndpoint.GetCurrentUserSettings();
+
+            if (serverData.ServerLastUpdated >= _dataState.LastSync)
+            {
+                // only pull if we didn't just push the change
+                if (userData.DataType == ESyncableUserDataType.User && _pushedUserData == null ||
+                    userData.DataType == ESyncableUserDataType.Settings && _pushedUserSettingsData == null)
+                {
+                    LogInformation("PullSync found ISyncableUserData to pull");
+
+                    serverData.ServerLastUpdated = DateTimeOffset.Now;
+                    // update local data store
+                    switch (userData.DataType)
+                    {
+                        case ESyncableUserDataType.User:
+
+                            UserModel serverUser = (UserModel)userData;
+                            var displayServerUser = _mapper.Map<UserDisplayModel>(serverUser);
+                            _dataState.SetCurrentUser(displayServerUser);
+                            break;
+
+                        case ESyncableUserDataType.Settings:
+
+                            UserSettingsModel serverSettings = (UserSettingsModel)serverData;
+                            var displayServerSettings = _mapper.Map<UserSettingsDisplayModel>(serverData); 
+                            _dataState.SetUserSettings(displayServerSettings);
+                            break;
+                        default:
+                            break;
+                    }
+
+                    result.numRowsUpdated++;
+                }
+            }
+
+            return result;
+        }
+
         // handles local insert/deletes based on remote data row
         private DataSyncResult PullSyncableData(ISyncableData data)
         {
@@ -720,8 +883,6 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                         _dataState.GetContexts()![i] = displayServerContext;
                         result.numRowsUpdated++;
                     }
-                    break;
-                case ESyncableDataType.Settings:
                     break;
                 default:
                     break;

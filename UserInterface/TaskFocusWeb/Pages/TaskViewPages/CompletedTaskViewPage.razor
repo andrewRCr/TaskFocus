@@ -104,14 +104,14 @@
     {
         if (DataState.IsDataLoaded())
         {
-            string dayStr = DataState.UserSettings!.DeleteDelayDays > 1 ? " days" : " day";
-            _currentDeletionIntervalSettingStr = DataState.UserSettings.DeleteDelayDays.ToString() + dayStr;
+            string dayStr = DataService.GetDataStateUserSettings()!.DeleteDelayDays > 1 ? " days" : " day";
+            _currentDeletionIntervalSettingStr = DataService.GetDataStateUserSettings()!.DeleteDelayDays.ToString() + dayStr;
 
-            if (DataState.UserSettings.CleanUpImmediately) { _currentCleanUpIntervalSettingStr = "immediate"; }
+            if (DataService.GetDataStateUserSettings()!.CleanUpImmediately) { _currentCleanUpIntervalSettingStr = "immediate"; }
             else
             {
-                dayStr = DataState.UserSettings.CleanUpDelayDays > 1 ? " days" : " day";
-                _currentCleanUpIntervalSettingStr = DataState.UserSettings.CleanUpDelayDays.ToString() + dayStr;
+                dayStr = DataService.GetDataStateUserSettings()!.CleanUpDelayDays > 1 ? " days" : " day";
+                _currentCleanUpIntervalSettingStr = DataService.GetDataStateUserSettings()!.CleanUpDelayDays.ToString() + dayStr;
             }
         }
     }

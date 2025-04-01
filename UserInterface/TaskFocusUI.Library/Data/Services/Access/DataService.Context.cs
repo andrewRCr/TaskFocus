@@ -203,7 +203,7 @@ namespace TaskFocusUI.Library.Data.Services
         // validates request, performs additional processing, flags for sync, refreshes UI
         public async Task UpdateContextData(ContextDisplayModel workingContext)
         {
-            ContextDataCompareResult compareResult = _dataHelper.HasContextDataChanged(workingContext);
+            CollectionDataCompareResult compareResult = _dataHelper.HasContextDataChanged(workingContext);
 
             if (compareResult.HasChanged)
             {
@@ -225,7 +225,7 @@ namespace TaskFocusUI.Library.Data.Services
             if (Interlocked.Increment(ref _contextUpdateEntered) != 1) { return; }
             _contextBeingUpdated = workingContext;
 
-            await ProcessLocalContextUpdate(workingContext);
+            await ProcessLocalContextUpdate(workingContext, compareResult.CollectionNameChanged);
 
             // unlock
             Interlocked.Exchange(ref _contextUpdateEntered, 0);

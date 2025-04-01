@@ -353,6 +353,32 @@ namespace TaskFocusUI.Library.Data.Services
             List<TaskDisplayModel> workingDisplayTaskList = _dataState.GetTasks()!.ConvertAll(task => task.Clone());
             _dataState.SetWorkingTasks(workingDisplayTaskList);
         }
+    
+        // manages completed task time-sensitive auto deletion / cleanedUp status; for use prior to each sync
+        void IDataServiceInternal.PerformCompletedTaskCleanup()
+        {
+            var userSettings = _dataState.GetWorkingUserSettings()!;
+            var completedTasks = _dataState.GetWorkingTasks()!.Where(x => x.Completed);
+            foreach (var workingTask in completedTasks)
+            {
+                TimeSpan interval = (DateTime.Now - (DateTime)workingTask.DateCompleted!);
+                int daysPassedSinceTaskCompletion = interval.Days;
+
+                // delete if interval passed
+                int deleteIntervalSetting = userSettings.DeleteDelayDays;
+                if (daysPassedSinceTaskCompletion > deleteIntervalSetting) DeleteTask(workingTask);
+      
+                else if (!workingTask.CleanedUp) // handle CleanedUp state
+                {
+                    int cleanupIntervalSetting = userSettings.CleanUpDelayDays;
+                    if (userSettings.CleanUpImmediately || (daysPassedSinceTaskCompletion > cleanupIntervalSetting))
+                    {
+                        workingTask.CleanedUp = true;
+                        UpdateTaskData(workingTask);
+                    }
+                }          
+            }
+        }
 
         void IDataServiceInternal.HandleIndexShiftsOnTaskDeletion(TaskDisplayModel task)
         {

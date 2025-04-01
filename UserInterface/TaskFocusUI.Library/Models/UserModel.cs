@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace TaskFocusUI.Library.Models
 {
-    public class UserModel
+    public class UserModel : ISyncableUserData
     {
         public string Id { get; set; }
         public string Email { get; set; }
@@ -14,6 +14,7 @@ namespace TaskFocusUI.Library.Models
         public Dictionary<string, string> Roles { get; set; } = new Dictionary<string, string>();
 
         // for sync
+        public ESyncableUserDataType DataType { get; } = ESyncableUserDataType.User;
         public DateTimeOffset ServerLastUpdated { get; set; }
         public DateTimeOffset ClientLastUpdated { get; set; }
 

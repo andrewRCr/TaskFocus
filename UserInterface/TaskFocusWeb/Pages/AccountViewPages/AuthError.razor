@@ -25,7 +25,7 @@
 @code {
     protected override async Task OnInitializedAsync()
     {
-        dataRefreshTriggers = new List<string> { nameof(DataState.CurrentUser) };
+        dataRefreshTriggers = new List<string> { nameof(ESyncableUserDataType.User) };
         await VerifyAuth();
 
         if (_isAuthenticated)

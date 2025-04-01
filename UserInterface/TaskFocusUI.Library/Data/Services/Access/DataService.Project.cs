@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using TaskFocusUI.Library.Data.Services.Access;
 using TaskFocusUI.Library.Data.State;
-using TaskFocusUI.Library.Data.Utilities;
 using TaskFocusUI.Library.Models;
 
 namespace TaskFocusUI.Library.Data.Services
@@ -100,8 +99,6 @@ namespace TaskFocusUI.Library.Data.Services
             var displayProjectList = _mapper.Map<List<ProjectDisplayModel>>(projectList);
             _dataState.SetProjects(displayProjectList);
 
-            //List<ProjectDisplayModel> workingDisplayProjectList = displayProjectList.ConvertAll(project => project.Clone());
-            //_dataState.SetWorkingProjects(workingDisplayProjectList);
             UpdateWorkingProjectsFromDataState();
 
             _dataState.InvokeDataStateChanged("Projects");
@@ -204,7 +201,7 @@ namespace TaskFocusUI.Library.Data.Services
         // validates request, performs additional processing, flags for sync, refreshes UI
         public async Task UpdateProjectData(ProjectDisplayModel workingProject)
         {
-            ProjectDataCompareResult compareResult = _dataHelper.HasProjectDataChanged(workingProject);
+            var compareResult = _dataHelper.HasProjectDataChanged(workingProject);
 
             if (compareResult.HasChanged)
             {
@@ -225,7 +222,7 @@ namespace TaskFocusUI.Library.Data.Services
                 if (Interlocked.Increment(ref _projectUpdateEntered) != 1) { return; }
                 _projectBeingUpdated = workingProject;
 
-                await ProcessLocalProjectUpdate(workingProject, compareResult.ProjectNameChanged);
+                await ProcessLocalProjectUpdate(workingProject, compareResult.CollectionNameChanged);
 
                 // unlock
                 Interlocked.Exchange(ref _projectUpdateEntered, 0);
