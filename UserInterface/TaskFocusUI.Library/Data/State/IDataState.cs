@@ -31,6 +31,8 @@ namespace TaskFocusUI.Library.Data.State
         event DataStateChangedHandler DataStateChanged;
 
         void InvokeDataStateChanged(string propertyName);
-        bool IsDataLoaded();
+
+        // made internal:
+        //bool IsDataLoaded();
     }
 }

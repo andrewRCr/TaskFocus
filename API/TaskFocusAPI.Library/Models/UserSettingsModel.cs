@@ -1,4 +1,6 @@
-﻿namespace TaskFocusAPI.Library.Models
+﻿using System;
+
+namespace TaskFocusAPI.Library.Models
 {
     public class UserSettingsModel
     {
@@ -6,5 +8,8 @@
         public bool CleanUpImmediately { get; set; } = false;
         public int CleanUpDelayDays { get; set; } = 7; 
         public int DeleteDelayDays { get; set; } = 30;
+        // for sync
+        public DateTimeOffset ServerLastUpdated { get; set; }
+        public DateTimeOffset ClientLastUpdated { get; set; }
     }
 }

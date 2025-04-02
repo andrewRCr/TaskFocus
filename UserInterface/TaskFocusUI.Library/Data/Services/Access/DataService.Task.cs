@@ -431,7 +431,7 @@ namespace TaskFocusUI.Library.Data.Services
             //_dataState.SetWorkingTasks(workingDisplayTaskList);
             UpdateWorkingTasksFromDataState();
 
-            _dataState.InvokeDataStateChanged("Tasks");
+            _dataState.InvokeDataStateChanged(nameof(EDataRefreshType.Tasks));
         }
 
         // validates request, processes local add, flags for sync, refreshes UI
@@ -467,7 +467,7 @@ namespace TaskFocusUI.Library.Data.Services
             _dataState.GetTasks()!.Add(workingTask.Clone());
 
             // trigger UI update
-            _dataState.InvokeDataStateChanged("Tasks");
+            _dataState.InvokeDataStateChanged(nameof(EDataRefreshType.Tasks));
         }
 
         // validates request, processes local delete, flags for sync, refreshes UI
@@ -503,7 +503,7 @@ namespace TaskFocusUI.Library.Data.Services
             }
 
             // trigger UI update
-            _dataState.InvokeDataStateChanged("Tasks");
+            _dataState.InvokeDataStateChanged(nameof(EDataRefreshType.Tasks));
         }
 
         // validates request, performs additional processing, refreshes UI
@@ -539,7 +539,7 @@ namespace TaskFocusUI.Library.Data.Services
 
                 Console.WriteLine("1 task update complete");
                 // trigger UI update
-                _dataState.InvokeDataStateChanged("Tasks");
+                _dataState.InvokeDataStateChanged(nameof(EDataRefreshType.Tasks));
             }
         }
 

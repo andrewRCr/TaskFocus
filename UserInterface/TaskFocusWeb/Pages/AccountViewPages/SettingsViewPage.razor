@@ -6,12 +6,6 @@
 @inject IAuthenticationService AuthService
 @inject ISnackbar Snackbar
 @inject NavigationManager NavManager
-@using System.ComponentModel.DataAnnotations
-@using System.Text.RegularExpressions
-@using TaskFocusUI.Library.Data.Services
-@using TaskFocusUI.Library.Data.Services.Access
-@using TaskFocusUI.Library.Data.State
-
 @inject ILogger<SettingsViewPage> Logger
 
 @if (LocalCurrentUser != null)
@@ -361,7 +355,7 @@
         AppState.ShowProjectSubMenu = false;
         AppState.ShowContextSubMenu = false;
 
-        dataRefreshTriggers = new List<string> { nameof(ESyncableUserDataType.Settings), nameof(ESyncableUserDataType.User) };
+        dataRefreshTriggers = new List<string> { nameof(EDataRefreshType.Settings), nameof(EDataRefreshType.User) };
         LoadAlertMessage();
     }
 
@@ -390,7 +384,7 @@
     {
         await VerifyAuthAndRedirectIfExpired();
 
-        if (DataState.IsDataLoaded()) { _userModel.Email = LocalCurrentUser.Email; }
+        if (DataService.IsDataStateLoaded()) { _userModel.Email = LocalCurrentUser.Email; }
         _updateEmailDialogVisible = true;
     }
 
@@ -546,7 +540,7 @@
 
     protected void LoadLocalSettingsData()
     {
-        if (DataState.IsDataLoaded())
+        if (DataService.IsDataStateLoaded())
         {
             LocalSettings = DataService.GetDataStateUserSettings()!;
             LocalSettings.PropertyChanged += OnExistingSettingsPropertyChanged!; // subscribe to property changed event
@@ -560,7 +554,7 @@
 
     protected void LoadLocalUserData()
     {
-        if (DataState.IsDataLoaded())
+        if (DataService.IsDataStateLoaded())
         {
             LocalCurrentUser = DataService.GetDataStateCurrentUser()!;
             LocalCurrentUser.PropertyChanged += OnExistingUserPropertyChanged!; // subscribe to property changed event

@@ -680,7 +680,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             // trigger UI update if needed + add to total pull result
             if (_dataHelper.SyncChangesDetected(tasksPullResult))
             {
-                _dataState.InvokeDataStateChanged("Tasks");
+                _dataState.InvokeDataStateChanged(nameof(EDataRefreshType.Tasks));
                 pullResult = _dataHelper.CombineSyncResults(pullResult, tasksPullResult);
             }
 
@@ -715,7 +715,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             // trigger UI update if needed + add to total pull result
             if (_dataHelper.SyncChangesDetected(projectsPullResult))
             {
-                _dataState.InvokeDataStateChanged("Projects");
+                _dataState.InvokeDataStateChanged(nameof(EDataRefreshType.Projects));
                 pullResult = _dataHelper.CombineSyncResults(pullResult, projectsPullResult);
             }
 
@@ -750,7 +750,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             // trigger UI update if needed + add to total pull result
             if (_dataHelper.SyncChangesDetected(contextsPullResult))
             {
-                _dataState.InvokeDataStateChanged("Contexts");
+                _dataState.InvokeDataStateChanged(nameof(EDataRefreshType.Contexts));
                 pullResult = _dataHelper.CombineSyncResults(pullResult, contextsPullResult);
             }
 

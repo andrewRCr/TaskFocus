@@ -19,5 +19,7 @@ namespace TaskFocusUI.Library.Data.State
 
         List<ContextDisplayModel>? Contexts { get; set; }
         List<ContextDisplayModel>? WorkingContexts { get; set; }
+
+        bool IsDataLoaded();
     }
 }

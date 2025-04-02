@@ -55,6 +55,10 @@ namespace TaskFocusAPI.Library.DataAccess
             dbContext.ContextName = frontEndContext.ContextName.Trim();
             dbContext.OrderIndex = frontEndContext.OrderIndex;
 
+            // sync meta-data
+            dbContext.ClientLastUpdated = frontEndContext.ClientLastUpdated;
+            dbContext.ServerLastUpdated = frontEndContext.ServerLastUpdated;
+
             try
             {
                 _sqlDataAccess.SaveData("dbo.spContext_Update", dbContext, "TaskFocusData");

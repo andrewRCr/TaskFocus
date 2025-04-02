@@ -1,7 +1,4 @@
 ﻿@page "/completed"
-@using TaskFocusUI.Library.Data.Services
-@using TaskFocusUI.Library.Data.Services.Access
-@using TaskFocusUI.Library.Data.State
 @inherits _TaskViewPageBase
 @inject IDataService DataService
 
@@ -85,7 +82,7 @@
 
     protected override void LoadLocalTaskData()
     {
-        if (DataState.IsDataLoaded())
+        if (DataService.IsDataStateLoaded())
         {
             List<TaskDisplayModel> unorderedCompletedTasks = DataService.GetDataStateTasks()!.Where(x => x.Completed).ToList();      
             _completedTasks = unorderedCompletedTasks.OrderBy(x => x.DateCompleted).ToList();
@@ -102,7 +99,7 @@
 
     private void LoadCurrentSettingsStrings()
     {
-        if (DataState.IsDataLoaded())
+        if (DataService.IsDataStateLoaded())
         {
             string dayStr = DataService.GetDataStateUserSettings()!.DeleteDelayDays > 1 ? " days" : " day";
             _currentDeletionIntervalSettingStr = DataService.GetDataStateUserSettings()!.DeleteDelayDays.ToString() + dayStr;

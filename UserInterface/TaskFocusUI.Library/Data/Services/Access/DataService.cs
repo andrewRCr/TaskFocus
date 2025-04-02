@@ -82,6 +82,9 @@ namespace TaskFocusUI.Library.Data.Services
             SyncRequestHandler?.Invoke(this, sourceName);
         }
 
+        // for checking if complete data state has been loaded
+        public bool IsDataStateLoaded() => _dataState.IsDataLoaded();
+
         // data state CRUD operations
         // ====================
 

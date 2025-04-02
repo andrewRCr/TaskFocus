@@ -1,10 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using TaskFocusUI.Library.Models;
 
 namespace TaskFocusUI.Library.Data.State
 {
+    public enum EDataRefreshType
+    {
+        User,
+        Settings,
+        Tasks,
+        Projects,
+        Contexts,
+    }
+
     public class DataState : IDataState, IDataStateInternal
     {
         public DataState() {}
@@ -34,7 +42,7 @@ namespace TaskFocusUI.Library.Data.State
             set
             {
                 _currentUser = value;
-                DataStateChanged?.Invoke(nameof(IDataStateInternal.CurrentUser), this);
+                DataStateChanged?.Invoke(nameof(EDataRefreshType.User), this);
             }
         }
 
@@ -52,7 +60,7 @@ namespace TaskFocusUI.Library.Data.State
             set
             {
                 _userSettings = value;
-                DataStateChanged?.Invoke(nameof(IDataStateInternal.UserSettings), this);
+                DataStateChanged?.Invoke(nameof(EDataRefreshType.Settings), this);
             }
         }
 
@@ -67,7 +75,11 @@ namespace TaskFocusUI.Library.Data.State
         List<TaskDisplayModel>? IDataStateInternal.Tasks
         {
             get { return _tasks; } 
-            set {  _tasks = value; }
+            set 
+            {  
+                _tasks = value;
+                DataStateChanged?.Invoke(nameof(EDataRefreshType.Tasks), this);
+            }
         }
 
         private List<TaskDisplayModel>? _workingTasks;
@@ -81,7 +93,11 @@ namespace TaskFocusUI.Library.Data.State
         List<ProjectDisplayModel>? IDataStateInternal.Projects 
         { 
             get { return _projects; }
-            set {_projects = value; }
+            set 
+            {
+                _projects = value;
+                DataStateChanged?.Invoke(nameof(EDataRefreshType.Projects), this);
+            }
         }
 
         private List<ProjectDisplayModel>? _workingProjects;
@@ -95,7 +111,11 @@ namespace TaskFocusUI.Library.Data.State
         List<ContextDisplayModel>? IDataStateInternal.Contexts
         {
             get => _contexts;
-            set { _contexts = value; }
+            set 
+            { 
+                _contexts = value;
+                DataStateChanged?.Invoke(nameof(EDataRefreshType.Contexts), this);
+            }
         }
 
         private List<ContextDisplayModel>? _workingContexts;
@@ -105,7 +125,7 @@ namespace TaskFocusUI.Library.Data.State
             set { _workingContexts = value; }
         }
 
-        public bool IsDataLoaded()
+        bool IDataStateInternal.IsDataLoaded()
         {
             return _currentUser != null && _workingCurrentUser != null &&
                    _userSettings != null && _workingUserSettings != null &&
@@ -114,8 +134,8 @@ namespace TaskFocusUI.Library.Data.State
                    _contexts != null && _workingContexts != null;
         }
 
-        public UserDisplayModel ChangedUserData { get; set; } = new();
-        public UserSettingsDisplayModel ChangedUserSettingsData { get; set; } = new();
+        public UserDisplayModel? ChangedUserData { get; set; } = new();
+        public UserSettingsDisplayModel? ChangedUserSettingsData { get; set; } = new();
         public List<TaskDisplayModel> ChangedTaskData { get; set; } = new();
         public List<ProjectDisplayModel> ChangedProjectData { get; set; } = new();
         public List<ContextDisplayModel> ChangedContextData { get; set; } = new();

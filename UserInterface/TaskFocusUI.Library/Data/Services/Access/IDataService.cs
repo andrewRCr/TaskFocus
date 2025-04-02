@@ -9,6 +9,7 @@ namespace TaskFocusUI.Library.Data.Services.Access
     {
         event EventHandler<string>? SyncRequestHandler;
         void InvokeSyncRequest(string sourceName);
+        bool IsDataStateLoaded();
 
         Task FetchAllRemoteData();
         Task FetchRemoteUserData();

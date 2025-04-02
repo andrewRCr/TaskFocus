@@ -35,7 +35,7 @@ namespace TaskFocusUI.Library.Data.Services
             _dataState.SetUserSettings(displayUserSettings);
             UpdateWorkingSettingsFromDataState();
 
-            _dataState.InvokeDataStateChanged("Settings"); // TODO: necessary? on set PropertyChanged call should be sufficient if nameof handled right
+            _dataState.InvokeDataStateChanged(nameof(EDataRefreshType.Settings)); // TODO: necessary? on set PropertyChanged call should be sufficient if nameof handled right
         }
 
         // TODO: needs testing after recent updates
@@ -57,7 +57,7 @@ namespace TaskFocusUI.Library.Data.Services
 
                 // unlock + trigger UI update
                 Interlocked.Exchange(ref _settingsUpdateEntered, 0);
-                _dataState.InvokeDataStateChanged("Settings"); // TODO: necessary? on set PropertyChanged call should be sufficient if nameof handled right
+                _dataState.InvokeDataStateChanged(nameof(EDataRefreshType.Settings)); // TODO: necessary? on set PropertyChanged call should be sufficient if nameof handled right
             }
         }
     }

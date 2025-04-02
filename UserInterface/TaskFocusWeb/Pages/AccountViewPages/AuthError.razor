@@ -1,5 +1,4 @@
 ﻿@page "/autherror"
-@using TaskFocusUI.Library.Data.State
 @inherits _ComponentStateAwareBase
 @inject NavigationManager NavManager
 
@@ -25,7 +24,7 @@
 @code {
     protected override async Task OnInitializedAsync()
     {
-        dataRefreshTriggers = new List<string> { nameof(ESyncableUserDataType.User) };
+        dataRefreshTriggers = new List<string> { nameof(EDataRefreshType.User) };
         await VerifyAuth();
 
         if (_isAuthenticated)

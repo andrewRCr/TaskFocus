@@ -101,7 +101,7 @@ namespace TaskFocusUI.Library.Data.Services
 
             UpdateWorkingProjectsFromDataState();
 
-            _dataState.InvokeDataStateChanged("Projects");
+            _dataState.InvokeDataStateChanged(nameof(EDataRefreshType.Projects));
         }
 
         public async Task FetchRemoteProjectAndTasksById(int id)
@@ -142,7 +142,7 @@ namespace TaskFocusUI.Library.Data.Services
             _dataState.GetProjects()!.Add(newDisplayProject.Clone());
 
             // trigger UI update + request sync
-            _dataState.InvokeDataStateChanged("Projects");
+            _dataState.InvokeDataStateChanged(nameof(EDataRefreshType.Projects));
             InvokeSyncRequest(nameof(AddProject));                           
 
             return newDisplayProject;
@@ -195,7 +195,7 @@ namespace TaskFocusUI.Library.Data.Services
             }
 
             // trigger UI update
-            _dataState.InvokeDataStateChanged("Projects");
+            _dataState.InvokeDataStateChanged(nameof(EDataRefreshType.Projects));
         }
 
         // validates request, performs additional processing, flags for sync, refreshes UI

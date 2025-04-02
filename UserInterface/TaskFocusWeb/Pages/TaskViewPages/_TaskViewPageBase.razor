@@ -1,7 +1,4 @@
-﻿@using TaskFocusUI.Library.Data.Services
-@using TaskFocusUI.Library.Data.Services.Access
-@using TaskFocusUI.Library.Data.State
-@inherits _ComponentStateAwareBase
+﻿@inherits _ComponentStateAwareBase
 @inject IDataService DataService
 @inject NavigationManager NavManager
 
@@ -82,7 +79,7 @@
     protected virtual void LoadLocalTaskData()
     {
         // defined differently in children where applicable; this is default behavior
-        if (DataState.IsDataLoaded())
+        if (DataService.IsDataStateLoaded())
         {
             LocalTasks = DataService.GetDataStateTasks();
             SubscribeToTaskPropertyChangedEvents(LocalTasks);

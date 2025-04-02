@@ -42,7 +42,7 @@ namespace TaskFocusUI.Library.Data.Services
             _dataState.SetCurrentUser(displayUserData);
             UpdateWorkingCurrentUserFromDataState();
 
-            _dataState.InvokeDataStateChanged("User"); // TODO: necessary? on set PropertyChanged call should be sufficient if nameof handled right
+            _dataState.InvokeDataStateChanged(nameof(EDataRefreshType.User)); // TODO: necessary? on set PropertyChanged call should be sufficient if nameof handled right
         }
 
         // TODO: needs testing after recent updates
@@ -67,7 +67,7 @@ namespace TaskFocusUI.Library.Data.Services
 
                     // unlock + trigger UI update
                     Interlocked.Exchange(ref _userUpdateEntered, 0);
-                    _dataState.InvokeDataStateChanged("User"); // TODO: necessary? on set PropertyChanged call should be sufficient if nameof handled right
+                    _dataState.InvokeDataStateChanged(nameof(EDataRefreshType.User)); // TODO: necessary? on set PropertyChanged call should be sufficient if nameof handled right
                 }
             }
         }

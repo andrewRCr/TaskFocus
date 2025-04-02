@@ -103,7 +103,7 @@ namespace TaskFocusUI.Library.Data.Services
             List<ContextDisplayModel> workingDisplayContextList = displayContextList.ConvertAll(context => context.Clone());
             _dataState.SetWorkingContexts(workingDisplayContextList);
 
-            _dataState.InvokeDataStateChanged("Contexts");
+            _dataState.InvokeDataStateChanged(nameof(EDataRefreshType.Contexts));
         }
 
         public async Task FetchRemoteContextAndTasksById(int id)
@@ -144,7 +144,7 @@ namespace TaskFocusUI.Library.Data.Services
             _dataState.GetContexts()!.Add(newDisplayContext.Clone());
 
             // trigger UI update + request sync
-            _dataState.InvokeDataStateChanged("Contexts");
+            _dataState.InvokeDataStateChanged(nameof(EDataRefreshType.Contexts));
             InvokeSyncRequest(nameof(AddContext));
 
             return newDisplayContext;
@@ -197,7 +197,7 @@ namespace TaskFocusUI.Library.Data.Services
             }
 
             // trigger UI update
-            _dataState.InvokeDataStateChanged("Contexts");
+            _dataState.InvokeDataStateChanged(nameof(EDataRefreshType.Contexts));
         }
 
         // validates request, performs additional processing, flags for sync, refreshes UI

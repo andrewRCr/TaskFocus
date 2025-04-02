@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using TaskFocusUI.Library.Data.Services.Access;
 using TaskFocusUI.Library.Models;
 
 namespace TaskFocusUI.Library.Data.State
@@ -54,5 +55,10 @@ namespace TaskFocusUI.Library.Data.State
 
         public static void SetWorkingContexts(this IDataState iface,
                                               List<ContextDisplayModel> contexts) => ((IDataStateInternal)iface).WorkingContexts = contexts;
+
+        public static bool IsDataLoaded(this IDataState iface)
+        {
+            return ((IDataStateInternal)iface).IsDataLoaded();
+        }
     }
 }

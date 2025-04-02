@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using TaskFocusAPI.Library.Models;
 
 namespace TaskFocusAPI.Library.DataAccess
@@ -62,6 +63,10 @@ namespace TaskFocusAPI.Library.DataAccess
 
             // these will have been updated by the front-end prior to call
             dbProject.ContextId = frontEndProject.ContextId;
+
+            // sync meta-data
+            dbProject.ClientLastUpdated = frontEndProject.ClientLastUpdated;
+            dbProject.ServerLastUpdated = frontEndProject.ServerLastUpdated;
 
             try
             {

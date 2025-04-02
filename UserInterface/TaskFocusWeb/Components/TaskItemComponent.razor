@@ -1,12 +1,6 @@
-﻿@using MudBlazor.Extensions.Options
-@using MudBlazor.Services
-@using TaskFocusUI.Library.Data.Services
-@using TaskFocusUI.Library.Data.Services.Access
-@using TaskFocusUI.Library.Data.State
-@inherits _ComponentStateAwareBase
+﻿@inherits _ComponentStateAwareBase
 @implements IBrowserViewportObserver
 @implements IAsyncDisposable
-
 @inject IDataService DataService
 @inject ISnackbar Snackbar
 
@@ -370,7 +364,7 @@ Style="background-color: #27272f">
 
     private void UpdateParametersFromDataState()
     {
-        if (DataState.IsDataLoaded())
+        if (DataService.IsDataStateLoaded())
         {
             TaskDisplayModel? stateTask = DataService.GetDataStateTasks()!.Find(x => x.Id == TaskParam.Id);
             if (stateTask != null)

@@ -49,6 +49,10 @@ namespace TaskFocusAPI.Library.DataAccess
             dbSettings.CleanUpDelayDays = frontEndSettings.CleanUpDelayDays;
             dbSettings.DeleteDelayDays = frontEndSettings.DeleteDelayDays;
 
+            // sync meta-data
+            dbSettings.ClientLastUpdated = frontEndSettings.ClientLastUpdated;
+            dbSettings.ServerLastUpdated = frontEndSettings.ServerLastUpdated;
+
             try
             {
                 _sqlDataAccess.SaveData("dbo.spUserSettings_Update", dbSettings, "TaskFocusData");

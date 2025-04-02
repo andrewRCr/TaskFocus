@@ -1,6 +1,4 @@
 ﻿@page "/today"
-@using TaskFocusUI.Library.Data.Services
-@using TaskFocusUI.Library.Data.Services.Access
 @inherits _TaskViewPageBase
 @inject IDataService DataService
 
@@ -87,7 +85,7 @@
 
     protected override void LoadLocalTaskData()
     {
-        if (DataState.IsDataLoaded())
+        if (DataService.IsDataStateLoaded())
         {
             List<TaskDisplayModel> dueTasks = DataService.GetDataStateTasks()!.Where(x => 
                 (x.DueDate <= DateTime.Now.Date) && !x.CleanedUp && 

@@ -2,7 +2,9 @@
 	@Id nvarchar(128),
 	@CleanUpImmediately bit,
 	@CleanUpDelayDays int,
-	@DeleteDelayDays int
+	@DeleteDelayDays int,
+	@ServerLastUpdated datetimeoffset(7),
+	@ClientLastUpdated datetimeoffset(7)
 
 AS
 BEGIN
@@ -11,6 +13,8 @@ BEGIN
 	UPDATE dbo.UserSettings
 	SET CleanUpImmediately = cast(@CleanUpImmediately as bit), 
 		CleanUpDelayDays = @CleanUpDelayDays,
-		DeleteDelayDays = @DeleteDelayDays
+		DeleteDelayDays = @DeleteDelayDays,
+		ServerLastUpdated = @ServerLastUpdated, 
+		ClientLastUpdated = @ClientLastUpdated
 	WHERE Id = @Id;
 END

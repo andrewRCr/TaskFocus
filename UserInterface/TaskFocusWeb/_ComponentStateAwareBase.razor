@@ -1,7 +1,4 @@
-﻿@using TaskFocusUI.Library.Data.Services
-@using TaskFocusUI.Library.Data.Services.Access
-@using TaskFocusUI.Library.Data.State
-@inherits ComponentBase
+﻿@inherits ComponentBase
 @implements IDisposable
 @inject IDataService DataService
 @inject NavigationManager NavManager
@@ -18,11 +15,8 @@
 
     protected bool _isAuthenticated = false;
 
-    // protected List<string> dataRefreshTriggers = new List<string> {
-    //     nameof(DataState.Tasks), nameof(DataState.Projects), nameof(DataState.Contexts) };
-
     protected List<string> dataRefreshTriggers = new List<string> {
-        "Tasks", "Projects", "Contexts" };
+        nameof(EDataRefreshType.Tasks), nameof(EDataRefreshType.Projects), nameof(EDataRefreshType.Contexts) };
 
     private List<ProjectDisplayModel>? _localProjects;
     public List<ProjectDisplayModel>? LocalProjects
@@ -124,7 +118,7 @@
 
     protected virtual void LoadLocalProjectData()
     {
-        if (DataState.IsDataLoaded())
+    if (DataService.IsDataStateLoaded())
         {
             LocalProjects = DataService.GetDataStateProjects();
             LocalProjects!.Sort((a, b) => Nullable.Compare(a.OrderIndex, b.OrderIndex));
@@ -133,7 +127,7 @@
 
     protected virtual void LoadLocalContextData()
     {
-        if (DataState.IsDataLoaded())
+    if (DataService.IsDataStateLoaded())
         {
             LocalContexts = DataService.GetDataStateContexts();
             LocalContexts!.Sort((a, b) => Nullable.Compare(a.OrderIndex, b.OrderIndex));

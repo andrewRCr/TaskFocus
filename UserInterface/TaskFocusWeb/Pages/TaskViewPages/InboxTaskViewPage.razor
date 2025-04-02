@@ -1,7 +1,4 @@
 ﻿@page "/inbox"
-@using System.Diagnostics
-@using TaskFocusUI.Library.Data.Services
-@using TaskFocusUI.Library.Data.Services.Access
 @inherits _TaskViewPageBase
 @inject IDataService DataService
 
@@ -75,7 +72,7 @@
 
     protected override void LoadLocalTaskData()
     {
-        if (DataState.IsDataLoaded())
+        if (DataService.IsDataStateLoaded())
         {
             List<TaskDisplayModel> unorderedInboxTasks = DataService.GetDataStateTasks()!.Where(
                 x => (x.ProjectId == null || x.ContextId == null) && !x.CleanedUp).ToList();

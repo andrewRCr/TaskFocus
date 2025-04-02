@@ -4,5 +4,7 @@
     [UserId] NVARCHAR(128) NOT NULL, 
     [ContextName] NVARCHAR(50) NOT NULL, 
     [OrderIndex] INT NULL, 
+    [ClientLastUpdated] DATETIMEOFFSET NOT NULL DEFAULT getutcdate(), 
+    [ServerLastUpdated] DATETIMEOFFSET NOT NULL DEFAULT getutcdate(), 
     CONSTRAINT [FK_Context_ToUser] FOREIGN KEY (UserId) REFERENCES [User](Id)
 )

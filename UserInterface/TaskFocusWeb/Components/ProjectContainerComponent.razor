@@ -1,7 +1,4 @@
-﻿@using TaskFocusUI.Library.Data.Services
-@using TaskFocusUI.Library.Data.Services.Access
-@using TaskFocusUI.Library.Data.State
-@inherits _ComponentStateAwareBase
+﻿@inherits _ComponentStateAwareBase
 @inject IDataService DataService
 
 <MudExpansionPanels DisableBorders="true" 
@@ -51,7 +48,7 @@
 
     private void UpdateParametersFromDataState()
     {
-        if (DataState.IsDataLoaded())
+        if (DataService.IsDataStateLoaded())
         {
             ContainerProjectItemsParam = DataService.GetDataStateProjects()!;
             StateHasChanged();

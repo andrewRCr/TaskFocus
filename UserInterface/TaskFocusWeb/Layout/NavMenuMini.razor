@@ -1,5 +1,4 @@
-﻿@using TaskFocusUI.Library.Data.State
-@inherits _ComponentStateAwareBase
+﻿@inherits _ComponentStateAwareBase
 
 <MudNavMenu Bordered="@ShowBorderHighlight" 
             Style="display: flex; flex-flow: column; height: inherit; width:60px;" >
@@ -68,7 +67,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        dataRefreshTriggers = new List<string> { nameof(ESyncableUserDataType.User) };
+        dataRefreshTriggers = new List<string> { nameof(EDataRefreshType.User) };
         await VerifyAuth();
         _isMenuDisabled = !_isAuthenticated;
     }

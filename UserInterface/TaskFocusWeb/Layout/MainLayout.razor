@@ -101,7 +101,7 @@
         <!-- global add new task component (+ button) -->
         <AuthorizeView>
             <Authorized>
-                @if (DataState.IsDataLoaded())
+                @if (DataService.IsDataStateLoaded())
                 {
                     <AddNewTaskComponent />
                 }
@@ -155,7 +155,7 @@
         if (authState.User.Identity!.IsAuthenticated)
         {
             // if DataState has no remote data loaded, load it
-            if (!DataState.IsDataLoaded())
+            if (!DataService.IsDataStateLoaded())
             {
                 //await DataSyncService.InitSync();
                 DataService.InvokeSyncRequest($"{this.ToString()}: {nameof(OnInitializedAsync)}");
