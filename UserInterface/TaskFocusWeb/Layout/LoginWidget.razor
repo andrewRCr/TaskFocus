@@ -3,9 +3,6 @@
 @inject IUserEndpoint UserEndpoint
 @inject NavigationManager NavManager
 @inject IDataService DataService
-@using System.ComponentModel.DataAnnotations
-@using TaskFocusUI.Library.Data.Services
-@using TaskFocusUI.Library.Data.Services.Access
 
 <MudForm Model="userModel" 
 @ref="_loginForm" 
@@ -132,8 +129,7 @@
                 var result = await AuthService.LoginAsync(userModel);
                 if (result != null)
                 {
-                    await DataService.FetchRemoteUserData();
-                    await DataService.FetchAllRemoteData();
+                    DataService.InvokeSyncRequest($"{this.ToString()}: {nameof(ExecuteLogin)}");
                     AppState.ClearAlertMessage();
                     NavManager.NavigateTo("/inbox");
                 }

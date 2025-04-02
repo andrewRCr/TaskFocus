@@ -41,6 +41,17 @@ namespace TaskFocusWeb
             }
         }
 
+        private bool _postSyncLogoutRequested = false;
+        public bool PostSyncLogoutRequested
+        {
+            get { return _postSyncLogoutRequested; }
+            set
+            {
+                _postSyncLogoutRequested = value;
+                AppStateChanged?.Invoke(nameof(PostSyncLogoutRequested), this);
+            }
+        }
+
         private bool _showProjectSubMenu = false;
         public bool ShowProjectSubMenu
         {

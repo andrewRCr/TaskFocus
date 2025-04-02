@@ -8,7 +8,8 @@ namespace TaskFocusUI.Library.Data.Services.Access
     public interface IDataService
     {
         event EventHandler<string>? SyncRequestHandler;
-        void InvokeSyncRequest(string sourceName);
+        event EventHandler<string>? PreLogoutSyncRequestHandler;
+        void InvokeSyncRequest(string sourceName, bool isPreLogoutSync = false);
         bool IsDataStateLoaded();
 
         Task FetchAllRemoteData();

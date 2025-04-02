@@ -35,6 +35,17 @@ namespace TaskFocusUI.Library.Data.State
             }
         }
 
+        private bool _preLogoutSyncCompleted = false;
+        public bool PreLogoutSyncCompleted
+        {
+            get { return _preLogoutSyncCompleted; }
+            set
+            {
+                _preLogoutSyncCompleted = value;
+                DataStateChanged?.Invoke(nameof(PreLogoutSyncCompleted), this);
+            }
+        }
+
         private UserDisplayModel? _currentUser;
         UserDisplayModel? IDataStateInternal.CurrentUser
         {
@@ -134,8 +145,8 @@ namespace TaskFocusUI.Library.Data.State
                    _contexts != null && _workingContexts != null;
         }
 
-        public UserDisplayModel? ChangedUserData { get; set; } = new();
-        public UserSettingsDisplayModel? ChangedUserSettingsData { get; set; } = new();
+        public UserDisplayModel? ChangedUserData { get; set; }
+        public UserSettingsDisplayModel? ChangedUserSettingsData { get; set; }
         public List<TaskDisplayModel> ChangedTaskData { get; set; } = new();
         public List<ProjectDisplayModel> ChangedProjectData { get; set; } = new();
         public List<ContextDisplayModel> ChangedContextData { get; set; } = new();

@@ -9,7 +9,7 @@ using TaskFocusUI.Library.API;
 using TaskFocusUI.Library.Data.Services.Access;
 using TaskFocusUI.Library.Data.State;
 using TaskFocusUI.Library.Models;
-using TaskFocusUI.Library.Utilities;
+using TaskFocusUI.Library.Data.Utilities;
 
 namespace TaskFocusDesktop.ViewModels.Dialogs
 {

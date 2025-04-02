@@ -19,11 +19,14 @@ namespace TaskFocusUI.Library.Data.State
         //List<ContextDisplayModel>? WorkingContexts { get; set; }
 
         DateTimeOffset LastSync { get; set; }
+        bool PreLogoutSyncCompleted { get; set; }
+
         UserDisplayModel? ChangedUserData { get; set; }
         UserSettingsDisplayModel? ChangedUserSettingsData { get; set; }
         List<TaskDisplayModel> ChangedTaskData { get; set; }
         List<ProjectDisplayModel> ChangedProjectData { get; set; }
         List<ContextDisplayModel> ChangedContextData { get; set; }
+
         int TempTaskId { get; set; }
         int TempProjectId { get; set; }
         int TempContextId { get; set; }

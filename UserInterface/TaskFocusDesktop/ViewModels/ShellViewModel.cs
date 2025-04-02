@@ -13,11 +13,12 @@ using TaskFocusDesktop.ViewModels.MainContent;
 using TaskFocusDesktop.ViewModels.SidePanel;
 using TaskFocusDesktop.ViewModels.TopPanel;
 using TaskFocusUI.Library.API;
+using TaskFocusUI.Library.Data.Services;
 using TaskFocusUI.Library.Data.Services.Access;
 using TaskFocusUI.Library.Data.Services.Synchronization;
 using TaskFocusUI.Library.Data.State;
+using TaskFocusUI.Library.Data.Utilities;
 using TaskFocusUI.Library.Models;
-using TaskFocusUI.Library.Utilities;
 
 namespace TaskFocusDesktop.ViewModels
 {
@@ -158,18 +159,12 @@ namespace TaskFocusDesktop.ViewModels
 
         public string WindowMaxRestoreIcon
         {
-            get
-            {
-                return ShellWindowState == WindowState.Maximized ? "WindowRestore" : "WindowMaximize";
-            }
+            get  => ShellWindowState == WindowState.Maximized ? "WindowRestore" : "WindowMaximize";       
         }
 
         public bool IsUserLoggedIn
         {
-            get
-            {
-                return !string.IsNullOrWhiteSpace(_loggedInUser.Token);
-            }
+            get =>!string.IsNullOrWhiteSpace(_loggedInUser.Token);         
         }
 
         public double WindowMinimumWidth { get; set; } = 600;
@@ -177,19 +172,19 @@ namespace TaskFocusDesktop.ViewModels
         public double WindowMinimumHeight { get; set; } = 400;
 
         // true if the window should be borderless because it is docked or maximized
-        public bool Borderless { get { return (ShellWindowState == WindowState.Maximized); } }
+        public bool Borderless { get => (ShellWindowState == WindowState.Maximized); }
 
         public int TitleBarHeight { get; set; } = 26;
 
-        public GridLength TitleBarHeightGridLength { get { return new GridLength(TitleBarHeight + ResizeBorder); } }
+        public GridLength TitleBarHeightGridLength { get => new GridLength(TitleBarHeight + ResizeBorder); }
 
         public int ResizeBorder { get; set; } = 6;
 
-        public Thickness ResizeBorderThickness { get { return new Thickness(ResizeBorder + OuterMarginSize); } }
+        public Thickness ResizeBorderThickness { get => new Thickness(ResizeBorder + OuterMarginSize); }
 
-        public Thickness OuterMarginSizeThickness { get { return new Thickness(OuterMarginSize); } }
+        public Thickness OuterMarginSizeThickness { get => new Thickness(OuterMarginSize); }
 
-        public CornerRadius WindowCornerRadius { get { return new CornerRadius(WindowRadius); } }
+        public CornerRadius WindowCornerRadius { get => new CornerRadius(WindowRadius); }
 
         public ICommand MinimizeCommand => new RelayCommand(execute => ShellWindowState = WindowState.Minimized);
 
@@ -261,6 +256,13 @@ namespace TaskFocusDesktop.ViewModels
             Window appWindow = (Window)GetView();
             _appState.AppWindowHeight = appWindow.Height;
             appWindow.SizeChanged += AppWindow_SizeChanged;
+
+            // if DataState has no remote data loaded, load it
+            if (!_dataService.IsDataStateLoaded())
+            {
+                //await DataSyncService.InitSync();
+                _dataService.InvokeSyncRequest($"{this.ToString()}: {nameof(OnViewLoaded)}");
+            }
         }
 
         private void AppWindow_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -301,21 +303,16 @@ namespace TaskFocusDesktop.ViewModels
 
         public async Task ExitApplication()
         {
+            await _dataSyncService.TrySync();
             await TryCloseAsync();
         }
 
+        // AuthStatusChangedEvent handler
         public async Task HandleAsync(AuthStatusChangedEvent message, CancellationToken cancellationToken)
         {
-            switch (message.NewAuthStatus)
-            {
-                case true:
-                    await HandleLogIn();
-                    break;
-
-                case false:
-                    await HandleLogOut();
-                    break;
-            }
+            bool authenticated = message.NewAuthStatus;
+            if (authenticated) await HandleLogIn();
+            else { await HandleLogOut(); }
         }
 
         public async Task HandleLogIn()
@@ -324,7 +321,7 @@ namespace TaskFocusDesktop.ViewModels
             _appState.IsAuthenticated = true;
             UpdateMiniNavIconColor();
 
-            await _dataSyncService.InitSync();
+            //await _dataSyncService.InitSync();
             EnableManualSyncButton = true;
 
             TopWidgetPanel = IoC.Get<AuthWidgetViewModel>();
@@ -337,7 +334,7 @@ namespace TaskFocusDesktop.ViewModels
 
         public async Task HandleLogOut()
         {
-            await _dataSyncService.Sync();
+            await _dataSyncService.TrySync();
             EnableManualSyncButton = false;
 
             NotifyOfPropertyChange(() => IsUserLoggedIn);
@@ -356,10 +353,11 @@ namespace TaskFocusDesktop.ViewModels
         public async Task ManualSync()
         {
             EnableManualSyncButton = false;
-            await _dataSyncService.Sync();
+            await _dataSyncService.TrySync();
             EnableManualSyncButton = true;
         }
 
+        // RequestViewSwitchEvent handler
         public async Task HandleAsync(RequestViewSwitchEvent message, CancellationToken cancellationToken)
         {
             switch (message.RequestedContentPanel)
@@ -459,6 +457,7 @@ namespace TaskFocusDesktop.ViewModels
             await _events.PublishOnUIThreadAsync(switchedEvent);
         }
 
+        // RequestShowDialogEvent handler
         public async Task HandleAsync(RequestShowDialogEvent message, CancellationToken cancellationToken)
         {
             await ShowDialog(message.RequestedDialogView);
@@ -540,6 +539,7 @@ namespace TaskFocusDesktop.ViewModels
             }
         }
 
+        // FocusedProjectChangedEvent handler
         public Task HandleAsync(FocusedProjectChangedEvent message, CancellationToken cancellationToken)
         {
             _focusedProjectName = message.NewFocusedProjectName;
@@ -547,6 +547,7 @@ namespace TaskFocusDesktop.ViewModels
             return Task.CompletedTask;
         }
 
+        // FocusedContextChangedEvent handler
         public Task HandleAsync(FocusedContextChangedEvent message, CancellationToken cancellationToken)
         {
             _focusedContextName = message.NewFocusedContextName;

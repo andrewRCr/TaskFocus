@@ -87,9 +87,7 @@
     }
 
     // to be defined in children as needed
-    protected virtual void CustomAuthenticatedOnInit()
-    {
-    }
+    protected virtual void CustomAuthenticatedOnInit() {}
 
     protected async Task VerifyAuth()
     {
@@ -177,7 +175,6 @@
 
         if (!DataService.IsProjectCurrentlyBeingUpdated(senderProject))
         {
-
             await DataService.UpdateProjectData(senderProject);
         }
     }

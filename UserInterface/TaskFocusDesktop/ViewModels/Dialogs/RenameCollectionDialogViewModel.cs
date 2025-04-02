@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using TaskFocusDesktop.ViewModels.Base;
 using TaskFocusUI.Library.Data.Services.Access;
 using TaskFocusUI.Library.Data.State;
-using TaskFocusUI.Library.Utilities;
+using TaskFocusUI.Library.Data.Utilities;
 
 namespace TaskFocusDesktop.ViewModels.Dialogs
 {

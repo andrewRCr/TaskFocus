@@ -1,6 +1,4 @@
 ﻿@page "/logout"
-@using TaskFocusUI.Library.Data.Services
-@using TaskFocusUI.Library.Data.Services.Synchronization
 @inherits _ComponentStateAwareBase
 @inject NavigationManager NavManager
 @inject IAuthenticationService AuthService
@@ -8,12 +6,47 @@
 @inject IDataService DataService
 
 @code {
-    protected override async Task OnInitializedAsync()
+    protected List<string> appRefreshTriggers = new List<string> { nameof(AppState.PostSyncLogoutRequested) };
+
+    // process logout (post-sync)
+    private async Task HandleLogout()
     {
-        await DataSyncService.Sync();
         await AuthService.LogoutAsync();
         DataService.OnUserLogout();
 
         NavManager.NavigateTo("/");
+    }
+
+    protected override void CustomAuthenticatedOnInit()
+    {
+        dataRefreshTriggers = new List<string> { nameof(DataState.PreLogoutSyncCompleted) };
+
+        // if we reached this page, we want to logout, but we need to try and sync first
+        if (!AppState.PostSyncLogoutRequested) // pre-logout sync hasn't yet run
+        {
+            DataService.InvokeSyncRequest($"{this.ToString()}: {nameof(OnInitializedAsync)}", true);
+        }
+    }
+
+    protected override bool HandleAppStateChanged(string propertyName, AppState appState)
+    {
+        if (!appRefreshTriggers.Contains(propertyName)) { return false; }
+        if (AppState.CanRefresh) { Task.Run(async() => await HandleLogout()); }
+
+        return AppState.CanRefresh;
+    }
+
+    protected override bool HandleDataStateChanged(string propertyName, IDataState dataState)
+    {
+        if (!dataRefreshTriggers.Contains(propertyName)) return false;
+
+        if (AppState.CanRefresh)
+        {
+            // on refresh, no new sync request + call HandleLogout()
+            AppState.PostSyncLogoutRequested = dataState.PreLogoutSyncCompleted; 
+            //Console.WriteLine($"Logout: returned true on HandleDataStateChanged. changed property causing True return: {propertyName}");
+        }
+
+        return AppState.CanRefresh;
     }
 }

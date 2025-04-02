@@ -25,7 +25,7 @@ namespace TaskFocusUI.Library.Data.Services
         public void OnUserLogout()
         {
             _dataState.SetCurrentUser(null);
-            UpdateWorkingCurrentUserFromDataState();
+            _dataState.SetWorkingCurrentUser(null);
         }
 
         // data state CRUD operations

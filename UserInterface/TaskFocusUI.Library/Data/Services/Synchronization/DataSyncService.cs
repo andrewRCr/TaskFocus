@@ -4,9 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity.Core.Common.CommandTrees.ExpressionBuilder;
 using System.Diagnostics;
-using System.IO.Pipelines;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using TaskFocusUI.Library.API;
@@ -66,6 +64,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             _pushedContextData = new();
 
             _dataService.SyncRequestHandler += DataService_SyncRequested;
+            _dataService.PreLogoutSyncRequestHandler += DataService_PreLogoutSyncRequested;
         }
 
         // helper methods
@@ -92,12 +91,20 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             else { LogError($"{e}'s requested sync operation failed."); }
         }
 
+        private async void DataService_PreLogoutSyncRequested(object? sender, string e)
+        {
+            bool success = await TrySync(true);
+            if (success) LogInformation($"{e}'s requested pre-logout sync operation has been handled.");
+            else { LogError($"{e}'s requested pre-logout sync operation failed."); }
+        }
+
         // attempts to Sync(), and re-attempts if an exception is raised
-        private async Task<bool> TrySync()
+        public async Task<bool> TrySync(bool isPreLogoutSync = false)
         {
             var numRetryAttempts = 3;
             var retryDelay = 1000;
             bool isInitialSync = _dataState.LastSync == DateTimeOffset.MinValue;
+            //Console.WriteLine($"TrySync() - isInitialSync: {isInitialSync}");
 
             for (int i = 0; i < numRetryAttempts; i++)
             {
@@ -105,7 +112,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                 {
                     // attempt sync; if successful, break loop
                     if (isInitialSync) await InitSync();
-                    else await Sync();
+                    else await Sync(isPreLogoutSync);
 
                     break;
                 }
@@ -139,9 +146,8 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
         }
 
         // on client launch, populate empty DataState + initialize PeriodicSync
-        public async Task InitSync()
+        private async Task InitSync()
         {
-            LogInformation("InitSync called");
             try
             {
                 await _dataService.FetchAllRemoteData();
@@ -165,12 +171,13 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
         // ====================
 
         // syncs at row level; LastUpdated determines who wins at the server
-        public async Task Sync()
+        private async Task Sync(bool isPreLogoutSync = false)
         {
             if (_syncInProgress) throw new Exception("Sync already in progress; operation aborted.");
 
             _syncInProgress = true;
             LogInformation($"starting Sync... (lastSync prior: {_dataState.LastSync}");
+            LogInformation($"Sync() - isPreLogoutSync: {isPreLogoutSync}");
 
             // process any time-relevant changes to task state
             _dataService.PerformCompletedTaskCleanup();
@@ -189,6 +196,9 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             LogInformation($"PUSH: {pushResult.numRowsInserted} rows inserted, {pushResult.numRowsDeleted} rows deleted, {pushResult.numRowsUpdated} rows updated.");
             LogInformation($"PULL: {pullResult.numRowsInserted} rows inserted, {pullResult.numRowsDeleted} rows deleted, {pullResult.numRowsUpdated} rows updated.");
             _syncInProgress = false;
+
+            // trigger logout in client app, if requested
+            if (isPreLogoutSync) _dataState.PreLogoutSyncCompleted = true;          
         }
 
         private async Task<DataSyncResult> PushSync()
@@ -215,6 +225,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             if (changedClientUser != null) // local changes have occurred
             {
                 LogInformation("changed UserData detected");
+                //LogInformation($"_dataState.ChangedUserData.Email: {_dataState.ChangedUserData.Email}");
                 await PushSyncableUserData(changedClientUser);
                 _dataState.ChangedUserData = null;
 
@@ -246,6 +257,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             if (changedClientSettings != null) // local changes have occurred
             {
                 LogInformation("changed UserSettingsData detected");
+                //LogInformation($"_dataState.ChangedUserSettingsData.CleanUpImmediately: {_dataState.ChangedUserSettingsData.CleanUpImmediately}");
                 await PushSyncableUserData(changedClientSettings);
                 _dataState.ChangedUserSettingsData = null;
 

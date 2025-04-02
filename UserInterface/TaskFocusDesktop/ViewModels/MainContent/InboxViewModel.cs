@@ -7,8 +7,8 @@ using System.Linq;
 using TaskFocusDesktop.ViewModels.Base;
 using TaskFocusUI.Library.Data.Services.Access;
 using TaskFocusUI.Library.Data.State;
+using TaskFocusUI.Library.Data.Utilities;
 using TaskFocusUI.Library.Models;
-using TaskFocusUI.Library.Utilities;
 
 namespace TaskFocusDesktop.ViewModels.MainContent
 {
