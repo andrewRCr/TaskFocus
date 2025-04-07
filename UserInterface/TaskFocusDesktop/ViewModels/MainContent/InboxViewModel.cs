@@ -24,6 +24,17 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             OrderingIndex = "InboxIndex";
         }
 
+        private ObservableCollection<TaskDisplayModel>? _inboxTasks;
+        public ObservableCollection<TaskDisplayModel>? InboxTasks
+        {
+            get { return _inboxTasks; }
+            set
+            {
+                _inboxTasks = value;
+                NotifyOfPropertyChange(() => InboxTasks);
+            }
+        }
+
         private bool _showEmptyTaskListTutorialText = false;
         public bool ShowEmptyTaskListTutorialText
         {
@@ -43,22 +54,18 @@ namespace TaskFocusDesktop.ViewModels.MainContent
 
         protected override void LoadLocalTaskData()
         {
-            if (_dataState.IsDataLoaded())
+            if (_dataService.IsDataStateLoaded())
             {
-                List<TaskDisplayModel> inboxTasks = _dataState.Tasks!.Where(x => (x.ProjectId == null || x.ContextId == null) && !x.CleanedUp).ToList();
-                var orderedInboxTasks = inboxTasks.OrderBy(x => x.InboxIndex);
-                inboxTasks = orderedInboxTasks.ToList();
-                LocalTasks = new ObservableCollection<TaskDisplayModel>(inboxTasks);
+                List<TaskDisplayModel> unorderedInboxTasks = _dataService.GetDataStateTasks()!.Where(
+                    x => (x.ProjectId == null || x.ContextId == null) && !x.CleanedUp).ToList();
+                InboxTasks = new ObservableCollection<TaskDisplayModel>(unorderedInboxTasks.OrderBy(x => x.InboxIndex).ToList());
+                SubscribeToTaskPropertyChangedEvents(InboxTasks);
 
-                foreach (TaskDisplayModel task in LocalTasks!)
-                {
-                    task.PropertyChanged += OnExistingTaskPropertyChanged!; // subscribe to property changed event
-                }
-
-                ShowEmptyTaskListTutorialText = LocalTasks.Count == 0;
-
-                TaskCount = LocalTasks.Count;
+                ShowEmptyTaskListTutorialText = InboxTasks.Count == 0;
+                TaskCount = InboxTasks.Count;
                 UpdateScrollHeight(AppWindowHeight);
+
+                _logger.Info($"InboxTasks count: {TaskCount}");
             }
         }
 
@@ -66,11 +73,12 @@ namespace TaskFocusDesktop.ViewModels.MainContent
         {
             if (!dataRefreshTriggers.Contains(propertyName) || ActiveMainContentView != Utilities.ViewCatalog.MainContentView.Inbox)
             {
+                _logger.Info($"InboxViewModel: returned false on HandleDataStateChanged! due to property: {propertyName}");
                 return false;
             }
 
             LoadAllLocalData();
-            //Debug.WriteLine("InboxViewModel: returned true on HandleDataStateChanged!");
+            _logger.Info($"InboxViewModel: returned true on HandleDataStateChanged! due to property: {propertyName}");
             return true;
         }
     }

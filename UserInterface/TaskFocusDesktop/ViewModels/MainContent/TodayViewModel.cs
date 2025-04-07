@@ -5,8 +5,6 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using TaskFocusDesktop.ViewModels.Base;
 using TaskFocusUI.Library.Data.Services.Access;
 using TaskFocusUI.Library.Data.State;
@@ -27,6 +25,17 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             OrderingIndex = "TodayIndex";
         }
 
+        private ObservableCollection<TaskDisplayModel>? _todayTasks;
+        public ObservableCollection<TaskDisplayModel>? TodayTasks
+        {
+            get { return _todayTasks; }
+            set
+            {
+                _todayTasks = value;
+                NotifyOfPropertyChange(() => TodayTasks);
+            }
+        }
+
         private bool _showEmptyTaskListTutorialText = false;
         public bool ShowEmptyTaskListTutorialText
         {
@@ -38,33 +47,21 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             }
         }
 
-        protected override async Task OnInitializeAsync(CancellationToken cancellationToken)
-        {
-            await base.OnInitializeAsync(cancellationToken);
-
-            // remove TodayIndex from any completed (but not CleanedUp) tasks from view if completed > 1 day ago
-            var oldCompletedTodayTasks = _dataState.Tasks!.Where(
-                x => x.TodayIndex != null && x.Completed && (x.DateCompleted < DateTime.Now.Date)).ToList();
-            foreach (TaskDisplayModel task in oldCompletedTodayTasks)
-            {
-                // force update: will detect and remove TodayIndex, as well as shift other task indices accordingly if needed
-                await _dataService.UpdateTaskData(task, true);
-            }
-        }
-
         protected override void LoadLocalTaskData()
         {
-            if (_dataState.IsDataLoaded())
+            if (_dataService.IsDataStateLoaded())
             {
-                List<TaskDisplayModel> dueTasks = _dataState.Tasks!.Where(x =>
-                    (x.DueDate <= DateTime.Now.Date) && !x.CleanedUp && (x.DateCompleted == null || x.DateCompleted == DateTime.Now.Date)).ToList();
-                List<TaskDisplayModel> starredTasks = _dataState.Tasks!.Where(x =>
-                    (x.Starred == true) && !x.CleanedUp && (x.DateCompleted == null || x.DateCompleted == DateTime.Now.Date)).ToList();
-                List<TaskDisplayModel> todayTasks = dueTasks.Union(starredTasks).ToList();
+                List<TaskDisplayModel> dueTasks = _dataService.GetDataStateTasks()!.Where(x =>
+                    (x.DueDate <= DateTime.Now.Date) && !x.CleanedUp && 
+                    (x.DateCompleted == null || x.DateCompleted == DateTime.Now.Date)).ToList();
+                List<TaskDisplayModel> starredTasks = _dataService.GetDataStateTasks()!.Where(x =>
+                    (x.Starred == true) && !x.CleanedUp && 
+                    (x.DateCompleted == null || x.DateCompleted == DateTime.Now.Date)).ToList();
+                List<TaskDisplayModel> combinedTodayTasks = dueTasks.Union(starredTasks).ToList();
 
                 // ensure any newly due/overdue tasks have a TodayIndex
-                int todayTasksWithTodayIndexCount = todayTasks.Where(x => x.TodayIndex != null).ToList().Count();
-                foreach (TaskDisplayModel task in todayTasks)
+                int todayTasksWithTodayIndexCount = combinedTodayTasks.Where(x => x.TodayIndex != null).ToList().Count();
+                foreach (TaskDisplayModel task in combinedTodayTasks)
                 {
                     if (task.DueDate <= DateTime.Now.Date && task.TodayIndex == null)
                     {
@@ -73,16 +70,11 @@ namespace TaskFocusDesktop.ViewModels.MainContent
                     }
                 }
 
-                todayTasks = todayTasks.OrderBy(x => x.TodayIndex).ToList();
-                LocalTasks = new ObservableCollection<TaskDisplayModel>(todayTasks);
-                foreach (TaskDisplayModel task in LocalTasks!)
-                {
-                    task.PropertyChanged += OnExistingTaskPropertyChanged!; // subscribe to property changed event
-                }
+                _todayTasks = new ObservableCollection<TaskDisplayModel>(combinedTodayTasks.OrderBy(x => x.TodayIndex).ToList());
+                SubscribeToTaskPropertyChangedEvents(_todayTasks);
 
-                ShowEmptyTaskListTutorialText = LocalTasks.Count == 0;
-
-                TaskCount = LocalTasks.Count;
+                ShowEmptyTaskListTutorialText = _todayTasks.Count == 0;
+                TaskCount = _todayTasks.Count;
                 UpdateScrollHeight(AppWindowHeight);
             }
         }

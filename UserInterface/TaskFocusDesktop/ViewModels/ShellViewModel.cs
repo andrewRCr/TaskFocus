@@ -1,5 +1,7 @@
 ﻿using Caliburn.Micro;
 using MaterialDesignThemes.Wpf;
+using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -13,7 +15,6 @@ using TaskFocusDesktop.ViewModels.MainContent;
 using TaskFocusDesktop.ViewModels.SidePanel;
 using TaskFocusDesktop.ViewModels.TopPanel;
 using TaskFocusUI.Library.API;
-using TaskFocusUI.Library.Data.Services;
 using TaskFocusUI.Library.Data.Services.Access;
 using TaskFocusUI.Library.Data.Services.Synchronization;
 using TaskFocusUI.Library.Data.State;
@@ -27,7 +28,8 @@ namespace TaskFocusDesktop.ViewModels
                                   IHandle<RequestViewSwitchEvent>, 
                                   IHandle<RequestShowDialogEvent>, 
                                   IHandle<FocusedProjectChangedEvent>, 
-                                  IHandle<FocusedContextChangedEvent>
+                                  IHandle<FocusedContextChangedEvent>,
+                                  IHandle<PreLogoutSyncCompletedEvent>
     {
         private IAPIHelper _apiHelper;
         private ILoggedInUserModel _loggedInUser;
@@ -229,6 +231,9 @@ namespace TaskFocusDesktop.ViewModels
             _userEndpoint = userEndpoint;
 
             _events.SubscribeOnPublishedThread(this);
+            //_appState.AppStateChanged += HandleAppStateChanged;
+            _dataState.DataStateChanged += DataStateChanged;
+
 
             // top widget panel
             TopWidgetPanel = IsUserLoggedIn ? IoC.Get<AuthWidgetViewModel>() : IoC.Get<LoginWidgetViewModel>();
@@ -250,19 +255,49 @@ namespace TaskFocusDesktop.ViewModels
             UpdateMiniNavIconColor();
         }
 
+        private void HandleAppStateChanged(string propertyName, AppState state)
+        {
+            //throw new System.NotImplementedException();
+            _logger.Info($"ShellViewModel: returned true on HandleAppStateChanged. changed property causing True return: {propertyName}");
+        }
+
+        protected bool HandleDataStateChanged(string propertyName, IDataState dataState)
+        {
+            //if (!dataRefreshTriggers.Contains(propertyName)) return false;
+
+            // on refresh, no new sync request + call HandleLogout()
+            _appState.PostSyncLogoutRequested = dataState.PreLogoutSyncCompleted;
+            _logger.Info($"ShellViewModel: returned true on HandleDataStateChanged. changed property causing True return: {propertyName}");
+            _logger.Info($"dataState.PreLogoutSyncCompleted: {dataState.PreLogoutSyncCompleted}");
+
+            if (dataState.PreLogoutSyncCompleted)
+            {
+                //await ProcessPostSyncLogout();
+                //Task.Run(async () => await ProcessPostSyncLogout());
+                Debug.WriteLine("PreLogoutSyncCompleted !!!");
+                _events.PublishOnUIThreadAsync(new PreLogoutSyncCompletedEvent());
+            }
+
+            return true;
+        }
+
+        private void DataStateChanged(String propertyName, IDataState dataState)
+        {
+
+            bool changesOccured = HandleDataStateChanged(propertyName, dataState);
+            if (changesOccured)
+            {
+                //await InvokeAsync(StateHasChanged);
+                _logger.Info($"ShellViewModel: returned true on HandleDataStateChanged. changed property causing True return: {propertyName}");
+            }
+        }
+
         protected override void OnViewLoaded(object view)
         {
             base.OnViewLoaded(view);
             Window appWindow = (Window)GetView();
             _appState.AppWindowHeight = appWindow.Height;
             appWindow.SizeChanged += AppWindow_SizeChanged;
-
-            // if DataState has no remote data loaded, load it
-            if (!_dataService.IsDataStateLoaded())
-            {
-                //await DataSyncService.InitSync();
-                _dataService.InvokeSyncRequest($"{this.ToString()}: {nameof(OnViewLoaded)}");
-            }
         }
 
         private void AppWindow_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -303,7 +338,7 @@ namespace TaskFocusDesktop.ViewModels
 
         public async Task ExitApplication()
         {
-            await _dataSyncService.TrySync();
+            //await _dataSyncService.TrySync();
             await TryCloseAsync();
         }
 
@@ -312,7 +347,7 @@ namespace TaskFocusDesktop.ViewModels
         {
             bool authenticated = message.NewAuthStatus;
             if (authenticated) await HandleLogIn();
-            else { await HandleLogOut(); }
+            else {  RequestPreLogOutSync(); }
         }
 
         public async Task HandleLogIn()
@@ -321,7 +356,11 @@ namespace TaskFocusDesktop.ViewModels
             _appState.IsAuthenticated = true;
             UpdateMiniNavIconColor();
 
-            //await _dataSyncService.InitSync();
+            // if DataState has no remote data loaded, load it
+            if (!_dataService.IsDataStateLoaded())
+            {
+                _dataService.InvokeSyncRequest($"{this.ToString()}: {nameof(HandleLogIn)}");
+            }
             EnableManualSyncButton = true;
 
             TopWidgetPanel = IoC.Get<AuthWidgetViewModel>();
@@ -332,11 +371,16 @@ namespace TaskFocusDesktop.ViewModels
             ActiveMainContentView = ViewCatalog.MainContentView.Inbox;
         }
 
-        public async Task HandleLogOut()
+        public void RequestPreLogOutSync()
         {
-            await _dataSyncService.TrySync();
+            _dataService.InvokeSyncRequest($"{this.ToString()}: {nameof(RequestPreLogOutSync)}", true);
             EnableManualSyncButton = false;
+        }
 
+        // PreLogoutSyncCompletedEvent handler
+        public async Task HandleAsync(PreLogoutSyncCompletedEvent message, CancellationToken cancellationToken)
+        {
+            _apiHelper.LogOutUser();
             NotifyOfPropertyChange(() => IsUserLoggedIn);
             _appState.IsAuthenticated = false;
             _appState.ShouldAutoLogin = false;
@@ -353,7 +397,8 @@ namespace TaskFocusDesktop.ViewModels
         public async Task ManualSync()
         {
             EnableManualSyncButton = false;
-            await _dataSyncService.TrySync();
+            _dataService.InvokeSyncRequest($"{this.ToString()}: {nameof(ManualSync)}");
+            _logger.Info("ManualSync has invoked a sync request");
             EnableManualSyncButton = true;
         }
 

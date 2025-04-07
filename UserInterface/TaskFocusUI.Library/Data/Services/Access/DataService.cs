@@ -82,17 +82,12 @@ namespace TaskFocusUI.Library.Data.Services
         // for invoking manual sync request events
         public void InvokeSyncRequest(string sourceName, bool isPreLogoutSync = false)
         {
+            LogInformation($"DataService: InvokeSyncRequest invocation call received from {sourceName}");
+            bool isHandlerNull = SyncRequestHandler == null;
+            LogInformation($"isHandlerNull: {isHandlerNull}");
             if (isPreLogoutSync) PreLogoutSyncRequestHandler?.Invoke(this, sourceName);
             else SyncRequestHandler?.Invoke(this, sourceName);
         }
-
-        // for invoking manual sync request events
-        //public async Task InvokeSyncRequest(string sourceName)
-        //{
-        //    //SyncRequestHandler?.Invoke(this, sourceName);
-        //    if (SyncRequestHandler != null)
-        //        await SyncRequestHandler.InvokeAllAsync(sourceName);
-        //}
 
         // for checking if complete data state has been loaded
         public bool IsDataStateLoaded() => _dataState.IsDataLoaded();

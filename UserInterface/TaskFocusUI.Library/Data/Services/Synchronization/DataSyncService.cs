@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity.Core.Common.CommandTrees.ExpressionBuilder;
 using System.Diagnostics;
+using System.IO.Pipelines;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -86,6 +87,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
 
         private async void DataService_SyncRequested(object? sender, string e)
         {
+            LogInformation($"{e}'s requested sync operation received.");
             bool success = await TrySync();
             if (success) LogInformation($"{e}'s requested sync operation has been handled.");
             else { LogError($"{e}'s requested sync operation failed."); }
@@ -315,12 +317,11 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
 
             if (!_dataHelper.SyncChangesDetected(pushResult))
             {
-                Trace.WriteLine("no changes detected on push.");
-                Console.WriteLine("no changes detected on push.");
+
+                LogInformation("no changes detected on push.");
             }
 
-            Trace.WriteLine("Push complete.");
-            Console.WriteLine("Push complete.");
+            LogInformation("Push complete.");
             //Console.WriteLine($"dataState.Tasks count: {_dataState.Tasks.Count}");
             return pushResult;
         }
@@ -766,7 +767,13 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                 pullResult = _dataHelper.CombineSyncResults(pullResult, contextsPullResult);
             }
 
-            // finalize / return result
+            // finalize, return result
+            if (!_dataHelper.SyncChangesDetected(pullResult))
+            {
+
+                LogInformation("no changes detected on pull.");
+            }
+
             LogInformation("Pull complete.");
             return pullResult;
         }

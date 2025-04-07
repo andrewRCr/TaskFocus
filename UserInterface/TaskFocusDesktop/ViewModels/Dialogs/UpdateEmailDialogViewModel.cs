@@ -44,7 +44,7 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
             _loggedInUser = loggedInUser;
             _apiHelper = apiHelper;
             HeaderText = "UPDATE EMAIL ADDRESS";
-            UpdatedEmailAddress = _dataState.CurrentUser!.Email;
+            UpdatedEmailAddress = _dataService.GetDataStateCurrentUser()!.Email;
         }
 
         protected override void CloseDialog()

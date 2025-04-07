@@ -61,7 +61,7 @@ namespace TaskFocusDesktop.ViewModels.TopPanel
             {
                 ErrorMessage = null;
 
-                _apiHelper.LogOutUser();
+                //_apiHelper.LogOutUser();
                 _loggedInUser!.ResetUserModel();
                 UserEmailAddressStr = null;
 

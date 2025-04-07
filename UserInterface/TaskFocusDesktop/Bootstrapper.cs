@@ -101,9 +101,7 @@ namespace TaskFocusDesktop
                 .PerRequest<IUserEndpoint, UserEndpoint>()
                 .PerRequest<ITaskEndpoint, TaskEndpoint>()
                 .PerRequest<IProjectEndpoint, ProjectEndpoint>()
-                .PerRequest<IContextEndpoint, ContextEndpoint>()
-                .PerRequest<IDataService, DataService>()
-                .PerRequest<IDataSyncService, DataSyncService>();
+                .PerRequest<IContextEndpoint, ContextEndpoint>();
 
             // use these singular instances
             _container
@@ -113,7 +111,9 @@ namespace TaskFocusDesktop
                 .Singleton<IAPIHelper, APIHelper>()
                 .Singleton<IDataHelper, DataHelper>()
                 .Singleton<IDataState, DataState>()
-                .Singleton<IAppState, AppState>();        
+                .Singleton<IAppState, AppState>()
+                .Singleton<IDataService, DataService>()
+                .Singleton<IDataSyncService, DataSyncService>();
 
             // register view models - create new instance each time one is requested
             GetType().Assembly.GetTypes()

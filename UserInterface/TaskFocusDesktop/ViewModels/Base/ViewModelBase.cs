@@ -6,6 +6,7 @@ using System.Windows.Input;
 using TaskFocusDesktop.Commands;
 using TaskFocusDesktop.EventModels;
 using TaskFocusDesktop.Utilities;
+using Windows.Services.Maps;
 
 
 namespace TaskFocusDesktop.ViewModels.Base
@@ -70,6 +71,7 @@ namespace TaskFocusDesktop.ViewModels.Base
             await _events.PublishOnUIThreadAsync(requestEvent);
         }
 
+        // ViewSwitchedEvent handler
         public virtual async Task HandleAsync(ViewSwitchedEvent message, CancellationToken cancellationToken)
         {
             switch (message.SwitchedContentPanel)
@@ -88,6 +90,15 @@ namespace TaskFocusDesktop.ViewModels.Base
         protected async Task RequestExitSubNavMenu()
         {
             await RequestSidePanelViewSwitch(ViewCatalog.SidePanelView.NavMenu);
+        }
+
+        protected async Task VerifyAuthAndRedirectIfExpired()
+        {
+            if (!_appState.IsAuthenticated)
+            {
+                _appState.AlertMessage = "Session expired; please log in again.";
+                await RequestMainContentViewSwitch(ViewCatalog.MainContentView.Home);
+            }
         }
     }
 }

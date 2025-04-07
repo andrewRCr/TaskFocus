@@ -9,6 +9,7 @@ using TaskFocusDesktop.Commands;
 using TaskFocusDesktop.EventModels;
 using TaskFocusDesktop.Utilities;
 using TaskFocusDesktop.ViewModels.Base;
+using TaskFocusUI.Library.Data.Services;
 using TaskFocusUI.Library.Data.Services.Access;
 using TaskFocusUI.Library.Data.State;
 using TaskFocusUI.Library.Data.Utilities;
@@ -69,7 +70,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
                                  IDataService dataService,
                                  IDataHelper dataHelper) : base(events, appState, window, dataState, dataService, dataHelper)
         {
-            dataRefreshTriggers = [nameof(IDataState.CurrentUser), nameof(IDataState.UserSettings)];
+            dataRefreshTriggers = [nameof(EDataRefreshType.User), nameof(EDataRefreshType.Settings)];
         }
 
         public RelayCommand RequestUpdateEmailDialogCommand => new RelayCommand(async execute => await RequestUpdateEmailDialog());
@@ -112,9 +113,9 @@ namespace TaskFocusDesktop.ViewModels.MainContent
 
         protected void LoadLocalSettingsData()
         {
-            if (_dataState.IsDataLoaded())
+            if (_dataService.IsDataStateLoaded())
             {
-                LocalSettings = _dataState.UserSettings;
+                LocalSettings = _dataService.GetDataStateUserSettings()!;
                 LocalSettings.PropertyChanged += OnExistingSettingsPropertyChanged!; // subscribe to property changed event
 
                 CleanDaysTextStr = LocalSettings.CleanUpDelayDays > 1 ? "days after completion" : "day after completion";
@@ -124,9 +125,9 @@ namespace TaskFocusDesktop.ViewModels.MainContent
 
         protected void LoadLocalUserData()
         {
-            if (_dataState.IsDataLoaded())
+            if (_dataService.IsDataStateLoaded())
             {
-                LocalCurrentUser = _dataState.CurrentUser;
+                LocalCurrentUser = _dataService.GetDataStateCurrentUser()!;
                 LocalCurrentUser.PropertyChanged += OnExistingUserPropertyChanged!; // subscribe to property changed event
             }
         }
@@ -137,7 +138,8 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             string? changedProperty = e.PropertyName;
             UserSettingsDisplayModel senderSettings = (UserSettingsDisplayModel)sender;
 
-            await _dataService.UpdateSettingsData(senderSettings);
+            await VerifyAuthAndRedirectIfExpired();
+            _dataService.UpdateSettingsData(senderSettings);
         }
 
         // saves updated user data to server on property change
@@ -146,10 +148,9 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             string? changedProperty = e.PropertyName;
             UserDisplayModel senderUser = (UserDisplayModel)sender;
 
-            if (changedProperty == "FirstName" || changedProperty == "LastName")
-            {
-                await _dataService.UpdateUserNameData(senderUser);
-            }
+            // will only be triggered by name changes; other properties handled via dialogs
+            await VerifyAuthAndRedirectIfExpired();
+            _dataService.UpdateUserNameData(senderUser);         
         }
 
         protected override bool HandleDataStateChanged(string propertyName, IDataState dataState)

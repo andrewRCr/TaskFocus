@@ -378,6 +378,15 @@ namespace TaskFocusUI.Library.Data.Services
                     }
                 }          
             }
+
+            // remove TodayIndex from any completed (but not CleanedUp) tasks from view if completed > 1 day ago
+            var oldCompletedTodayTasks = _dataState.GetWorkingTasks()!.Where(
+                x => x.TodayIndex != null && x.Completed && (x.DateCompleted < DateTime.Now.Date)).ToList();
+            foreach (TaskDisplayModel workingTask in oldCompletedTodayTasks)
+            {
+                // force update: will detect and remove TodayIndex, as well as shift other task indices accordingly if needed
+                UpdateTaskData(workingTask, true);
+            }
         }
 
         void IDataServiceInternal.HandleIndexShiftsOnTaskDeletion(TaskDisplayModel task)

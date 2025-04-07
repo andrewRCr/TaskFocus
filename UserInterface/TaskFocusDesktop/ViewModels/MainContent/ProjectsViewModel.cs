@@ -1,5 +1,4 @@
 ﻿using Caliburn.Micro;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -100,12 +99,9 @@ namespace TaskFocusDesktop.ViewModels.MainContent
                 ShowNoFocusedProjectTutorialText = false;
                 FocusedProjectName = _dataHelper.FocusedProject.ProjectName.ToUpper();
                 var projectTasks = _dataHelper.FocusedProjectTasks;
-                FocusedProjectTasks = new ObservableCollection<TaskDisplayModel>(projectTasks);
-
-                foreach (TaskDisplayModel task in FocusedProjectTasks!)
-                {
-                    task.PropertyChanged += OnExistingTaskPropertyChanged!; // subscribe to property changed event
-                }
+                
+                FocusedProjectTasks = new ObservableCollection<TaskDisplayModel>(projectTasks!);
+                SubscribeToTaskPropertyChangedEvents(FocusedProjectTasks);
 
                 TaskCount = FocusedProjectTasks.Count;
                 UpdateScrollHeight(AppWindowHeight);

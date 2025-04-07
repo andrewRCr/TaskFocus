@@ -48,7 +48,8 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
                 FeedbackMessage = null;
 
                 var newProject = new ProjectModel { ProjectName = NewCollectionName! };
-                await _dataService.AddProject(newProject);
+                //await _dataService.AddProject(newProject);
+                _dataService.AddProject(newProject);
 
                 FeedbackMessage = "Project added!";
                 await Task.Delay(TimeSpan.FromSeconds(_successMsgDisplaySec));

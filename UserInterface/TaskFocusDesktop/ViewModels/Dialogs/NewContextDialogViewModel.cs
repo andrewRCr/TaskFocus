@@ -48,7 +48,8 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
                 FeedbackMessage = null;
 
                 var newContext = new ContextModel { ContextName = NewCollectionName! };
-                await _dataService.AddContext(newContext);
+                //await _dataService.AddContext(newContext);
+                _dataService.AddContext(newContext);
 
                 FeedbackMessage = "Context added!";
                 await Task.Delay(TimeSpan.FromSeconds(_successMsgDisplaySec));

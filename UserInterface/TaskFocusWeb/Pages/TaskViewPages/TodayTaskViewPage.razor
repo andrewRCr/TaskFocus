@@ -70,19 +70,6 @@
         return _todayTasks != null && LocalProjects != null && LocalContexts != null;
     }
 
-    protected override async Task OnInitializedAsync()
-    {
-        await base.OnInitializedAsync();
-
-        // remove TodayIndex from any completed (but not CleanedUp) tasks from view if completed > 1 day ago
-        var oldCompletedTodayTasks = DataService.GetDataStateTasks()!.Where(x => x.TodayIndex != null && x.Completed && (x.DateCompleted < DateTime.Now.Date)).ToList();
-        foreach (TaskDisplayModel task in oldCompletedTodayTasks)
-        {
-            // force update: will detect and remove TodayIndex, as well as shift other task indices accordingly if needed
-            DataService.UpdateTaskData(task, true);
-        }
-    }
-
     protected override void LoadLocalTaskData()
     {
         if (DataService.IsDataStateLoaded())

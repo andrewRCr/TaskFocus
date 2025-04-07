@@ -100,12 +100,9 @@ namespace TaskFocusDesktop.ViewModels.MainContent
                 ShowNoFocusedContextTutorialText = false;
                 FocusedContextName = _dataHelper.FocusedContext.ContextName.ToUpper();
                 var contextTasks = _dataHelper.FocusedContextTasks;
-                FocusedContextTasks = new ObservableCollection<TaskDisplayModel>(contextTasks);
-
-                foreach (TaskDisplayModel task in FocusedContextTasks!)
-                {
-                    task.PropertyChanged += OnExistingTaskPropertyChanged!; // subscribe to property changed event
-                }
+                
+                FocusedContextTasks = new ObservableCollection<TaskDisplayModel>(contextTasks!);
+                SubscribeToTaskPropertyChangedEvents(FocusedContextTasks);
 
                 TaskCount = FocusedContextTasks.Count;
                 UpdateScrollHeight(AppWindowHeight);
