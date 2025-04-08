@@ -15,6 +15,7 @@ using TaskFocusDesktop.ViewModels.MainContent;
 using TaskFocusDesktop.ViewModels.SidePanel;
 using TaskFocusDesktop.ViewModels.TopPanel;
 using TaskFocusUI.Library.API;
+using TaskFocusUI.Library.Data.Services;
 using TaskFocusUI.Library.Data.Services.Access;
 using TaskFocusUI.Library.Data.Services.Synchronization;
 using TaskFocusUI.Library.Data.State;
@@ -231,7 +232,6 @@ namespace TaskFocusDesktop.ViewModels
             _userEndpoint = userEndpoint;
 
             _events.SubscribeOnPublishedThread(this);
-            //_appState.AppStateChanged += HandleAppStateChanged;
             _dataState.DataStateChanged += DataStateChanged;
 
 
@@ -255,26 +255,16 @@ namespace TaskFocusDesktop.ViewModels
             UpdateMiniNavIconColor();
         }
 
-        private void HandleAppStateChanged(string propertyName, AppState state)
-        {
-            //throw new System.NotImplementedException();
-            _logger.Info($"ShellViewModel: returned true on HandleAppStateChanged. changed property causing True return: {propertyName}");
-        }
-
         protected bool HandleDataStateChanged(string propertyName, IDataState dataState)
         {
-            //if (!dataRefreshTriggers.Contains(propertyName)) return false;
+            if (propertyName != nameof(dataState.PreLogoutSyncCompleted)) return false;
 
             // on refresh, no new sync request + call HandleLogout()
-            _appState.PostSyncLogoutRequested = dataState.PreLogoutSyncCompleted;
             _logger.Info($"ShellViewModel: returned true on HandleDataStateChanged. changed property causing True return: {propertyName}");
-            _logger.Info($"dataState.PreLogoutSyncCompleted: {dataState.PreLogoutSyncCompleted}");
+            //_logger.Info($"dataState.PreLogoutSyncCompleted: {dataState.PreLogoutSyncCompleted}");
 
             if (dataState.PreLogoutSyncCompleted)
             {
-                //await ProcessPostSyncLogout();
-                //Task.Run(async () => await ProcessPostSyncLogout());
-                Debug.WriteLine("PreLogoutSyncCompleted !!!");
                 _events.PublishOnUIThreadAsync(new PreLogoutSyncCompletedEvent());
             }
 
@@ -283,11 +273,9 @@ namespace TaskFocusDesktop.ViewModels
 
         private void DataStateChanged(String propertyName, IDataState dataState)
         {
-
             bool changesOccured = HandleDataStateChanged(propertyName, dataState);
             if (changesOccured)
             {
-                //await InvokeAsync(StateHasChanged);
                 _logger.Info($"ShellViewModel: returned true on HandleDataStateChanged. changed property causing True return: {propertyName}");
             }
         }
@@ -392,6 +380,8 @@ namespace TaskFocusDesktop.ViewModels
             MainContentPanel = IoC.Get<HomeViewModel>();
             await ActivateItemAsync(MainContentPanel, new CancellationToken());
             ActiveMainContentView = ViewCatalog.MainContentView.Home;
+
+            _dataService.ResetDataStatePreLogoutSyncCompletionFlag();
         }
 
         public async Task ManualSync()

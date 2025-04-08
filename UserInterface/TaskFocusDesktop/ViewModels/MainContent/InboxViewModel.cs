@@ -64,8 +64,6 @@ namespace TaskFocusDesktop.ViewModels.MainContent
                 ShowEmptyTaskListTutorialText = InboxTasks.Count == 0;
                 TaskCount = InboxTasks.Count;
                 UpdateScrollHeight(AppWindowHeight);
-
-                _logger.Info($"InboxTasks count: {TaskCount}");
             }
         }
 
@@ -73,12 +71,11 @@ namespace TaskFocusDesktop.ViewModels.MainContent
         {
             if (!dataRefreshTriggers.Contains(propertyName) || ActiveMainContentView != Utilities.ViewCatalog.MainContentView.Inbox)
             {
-                _logger.Info($"InboxViewModel: returned false on HandleDataStateChanged! due to property: {propertyName}");
                 return false;
             }
 
             LoadAllLocalData();
-            _logger.Info($"InboxViewModel: returned true on HandleDataStateChanged! due to property: {propertyName}");
+            //_logger.Info($"InboxViewModel: returned true on HandleDataStateChanged! due to property: {propertyName}");
             return true;
         }
     }

@@ -11,10 +11,15 @@
     // process logout (post-sync)
     private async Task HandleLogout()
     {
+        if (!_isAuthenticated) return;
+
         await AuthService.LogoutAsync();
         DataService.OnUserLogout();
 
         NavManager.NavigateTo("/");
+        // reset
+        AppState.PostSyncLogoutRequested = false;
+        DataService.ResetDataStatePreLogoutSyncCompletionFlag();
     }
 
     protected override void CustomAuthenticatedOnInit()

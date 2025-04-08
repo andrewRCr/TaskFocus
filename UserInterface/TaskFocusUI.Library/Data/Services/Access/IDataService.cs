@@ -10,6 +10,7 @@ namespace TaskFocusUI.Library.Data.Services.Access
         event EventHandler<string>? SyncRequestHandler;
         event EventHandler<string>? PreLogoutSyncRequestHandler;
         void InvokeSyncRequest(string sourceName, bool isPreLogoutSync = false);
+        void ResetDataStatePreLogoutSyncCompletionFlag();
         bool IsDataStateLoaded();
 
         Task FetchAllRemoteData();

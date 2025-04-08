@@ -20,6 +20,12 @@ namespace TaskFocusUI.Library.Logging
 
         IDisposable ILogger.BeginScope<TState>(TState state) => default!;
 
+        private string GetTopLevelString(string nameStr)
+        {
+            string[] values = nameStr.ToString()!.Split('.');
+            return values[values.Length - 1];
+        }
+
         public bool IsEnabled(LogLevel logLevel)
         {
             return logLevel >= _config.ConsoleMinLogLevel;
@@ -39,10 +45,10 @@ namespace TaskFocusUI.Library.Logging
                 switch (_config.LogLevels[logLevel])
                 {
                     case LogFormat.Short:
-                            Debug.WriteLine($"{_name}: {formatter(state, exception)}");
+                            Debug.WriteLine($"{GetTopLevelString(_name)}: {DateTime.Now.ToString("HH:mm:ss")} {formatter(state, exception)}");
                         break;
                     case LogFormat.Long:
-                            Debug.WriteLine($"[{eventId.Id,2}: {logLevel,-12}] {_name} - {formatter(state, exception)}");
+                            Debug.WriteLine($"[{eventId.Id,2}: {logLevel,-12}] {_name} {DateTime.Now.ToString("HH:mm:ss")} - {formatter(state, exception)}");
                         break;
                     default:
                         break;

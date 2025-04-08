@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity.Core.Common.CommandTrees.ExpressionBuilder;
 using System.Diagnostics;
-using System.IO.Pipelines;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,18 +15,10 @@ using TaskFocusUI.Library.Models;
 
 namespace TaskFocusUI.Library.Data.Services.Synchronization
 {
-    public class DataSyncService : IDataSyncService
+    public class DataSyncService : ServiceBase, IDataSyncService
     {
-        private ILogger<DataSyncService> _logger;
-        private IMapper _mapper;
-        private IDataHelper _dataHelper;
-        private IDataState _dataState;
         private IDataService _dataService;
-
-        private IUserEndpoint _userEndpoint;
-        private ITaskEndpoint _taskEndpoint;
-        private IProjectEndpoint _projectEndpoint;
-        private IContextEndpoint _contextEndpoint;
+        private bool _syncInProgress = false;
 
         private UserDisplayModel? _pushedUserData;
         private UserSettingsDisplayModel? _pushedUserSettingsData;
@@ -35,28 +26,27 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
         private List<ProjectModel> _pushedProjectData;
         private List<ContextModel> _pushedContextData;
 
-        private bool _syncInProgress = false;
-
-        public DataSyncService(ILogger<DataSyncService> logger,
-                               IMapper mapper,
+        public DataSyncService(IMapper mapper,
                                IDataHelper dataHelper,
                                IDataState dataState,
-                               IDataService dataService,
-                               IUserEndpoint userEndpoint, 
-                               ITaskEndpoint taskEndpoint, 
+                               IUserEndpoint userEndpoint,
+                               ITaskEndpoint taskEndpoint,
                                IProjectEndpoint projectEndpoint,
-                               IContextEndpoint contextEndpoint)
+                               IContextEndpoint contextEndpoint,
+                               ILogger<DataSyncService> logger,                          
+                               IDataService dataService) : base(mapper, dataHelper, dataState, userEndpoint, taskEndpoint, projectEndpoint, contextEndpoint)
         {
-            _logger = logger;
+
             _mapper = mapper;
             _dataHelper = dataHelper;
             _dataState = dataState;
-            _dataService = dataService;
-
             _userEndpoint = userEndpoint;
             _taskEndpoint = taskEndpoint;
             _projectEndpoint = projectEndpoint;
             _contextEndpoint = contextEndpoint;
+
+            _logger = logger;
+            _dataService = dataService;
 
             _pushedUserData = new();
             _pushedUserSettingsData = new();
@@ -71,33 +61,18 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
         // helper methods
         // ====================
 
-        // wrapper for info logging in either client
-        private void LogInformation(string message)
-        {
-            if (_logger != null) { _logger.LogInformation(message); }
-            else { Debug.WriteLine($"DesktopUI - INFO: {message}"); }
-        }
-
-        // wrapper for info logging in either client
-        private void LogError(string message)
-        {
-            if (_logger != null) { _logger.LogError(message); }
-            else { Debug.WriteLine($"DesktopUI - ERROR: {message}"); }
-        }
-
         private async void DataService_SyncRequested(object? sender, string e)
         {
-            LogInformation($"{e}'s requested sync operation received.");
             bool success = await TrySync();
-            if (success) LogInformation($"{e}'s requested sync operation has been handled.");
-            else { LogError($"{e}'s requested sync operation failed."); }
+            if (success) LogInformation($"{GetTopLevelString(e)}'s requested sync operation has been handled.");
+            else { LogError($"{GetTopLevelString(e)}'s requested sync operation failed."); }
         }
 
         private async void DataService_PreLogoutSyncRequested(object? sender, string e)
         {
             bool success = await TrySync(true);
-            if (success) LogInformation($"{e}'s requested pre-logout sync operation has been handled.");
-            else { LogError($"{e}'s requested pre-logout sync operation failed."); }
+            if (success) LogInformation($"{GetTopLevelString(e)}'s requested pre-logout sync operation has been handled.");
+            else { LogError($"{GetTopLevelString(e)}'s requested pre-logout sync operation failed."); }
         }
 
         // attempts to Sync(), and re-attempts if an exception is raised
@@ -106,7 +81,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             var numRetryAttempts = 3;
             var retryDelay = 1000;
             bool isInitialSync = _dataState.LastSync == DateTimeOffset.MinValue;
-            //Console.WriteLine($"TrySync() - isInitialSync: {isInitialSync}");
+            LogInformation($"TrySync() - isInitialSync: {isInitialSync}");
 
             for (int i = 0; i < numRetryAttempts; i++)
             {

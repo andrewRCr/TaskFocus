@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading.Tasks;
 using TaskFocusUI.Library.API;
 using TaskFocusUI.Library.Data.Services.Access;
@@ -11,48 +10,35 @@ using TaskFocusUI.Library.Data.Utilities;
 
 namespace TaskFocusUI.Library.Data.Services
 {
-    public partial class DataService : IDataService, IDataServiceInternal
+    public partial class DataService : ServiceBase, IDataService, IDataServiceInternal
     {
         private IAPIHelper _apiHelper;
-        private ILogger<DataService> _logger;
-        private ITaskEndpoint _taskEndpoint;
-        private IProjectEndpoint _projectEndpoint;
-        private IContextEndpoint _contextEndpoint;
-        private IUserEndpoint _userEndpoint;
-        private IMapper _mapper;
-        private IDataHelper _dataHelper;
-        private IDataState _dataState;
 
-        public DataService(IAPIHelper apiHelper, ILogger<DataService> logger, ITaskEndpoint taskEndpoint, IProjectEndpoint projectEndpoint,
-            IContextEndpoint contextEndpoint, IUserEndpoint userEndpoint, IMapper mapper, IDataHelper dataHelper, IDataState dataState)
+        public DataService(IMapper mapper,
+                           IDataHelper dataHelper,
+                           IDataState dataState,
+                           IUserEndpoint userEndpoint,
+                           ITaskEndpoint taskEndpoint,
+                           IProjectEndpoint projectEndpoint,
+                           IContextEndpoint contextEndpoint,
+                           ILogger<DataService> logger,
+                           IAPIHelper apiHelper) : base(mapper, dataHelper, dataState, userEndpoint, taskEndpoint, projectEndpoint, contextEndpoint)
         {
-            _apiHelper = apiHelper;
-            _logger = logger;
-            _taskEndpoint = taskEndpoint;
-            _projectEndpoint = projectEndpoint;
-            _contextEndpoint = contextEndpoint;
-            _userEndpoint = userEndpoint;
+
             _mapper = mapper;
             _dataHelper = dataHelper;
             _dataState = dataState;
+            _userEndpoint = userEndpoint;
+            _taskEndpoint = taskEndpoint;
+            _projectEndpoint = projectEndpoint;
+            _contextEndpoint = contextEndpoint;
+
+            _logger = logger;
+            _apiHelper = apiHelper;
         }
 
         // helper methods
         // ====================
-
-        // wrapper for info logging in either client
-        private void LogInformation(string message)
-        {
-            if (_logger != null) { _logger.LogInformation(message); }
-            else { Debug.WriteLine($"DesktopUI - INFO: {message}"); }
-        }
-
-        // wrapper for info logging in either client
-        private void LogError(string message)
-        {
-            if (_logger != null) { _logger.LogError(message); }
-            else { Debug.WriteLine($"DesktopUI - ERROR: {message}"); }
-        }
 
         // makes working copy clones of new data state
         void IDataServiceInternal.UpdateAllWorkingDataAfterPull()
@@ -74,20 +60,17 @@ namespace TaskFocusUI.Library.Data.Services
         }
 
         // for handling manual sync request events
-        //public event EventHandler<string>? SyncRequestHandler;
         public event EventHandler<string>? SyncRequestHandler;
         public event EventHandler<string>? PreLogoutSyncRequestHandler;
-        //public event AsyncEventHandler<string>? SyncRequestHandler;
 
         // for invoking manual sync request events
         public void InvokeSyncRequest(string sourceName, bool isPreLogoutSync = false)
         {
-            LogInformation($"DataService: InvokeSyncRequest invocation call received from {sourceName}");
-            bool isHandlerNull = SyncRequestHandler == null;
-            LogInformation($"isHandlerNull: {isHandlerNull}");
             if (isPreLogoutSync) PreLogoutSyncRequestHandler?.Invoke(this, sourceName);
             else SyncRequestHandler?.Invoke(this, sourceName);
         }
+
+        public void ResetDataStatePreLogoutSyncCompletionFlag() => _dataState.PreLogoutSyncCompleted = false;
 
         // for checking if complete data state has been loaded
         public bool IsDataStateLoaded() => _dataState.IsDataLoaded();
