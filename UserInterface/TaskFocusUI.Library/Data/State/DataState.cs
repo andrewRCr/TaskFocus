@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using TaskFocusUI.Library.Data.Services.Synchronization;
 using TaskFocusUI.Library.Models;
 
 namespace TaskFocusUI.Library.Data.State
@@ -12,6 +12,7 @@ namespace TaskFocusUI.Library.Data.State
         Tasks,
         Projects,
         Contexts,
+        AppRequestedSyncCompleted
     }
 
     public class DataState : IDataState, IDataStateInternal
@@ -26,26 +27,59 @@ namespace TaskFocusUI.Library.Data.State
         }
 
         private DateTimeOffset _lastSync = DateTimeOffset.MinValue;
-        public DateTimeOffset LastSync
+        DateTimeOffset IDataStateInternal.LastSync
         {
             get { return _lastSync; }
             set
             {
                 _lastSync = value;
-                DataStateChanged?.Invoke(nameof(LastSync), this);
+                DataStateChanged?.Invoke(nameof(IDataStateInternal.LastSync), this);
             }
         }
 
-        private bool _preLogoutSyncCompleted = false;
-        public bool PreLogoutSyncCompleted
+        //private EPostSyncAction _requestedPostSyncAction = EPostSyncAction.None;
+        //EPostSyncAction IDataStateInternal.RequestedPostSyncAction
+        //{
+        //    get { return _requestedPostSyncAction; }
+        //    set
+        //    {
+        //        _requestedPostSyncAction = value;
+        //        DataStateChanged?.Invoke(nameof(EDataRefreshType.RequestedPostSyncAction), this);
+        //    }
+        //}
+
+        private bool _appRequestedSyncCompleted = false;
+        bool IDataStateInternal.AppRequestedSyncCompleted
         {
-            get { return _preLogoutSyncCompleted; }
+            get { return _appRequestedSyncCompleted; }
             set
             {
-                _preLogoutSyncCompleted = value;
-                DataStateChanged?.Invoke(nameof(PreLogoutSyncCompleted), this);
+                _appRequestedSyncCompleted = value;
+                DataStateChanged?.Invoke(nameof(EDataRefreshType.AppRequestedSyncCompleted), this);
             }
         }
+
+        //private bool _preLogoutSyncCompleted = false;
+        //bool IDataStateInternal.PreLogoutSyncCompleted
+        //{
+        //    get { return _preLogoutSyncCompleted; }
+        //    set
+        //    {
+        //        _preLogoutSyncCompleted = value;
+        //        DataStateChanged?.Invoke(nameof(EDataRefreshType.PreLogoutSyncCompleted), this);
+        //    }
+        //}
+
+        //private bool _preAppCloseSyncCompleted = false;
+        //bool IDataStateInternal.PreAppCloseSyncCompleted
+        //{
+        //    get { return _preAppCloseSyncCompleted; }
+        //    set
+        //    {
+        //        _preAppCloseSyncCompleted = value;
+        //        DataStateChanged?.Invoke(nameof(EDataRefreshType.PreAppCloseSyncCompleted), this);
+        //    }
+        //}
 
         private UserDisplayModel? _currentUser;
         UserDisplayModel? IDataStateInternal.CurrentUser
@@ -86,9 +120,9 @@ namespace TaskFocusUI.Library.Data.State
         private List<TaskDisplayModel>? _tasks;
         List<TaskDisplayModel>? IDataStateInternal.Tasks
         {
-            get { return _tasks; } 
-            set 
-            {  
+            get { return _tasks; }
+            set
+            {
                 _tasks = value;
                 DataStateChanged?.Invoke(nameof(EDataRefreshType.Tasks), this);
             }
@@ -102,10 +136,10 @@ namespace TaskFocusUI.Library.Data.State
         }
 
         private List<ProjectDisplayModel>? _projects;
-        List<ProjectDisplayModel>? IDataStateInternal.Projects 
-        { 
+        List<ProjectDisplayModel>? IDataStateInternal.Projects
+        {
             get { return _projects; }
-            set 
+            set
             {
                 _projects = value;
                 DataStateChanged?.Invoke(nameof(EDataRefreshType.Projects), this);
@@ -123,8 +157,8 @@ namespace TaskFocusUI.Library.Data.State
         List<ContextDisplayModel>? IDataStateInternal.Contexts
         {
             get => _contexts;
-            set 
-            { 
+            set
+            {
                 _contexts = value;
                 DataStateChanged?.Invoke(nameof(EDataRefreshType.Contexts), this);
             }
@@ -146,12 +180,14 @@ namespace TaskFocusUI.Library.Data.State
                    _contexts != null && _workingContexts != null;
         }
 
+        // tracking pre-push local updates
         public UserDisplayModel? ChangedUserData { get; set; }
         public UserSettingsDisplayModel? ChangedUserSettingsData { get; set; }
         public List<TaskDisplayModel> ChangedTaskData { get; set; } = new();
         public List<ProjectDisplayModel> ChangedProjectData { get; set; } = new();
         public List<ContextDisplayModel> ChangedContextData { get; set; } = new();
 
+        // tracking pre-push local insertions
         public int TempTaskId { get; set; } = 0;
         public int TempProjectId { get; set; } = 0;
         public int TempContextId { get; set; } = 0;

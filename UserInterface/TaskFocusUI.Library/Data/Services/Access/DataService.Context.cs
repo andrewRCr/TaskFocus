@@ -47,7 +47,7 @@ namespace TaskFocusUI.Library.Data.Services
 
                 // update changedContextData copy of task
                 // note: only need to track pending property changes in changedContextData if context has never been pushed
-                var queuedChangedContext = _dataState.ChangedContextData!.Find(x => x.TempLocalId == workingContext.TempLocalId);
+                var queuedChangedContext = _dataState.GetChangedContextData().Find(x => x.TempLocalId == workingContext.TempLocalId);
                 if (queuedChangedContext != null) queuedChangedContext.ValueAssign(workingContext);
             }
             else
@@ -58,9 +58,9 @@ namespace TaskFocusUI.Library.Data.Services
 
                 // add copy to ChangedContextData
                 // don't duplicate if already had another update prior to push
-                var alreadyQueued = _dataState.ChangedContextData.Where(
+                var alreadyQueued = _dataState.GetChangedContextData().Where(
                     x => x.Id == workingContext.Id);
-                if (!alreadyQueued.Any()) { _dataState.ChangedContextData.Add(workingContext.Clone()); }
+                if (!alreadyQueued.Any()) { _dataState.GetChangedContextData().Add(workingContext.Clone()); }
             }
         }
 
@@ -133,11 +133,13 @@ namespace TaskFocusUI.Library.Data.Services
             // determine OrderIndex for context
             newDisplayContext.OrderIndex = _dataState.GetContexts()!.Count;
             // give temp local tracking id
-            newDisplayContext.TempLocalId = ++_dataState.TempContextId;
+            //newDisplayContext.TempLocalId = ++_dataState.TempContextId;
+            var currentTempId = _dataState.GetTempContextId();
+            newDisplayContext.TempLocalId = _dataState.SetTempProjectId(++currentTempId);
 
             // flag for sync
             newDisplayContext.ClientLastUpdated = DateTimeOffset.Now;
-            _dataState.ChangedContextData.Add(newDisplayContext.Clone());
+            _dataState.GetChangedContextData().Add(newDisplayContext.Clone());
 
             // update local data state
             _dataState.GetWorkingContexts()!.Add(newDisplayContext.Clone());
@@ -175,8 +177,8 @@ namespace TaskFocusUI.Library.Data.Services
                 // local delete
                 var dataStateContext = _dataState.GetContexts()!.Find(x => x.TempLocalId == workingContext.TempLocalId);
                 if (dataStateContext != null) _dataState.GetContexts()!.Remove(dataStateContext);
-                var changedContext = _dataState.ChangedContextData.Find(x => x.TempLocalId == workingContext.TempLocalId);
-                if (changedContext != null) _dataState.ChangedContextData.Remove(changedContext);
+                var changedContext = _dataState.GetChangedContextData().Find(x => x.TempLocalId == workingContext.TempLocalId);
+                if (changedContext != null) _dataState.GetChangedContextData().Remove(changedContext);
                 _dataState.GetWorkingContexts()!.Remove(workingContext);
             }
             else
@@ -187,9 +189,9 @@ namespace TaskFocusUI.Library.Data.Services
                 dataStateContext.ClientLastUpdated = DateTimeOffset.Now;
 
                 // if had an update pending push, don't add a duplicate to changedContextData
-                var alreadyQueued = _dataState.ChangedContextData.Where(
+                var alreadyQueued = _dataState.GetChangedContextData().Where(
                     x => x.Id == dataStateContext.Id);
-                if (!alreadyQueued.Any()) _dataState.ChangedContextData.Add(dataStateContext.Clone());
+                if (!alreadyQueued.Any()) _dataState.GetChangedContextData().Add(dataStateContext.Clone());
 
                 // local delete
                 if (dataStateContext != null) _dataState.GetContexts()!.Remove(dataStateContext);

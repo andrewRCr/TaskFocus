@@ -14,17 +14,15 @@
         if (!_isAuthenticated) return;
 
         await AuthService.LogoutAsync();
-        DataService.OnUserLogout();
+        AppState.PostSyncLogoutRequested = false;
+        DataService.ResetDataStateOnLogout();
 
         NavManager.NavigateTo("/");
-        // reset
-        AppState.PostSyncLogoutRequested = false;
-        DataService.ResetDataStatePreLogoutSyncCompletionFlag();
     }
 
     protected override void CustomAuthenticatedOnInit()
     {
-        dataRefreshTriggers = new List<string> { nameof(DataState.PreLogoutSyncCompleted) };
+        dataRefreshTriggers = new List<string> { nameof(EDataRefreshType.AppRequestedSyncCompleted) };
 
         // if we reached this page, we want to logout, but we need to try and sync first
         if (!AppState.PostSyncLogoutRequested) // pre-logout sync hasn't yet run
@@ -48,7 +46,7 @@
         if (AppState.CanRefresh)
         {
             // on refresh, no new sync request + call HandleLogout()
-            AppState.PostSyncLogoutRequested = dataState.PreLogoutSyncCompleted; 
+            AppState.PostSyncLogoutRequested = DataService.IsAppRequestedSyncCompleted();
             //Console.WriteLine($"Logout: returned true on HandleDataStateChanged. changed property causing True return: {propertyName}");
         }
 

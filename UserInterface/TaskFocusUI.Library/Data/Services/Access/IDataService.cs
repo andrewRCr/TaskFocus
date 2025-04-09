@@ -8,10 +8,13 @@ namespace TaskFocusUI.Library.Data.Services.Access
     public interface IDataService
     {
         event EventHandler<string>? SyncRequestHandler;
-        event EventHandler<string>? PreLogoutSyncRequestHandler;
-        void InvokeSyncRequest(string sourceName, bool isPreLogoutSync = false);
-        void ResetDataStatePreLogoutSyncCompletionFlag();
+        //event EventHandler<string>? PreLogoutSyncRequestHandler;
+        event EventHandler<string>? SyncWithCompletionNotifyRequestHandler;
+        void InvokeSyncRequest(string sourceName, bool notifyOnCompletion = false);
         bool IsDataStateLoaded();
+        //bool IsDataStatePreLogoutSyncCompleted();
+        bool IsAppRequestedSyncCompleted();
+        void ResetDataStateOnLogout();
 
         Task FetchAllRemoteData();
         Task FetchRemoteUserData();
@@ -47,7 +50,6 @@ namespace TaskFocusUI.Library.Data.Services.Access
         Task RequestUpdateEmail(UserModel user);
         Task UpdatePassword(CreateUserModel updatedUserModel);
         void UpdateSettingsData(UserSettingsDisplayModel workingSettings);
-        void OnUserLogout();
 
         // made private:
         //void ShiftTaskCollectionSourceIndices(TaskModel task, string indexType);
@@ -62,5 +64,7 @@ namespace TaskFocusUI.Library.Data.Services.Access
         //Task UpdateTaskViewOrderingIndices(List<TaskDisplayModel> displayTasks);
         //void UpdateProjectsOrderingIndices(List<ProjectDisplayModel> displayProjects);
         //Task UpdateContextsOrderingIndices(List<ContextDisplayModel> displayContexts);
+        //void OnUserLogout();
+        //void ResetDataStatePreLogoutSyncCompletionFlag();
     }
 }

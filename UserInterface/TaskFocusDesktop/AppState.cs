@@ -4,6 +4,13 @@ namespace TaskFocusDesktop
 {
     public delegate void AppStateChangedHandler(String propertyName, AppState state);
 
+    public enum EPostSyncAction
+    {
+        None,
+        Logout,
+        Exit
+    }
+
     public class AppState : IAppState
     {
         public event AppStateChangedHandler AppStateChanged = default!;
@@ -27,6 +34,17 @@ namespace TaskFocusDesktop
             { 
                 _isAuthenticated = value;
                 AppStateChanged?.Invoke(nameof(IsAuthenticated), this);
+            }
+        }
+
+        private EPostSyncAction _pendingPostSyncAction = EPostSyncAction.None;
+        public EPostSyncAction PendingPostSyncAction
+        {
+            get { return _pendingPostSyncAction; }
+            set
+            {
+                _pendingPostSyncAction = value;
+                AppStateChanged?.Invoke(nameof(PendingPostSyncAction), this);
             }
         }
 

@@ -157,7 +157,6 @@
             // if DataState has no remote data loaded, load it
             if (!DataService.IsDataStateLoaded())
             {
-                //await DataSyncService.InitSync();
                 DataService.InvokeSyncRequest($"{this.ToString()}: {nameof(OnInitializedAsync)}");
             }
         }

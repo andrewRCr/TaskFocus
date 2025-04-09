@@ -17,15 +17,6 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
 {
     public class DataSyncService : ServiceBase, IDataSyncService
     {
-        private IDataService _dataService;
-        private bool _syncInProgress = false;
-
-        private UserDisplayModel? _pushedUserData;
-        private UserSettingsDisplayModel? _pushedUserSettingsData;
-        private List<TaskModel> _pushedTaskData;
-        private List<ProjectModel> _pushedProjectData;
-        private List<ContextModel> _pushedContextData;
-
         public DataSyncService(IMapper mapper,
                                IDataHelper dataHelper,
                                IDataState dataState,
@@ -48,15 +39,18 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             _logger = logger;
             _dataService = dataService;
 
-            _pushedUserData = new();
-            _pushedUserSettingsData = new();
-            _pushedTaskData = new();
-            _pushedProjectData = new();
-            _pushedContextData = new();
-
             _dataService.SyncRequestHandler += DataService_SyncRequested;
-            _dataService.PreLogoutSyncRequestHandler += DataService_PreLogoutSyncRequested;
+            _dataService.SyncWithCompletionNotifyRequestHandler += DataService_SyncWithCompletionNotifyRequested;
         }
+
+        private IDataService _dataService;
+        private bool _syncInProgress = false;
+
+        private UserDisplayModel? _pushedUserData;
+        private UserSettingsDisplayModel? _pushedUserSettingsData;
+        private List<TaskModel> _pushedTaskData = [];
+        private List<ProjectModel> _pushedProjectData = [];
+        private List<ContextModel> _pushedContextData = [];
 
         // helper methods
         // ====================
@@ -68,19 +62,23 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             else { LogError($"{GetTopLevelString(e)}'s requested sync operation failed."); }
         }
 
-        private async void DataService_PreLogoutSyncRequested(object? sender, string e)
+        private async void DataService_SyncWithCompletionNotifyRequested(object? sender, string e)
         {
             bool success = await TrySync(true);
-            if (success) LogInformation($"{GetTopLevelString(e)}'s requested pre-logout sync operation has been handled.");
-            else { LogError($"{GetTopLevelString(e)}'s requested pre-logout sync operation failed."); }
+            if (success) LogInformation($"{GetTopLevelString(e)}'s requested sync operation with completion notification has been handled.");
+            else 
+            { 
+                LogError($"{GetTopLevelString(e)}'s requested sync operation with completion notification failed.");
+                _dataState.SetAppRequestedSyncCompleted(true); // do not block log out / exit
+            }
         }
 
         // attempts to Sync(), and re-attempts if an exception is raised
-        public async Task<bool> TrySync(bool isPreLogoutSync = false)
+        public async Task<bool> TrySync(bool notifyOnCompletion = false)
         {
             var numRetryAttempts = 3;
             var retryDelay = 1000;
-            bool isInitialSync = _dataState.LastSync == DateTimeOffset.MinValue;
+            bool isInitialSync = _dataState.GetLastSync() == DateTimeOffset.MinValue;
             LogInformation($"TrySync() - isInitialSync: {isInitialSync}");
 
             for (int i = 0; i < numRetryAttempts; i++)
@@ -89,7 +87,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                 {
                     // attempt sync; if successful, break loop
                     if (isInitialSync) await InitSync();
-                    else await Sync(isPreLogoutSync);
+                    else await Sync(notifyOnCompletion);
 
                     break;
                 }
@@ -130,7 +128,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                 await _dataService.FetchAllRemoteData();
                 // process any time-relevant changes to task state for next sync
                 _dataService.PerformCompletedTaskCleanup();
-                _dataState.LastSync = DateTimeOffset.Now; // log
+                _dataState.SetLastSync(DateTimeOffset.Now); // log
                 LogInformation("InitSync complete; DataState populated");
 
                 // initialize periodic sync
@@ -148,13 +146,14 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
         // ====================
 
         // syncs at row level; LastUpdated determines who wins at the server
-        private async Task Sync(bool isPreLogoutSync = false)
+        private async Task Sync(bool notifyOnCompletion = false)
         {
             if (_syncInProgress) throw new Exception("Sync already in progress; operation aborted.");
 
             _syncInProgress = true;
-            LogInformation($"starting Sync... (lastSync prior: {_dataState.LastSync}");
-            LogInformation($"Sync() - isPreLogoutSync: {isPreLogoutSync}");
+            LogInformation($"starting Sync... (lastSync prior: {_dataState.GetLastSync()}");
+            //LogInformation($"Sync() - isPreLogoutSync: {isPreLogoutSync}");
+            LogInformation($"Sync() - notifyOnCompletion: {notifyOnCompletion}");
 
             // process any time-relevant changes to task state
             _dataService.PerformCompletedTaskCleanup();
@@ -167,7 +166,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
 
             // update "working" copies of local data from newly synced data state + log completion
             _dataService.UpdateAllWorkingDataAfterPull();
-            _dataState.LastSync = DateTimeOffset.Now;
+            _dataState.SetLastSync(DateTimeOffset.Now);
 
             LogInformation("Sync complete!");
             LogInformation($"PUSH: {pushResult.numRowsInserted} rows inserted, {pushResult.numRowsDeleted} rows deleted, {pushResult.numRowsUpdated} rows updated.");
@@ -175,7 +174,8 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             _syncInProgress = false;
 
             // trigger logout in client app, if requested
-            if (isPreLogoutSync) _dataState.PreLogoutSyncCompleted = true;          
+            //if (isPreLogoutSync) _dataState.SetPreLogoutSyncCompleted(true);
+            if (notifyOnCompletion) _dataState.SetAppRequestedSyncCompleted(true); 
         }
 
         private async Task<DataSyncResult> PushSync()
@@ -186,7 +186,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             // here, we either insert or update any server data that has been changed locally since last sync
             // we don't do any other update-triggered data processing (shifting indices, updating other data dependent on this, etc)
             // as that's all handled locally by the DataService, on the DataState, when changes occur.
-            // DataSyncService is solely dedicated to trusting the local datastate and making sure it's in sync with the server database.
+            // DataSyncService is solely dedicated to trusting the local data state and making sure it's in sync with the server database.
 
             // FOR TASKS/PROJECTS/CONTEXTS:
             // 1. check if any changed local data rows don't exist in remote
@@ -198,13 +198,13 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
 
             // USER DATA (name only; email/pw are handled separately from syncable data)
             //var clientUser = _dataState.ChangedUserData.FirstOrDefault(); // will only ever be one (or zero)
-            var changedClientUser = _dataState.ChangedUserData;
+            var changedClientUser = _dataState.GetChangedUserData();
             if (changedClientUser != null) // local changes have occurred
             {
                 LogInformation("changed UserData detected");
                 //LogInformation($"_dataState.ChangedUserData.Email: {_dataState.ChangedUserData.Email}");
                 await PushSyncableUserData(changedClientUser);
-                _dataState.ChangedUserData = null;
+                _dataState.SetChangedUserData(null);
 
                 //UserModel serverUser = await _userEndpoint.GetCurrentUserData();
 
@@ -230,13 +230,13 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             }
 
             // SETTINGS DATA
-            var changedClientSettings = _dataState.ChangedUserSettingsData;
+            var changedClientSettings = _dataState.GetChangedSettingsData();
             if (changedClientSettings != null) // local changes have occurred
             {
                 LogInformation("changed UserSettingsData detected");
                 //LogInformation($"_dataState.ChangedUserSettingsData.CleanUpImmediately: {_dataState.ChangedUserSettingsData.CleanUpImmediately}");
                 await PushSyncableUserData(changedClientSettings);
-                _dataState.ChangedUserSettingsData = null;
+                _dataState.SetChangedSettingsData(null);
 
                 //UserSettingsModel serverSettings = await _userEndpoint.GetCurrentUserSettings();
                 //if (serverSettings.ClientLastUpdated > clientSettings!.ServerLastUpdated)
@@ -259,34 +259,34 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             }
 
             // TASK DATA
-            Console.WriteLine($"changedTaskData count: {_dataState.ChangedTaskData.Count}");
-            foreach (var clientTask in _dataState.ChangedTaskData)
+            Console.WriteLine($"changedTaskData count: {_dataState.GetChangedTaskData().Count}");
+            foreach (var clientTask in _dataState.GetChangedTaskData())
             {
                 DataSyncResult clientTaskResult = await PushSyncableData(clientTask);
                 pushResult = _dataHelper.CombineSyncResults(pushResult, clientTaskResult);
             }
-            _dataState.ChangedTaskData.Clear();
-            _dataState.TempTaskId = 0;
+            _dataState.GetChangedTaskData().Clear();
+            _dataState.SetTempTaskId(0);
 
             // PROJECT DATA
-            Console.WriteLine($"changedProjectData count: {_dataState.ChangedProjectData.Count}");
-            foreach (var clientProject in _dataState.ChangedProjectData)
+            Console.WriteLine($"changedProjectData count: {_dataState.GetChangedProjectData().Count}");
+            foreach (var clientProject in _dataState.GetChangedProjectData())
             {
                 DataSyncResult clientProjectResult = await PushSyncableData(clientProject);
                 pushResult = _dataHelper.CombineSyncResults(pushResult, clientProjectResult);
             }
-            _dataState.ChangedProjectData.Clear();
-            _dataState.TempProjectId = 0;
+            _dataState.GetChangedProjectData().Clear();
+            _dataState.SetTempProjectId(0);
 
             // CONTEXT DATA
-            Console.WriteLine($"changedContextData count: {_dataState.ChangedContextData.Count}");
-            foreach (var clientContext in _dataState.ChangedContextData)
+            Console.WriteLine($"changedContextData count: {_dataState.GetChangedContextData().Count}");
+            foreach (var clientContext in _dataState.GetChangedContextData())
             {
                 DataSyncResult clientContextResult = await PushSyncableData(clientContext);
                 pushResult = _dataHelper.CombineSyncResults(pushResult, clientContextResult);
             }
-            _dataState.ChangedContextData.Clear();
-            _dataState.TempContextId = 0;
+            _dataState.GetChangedContextData().Clear();
+            _dataState.SetTempContextId(0);
 
             // finalize, return result
 
@@ -570,7 +570,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
 
             // USER DATA
             UserModel serverUser = await _userEndpoint.GetCurrentUserData();
-            if (serverUser.ServerLastUpdated >= _dataState.LastSync) // remote changes have occurred
+            if (serverUser.ServerLastUpdated >= _dataState.GetLastSync()) // remote changes have occurred
             {
                 LogInformation("changed UserData detected");
                 await PullSyncableUserData(serverUser);
@@ -615,7 +615,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
 
             // SETTINGS DATA
             UserSettingsModel serverSettings = await _userEndpoint.GetCurrentUserSettings();
-            if (serverSettings.ServerLastUpdated >= _dataState.LastSync) // remote changes have occurred
+            if (serverSettings.ServerLastUpdated >= _dataState.GetLastSync()) // remote changes have occurred
             {
                 LogInformation("changed UserSettingsData detected");
                 await PullSyncableUserData(serverSettings);
@@ -639,7 +639,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             DataSyncResult tasksPullResult = new();
             List<TaskModel> serverTasks = await _taskEndpoint.GetAllTasksForUser();
             var changedRemoteTaskRows = serverTasks.Where(
-                x => x.ServerLastUpdated >= _dataState.LastSync).ToList();
+                x => x.ServerLastUpdated >= _dataState.GetLastSync()).ToList();
 
             LogInformation($"changedRemoteTaskRows count: {changedRemoteTaskRows.Count}");
 
@@ -676,7 +676,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             DataSyncResult projectsPullResult = new();
             List<ProjectModel> serverProjects = await _projectEndpoint.GetAllProjectsForUser();
             var changedRemoteProjectRows = serverProjects.Where(
-                x => x.ServerLastUpdated >= _dataState.LastSync).ToList();
+                x => x.ServerLastUpdated >= _dataState.GetLastSync()).ToList();
 
             LogInformation($"changedRemoteProjectRows count: {changedRemoteProjectRows.Count}");
 
@@ -711,7 +711,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             DataSyncResult contextsPullResult = new();
             List<ContextModel> serverContexts = await _contextEndpoint.GetAllContextsForUser();
             var changedRemoteContextRows = serverContexts.Where(
-                x => x.ServerLastUpdated >= _dataState.LastSync).ToList();
+                x => x.ServerLastUpdated >= _dataState.GetLastSync()).ToList();
 
             LogInformation($"changedRemoteContextRows count: {changedRemoteContextRows.Count}");
 
@@ -761,7 +761,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             ISyncableUserData serverData = userData.DataType == ESyncableUserDataType.User ?
                 await _userEndpoint.GetCurrentUserData() : await _userEndpoint.GetCurrentUserSettings();
 
-            if (serverData.ServerLastUpdated >= _dataState.LastSync)
+            if (serverData.ServerLastUpdated >= _dataState.GetLastSync())
             {
                 // only pull if we didn't just push the change
                 if (userData.DataType == ESyncableUserDataType.User && _pushedUserData == null ||

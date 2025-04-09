@@ -326,7 +326,7 @@ namespace TaskFocusUI.Library.Data.Services
 
                 // update changedTaskData copy of task
                 // note: only need to track pending property changes in ChangedTaskData if task has never been pushed
-                var queuedChangedTask = _dataState.ChangedTaskData!.Find(x => x.TempLocalId == workingTask.TempLocalId);
+                var queuedChangedTask = _dataState.GetChangedTaskData()!.Find(x => x.TempLocalId == workingTask.TempLocalId);
                 if (queuedChangedTask != null) queuedChangedTask.ValueAssign(workingTask);
             }
             else
@@ -337,9 +337,9 @@ namespace TaskFocusUI.Library.Data.Services
 
                 // add copy to ChangedTaskData
                 // don't duplicate if already had another update pending prior to push
-                var alreadyQueued = _dataState.ChangedTaskData.Where(
+                var alreadyQueued = _dataState.GetChangedTaskData().Where(
                     x => x.Id == workingTask.Id);
-                if (!alreadyQueued.Any()) { _dataState.ChangedTaskData.Add(workingTask.Clone()); }
+                if (!alreadyQueued.Any()) { _dataState.GetChangedTaskData().Add(workingTask.Clone()); }
             }
 
             var dataStateTask1 = _dataState.GetTasks()!.Find(x => x.Id == workingTask.Id);
@@ -461,12 +461,14 @@ namespace TaskFocusUI.Library.Data.Services
             if (workingTask.ContextName != null) HandleTaskContextChanged(workingTask);
 
             // give temp local tracking id
-            workingTask.TempLocalId = ++_dataState.TempTaskId;
+            var currentTempId = _dataState.GetTempTaskId();
+            workingTask.TempLocalId = _dataState.SetTempTaskId(++currentTempId);
+
 
             // flag for sync
             workingTask.ClientLastUpdated = DateTimeOffset.Now;
-            _dataState.ChangedTaskData.Add(workingTask.Clone());
-            foreach (var task in _dataState.ChangedTaskData)
+            _dataState.GetChangedTaskData().Add(workingTask.Clone());
+            foreach (var task in _dataState.GetChangedTaskData())
             {
                 Console.WriteLine($"changedTaskData contents: {task.TaskName}, tempLocalId: {task.TempLocalId}");
             }
@@ -490,8 +492,8 @@ namespace TaskFocusUI.Library.Data.Services
                 // local delete
                 var dataStateTask = _dataState.GetTasks()!.Find(x => x.TempLocalId == workingTask.TempLocalId);
                 if (dataStateTask != null) _dataState.GetTasks()!.Remove(dataStateTask);
-                var changedTask = _dataState.ChangedTaskData.Find(x => x.TempLocalId == workingTask.TempLocalId);
-                if (changedTask != null) _dataState.ChangedTaskData.Remove(changedTask!);
+                var changedTask = _dataState.GetChangedTaskData().Find(x => x.TempLocalId == workingTask.TempLocalId);
+                if (changedTask != null) _dataState.GetChangedTaskData().Remove(changedTask!);
                 _dataState.GetWorkingTasks()!.Remove(workingTask);
             }
             else
@@ -502,9 +504,9 @@ namespace TaskFocusUI.Library.Data.Services
                 dataStateTask.ClientLastUpdated = DateTimeOffset.Now;
 
                 // if had an update pending push, don't add a duplicate to changedTaskData
-                var alreadyQueued = _dataState.ChangedTaskData.Where(
+                var alreadyQueued = _dataState.GetChangedTaskData().Where(
                     x => x.Id == dataStateTask.Id);
-                if (alreadyQueued.Count() == 0) { _dataState.ChangedTaskData.Add(dataStateTask.Clone()); }
+                if (alreadyQueued.Count() == 0) { _dataState.GetChangedTaskData().Add(dataStateTask.Clone()); }
 
                 // local delete
                 if (dataStateTask != null) _dataState.GetTasks()!.Remove(dataStateTask);

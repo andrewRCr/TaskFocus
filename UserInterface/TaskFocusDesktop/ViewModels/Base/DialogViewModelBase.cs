@@ -10,6 +10,19 @@ namespace TaskFocusDesktop.ViewModels.Base
 {
     public class DialogViewModelBase : TaskViewModelBase
     {       
+        public DialogViewModelBase(IEventAggregator events,
+                           IAppState appState,
+                           IWindowManager window,
+                           IDataState dataState,
+                           IDataService dataService,
+                           IDataHelper dataHelper) : base(events, appState, window, dataState, dataService, dataHelper)
+        {
+            _events = events;
+            _window = window;
+            _dataService = dataService;
+            _dataHelper = dataHelper;
+        }
+
         protected const string _dialogIdentifier = "ShellDialogHost";
         protected const double _successMsgDisplaySec = 0.65;
 
@@ -93,19 +106,6 @@ namespace TaskFocusDesktop.ViewModels.Base
         }
 
         public RelayCommand CloseDialogCommand => new RelayCommand(execute =>  CloseDialog());
-
-        public DialogViewModelBase(IEventAggregator events,
-                                   IAppState appState,
-                                   IWindowManager window,
-                                   IDataState dataState,
-                                   IDataService dataService,
-                                   IDataHelper dataHelper) : base(events, appState, window, dataState, dataService, dataHelper)
-        {
-            _events = events;
-            _window = window;
-            _dataService = dataService;
-            _dataHelper = dataHelper;
-        }
 
         protected virtual void CloseDialog()
         {

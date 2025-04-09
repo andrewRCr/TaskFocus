@@ -14,6 +14,23 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
 {
     public class UpdateEmailDialogViewModel : DialogViewModelBase
     {
+        public UpdateEmailDialogViewModel(IEventAggregator events,
+                                  IAppState appState,
+                                  IWindowManager window,
+                                  IDataState dataState,
+                                  IDataService dataService,
+                                  IDataHelper dataHelper,
+                                  IUserEndpoint userEndpoint,
+                                  IAPIHelper apiHelper,
+                                  ILoggedInUserModel loggedInUser) : base(events, appState, window, dataState, dataService, dataHelper)
+        {
+            _userEndpoint = userEndpoint;
+            _loggedInUser = loggedInUser;
+            _apiHelper = apiHelper;
+            HeaderText = "UPDATE EMAIL ADDRESS";
+            UpdatedEmailAddress = _dataService.GetDataStateCurrentUser()!.Email;
+        }
+
         private IUserEndpoint _userEndpoint;
         private IAPIHelper _apiHelper;
         private ILoggedInUserModel _loggedInUser;
@@ -28,23 +45,6 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
                 _updatedEmailAddress = value;
                 NotifyOfPropertyChange(() => UpdatedEmailAddress);
             }
-        }
-
-        public UpdateEmailDialogViewModel(IEventAggregator events,
-                                          IAppState appState,
-                                          IWindowManager window,
-                                          IDataState dataState,
-                                          IDataService dataService,
-                                          IDataHelper dataHelper,
-                                          IUserEndpoint userEndpoint,
-                                          IAPIHelper apiHelper,
-                                          ILoggedInUserModel loggedInUser) : base(events, appState, window, dataState, dataService, dataHelper)
-        {
-            _userEndpoint = userEndpoint;
-            _loggedInUser = loggedInUser;
-            _apiHelper = apiHelper;
-            HeaderText = "UPDATE EMAIL ADDRESS";
-            UpdatedEmailAddress = _dataService.GetDataStateCurrentUser()!.Email;
         }
 
         protected override void CloseDialog()

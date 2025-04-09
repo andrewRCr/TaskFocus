@@ -12,8 +12,6 @@ namespace TaskFocusUI.Library.Data.Services
 {
     public partial class DataService : ServiceBase, IDataService, IDataServiceInternal
     {
-        private IAPIHelper _apiHelper;
-
         public DataService(IMapper mapper,
                            IDataHelper dataHelper,
                            IDataState dataState,
@@ -21,8 +19,7 @@ namespace TaskFocusUI.Library.Data.Services
                            ITaskEndpoint taskEndpoint,
                            IProjectEndpoint projectEndpoint,
                            IContextEndpoint contextEndpoint,
-                           ILogger<DataService> logger,
-                           IAPIHelper apiHelper) : base(mapper, dataHelper, dataState, userEndpoint, taskEndpoint, projectEndpoint, contextEndpoint)
+                           ILogger<DataService> logger) : base(mapper, dataHelper, dataState, userEndpoint, taskEndpoint, projectEndpoint, contextEndpoint)
         {
 
             _mapper = mapper;
@@ -34,7 +31,6 @@ namespace TaskFocusUI.Library.Data.Services
             _contextEndpoint = contextEndpoint;
 
             _logger = logger;
-            _apiHelper = apiHelper;
         }
 
         // helper methods
@@ -61,19 +57,39 @@ namespace TaskFocusUI.Library.Data.Services
 
         // for handling manual sync request events
         public event EventHandler<string>? SyncRequestHandler;
-        public event EventHandler<string>? PreLogoutSyncRequestHandler;
+        //public event EventHandler<string>? PreLogoutSyncRequestHandler;
+        public event EventHandler<string>? SyncWithCompletionNotifyRequestHandler;
 
         // for invoking manual sync request events
-        public void InvokeSyncRequest(string sourceName, bool isPreLogoutSync = false)
+        public void InvokeSyncRequest(string sourceName, bool notifyOnCompletion = false)
         {
-            if (isPreLogoutSync) PreLogoutSyncRequestHandler?.Invoke(this, sourceName);
+            if (notifyOnCompletion) SyncWithCompletionNotifyRequestHandler?.Invoke(this, sourceName);
             else SyncRequestHandler?.Invoke(this, sourceName);
         }
 
-        public void ResetDataStatePreLogoutSyncCompletionFlag() => _dataState.PreLogoutSyncCompleted = false;
-
         // for checking if complete data state has been loaded
         public bool IsDataStateLoaded() => _dataState.IsDataLoaded();
+
+        //public bool IsDataStatePreLogoutSyncCompleted() => _dataState.GetPreLogoutSyncCompleted();
+        // for checking if front-end is clear to proceed with some post-sync action (logout, exit)
+        public bool IsAppRequestedSyncCompleted() => _dataState.GetAppRequestedSyncCompleted();
+
+        public void ResetDataStateOnLogout()
+        {
+            _dataState.SetCurrentUser(null);
+            _dataState.SetWorkingCurrentUser(null);
+            _dataState.SetUserSettings(null);
+            _dataState.SetWorkingUserSettings(null);
+            _dataState.SetTasks(null);
+            _dataState.SetWorkingTasks(null);
+            _dataState.SetProjects(null);
+            _dataState.SetWorkingProjects(null);
+            _dataState.SetContexts(null);
+            _dataState.SetWorkingContexts(null);
+            //_dataState.SetPreLogoutSyncCompleted(false);
+            _dataState.SetAppRequestedSyncCompleted(true);
+            _dataState.SetLastSync(DateTimeOffset.MinValue);
+        }
 
         // data state CRUD operations
         // ====================

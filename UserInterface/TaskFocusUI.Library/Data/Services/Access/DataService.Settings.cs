@@ -53,7 +53,7 @@ namespace TaskFocusUI.Library.Data.Services
 
                 // add copy to ChangedSettingsData
                 // don't duplicate if already had another update prior to push
-                if (_dataState.ChangedUserSettingsData == null) _dataState.ChangedUserSettingsData = workingSettings.Clone();
+                if (_dataState.GetChangedSettingsData() == null) _dataState.SetChangedSettingsData(workingSettings.Clone());
 
                 // unlock + trigger UI update
                 Interlocked.Exchange(ref _settingsUpdateEntered, 0);

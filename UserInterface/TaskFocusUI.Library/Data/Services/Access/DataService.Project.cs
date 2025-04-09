@@ -45,7 +45,7 @@ namespace TaskFocusUI.Library.Data.Services
 
                 // update changedProjectData copy of task
                 // note: only need to track pending property changes in changedProjectData if project has never been pushed
-                var queuedChangedProject = _dataState.ChangedProjectData!.Find(x => x.TempLocalId == workingProject.TempLocalId);
+                var queuedChangedProject = _dataState.GetChangedProjectData().Find(x => x.TempLocalId == workingProject.TempLocalId);
                 if (queuedChangedProject != null) queuedChangedProject.ValueAssign(workingProject);
             }
             else
@@ -56,9 +56,9 @@ namespace TaskFocusUI.Library.Data.Services
 
                 // add copy to ChangedProjectData
                 // don't duplicate if already had another update prior to push
-                var alreadyQueued = _dataState.ChangedProjectData.Where(
+                var alreadyQueued = _dataState.GetChangedContextData().Where(
                     x => x.Id == workingProject.Id);
-                if (!alreadyQueued.Any()) { _dataState.ChangedProjectData.Add(workingProject.Clone()); }
+                if (!alreadyQueued.Any()) { _dataState.GetChangedProjectData().Add(workingProject.Clone()); }
             }
         }
 
@@ -131,11 +131,13 @@ namespace TaskFocusUI.Library.Data.Services
             // determine OrderIndex for project
             newDisplayProject.OrderIndex = _dataState.GetProjects()!.Count;
             // give temp local tracking id
-            newDisplayProject.TempLocalId = ++_dataState.TempProjectId;
+            //newDisplayProject.TempLocalId = ++_dataState.TempProjectId;
+            var currentTempId = _dataState.GetTempProjectId();
+            newDisplayProject.TempLocalId = _dataState.SetTempProjectId(++currentTempId);
 
             // flag for sync
             newDisplayProject.ClientLastUpdated = DateTimeOffset.Now;
-            _dataState.ChangedProjectData.Add(newDisplayProject.Clone());
+            _dataState.GetChangedProjectData().Add(newDisplayProject.Clone());
 
             // update local data state
             _dataState.GetWorkingProjects()!.Add(newDisplayProject.Clone());
@@ -173,8 +175,8 @@ namespace TaskFocusUI.Library.Data.Services
                 // local delete
                 var dataStateProject = _dataState.GetProjects()!.Find(x => x.TempLocalId == workingProject.TempLocalId);
                 if (dataStateProject != null) _dataState.GetProjects()!.Remove(dataStateProject);
-                var changedProject = _dataState.ChangedProjectData.Find(x => x.TempLocalId == workingProject.TempLocalId);
-                if (changedProject != null) _dataState.ChangedProjectData.Remove(changedProject);
+                var changedProject = _dataState.GetChangedContextData().Find(x => x.TempLocalId == workingProject.TempLocalId);
+                if (changedProject != null) _dataState.GetChangedContextData().Remove(changedProject);
                 _dataState.GetWorkingProjects()!.Remove(workingProject);              
             }
             else
@@ -185,9 +187,9 @@ namespace TaskFocusUI.Library.Data.Services
                 dataStateProject.ClientLastUpdated = DateTimeOffset.Now;
 
                 // if had an update pending push, don't add a duplicate to changedProjectData
-                var alreadyQueued = _dataState.ChangedProjectData.Where(
+                var alreadyQueued = _dataState.GetChangedContextData().Where(
                     x => x.Id == dataStateProject.Id);
-                if (alreadyQueued.Count() == 0) { _dataState.ChangedProjectData.Add(dataStateProject.Clone()); }
+                if (alreadyQueued.Count() == 0) { _dataState.GetChangedProjectData().Add(dataStateProject.Clone()); }
 
                 // local delete
                 if (dataStateProject != null) _dataState.GetProjects()!.Remove(dataStateProject);

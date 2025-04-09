@@ -5,22 +5,37 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Dynamic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using TaskFocusDesktop.Commands;
 using TaskFocusDesktop.EventModels;
-using TaskFocusUI.Library.Data.State;
-using TaskFocusUI.Library.Models;
 using TaskFocusUI.Library.Data.Services.Access;
+using TaskFocusUI.Library.Data.State;
 using TaskFocusUI.Library.Data.Utilities;
-using System.Collections.Immutable;
+using TaskFocusUI.Library.Models;
 
 namespace TaskFocusDesktop.ViewModels.Base
 {
     public abstract class TaskViewModelBase : ViewModelBase, IHandle<AppWindowHeightChangedEvent>
     {
+        public TaskViewModelBase(IEventAggregator events,
+                         IAppState appState,
+                         IWindowManager window,
+                         IDataState dataState,
+                         IDataService dataService,
+                         IDataHelper dataHelper) : base(events, appState)
+        {
+            _events = events;
+            _window = window;
+            _dataState = dataState;
+            _dataService = dataService;
+            _dataHelper = dataHelper;
+
+            _dataState.DataStateChanged += DataStateChanged;
+            AppWindowHeight = (int)appState.AppWindowHeight;
+        }
+
         protected IWindowManager _window;
         protected IDataState _dataState;
         protected IDataService _dataService;
@@ -68,23 +83,6 @@ namespace TaskFocusDesktop.ViewModels.Base
                 _taskCount = value;
                 NotifyOfPropertyChange(() => TaskCount);
             }
-        }
-
-        public TaskViewModelBase(IEventAggregator events,
-                                 IAppState appState,
-                                 IWindowManager window,
-                                 IDataState dataState,
-                                 IDataService dataService,
-                                 IDataHelper dataHelper) : base(events, appState)
-        {
-            _events = events;
-            _window = window;
-            _dataState = dataState;
-            _dataService = dataService;
-            _dataHelper = dataHelper;
-
-            _dataState.DataStateChanged += DataStateChanged;
-            AppWindowHeight = (int)appState.AppWindowHeight;
         }
 
         public string? OrderingIndex { get; set; }

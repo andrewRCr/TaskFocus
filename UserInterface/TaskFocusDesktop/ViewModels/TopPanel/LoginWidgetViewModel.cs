@@ -14,16 +14,6 @@ namespace TaskFocusDesktop.ViewModels.TopPanel
 {
     public class LoginWidgetViewModel : ViewModelBase
     {
-        private string _username = string.Empty;
-        private string _password = string.Empty;
-        private IAPIHelper _apiHelper;
-        protected IWindowManager _window;
-        protected IUserEndpoint _userEndpoint;
-        private string? _errorMessage;
-        private string _resourceName = "TaskFocus";
-        private string? _defaultUserName;
-        private bool _storedCredentialsWereFound = false;
-
         public LoginWidgetViewModel(IAPIHelper aPIHelper,
                                     IWindowManager window,
                                     IEventAggregator events,
@@ -34,6 +24,15 @@ namespace TaskFocusDesktop.ViewModels.TopPanel
             _window = window;
             _userEndpoint = userEndpoint;
         }
+
+        private string _username = string.Empty;
+        private string _password = string.Empty;
+        private IAPIHelper _apiHelper;
+        protected IWindowManager _window;
+        protected IUserEndpoint _userEndpoint;
+        private string? _errorMessage;
+        private string _resourceName = "TaskFocus";
+        private bool _storedCredentialsWereFound = false;
 
         private bool _enableLoginFormControls;
         public bool EnableLoginFormControls

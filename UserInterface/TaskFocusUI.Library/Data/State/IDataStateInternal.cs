@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using TaskFocusUI.Library.Data.Services.Synchronization;
 using TaskFocusUI.Library.Models;
 
 namespace TaskFocusUI.Library.Data.State
@@ -19,6 +21,21 @@ namespace TaskFocusUI.Library.Data.State
 
         List<ContextDisplayModel>? Contexts { get; set; }
         List<ContextDisplayModel>? WorkingContexts { get; set; }
+
+        DateTimeOffset LastSync { get; set; }
+        //bool PreLogoutSyncCompleted { get; set; }
+        //bool PreAppCloseSyncCompleted { get; set; }
+        bool AppRequestedSyncCompleted { get; set; }
+
+        UserDisplayModel? ChangedUserData { get; set; }
+        UserSettingsDisplayModel? ChangedUserSettingsData { get; set; }
+        List<TaskDisplayModel> ChangedTaskData { get; set; }
+        List<ProjectDisplayModel> ChangedProjectData { get; set; }
+        List<ContextDisplayModel> ChangedContextData { get; set; }
+
+        int TempTaskId { get; set; }
+        int TempProjectId { get; set; }
+        int TempContextId { get; set; }
 
         bool IsDataLoaded();
     }

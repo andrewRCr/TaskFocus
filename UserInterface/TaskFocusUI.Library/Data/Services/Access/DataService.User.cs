@@ -22,12 +22,6 @@ namespace TaskFocusUI.Library.Data.Services
 
         public async Task<bool> CheckUserExists(UserModel user) => await _userEndpoint.CheckUserExists(user);
 
-        public void OnUserLogout()
-        {
-            _dataState.SetCurrentUser(null);
-            _dataState.SetWorkingCurrentUser(null);
-        }
-
         // data state CRUD operations
         // ====================
 
@@ -63,7 +57,7 @@ namespace TaskFocusUI.Library.Data.Services
 
                     // add to changedUserData
                     // don't duplicate if already had another update prior to push
-                    if (_dataState.ChangedUserData == null) _dataState.ChangedUserData = workingCurrentUser.Clone();
+                    if (_dataState.GetChangedUserData() == null) _dataState.SetChangedUserData(workingCurrentUser.Clone());
 
                     // unlock + trigger UI update
                     Interlocked.Exchange(ref _userUpdateEntered, 0);

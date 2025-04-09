@@ -32,6 +32,12 @@ namespace TaskFocusUI.Library.Data.Utilities
 
     public class DataHelper : IDataHelper
     {
+        public DataHelper(IMapper mapper, IDataState dataState)
+        {
+            _mapper = mapper;
+            _dataState = dataState;
+        }
+
         private IMapper _mapper;
         private IDataState _dataState;
 
@@ -41,19 +47,13 @@ namespace TaskFocusUI.Library.Data.Utilities
         public ContextDisplayModel? FocusedContext { get; set; }
         public List<TaskDisplayModel>? FocusedContextTasks { get; set; }
 
-        public DataHelper(IMapper mapper, IDataState dataState)
-        {
-            _mapper = mapper;
-            _dataState = dataState;
-        }
-
         public TaskDataCompareResult HasTaskDataChanged(TaskDisplayModel displayTask)
         {
             TaskModel compareAgainstTask;
 
             if (displayTask.Id == null && displayTask.TempLocalId != null)
             {
-                TaskDisplayModel unpushedTask = _dataState.ChangedTaskData.Find(
+                TaskDisplayModel unpushedTask = _dataState.GetChangedTaskData().Find(
                     x => x.TempLocalId == displayTask.TempLocalId)!;
                 compareAgainstTask = _mapper.Map<TaskModel>(unpushedTask);
             }
@@ -116,7 +116,7 @@ namespace TaskFocusUI.Library.Data.Utilities
 
             if (displayProject.Id == null && displayProject.TempLocalId != null)
             {
-                ProjectDisplayModel unpushedProject = _dataState.ChangedProjectData!.Find(
+                ProjectDisplayModel unpushedProject = _dataState.GetChangedProjectData().Find(
                     x => x.TempLocalId == displayProject.TempLocalId)!;
                 compareAgainstProject = _mapper.Map<ProjectModel>(unpushedProject);
             }
@@ -141,7 +141,7 @@ namespace TaskFocusUI.Library.Data.Utilities
 
         public bool IsNewProjectNameUnique(string proposedProjectName)
         {
-            var unpushedProjects = _dataState.ChangedProjectData.Where(
+            var unpushedProjects = _dataState.GetChangedProjectData().Where(
                 x => x.Id == null && x.TempLocalId != null);
 
             if (_dataState.GetProjects()!.Count == 0 && !unpushedProjects.Any()) { return true; }
@@ -160,7 +160,7 @@ namespace TaskFocusUI.Library.Data.Utilities
 
         public bool IsUpdatedProjectNameUnique(ProjectDisplayModel updatedDisplayProject)
         {
-            var unpushedProjects = _dataState.ChangedProjectData.Where(
+            var unpushedProjects = _dataState.GetChangedProjectData().Where(
     x => x.Id == null && x.TempLocalId != null);
 
             foreach (ProjectDisplayModel project in _dataState.GetProjects()!)
@@ -190,7 +190,7 @@ namespace TaskFocusUI.Library.Data.Utilities
 
             if (displayContext.Id == null && displayContext.TempLocalId != null)
             {
-                ContextDisplayModel unpushedContext = _dataState.ChangedContextData!.Find(
+                ContextDisplayModel unpushedContext = _dataState.GetChangedContextData().Find(
                     x => x.TempLocalId == displayContext.TempLocalId)!;
                 compareAgainstContext = unpushedContext;
             }
@@ -216,7 +216,7 @@ namespace TaskFocusUI.Library.Data.Utilities
 
         public bool IsNewContextNameUnique(string proposedContextName)
         {
-            var unpushedContexts = _dataState.ChangedContextData.Where(
+            var unpushedContexts = _dataState.GetChangedContextData().Where(
                 x => x.Id == null && x.TempLocalId != null);
 
             if (_dataState.GetContexts()!.Count == 0 && !unpushedContexts.Any()) { return true; }
@@ -235,7 +235,7 @@ namespace TaskFocusUI.Library.Data.Utilities
 
         public bool IsUpdatedContextNameUnique(ContextDisplayModel updatedDisplayContext)
         {
-            var unpushedContexts = _dataState.ChangedContextData.Where(
+            var unpushedContexts = _dataState.GetChangedContextData().Where(
     x => x.Id == null && x.TempLocalId != null);
 
             foreach (ContextDisplayModel context in _dataState.GetContexts()!)
