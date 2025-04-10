@@ -50,8 +50,8 @@ namespace TaskFocusWeb
             builder.Services.AddSingleton(new AppState());
             builder.Services.AddSingleton<IDataState, DataState>();
             builder.Services.AddSingleton<IDataHelper, DataHelper>();
-            builder.Services.AddScoped<IDataService, DataService>();
-            builder.Services.AddScoped<IDataSyncService, DataSyncService>();
+            builder.Services.AddSingleton<IDataService, DataService>();
+            builder.Services.AddSingleton<IDataSyncService, DataSyncService>();
 
             IMapper ConfigureAutomapper()
             {

@@ -30,7 +30,7 @@ namespace TaskFocusUI.Library.Data.Utilities
         public DataSyncResult() { }
     }
 
-    public class DataHelper : IDataHelper
+    public partial class DataHelper : IDataHelper
     {
         public DataHelper(IMapper mapper, IDataState dataState)
         {
@@ -41,7 +41,8 @@ namespace TaskFocusUI.Library.Data.Utilities
         private IMapper _mapper;
         private IDataState _dataState;
 
-        // TODO: do these being located here (in this class) make sense? 
+        // note: on interface (IDataHelper), these setters are internal
+        // i.e., front-end read-only
         public ProjectDisplayModel? FocusedProject { get; set; }
         public List<TaskDisplayModel>? FocusedProjectTasks { get; set; }
         public ContextDisplayModel? FocusedContext { get; set; }

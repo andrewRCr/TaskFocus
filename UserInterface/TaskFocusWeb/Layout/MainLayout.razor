@@ -106,14 +106,6 @@
                     <AddNewTaskComponent />
                 }
 
-                <MudLoadingButton @bind-Loading="_syncing"
-                LoadingAdornment="Adornment.None"
-                Variant="Variant.Filled"
-                Color="Color.Primary"
-                OnClick="ManualDataSync">
-                    Sync
-                </MudLoadingButton>
-
             </Authorized>
         </AuthorizeView>
 
@@ -131,7 +123,6 @@
     [Inject]
     protected IDataState DataState { get; private set; } = default!;
 
-    private bool _syncing = false;
     protected bool _drawerOpen = true;
     private bool _isDarkMode = true;
 
@@ -160,16 +151,5 @@
                 DataService.InvokeSyncRequest($"{this.ToString()}: {nameof(OnInitializedAsync)}");
             }
         }
-    }
-
-    // TODO: TEMPORARY; only for testing. remove 
-    private async Task ManualDataSync()
-    {
-        _syncing = true;
-
-        //await DataSyncService.Sync();
-        DataService.InvokeSyncRequest($"{this.ToString()}: {nameof(ManualDataSync)}");
-
-        _syncing = false;
     }
 }

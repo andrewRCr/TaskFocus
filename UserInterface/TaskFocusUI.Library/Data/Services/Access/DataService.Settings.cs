@@ -32,13 +32,10 @@ namespace TaskFocusUI.Library.Data.Services
             var userSettings = await _userEndpoint.GetCurrentUserSettings();
             var displayUserSettings = _mapper.Map<UserSettingsDisplayModel>(userSettings);
 
-            _dataState.SetUserSettings(displayUserSettings);
-            UpdateWorkingSettingsFromDataState();
-
-            _dataState.InvokeDataStateChanged(nameof(EDataRefreshType.Settings)); // TODO: necessary? on set PropertyChanged call should be sufficient if nameof handled right
+            _dataState.SetUserSettings(displayUserSettings); 
+            UpdateWorkingSettingsFromDataState(); // will trigger UI update
         }
 
-        // TODO: needs testing after recent updates
         // validates request, performs additional processing, flags for sync, refreshes UI
         public void UpdateSettingsData(UserSettingsDisplayModel workingSettings)
         {
@@ -55,9 +52,8 @@ namespace TaskFocusUI.Library.Data.Services
                 // don't duplicate if already had another update prior to push
                 if (_dataState.GetChangedSettingsData() == null) _dataState.SetChangedSettingsData(workingSettings.Clone());
 
-                // unlock + trigger UI update
+                // unlock; UI update will be triggered by PropertyChanged call on property set
                 Interlocked.Exchange(ref _settingsUpdateEntered, 0);
-                _dataState.InvokeDataStateChanged(nameof(EDataRefreshType.Settings)); // TODO: necessary? on set PropertyChanged call should be sufficient if nameof handled right
             }
         }
     }

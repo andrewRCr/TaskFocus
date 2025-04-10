@@ -61,11 +61,6 @@ namespace TaskFocusUI.Library.Data.State
         public static void SetLastSync(this IDataState iface,
                                           DateTimeOffset time) => ((IDataStateInternal)iface).LastSync = time;
 
-        //public static bool GetPreLogoutSyncCompleted(this IDataState iface) => ((IDataStateInternal)iface).PreLogoutSyncCompleted;
-
-        //public static void SetPreLogoutSyncCompleted(this IDataState iface,
-        //                                  bool completed) => ((IDataStateInternal)iface).PreLogoutSyncCompleted = completed;
-
         public static bool GetAppRequestedSyncCompleted(this IDataState iface) => ((IDataStateInternal)iface).AppRequestedSyncCompleted;
 
         public static void SetAppRequestedSyncCompleted(this IDataState iface,

@@ -69,7 +69,7 @@ namespace TaskFocusUI.Library.Data.Services
             _dataState.SetWorkingProjects(workingProjectList);
         }
 
-        // do I need this? not currently being called... TODO: re-examine why it's in use for Tasks; is it only needed there and not for Projects/Contexts?
+        // ensure one update call at a time
         public bool IsProjectCurrentlyBeingUpdated(ProjectDisplayModel project)
         {
             if (_projectBeingUpdated != null)
@@ -131,7 +131,6 @@ namespace TaskFocusUI.Library.Data.Services
             // determine OrderIndex for project
             newDisplayProject.OrderIndex = _dataState.GetProjects()!.Count;
             // give temp local tracking id
-            //newDisplayProject.TempLocalId = ++_dataState.TempProjectId;
             var currentTempId = _dataState.GetTempProjectId();
             newDisplayProject.TempLocalId = _dataState.SetTempProjectId(++currentTempId);
 

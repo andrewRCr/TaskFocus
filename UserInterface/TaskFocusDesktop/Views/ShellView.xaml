@@ -301,7 +301,8 @@
                             Background="{StaticResource ForegroundHighlightBrush}"
                             Style="{StaticResource MaterialDesignFlatButton}"
                             Foreground="{StaticResource ForegroundMainBrush}"
-                            IsEnabled="{Binding EnableManualSyncButton}" >
+                            IsEnabled="{Binding EnableManualSyncButton}"
+                            Visibility="Collapsed" >
                         Sync
                     </Button>
 

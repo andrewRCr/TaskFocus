@@ -87,6 +87,8 @@
             return false;
         }
 
+        Console.WriteLine($"NavMenuFull: returned true on HandleDataStateChanged. changed property causing True return: {propertyName}");
+
         if (AppState.CanRefresh)
         {
             InvokeAsync(VerifyAuth);

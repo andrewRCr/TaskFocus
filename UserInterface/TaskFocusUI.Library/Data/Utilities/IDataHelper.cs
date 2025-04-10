@@ -5,10 +5,10 @@ namespace TaskFocusUI.Library.Data.Utilities
 {
     public interface IDataHelper
     {
-        ProjectDisplayModel? FocusedProject { get; set; }
-        List<TaskDisplayModel>? FocusedProjectTasks { get; set; }
-        ContextDisplayModel? FocusedContext { get; set; }
-        List<TaskDisplayModel>? FocusedContextTasks { get; set; }
+        ProjectDisplayModel? FocusedProject { get; internal set; }
+        List<TaskDisplayModel>? FocusedProjectTasks { get; internal set; }
+        ContextDisplayModel? FocusedContext { get; internal set; }
+        List<TaskDisplayModel>? FocusedContextTasks { get; internal set; }
 
         TaskDataCompareResult HasTaskDataChanged(TaskDisplayModel workingTask);
         CollectionDataCompareResult HasProjectDataChanged(ProjectDisplayModel workingProject);

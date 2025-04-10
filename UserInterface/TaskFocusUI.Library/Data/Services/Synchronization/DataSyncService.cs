@@ -129,11 +129,11 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                 // process any time-relevant changes to task state for next sync
                 _dataService.PerformCompletedTaskCleanup();
                 _dataState.SetLastSync(DateTimeOffset.Now); // log
-                LogInformation("InitSync complete; DataState populated");
+                LogInformation("InitSync complete; DataState populated.");
 
                 // initialize periodic sync
                 TimeSpan interval = TimeSpan.FromSeconds(60);
-                //await PeriodicSync(interval); TODO: temporarily disabled during testing
+                await PeriodicSync(interval);
             }
             catch (Exception ex)
             {

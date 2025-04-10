@@ -23,8 +23,6 @@ namespace TaskFocusUI.Library.Data.State
         List<ContextDisplayModel>? WorkingContexts { get; set; }
 
         DateTimeOffset LastSync { get; set; }
-        //bool PreLogoutSyncCompleted { get; set; }
-        //bool PreAppCloseSyncCompleted { get; set; }
         bool AppRequestedSyncCompleted { get; set; }
 
         UserDisplayModel? ChangedUserData { get; set; }

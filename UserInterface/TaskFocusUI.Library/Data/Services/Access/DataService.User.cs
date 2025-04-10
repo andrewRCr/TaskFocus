@@ -33,13 +33,10 @@ namespace TaskFocusUI.Library.Data.Services
         {
             var userData = await _userEndpoint.GetCurrentUserData();
             var displayUserData = _mapper.Map<UserDisplayModel>(userData);
-            _dataState.SetCurrentUser(displayUserData);
-            UpdateWorkingCurrentUserFromDataState();
-
-            _dataState.InvokeDataStateChanged(nameof(EDataRefreshType.User)); // TODO: necessary? on set PropertyChanged call should be sufficient if nameof handled right
+            _dataState.SetCurrentUser(displayUserData); 
+            UpdateWorkingCurrentUserFromDataState(); // will trigger UI update
         }
 
-        // TODO: needs testing after recent updates
         // update local data state: user name data (only)
         // validates request, performs additional processing, flags for sync, refreshes UI
         public void UpdateUserNameData(UserDisplayModel workingCurrentUser)
@@ -59,9 +56,8 @@ namespace TaskFocusUI.Library.Data.Services
                     // don't duplicate if already had another update prior to push
                     if (_dataState.GetChangedUserData() == null) _dataState.SetChangedUserData(workingCurrentUser.Clone());
 
-                    // unlock + trigger UI update
+                    // unlock; UI update will be triggered by PropertyChanged call on property set
                     Interlocked.Exchange(ref _userUpdateEntered, 0);
-                    _dataState.InvokeDataStateChanged(nameof(EDataRefreshType.User)); // TODO: necessary? on set PropertyChanged call should be sufficient if nameof handled right
                 }
             }
         }

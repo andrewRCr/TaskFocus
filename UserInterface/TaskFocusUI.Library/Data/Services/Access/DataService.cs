@@ -57,7 +57,6 @@ namespace TaskFocusUI.Library.Data.Services
 
         // for handling manual sync request events
         public event EventHandler<string>? SyncRequestHandler;
-        //public event EventHandler<string>? PreLogoutSyncRequestHandler;
         public event EventHandler<string>? SyncWithCompletionNotifyRequestHandler;
 
         // for invoking manual sync request events
@@ -70,7 +69,6 @@ namespace TaskFocusUI.Library.Data.Services
         // for checking if complete data state has been loaded
         public bool IsDataStateLoaded() => _dataState.IsDataLoaded();
 
-        //public bool IsDataStatePreLogoutSyncCompleted() => _dataState.GetPreLogoutSyncCompleted();
         // for checking if front-end is clear to proceed with some post-sync action (logout, exit)
         public bool IsAppRequestedSyncCompleted() => _dataState.GetAppRequestedSyncCompleted();
 
@@ -86,8 +84,7 @@ namespace TaskFocusUI.Library.Data.Services
             _dataState.SetWorkingProjects(null);
             _dataState.SetContexts(null);
             _dataState.SetWorkingContexts(null);
-            //_dataState.SetPreLogoutSyncCompleted(false);
-            _dataState.SetAppRequestedSyncCompleted(true);
+            _dataState.SetAppRequestedSyncCompleted(false);
             _dataState.SetLastSync(DateTimeOffset.MinValue);
         }
 

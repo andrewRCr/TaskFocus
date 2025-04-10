@@ -256,33 +256,16 @@ namespace TaskFocusDesktop.ViewModels
 
         public ICommand OpenNewTaskDialogCommand => new RelayCommand(async execute => await ShowDialog(ViewCatalog.DialogView.AddNewTaskDialog));
 
+        // on state refresh, check for a requested post-sync action and fire event to fulfill if needed
         protected bool HandleDataStateChanged(string propertyName, IDataState dataState)
         {
             if (!dataRefreshTriggers.Contains(propertyName)) return false;
 
-            // on refresh, no new sync request + call HandleLogout()
-            _logger.Info($"ShellViewModel: returned true on HandleDataStateChanged. changed property causing True return: {propertyName}");
-            _logger.Info($"dataState.AppRequestedSyncCompleted: {_dataService.IsAppRequestedSyncCompleted()}");
-            _logger.Info($"appState.PendingPostSyncAction: {_appState.PendingPostSyncAction}");
-
-            //EPostSyncAction actionRequest = propertyName == nameof(EPostSyncAction.Logout) ? 
-            //    EPostSyncAction.Logout : EPostSyncAction.Exit;
-            ////EPostSyncAction actionRequest = _dataService.GetPostSyncActionRequest();
-
             if (_appState.PendingPostSyncAction != EPostSyncAction.None)
             {
                 _events.PublishOnUIThreadAsync(new PostSyncActionRequestEvent(_appState.PendingPostSyncAction));
-                _appState.PendingPostSyncAction = EPostSyncAction.None;
+                _appState.PendingPostSyncAction = EPostSyncAction.None; // reset
             }
-
-            //if (_dataService.IsDataStatePreLogoutSyncCompleted())
-            //{
-            //    _events.PublishOnUIThreadAsync(new PreLogoutSyncCompletedEvent());
-            //}
-            //else if (_dataService.IsDataStatePreAppCloseSyncCompleted())
-            //{
-            //    _events.PublishOnUIThreadAsync(new PreAppCloseSyncCompletedEvent());
-            //}
 
             return true;
         }
@@ -292,7 +275,7 @@ namespace TaskFocusDesktop.ViewModels
             bool changesOccured = HandleDataStateChanged(propertyName, dataState);
             if (changesOccured)
             {
-                _logger.Info($"ShellViewModel: returned true on HandleDataStateChanged. changed property causing True return: {propertyName}");
+                //_logger.Info($"ShellViewModel: returned true on HandleDataStateChanged. changed property causing True return: {propertyName}");
             }
         }
 
@@ -364,7 +347,7 @@ namespace TaskFocusDesktop.ViewModels
             {
                 _dataService.InvokeSyncRequest($"{this.ToString()}: {nameof(HandleLogIn)}");
             }
-            EnableManualSyncButton = true;
+            //EnableManualSyncButton = true;
 
             TopWidgetPanel = IoC.Get<AuthWidgetViewModel>();
             await ActivateItemAsync(TopWidgetPanel, new CancellationToken());
@@ -415,13 +398,13 @@ namespace TaskFocusDesktop.ViewModels
             }
         }
 
-        //public async Task ManualSync()
-        //{
-        //    EnableManualSyncButton = false;
-        //    _dataService.InvokeSyncRequest($"{this.ToString()}: {nameof(ManualSync)}");
-        //    _logger.Info("ManualSync has invoked a sync request");
-        //    EnableManualSyncButton = true;
-        //}
+        // disabled; purely for testing
+        public async Task ManualSync()
+        {
+            EnableManualSyncButton = false;
+            _dataService.InvokeSyncRequest($"{this.ToString()}: {nameof(ManualSync)}");
+            //EnableManualSyncButton = true;
+        }
 
         // RequestViewSwitchEvent handler
         public async Task HandleAsync(RequestViewSwitchEvent message, CancellationToken cancellationToken)
