@@ -2,7 +2,6 @@
 
 @inherits _ComponentStateAwareBase
 @inject IDataService DataService
-@inject IUserEndpoint UserEndpoint
 @inject IAuthenticationService AuthService
 @inject ISnackbar Snackbar
 @inject NavigationManager NavManager
@@ -458,7 +457,7 @@
             await DataService.UpdatePassword(_authUserModel);
 
             CheckPasswordModel checkPasswordModel = new() { Email = _authUserModel.Email, Password = _authUserModel.Password };
-            bool success = await UserEndpoint.CheckPasswordValid(checkPasswordModel);
+            bool success = await DataService.CheckPasswordValid(checkPasswordModel);
             _loading = false;
 
             if (success)
@@ -473,7 +472,7 @@
 
                 // send email confirmation
                 UserModel user = new UserModel { Email = _authUserModel.Email };
-                await UserEndpoint.SendPasswordChangeSuccessEmail(user);
+                await DataService.SendPasswordChangeSuccessEmail(user);
             }
             else
             {

@@ -1,8 +1,6 @@
 ﻿using Caliburn.Micro;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using TaskFocusDesktop.Commands;
@@ -18,6 +16,21 @@ namespace TaskFocusDesktop.ViewModels.SidePanel
 {
     public class ContextSubNavMenuViewModel : TaskViewModelBase, INotifyPropertyChanged
     {
+        public ContextSubNavMenuViewModel(IEventAggregator events,
+                                          IAppState appState,
+                                          IWindowManager window,
+                                          IDataState dataState,
+                                          IDataService dataService,
+                                          IDataHelper dataHelper) : base(events, appState, window, dataState, dataService, dataHelper)
+        {
+            AppWindowHeight = (int)appState.AppWindowHeight;
+        }
+
+        public RelayCommand SelectedContextChangedCommand => new RelayCommand(async execute => await OnSelectedContextChanged());
+        public RelayCommand RequestAddNewContextDialogCommand => new RelayCommand(async execute => await RequestAddNewContextDialog());
+        public RelayCommand RequestDeleteSelectedContextDialogCommand => new RelayCommand(async execute => await RequestDeleteSelectedContextDialog());
+        public RelayCommand RequestRenameSelectedContextDialogCommand => new RelayCommand(async execute => await RequestRenameSelectedContextDialog());
+
         private int _contextCount;
         public int ContextCount
         {
@@ -38,45 +51,6 @@ namespace TaskFocusDesktop.ViewModels.SidePanel
                 _maxSubNavMenuHeight = value;
                 NotifyOfPropertyChange(() => MaxSubNavMenuHeight);
             }
-        }
-
-        public ContextSubNavMenuViewModel(IEventAggregator events,
-                                          IAppState appState,
-                                          IWindowManager window,
-                                          IDataState dataState,
-                                          IDataService dataService,
-                                          IDataHelper dataHelper) : base(events, appState, window, dataState, dataService, dataHelper)
-        {
-            AppWindowHeight = (int)appState.AppWindowHeight;
-        }
-
-        public RelayCommand SelectedContextChangedCommand => new RelayCommand(async execute => await OnSelectedContextChanged());
-
-        public RelayCommand RequestAddNewContextDialogCommand => new RelayCommand(async execute => await RequestAddNewContextDialog());
-
-        public RelayCommand RequestDeleteSelectedContextDialogCommand => new RelayCommand(async execute => await RequestDeleteSelectedContextDialog());
-
-        public RelayCommand RequestRenameSelectedContextDialogCommand => new RelayCommand(async execute => await RequestRenameSelectedContextDialog());
-
-        // updates context listbox and containing scrollviewer height values dynamically
-        protected override void UpdateScrollHeight(int appWindowHeight)
-        {
-            int fixedBaseSubMenuHeight = 110;
-            int fixedTotalOtherWindowElementsHeight = 300;
-            int requiredContextListHeight = 36 * ContextCount;
-            MaxSubNavMenuHeight = requiredContextListHeight + fixedBaseSubMenuHeight;
-
-            if (appWindowHeight - fixedTotalOtherWindowElementsHeight < requiredContextListHeight)
-            {
-                int difference = requiredContextListHeight - (appWindowHeight - fixedTotalOtherWindowElementsHeight);
-                ListBoxHeight = requiredContextListHeight - difference;
-            }
-            else
-            {
-                ListBoxHeight = requiredContextListHeight;
-            }
-
-            AppWindowHeight = appWindowHeight;
         }
 
         private async Task OnSelectedContextChanged()
@@ -130,21 +104,8 @@ namespace TaskFocusDesktop.ViewModels.SidePanel
 
             if (!_dataService.IsContextCurrentlyBeingUpdated(senderContext))
             {
-                await _dataService.UpdateContextData(senderContext);
+                _dataService.UpdateContextData(senderContext);
             }
-
-            // if a reorder update, need to prevent a remote data fetch until after the entire collection
-            // has been updated. CanUpdateOrderIndices will only be true on the final task in collection
-            //if (changedProperty!.Contains("Index"))
-            //{
-            //    if (!CanUpdateOrderingIndices) { return; }
-            //    else
-            //    {
-            //        List<ContextDisplayModel> contextsToUpdate = LocalContexts!.ToList();
-            //        await _dataService.UpdateContextsOrderingIndices(contextsToUpdate);
-            //    }
-            //}
-            //else { await _dataService.UpdateContextData(senderContext); }
         }
 
         protected override bool HandleDataStateChanged(string propertyName, IDataState dataState)
@@ -155,8 +116,29 @@ namespace TaskFocusDesktop.ViewModels.SidePanel
             }
 
             LoadAllLocalData();
-            Debug.WriteLine("ContextsSubNavMenuViewModel: returned true on HandleDataStateChanged!");
+            //_logger.Info("ContextsSubNavMenuViewModel: returned true on HandleDataStateChanged!");
             return true;
+        }
+
+        // updates context listbox and containing scrollviewer height values dynamically
+        protected override void UpdateScrollHeight(int appWindowHeight)
+        {
+            int fixedBaseSubMenuHeight = 110;
+            int fixedTotalOtherWindowElementsHeight = 300;
+            int requiredContextListHeight = 36 * ContextCount;
+            MaxSubNavMenuHeight = requiredContextListHeight + fixedBaseSubMenuHeight;
+
+            if (appWindowHeight - fixedTotalOtherWindowElementsHeight < requiredContextListHeight)
+            {
+                int difference = requiredContextListHeight - (appWindowHeight - fixedTotalOtherWindowElementsHeight);
+                ListBoxHeight = requiredContextListHeight - difference;
+            }
+            else
+            {
+                ListBoxHeight = requiredContextListHeight;
+            }
+
+            AppWindowHeight = appWindowHeight;
         }
     }
 }

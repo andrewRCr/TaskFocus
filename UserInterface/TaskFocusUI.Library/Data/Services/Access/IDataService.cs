@@ -23,30 +23,44 @@ namespace TaskFocusUI.Library.Data.Services.Access
         Task FetchRemoteContextAndTasksById(int id);
 
         UserDisplayModel? GetDataStateCurrentUser();
+        Task<UserModel> GetRawCurrentUserData();
         UserSettingsDisplayModel? GetDataStateUserSettings();
         List<TaskDisplayModel>? GetDataStateTasks();
         List<ProjectDisplayModel>? GetDataStateProjects();
         List<ContextDisplayModel>? GetDataStateContexts();
 
-        Task AddTask(TaskDisplayModel displayTask);
+        void AddTask(TaskDisplayModel displayTask);
         void DeleteTask(TaskDisplayModel displayTask);
         void UpdateTaskData(TaskDisplayModel displayTask, bool forceUpdate = false);
         bool IsTaskCurrentlyBeingUpdated(TaskDisplayModel task);
 
         ProjectDisplayModel? AddProject(ProjectModel newProject);
-        Task DeleteProject(ProjectDisplayModel displayProject);
-        Task UpdateProjectData(ProjectDisplayModel displayProject);
+        void DeleteProject(ProjectDisplayModel displayProject);
+        void UpdateProjectData(ProjectDisplayModel displayProject);
         bool IsProjectCurrentlyBeingUpdated(ProjectDisplayModel project);
 
         ContextDisplayModel? AddContext(ContextModel newContext);
-        Task DeleteContext(ContextDisplayModel displayContext);
-        Task UpdateContextData(ContextDisplayModel displayContext);
+        void DeleteContext(ContextDisplayModel displayContext);
+        void UpdateContextData(ContextDisplayModel displayContext);
         bool IsContextCurrentlyBeingUpdated(ContextDisplayModel context);
 
         Task<bool> CheckUserExists(UserModel user);
+        Task<bool> CheckUserEmailConfirmed(UserModel userModel);
+        Task<bool> CheckPasswordValid(CheckPasswordModel checkPasswordModel);
+
+        Task CreateUser(CreateUserModel userModel);
         void UpdateUserNameData(UserDisplayModel displayUserModel);
-        Task RequestUpdateEmail(UserModel user);
+        Task<bool> RequestUpdateEmail(UserModel user);
+        Task ConfirmEmail(ConfirmEmailModel confirmEmailModel);
+        Task ConfirmUpdatedEmail(ConfirmUpdatedEmailModel confirmUpdatedEmailModel);
+
         Task UpdatePassword(CreateUserModel updatedUserModel);
+        Task ResetPassword(ResetPasswordModel resetPasswordModel);
+
         void UpdateSettingsData(UserSettingsDisplayModel workingSettings);
+
+        Task SendEmailConfirmationLink(UserModel userModel);
+        Task SendPasswordResetEmail(UserModel userModel);
+        Task SendPasswordChangeSuccessEmail(UserModel user);
     }
 }

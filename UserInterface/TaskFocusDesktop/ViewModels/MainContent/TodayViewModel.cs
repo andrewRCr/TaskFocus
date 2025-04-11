@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
 using TaskFocusDesktop.ViewModels.Base;
 using TaskFocusUI.Library.Data.Services.Access;
@@ -87,7 +86,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             }
 
             LoadAllLocalData();
-            Debug.WriteLine("TodayViewModel: returned true on HandleDataStateChanged!");
+            //_logger.Info("TodayViewModel: returned true on HandleDataStateChanged!");
             return true;
         }
     }

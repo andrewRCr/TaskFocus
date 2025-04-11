@@ -106,10 +106,7 @@
         }
     }
 
-    protected void SetCanRefresh(bool newCanRefresh)
-    {
-        AppState.CanRefresh = newCanRefresh;
-    }
+    protected void SetCanRefresh(bool newCanRefresh) => AppState.CanRefresh = newCanRefresh;
 
     // to be defined in children as required
     protected virtual bool IsLocalDataLoaded() { return false; }
@@ -162,7 +159,7 @@
     protected void UnsubscribeFromContextPropertyChangedEvents(List<ContextDisplayModel>? contexts)
     {
         if (contexts == null) return;
-        foreach (ContextDisplayModel context in contexts) { context.PropertyChanged -= OnExistingContextPropertyChanged!; }
+        foreach (ContextDisplayModel context in contexts) context.PropertyChanged -= OnExistingContextPropertyChanged!;
     }
 
     // saves updated project data to local data state on property change
@@ -175,7 +172,7 @@
 
         if (!DataService.IsProjectCurrentlyBeingUpdated(senderProject))
         {
-            await DataService.UpdateProjectData(senderProject);
+             DataService.UpdateProjectData(senderProject);
         }
     }
 
@@ -189,7 +186,7 @@
 
         if (!DataService.IsContextCurrentlyBeingUpdated(senderContext))
         {
-            await DataService.UpdateContextData(senderContext);
+            DataService.UpdateContextData(senderContext);
         }
     }
 }

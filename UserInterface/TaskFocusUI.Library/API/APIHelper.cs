@@ -11,15 +11,9 @@ namespace TaskFocusUI.Library.API
 {
     public class APIHelper : IAPIHelper
     {
-        private HttpClient _apiClient;
         private ILogger<APIHelper> _logger;
         private readonly ILoggedInUserModel _loggedInUser;
         private readonly IConfiguration _config;
-
-        public HttpClient APIClient
-        {
-            get { return _apiClient; } 
-        }
 
         public APIHelper(ILoggedInUserModel loggedInUser, IConfiguration config, ILogger<APIHelper> logger = null)
         {
@@ -29,14 +23,19 @@ namespace TaskFocusUI.Library.API
             InitializeClient();
         }
 
+        private HttpClient _apiClient;
+        public HttpClient APIClient => _apiClient;
+
         private void InitializeClient()
         {
-            string api = _config.GetValue<string>("api");
-
-            _apiClient = new HttpClient();
-            _apiClient.BaseAddress = new Uri(api);
-            _apiClient.DefaultRequestHeaders.Accept.Clear();
-            _apiClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            string? api = _config.GetValue<string>("api");
+            if (api != null)
+            {
+                _apiClient = new HttpClient();
+                _apiClient.BaseAddress = new Uri(api);
+                _apiClient.DefaultRequestHeaders.Accept.Clear();
+                _apiClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            }
         }
 
         public async Task<AuthenticatedUser> AuthenticateAsync(string username, string password)

@@ -27,7 +27,7 @@ namespace TaskFocusUI.Library.Data.Utilities
         public int numRowsDeleted = 0;
         public int numRowsUpdated = 0;
 
-        public DataSyncResult() { }
+        public DataSyncResult() {}
     }
 
     public partial class DataHelper : IDataHelper
@@ -41,12 +41,15 @@ namespace TaskFocusUI.Library.Data.Utilities
         private IMapper _mapper;
         private IDataState _dataState;
 
-        // note: on interface (IDataHelper), these setters are internal
-        // i.e., front-end read-only
+        // tracking front-end data focus
+        // note: on interface (IDataHelper), these setters are internal (i.e., front-end read-only)
         public ProjectDisplayModel? FocusedProject { get; set; }
         public List<TaskDisplayModel>? FocusedProjectTasks { get; set; }
         public ContextDisplayModel? FocusedContext { get; set; }
         public List<TaskDisplayModel>? FocusedContextTasks { get; set; }
+
+        // task helpers
+        // ====================
 
         public TaskDataCompareResult HasTaskDataChanged(TaskDisplayModel displayTask)
         {
@@ -111,6 +114,9 @@ namespace TaskFocusUI.Library.Data.Utilities
             return false;
         }
 
+        // project helpers
+        // ====================
+
         public CollectionDataCompareResult HasProjectDataChanged(ProjectDisplayModel displayProject)
         {
             ProjectModel compareAgainstProject;
@@ -145,15 +151,15 @@ namespace TaskFocusUI.Library.Data.Utilities
             var unpushedProjects = _dataState.GetChangedProjectData().Where(
                 x => x.Id == null && x.TempLocalId != null);
 
-            if (_dataState.GetProjects()!.Count == 0 && !unpushedProjects.Any()) { return true; }
+            if (_dataState.GetProjects()!.Count == 0 && !unpushedProjects.Any()) return true;
 
             foreach (ProjectDisplayModel project in _dataState.GetProjects()!)
             {
-                if (project.ProjectName.ToLower() == proposedProjectName.ToLower()) { return false; }
+                if (project.ProjectName.ToLower() == proposedProjectName.ToLower()) return false;
             }
             foreach (ProjectDisplayModel project in unpushedProjects)
             {
-                if (project.ProjectName.ToLower() == proposedProjectName.ToLower()) { return false; }
+                if (project.ProjectName.ToLower() == proposedProjectName.ToLower()) return false;
             }
 
             return true;
@@ -185,6 +191,9 @@ namespace TaskFocusUI.Library.Data.Utilities
             return true;
         }
 
+        // context helpers
+        // ====================
+
         public CollectionDataCompareResult HasContextDataChanged(ContextDisplayModel displayContext)
         {
             ContextDisplayModel compareAgainstContext;
@@ -214,21 +223,20 @@ namespace TaskFocusUI.Library.Data.Utilities
             };
         }
 
-
         public bool IsNewContextNameUnique(string proposedContextName)
         {
             var unpushedContexts = _dataState.GetChangedContextData().Where(
                 x => x.Id == null && x.TempLocalId != null);
 
-            if (_dataState.GetContexts()!.Count == 0 && !unpushedContexts.Any()) { return true; }
+            if (_dataState.GetContexts()!.Count == 0 && !unpushedContexts.Any()) return true;
 
             foreach (ContextDisplayModel context in _dataState.GetContexts()!)
             {
-                if (context.ContextName.ToLower() == proposedContextName.ToLower()) { return false; }
+                if (context.ContextName.ToLower() == proposedContextName.ToLower()) return false;
             }
             foreach (ContextDisplayModel context in unpushedContexts)
             {
-                if (context.ContextName.ToLower() == proposedContextName.ToLower()) { return false; }
+                if (context.ContextName.ToLower() == proposedContextName.ToLower()) return false;
             }
 
             return true;
@@ -260,6 +268,9 @@ namespace TaskFocusUI.Library.Data.Utilities
             return true;
         }
 
+        // user data helpers
+        // ====================
+
         public bool HasSettingsDataChanged(UserSettingsDisplayModel workingSettings)
         {
             static bool AreUserEditablePropertiesEqual(UserSettingsDisplayModel settingsA, UserSettingsDisplayModel settingsB)
@@ -282,6 +293,9 @@ namespace TaskFocusUI.Library.Data.Utilities
 
             return !AreUserEditablePropertiesEqual(workingUser, _dataState.GetCurrentUser()!);
         }
+
+        // synchronization helpers
+        // ====================
 
         public DataSyncResult CombineSyncResults(DataSyncResult resultA, DataSyncResult resultB)
         {

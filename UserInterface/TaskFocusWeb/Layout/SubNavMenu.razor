@@ -121,11 +121,11 @@ Style="background-color: #27272f" >
         // always display if no collections exist
         if (IsProjectsSubMenu && LocalProjects != null)
         {
-            if (!newActive && LocalProjects.Count == 0) { return; }
+            if (!newActive && LocalProjects.Count == 0) return;
         }
         else if (!IsProjectsSubMenu && LocalContexts != null)
         {
-            if (!newActive && LocalContexts.Count == 0) { return; }
+            if (!newActive && LocalContexts.Count == 0) return;
         }
 
         _addCollectionButtonClassStr = newActive ? "ml-1" : "invisible";
@@ -212,8 +212,8 @@ Style="background-color: #27272f" >
 
     private void SetFocusedItemIdStr(int itemId)
     {
-        if (IsProjectsSubMenu) { AppState.FocusedProjectIdStr = itemId.ToString(); }
-        else { AppState.FocusedContextIdStr = itemId.ToString(); ; }
+        if (IsProjectsSubMenu) AppState.FocusedProjectIdStr = itemId.ToString();
+        else AppState.FocusedContextIdStr = itemId.ToString(); ;
     }
 
     private async Task TrySubmitNewCollection()
@@ -224,10 +224,10 @@ Style="background-color: #27272f" >
         {
             Snackbar.Add($"{_collectionTypeName} name is required.", Severity.Error);
         }
-        else { await SubmitNewCollection(); }
+        else { SubmitNewCollection(); }
     }
 
-    private async Task SubmitNewCollection()
+    private void SubmitNewCollection()
     {
         _newCollectionDialogVisible = false;
 
@@ -257,12 +257,8 @@ Style="background-color: #27272f" >
 
     protected override bool HandleDataStateChanged(String propertyName, IDataState dataState)
     {
-        if (!dataRefreshTriggers.Contains(propertyName))
-        {
-            return false;
-        }
-
-        if (AppState.CanRefresh)
+        if (!dataRefreshTriggers.Contains(propertyName)) return false;   
+        else if (AppState.CanRefresh)
         {
             LoadLocalProjectData();
             LoadLocalContextData();

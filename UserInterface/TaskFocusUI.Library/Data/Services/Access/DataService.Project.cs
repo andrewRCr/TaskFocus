@@ -17,7 +17,7 @@ namespace TaskFocusUI.Library.Data.Services
         // helper methods
         // ====================
 
-        private async Task ProcessLocalProjectUpdate(ProjectDisplayModel workingProject, bool nameChanged = false)
+        private void ProcessLocalProjectUpdate(ProjectDisplayModel workingProject, bool nameChanged = false)
         {
             if (nameChanged)
             {
@@ -25,7 +25,6 @@ namespace TaskFocusUI.Library.Data.Services
                 List<TaskDisplayModel> projectTasks;
                 if (workingProject.Id != null)
                 {
-
                     projectTasks = _dataState.GetWorkingTasks()!.Where(x => x.ProjectId == workingProject.Id).ToList();
                     foreach (TaskDisplayModel task in projectTasks)
                     {
@@ -98,7 +97,6 @@ namespace TaskFocusUI.Library.Data.Services
 
             var displayProjectList = _mapper.Map<List<ProjectDisplayModel>>(projectList);
             _dataState.SetProjects(displayProjectList);
-
             UpdateWorkingProjectsFromDataState();
 
             _dataState.InvokeDataStateChanged(nameof(EDataRefreshType.Projects));
@@ -150,7 +148,7 @@ namespace TaskFocusUI.Library.Data.Services
         }
 
         // validates request, processes local delete, flags for sync, refreshes UI
-        public async Task DeleteProject(ProjectDisplayModel workingProject)
+        public void DeleteProject(ProjectDisplayModel workingProject)
         {
             // map from ProjectDisplayModel to ProjectModel
             ProjectModel project = _mapper.Map<ProjectModel>(workingProject);
@@ -200,7 +198,7 @@ namespace TaskFocusUI.Library.Data.Services
         }
 
         // validates request, performs additional processing, flags for sync, refreshes UI
-        public async Task UpdateProjectData(ProjectDisplayModel workingProject)
+        public void UpdateProjectData(ProjectDisplayModel workingProject)
         {
             var compareResult = _dataHelper.HasProjectDataChanged(workingProject);
 
@@ -223,13 +221,13 @@ namespace TaskFocusUI.Library.Data.Services
                 if (Interlocked.Increment(ref _projectUpdateEntered) != 1) { return; }
                 _projectBeingUpdated = workingProject;
 
-                await ProcessLocalProjectUpdate(workingProject, compareResult.CollectionNameChanged);
+                ProcessLocalProjectUpdate(workingProject, compareResult.CollectionNameChanged);
 
                 // unlock
                 Interlocked.Exchange(ref _projectUpdateEntered, 0);
                 _projectBeingUpdated = null;
                 // trigger UI update
-                _dataState.InvokeDataStateChanged("Projects");
+                _dataState.InvokeDataStateChanged(nameof(EDataRefreshType.Projects));
             }
         }
     }

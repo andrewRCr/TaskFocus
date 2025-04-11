@@ -1,6 +1,5 @@
 ﻿using Caliburn.Micro;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Dynamic;
 using System.Threading.Tasks;
@@ -9,7 +8,6 @@ using TaskFocusDesktop.Commands;
 using TaskFocusDesktop.EventModels;
 using TaskFocusDesktop.Utilities;
 using TaskFocusDesktop.ViewModels.Base;
-using TaskFocusUI.Library.Data.Services;
 using TaskFocusUI.Library.Data.Services.Access;
 using TaskFocusUI.Library.Data.State;
 using TaskFocusUI.Library.Data.Utilities;
@@ -19,6 +17,19 @@ namespace TaskFocusDesktop.ViewModels.MainContent
 {
     public class SettingsViewModel : TaskViewModelBase, INotifyPropertyChanged
     {
+        public SettingsViewModel(IEventAggregator events,
+                         IAppState appState,
+                         IWindowManager window,
+                         IDataState dataState,
+                         IDataService dataService,
+                         IDataHelper dataHelper) : base(events, appState, window, dataState, dataService, dataHelper)
+        {
+            dataRefreshTriggers = [nameof(EDataRefreshType.User), nameof(EDataRefreshType.Settings)];
+        }
+
+        public RelayCommand RequestUpdateEmailDialogCommand => new RelayCommand(async execute => await RequestUpdateEmailDialog());
+        public RelayCommand RequestChangePasswordDialogCommand => new RelayCommand(async execute => await RequestChangePasswordDialog());
+
         private UserSettingsDisplayModel _localSettings = default!;
         public UserSettingsDisplayModel LocalSettings
         {
@@ -62,19 +73,6 @@ namespace TaskFocusDesktop.ViewModels.MainContent
                 NotifyOfPropertyChange(() => DeleteDaysTextStr);
             }
         }
-
-        public SettingsViewModel(IEventAggregator events,
-                                 IAppState appState,
-                                 IWindowManager window,
-                                 IDataState dataState,
-                                 IDataService dataService,
-                                 IDataHelper dataHelper) : base(events, appState, window, dataState, dataService, dataHelper)
-        {
-            dataRefreshTriggers = [nameof(EDataRefreshType.User), nameof(EDataRefreshType.Settings)];
-        }
-
-        public RelayCommand RequestUpdateEmailDialogCommand => new RelayCommand(async execute => await RequestUpdateEmailDialog());
-        public RelayCommand RequestChangePasswordDialogCommand => new RelayCommand(async execute => await RequestChangePasswordDialog());
 
         private async Task RequestUpdateEmailDialog()
         {
@@ -155,7 +153,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
 
         protected override bool HandleDataStateChanged(string propertyName, IDataState dataState)
         {
-            if (!dataRefreshTriggers.Contains(propertyName) || ActiveMainContentView != Utilities.ViewCatalog.MainContentView.Settings)
+            if (!dataRefreshTriggers.Contains(propertyName) || ActiveMainContentView != ViewCatalog.MainContentView.Settings)
             {
                 return false;
             }

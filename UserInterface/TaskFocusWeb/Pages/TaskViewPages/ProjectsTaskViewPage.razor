@@ -92,7 +92,7 @@
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        if (!AppState.ShowProjectSubMenu) { AppState.ShowProjectSubMenu = true; }
+        if (!AppState.ShowProjectSubMenu) AppState.ShowProjectSubMenu = true;
     }
 
     protected override void CustomAuthenticatedOnInit()
@@ -122,12 +122,19 @@
 
     protected override bool HandleAppStateChanged(string propertyName, AppState appState)
     {
-        if (propertyName != nameof(AppState.FocusedProjectIdStr) && !appRefreshTriggers.Contains(propertyName))
+        if (propertyName == nameof(AppState.RequestManualRefresh))
+        {
+            if (AppState.CanRefresh)
+            {
+                StateHasChanged();
+                return true;
+            }
+        }
+        else if (propertyName != nameof(AppState.FocusedProjectIdStr) && !appRefreshTriggers.Contains(propertyName))
         {
             return false;     
         }
-
-        if (AppState.CanRefresh)
+        else if (AppState.CanRefresh)
         {
             _focusedProjectIdStr = AppState.FocusedProjectIdStr;
             LoadAlertMessage();
@@ -143,17 +150,11 @@
 
     protected override bool HandleDataStateChanged(String propertyName, IDataState dataState)
     {
-        if (!dataRefreshTriggers.Contains(propertyName))
-        {
-        
-            Console.WriteLine($"ProjectsViewPageBase: returned FALSE on HandleDataStateChanged. changed property causing FALSE return: {propertyName}");
-            return false;
-        }
-
-        if (AppState.CanRefresh)
+        if (!dataRefreshTriggers.Contains(propertyName)) return false;
+        else if (AppState.CanRefresh)
         {
             LoadAllLocalData();
-            Console.WriteLine($"ProjectsViewPageBase: returned true on HandleDataStateChanged. changed property causing True return: {propertyName}");
+            //Console.WriteLine($"ProjectsTaskViewPage: returned true on HandleDataStateChanged. changed property causing True return: {propertyName}");
         }
 
         return AppState.CanRefresh;

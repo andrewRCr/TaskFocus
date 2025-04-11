@@ -1,9 +1,7 @@
 ﻿@page "/"
 @inherits _ComponentStateAwareBase
 @inject NavigationManager NavManager
-@inject IUserEndpoint UserEndpoint
-@using System.ComponentModel.DataAnnotations
-@using TaskFocusUI.Library.Data.State
+@inject IDataService DataService
 
 <PageTitle>TaskFocus</PageTitle>
 
@@ -138,7 +136,7 @@
     {
         _loading = true; // indicate request processing
         UserModel userModel = new() { Email = _userModel.Email };
-        bool validUser = await UserEndpoint.CheckUserExists(userModel);
+        bool validUser = await DataService.CheckUserExists(userModel);
         if (!validUser)
         {
             _loading = false;
@@ -161,7 +159,7 @@
         {
             //_loading = true; // indicate request processing
             UserModel userModel = new() { Email = _userModel.Email };
-            await UserEndpoint.SendPasswordResetEmail(userModel);
+            await DataService.SendPasswordResetEmail(userModel);
             _loading = false;
 
             AppState.AlertSeverity = Severity.Success;

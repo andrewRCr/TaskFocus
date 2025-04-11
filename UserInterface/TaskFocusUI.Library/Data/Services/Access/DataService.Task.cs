@@ -312,8 +312,6 @@ namespace TaskFocusUI.Library.Data.Services
                 if (compareResult.ContextNameChanged) { HandleTaskContextChanged(workingTask); }
                 // handle any adjustments to which view pages the task appears in
                 HandleTaskViewChanges(workingTask);
-
-                //LogInformation(workingTask.ProjectId.ToString());
             }
 
             // update data state Tasks object from WorkingTasks copy
@@ -341,10 +339,6 @@ namespace TaskFocusUI.Library.Data.Services
                     x => x.Id == workingTask.Id);
                 if (!alreadyQueued.Any()) { _dataState.GetChangedTaskData().Add(workingTask.Clone()); }
             }
-
-            var dataStateTask1 = _dataState.GetTasks()!.Find(x => x.Id == workingTask.Id);
-            var dataStateWorkingTask = _dataState.GetWorkingTasks()!.Find(x => x.Id == workingTask.Id);
-            LogInformation($"at processLocalTaskUpdate end, dataStateTask projectId: {dataStateTask1.ProjectId}, dataStateWorkingTask projectId: {dataStateWorkingTask.ProjectId}");
         }
 
         // updates local "working" copy of task data, for use after sync
@@ -435,16 +429,13 @@ namespace TaskFocusUI.Library.Data.Services
             var taskList = await _taskEndpoint.GetAllTasksForUser();
             var displayTaskList = _mapper.Map<List<TaskDisplayModel>>(taskList);
             _dataState.SetTasks(displayTaskList);
-
-            //List<TaskDisplayModel> workingDisplayTaskList = displayTaskList.ConvertAll(task => task.Clone());
-            //_dataState.SetWorkingTasks(workingDisplayTaskList);
             UpdateWorkingTasksFromDataState();
 
             _dataState.InvokeDataStateChanged(nameof(EDataRefreshType.Tasks));
         }
 
         // validates request, processes local add, flags for sync, refreshes UI
-        public async Task AddTask(TaskDisplayModel workingTask)
+        public void AddTask(TaskDisplayModel workingTask)
         {
             if (string.IsNullOrWhiteSpace(workingTask.TaskName)) { return; }
 
@@ -454,7 +445,6 @@ namespace TaskFocusUI.Library.Data.Services
                     .Where(x => x.ProjectId == null || x.ContextId == null).ToList();
 
                 workingTask.InboxIndex = inboxTasks.Count;
-                //LogInformation($"{task.TaskName}: new InboxIndex is {task.InboxIndex}");
             }
 
             if (workingTask.ProjectName != null) HandleTaskProjectChanged(workingTask);
@@ -464,14 +454,9 @@ namespace TaskFocusUI.Library.Data.Services
             var currentTempId = _dataState.GetTempTaskId();
             workingTask.TempLocalId = _dataState.SetTempTaskId(++currentTempId);
 
-
             // flag for sync
             workingTask.ClientLastUpdated = DateTimeOffset.Now;
             _dataState.GetChangedTaskData().Add(workingTask.Clone());
-            foreach (var task in _dataState.GetChangedTaskData())
-            {
-                Console.WriteLine($"changedTaskData contents: {task.TaskName}, tempLocalId: {task.TempLocalId}");
-            }
 
             // update local data state
             _dataState.GetWorkingTasks()!.Add(workingTask.Clone());
@@ -553,48 +538,5 @@ namespace TaskFocusUI.Library.Data.Services
                 _dataState.InvokeDataStateChanged(nameof(EDataRefreshType.Tasks));
             }
         }
-
-        // alternate update method - updates entire task group (arbitrary by view) prior to refreshing UI
-        //public void UpdateTaskViewOrderingIndices(List<TaskDisplayModel> displayTasks)
-        //{
-        //    foreach (TaskDisplayModel displayTask in displayTasks)
-        //    {
-        //        TaskModel task = _mapper.Map<TaskModel>(displayTask);
-        //        TaskDataCompareResult compareResult = _dataHelper.HasTaskDataChanged(displayTask);
-        //        // only update if changed
-        //        if (compareResult.HasChanged)
-        //        {
-        //            // update local data state
-        //            TaskDisplayModel updatedDisplayTask = _mapper.Map<TaskDisplayModel>(task);
-
-        //            if (updatedDisplayTask.Id != null)
-        //            {
-        //                TaskDisplayModel clientTask = _dataState.GetTasks()!.Find(x => x.Id == task.Id)!;
-        //                clientTask = updatedDisplayTask;
-        //                // flag for sync
-        //                clientTask.ClientLastUpdated = DateTimeOffset.Now;
-        //                // if had an update pending push, don't add a duplicate to changedTaskData
-        //                var alreadyQueued = _dataState.ChangedTaskData.Where(
-        //                    x => x.Id == clientTask.Id);
-        //                if (alreadyQueued.Count() == 0) { _dataState.ChangedTaskData.Add(clientTask.Clone()); }
-        //            }
-        //            else
-        //            {
-        //                TaskDisplayModel unpushedClientTask = _dataState.GetTasks()!.Find
-        //                    (x => x.TempLocalId == updatedDisplayTask.TempLocalId)!;
-        //                unpushedClientTask = updatedDisplayTask;
-        //                // flag for sync
-        //                unpushedClientTask.ClientLastUpdated = DateTimeOffset.Now;
-        //                // if had an update pending push, don't add a duplicate to changedTaskData
-        //                var alreadyQueued = _dataState.ChangedTaskData.Where(
-        //                    x => x.TempLocalId == unpushedClientTask.TempLocalId);
-        //                if (alreadyQueued.Count() == 0) { _dataState.ChangedTaskData.Add(unpushedClientTask.Clone()); }
-        //            }
-        //        }
-        //    }
-
-        //    // trigger UI update
-        //    _dataState.InvokeDataStateChanged("Tasks");
-        //}
     }
 }

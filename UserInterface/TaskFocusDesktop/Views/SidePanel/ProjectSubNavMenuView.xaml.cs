@@ -178,7 +178,7 @@ namespace TaskFocusDesktop.Views.SidePanel
             {
                 // flag for highlighting
                 IsDragging = true;
-                Debug.WriteLine("MOUSE DOWN - DRAGGING");
+                //Debug.WriteLine("MOUSE DOWN - DRAGGING");
 
                 object projectItem = frameworkElement.DataContext;
                 DragDropEffects dragDropResult = DragDrop.DoDragDrop(frameworkElement,
@@ -188,7 +188,7 @@ namespace TaskFocusDesktop.Views.SidePanel
                 {
                     UndoPreviewInsertProjectItem();
                     IsDragging = false;
-                    Debug.WriteLine("MOUSE UP - DRAGGING STOPPED");
+                    //Debug.WriteLine("MOUSE UP - DRAGGING STOPPED");
                 }
             }
         }
@@ -233,7 +233,7 @@ namespace TaskFocusDesktop.Views.SidePanel
             {
                 // remove visual highlighting flag
                 IsDragging = false;
-                Debug.WriteLine("DRAGGING STOPPED");
+                //Debug.WriteLine("DRAGGING STOPPED");
 
                 // drag/drop action was fully completed; update remote order accordingly
                 var vm = (ProjectSubNavMenuViewModel)subNavMenuListBox.DataContext;
@@ -287,7 +287,7 @@ namespace TaskFocusDesktop.Views.SidePanel
 
                 // will trigger a local update with new index
                 item[_orderingIndex] = vm.LocalProjects.IndexOf(item);
-                Debug.WriteLine($"{item.ProjectName} OrderIndex: {item[_orderingIndex]}");
+                //Debug.WriteLine($"{item.ProjectName} OrderIndex: {item[_orderingIndex]}");
 
 
                 _previousLocalOrder.Clear();

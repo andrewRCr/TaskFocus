@@ -9,6 +9,8 @@ namespace TaskFocusDesktop.ViewModels.TopPanel
 {
     public class AuthWidgetViewModel : ViewModelBase
     {
+        private ILoggedInUserModel? _loggedInUser;
+
         public AuthWidgetViewModel(ILoggedInUserModel loggedInUser,
                                    IEventAggregator events,
                                    IAppState appState) : base(events, appState)
@@ -16,8 +18,6 @@ namespace TaskFocusDesktop.ViewModels.TopPanel
             _loggedInUser = loggedInUser;
             if (_loggedInUser != null) UserFirstNameStr = _loggedInUser.FirstName;      
         }
-
-        private ILoggedInUserModel? _loggedInUser;
 
         private string? _userFirstNameStr;
         public string? UserFirstNameStr

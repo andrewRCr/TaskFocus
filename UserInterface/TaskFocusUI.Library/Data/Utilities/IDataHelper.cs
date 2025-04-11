@@ -11,16 +11,18 @@ namespace TaskFocusUI.Library.Data.Utilities
         List<TaskDisplayModel>? FocusedContextTasks { get; internal set; }
 
         TaskDataCompareResult HasTaskDataChanged(TaskDisplayModel workingTask);
+        bool IsTaskDueOrOverDue(TaskDisplayModel workingTask);
+
         CollectionDataCompareResult HasProjectDataChanged(ProjectDisplayModel workingProject);
+        bool IsNewProjectNameUnique(string proposedProjectName);
+        bool IsUpdatedProjectNameUnique(ProjectDisplayModel updatedDisplayProject);
+
         CollectionDataCompareResult HasContextDataChanged(ContextDisplayModel workingContext);
+        bool IsNewContextNameUnique(string proposedContextName);
+        bool IsUpdatedContextNameUnique(ContextDisplayModel updatedDisplayContext);
+
         bool HasSettingsDataChanged(UserSettingsDisplayModel workingSettings);
         bool HasUserDataChanged(UserDisplayModel workingUser);
-
-        bool IsTaskDueOrOverDue(TaskDisplayModel workingTask);
-        bool IsNewProjectNameUnique(string proposedProjectName);
-        bool IsNewContextNameUnique(string proposedContextName);
-        bool IsUpdatedProjectNameUnique(ProjectDisplayModel updatedDisplayProject);
-        bool IsUpdatedContextNameUnique(ContextDisplayModel updatedDisplayContext);
 
         DataSyncResult CombineSyncResults(DataSyncResult resultA, DataSyncResult resultB);
         bool SyncChangesDetected(DataSyncResult result);

@@ -120,8 +120,6 @@
                 </MudAutocomplete>
             </MudItem>
 
-
-
             <!-- due date input -->
             <MudItem xs="8" sm="5" md="2" lg="2" xl="2"
             @onmouseover="()=>HideDateText()"
@@ -469,15 +467,10 @@ Style="background-color: #27272f">
 
     protected override bool HandleDataStateChanged(String propertyName, IDataState dataState)
     {
-        if (!dataRefreshTriggers.Contains(propertyName))
-        {
-            return false;
-        }
+        if (!dataRefreshTriggers.Contains(propertyName)) return false;
 
         UpdateParametersFromDataState();
         //Console.WriteLine($"TaskItemComponent: returned true on HandleDataStateChanged. changed property causing True return: {propertyName}");
-
-
 
         return true;
     }

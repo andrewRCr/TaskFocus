@@ -1,5 +1,4 @@
-﻿@using TaskFocusUI.Library.Data.State
-@inherits _ComponentStateAwareBase
+﻿@inherits _ComponentStateAwareBase
 
 @if (ContainerTaskItemsParam.Count > 0)
 {
@@ -70,12 +69,6 @@ else
         {
             _orderingIndex = ContainerOrderingTypeParam + "Index";
             ContainerTaskItemsParam = ContainerTaskItemsParam.OrderBy(x => x[_orderingIndex]).ToList();
-
-            // Console.WriteLine($"{ContainerIdentifierParam} ContainerTaskItemsParam COUNT: {ContainerTaskItemsParam.Count}");
-            // foreach (var item in ContainerTaskItemsParam)
-            // {
-            //     Console.WriteLine($"{ContainerIdentifierParam} ContainerTaskItemsParam task: {item.TaskName}");
-            // }
         }
     }
 

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using TaskFocusUI.Library.Data.Services.Synchronization;
 using TaskFocusUI.Library.Models;
 
 namespace TaskFocusUI.Library.Data.State

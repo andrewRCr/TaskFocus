@@ -57,8 +57,7 @@ namespace TaskFocusUI.Library.Logging
                 // in-memory logging
                 if (logLevel >= _config.InMemoryMinLogLevel)             
                     Memory.LogItem($"[{eventId.Id,2}: {logLevel,-12}] {_name} - {formatter(state, exception)}");              
-            }
-            
+            }         
         }
     }
 }

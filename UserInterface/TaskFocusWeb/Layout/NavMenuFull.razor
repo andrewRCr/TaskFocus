@@ -82,16 +82,13 @@
 
     protected override bool HandleDataStateChanged(string propertyName, IDataState dataState)
     {
-        if (!dataRefreshTriggers.Contains(propertyName))
-        {
-            return false;
-        }
+        if (!dataRefreshTriggers.Contains(propertyName)) return false;        
 
-        Console.WriteLine($"NavMenuFull: returned true on HandleDataStateChanged. changed property causing True return: {propertyName}");
-
-        if (AppState.CanRefresh)
+        else if (AppState.CanRefresh)
         {
+            //Console.WriteLine($"NavMenuFull: returned true on HandleDataStateChanged. changed property causing True return: {propertyName}");
             InvokeAsync(VerifyAuth);
+            StateHasChanged();
         }
 
         return AppState.CanRefresh;

@@ -96,6 +96,13 @@ namespace TaskFocusWeb
             }
         }
 
+        private MudDialogProvider _dialogProvider;
+        public MudDialogProvider DialogProvider
+        {
+            get { return _dialogProvider; }
+            set { _dialogProvider = value; }
+        }
+
         public void ClearAlertMessage()
         {
             _alertSeverity = MudBlazor.Severity.Info;
@@ -108,11 +115,9 @@ namespace TaskFocusWeb
             AlertMessage = "There was an error when attempting to log in. Please try again.";
         }
 
-        private MudDialogProvider _dialogProvider;
-        public MudDialogProvider DialogProvider
+        public void RequestManualRefresh()
         {
-            get { return _dialogProvider; }
-            set { _dialogProvider = value; }
+            AppStateChanged?.Invoke(nameof(RequestManualRefresh), this);
         }
     }
 }

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
 using TaskFocusDesktop.ViewModels.Base;
 using TaskFocusUI.Library.Data.Services.Access;
@@ -67,6 +66,22 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             }
         }
 
+        private void LoadCurrentSettingsStrings()
+        {
+            if (_dataService.IsDataStateLoaded())
+            {
+                string dayStr = _dataService.GetDataStateUserSettings()!.DeleteDelayDays > 1 ? " days" : " day";
+                CurrentDeletionIntervalSettingStr = _dataService.GetDataStateUserSettings()!.DeleteDelayDays.ToString() + dayStr;
+
+                if (_dataService.GetDataStateUserSettings()!.CleanUpImmediately) { CurrentCleanUpIntervalSettingStr = "immediate"; }
+                else
+                {
+                    dayStr = _dataService.GetDataStateUserSettings()!.CleanUpDelayDays > 1 ? " days" : " day";
+                    CurrentCleanUpIntervalSettingStr = _dataService.GetDataStateUserSettings()!.CleanUpDelayDays.ToString() + dayStr;
+                }
+            }
+        }
+
         protected override void OnViewLoaded(object view)
         {
             base.OnViewLoaded(view);
@@ -92,22 +107,6 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             }
         }
 
-        private void LoadCurrentSettingsStrings()
-        {
-            if (_dataService.IsDataStateLoaded())
-            {
-                string dayStr = _dataService.GetDataStateUserSettings()!.DeleteDelayDays > 1 ? " days" : " day";
-                CurrentDeletionIntervalSettingStr = _dataService.GetDataStateUserSettings()!.DeleteDelayDays.ToString() + dayStr;
-
-                if (_dataService.GetDataStateUserSettings()!.CleanUpImmediately) { CurrentCleanUpIntervalSettingStr = "immediate"; }
-                else
-                {
-                    dayStr = _dataService.GetDataStateUserSettings()!.CleanUpDelayDays > 1 ? " days" : " day";
-                    CurrentCleanUpIntervalSettingStr = _dataService.GetDataStateUserSettings()!.CleanUpDelayDays.ToString() + dayStr;
-                }
-            }
-        }
-
         protected override bool HandleDataStateChanged(string propertyName, IDataState dataState)
         {
             if (!dataRefreshTriggers.Contains(propertyName) || ActiveMainContentView != Utilities.ViewCatalog.MainContentView.Completed)
@@ -116,7 +115,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             }
 
             LoadAllLocalData();
-            Debug.WriteLine("CompletedViewModel: returned true on HandleDataStateChanged!");
+            //_logger.Info("CompletedViewModel: returned true on HandleDataStateChanged!");
             return true;
         }
     }

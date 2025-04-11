@@ -1,8 +1,7 @@
 ﻿@inherits _ComponentStateAwareBase
 @inject IAuthenticationService AuthService
-@inject IUserEndpoint UserEndpoint
-@inject NavigationManager NavManager
 @inject IDataService DataService
+@inject NavigationManager NavManager
 
 <MudForm Model="userModel" 
 @ref="_loginForm" 
@@ -93,10 +92,7 @@
         NavManager.NavigateTo("/attemptlogin");
 
         await _loginForm.Validate();
-        if (_loginForm.IsValid)
-        {
-            await ExecuteLogin();
-        }
+        if (_loginForm.IsValid) await ExecuteLogin();      
         else 
         { 
             _working = false;
@@ -109,7 +105,7 @@
     private async Task ExecuteLogin()
     {
         UserModel attemptLoginUserModel = new UserModel { Email = userModel.Email };
-        bool exists = await UserEndpoint.CheckUserExists(attemptLoginUserModel);
+        bool exists = await DataService.CheckUserExists(attemptLoginUserModel);
         if (!exists)
         {
             AppState.AlertSeverity = MudBlazor.Severity.Warning;
@@ -119,7 +115,7 @@
         }
         else
         {
-            bool confirmed = await UserEndpoint.CheckUserEmailConfirmed(attemptLoginUserModel);
+            bool confirmed = await DataService.CheckUserEmailConfirmed(attemptLoginUserModel);
             if (!confirmed)
             {
                 NavManager.NavigateTo($"/unconfirmedemail?email={userModel.Email}");

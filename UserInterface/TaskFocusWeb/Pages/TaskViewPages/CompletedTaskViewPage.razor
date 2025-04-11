@@ -115,13 +115,12 @@
 
     protected override bool HandleDataStateChanged(string propertyName, IDataState dataState)
     {
-        if (!dataRefreshTriggers.Contains(propertyName)) return false;
-        
-        if (AppState.CanRefresh)
+        if (!dataRefreshTriggers.Contains(propertyName)) return false;       
+        else if (AppState.CanRefresh)
         {
             LoadAllLocalData();
             LoadCurrentSettingsStrings();
-            Console.WriteLine($"CompletedTaskViewPage: returned true on HandleDataStateChanged. changed property causing True return: {propertyName}");
+            //Console.WriteLine($"CompletedTaskViewPage: returned true on HandleDataStateChanged. changed property causing True return: {propertyName}");
         }
 
         return AppState.CanRefresh;

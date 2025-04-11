@@ -90,12 +90,8 @@
 
     protected override bool HandleDataStateChanged(string propertyName, IDataState dataState)
     {
-        if (!dataRefreshTriggers.Contains(propertyName))
-        {
-            return false;
-        }
-
-        if (AppState.CanRefresh)
+        if (!dataRefreshTriggers.Contains(propertyName)) return false;
+        else if (AppState.CanRefresh)
         {
             InvokeAsync(VerifyAuth);
         }

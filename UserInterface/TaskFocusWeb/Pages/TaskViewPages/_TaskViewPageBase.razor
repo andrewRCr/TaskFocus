@@ -93,22 +93,17 @@
         string? changedProperty = e.PropertyName;
         TaskDisplayModel senderTask = (TaskDisplayModel)sender;
 
-        //var dataStateTask = DataState.Tasks!.Find(x => x.Id == senderTask.Id);
-        //Console.WriteLine($"workingTask property changed: {senderTask.TaskName}'s property {changedProperty}");
-        //Console.WriteLine($"dataState version is: {dataStateTask![changedProperty!]}");
-
         if (!DataService.IsTaskCurrentlyBeingUpdated(senderTask))
         {
-            Console.WriteLine($"workingTask property changed: {senderTask.TaskName}'s property {changedProperty}");
-            //Console.WriteLine($"dataState version is: {dataStateTask![changedProperty!]}");
+            //Console.WriteLine($"workingTask property changed: {senderTask.TaskName}'s property {changedProperty}");
             DataService.UpdateTaskData(senderTask);
         }
     }
 
     protected override bool HandleAppStateChanged(string propertyName, AppState appState)
     {
-        if (!appRefreshTriggers.Contains(propertyName)) { return false; }
-        if (AppState.CanRefresh) { LoadAlertMessage(); }
+        if (!appRefreshTriggers.Contains(propertyName)) return false;
+        else if (AppState.CanRefresh) LoadAlertMessage();
 
         return AppState.CanRefresh;
     }
@@ -116,8 +111,7 @@
     protected override bool HandleDataStateChanged(string propertyName, IDataState dataState)
     {
         if (!dataRefreshTriggers.Contains(propertyName)) return false;
-
-        if (AppState.CanRefresh)
+        else if (AppState.CanRefresh)
         {
             LoadAllLocalData();
             //Console.WriteLine($"TaskViewPageBase: returned true on HandleDataStateChanged. changed property causing True return: {propertyName}");

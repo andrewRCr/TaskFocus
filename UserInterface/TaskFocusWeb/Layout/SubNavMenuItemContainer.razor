@@ -1,5 +1,4 @@
-﻿@using TaskFocusUI.Library.Data.State
-@inherits _ComponentStateAwareBase
+﻿@inherits _ComponentStateAwareBase
 
 @if (IsProjectsSubMenu)
 {
@@ -66,12 +65,14 @@ else
     {
         UpdateLocalOrder(dropItem, ContainerProjectsParam);
         SetCanRefresh(true);
+        AppState.RequestManualRefresh(); // refresh ProjectsTaskViewPage
     }
 
     private void OnContextItemDropped(MudItemDropInfo<ContextDisplayModel> dropItem)
     {
         UpdateLocalOrder(dropItem, ContainerContextsParam);
         SetCanRefresh(true);
+        AppState.RequestManualRefresh(); // refresh ContextsTaskViewPage
     }
 
     private void RefreshContainer()
@@ -123,8 +124,8 @@ else
 
     protected override bool HandleDataStateChanged(String propertyName, IDataState dataState)
     {
-        if (IsProjectsSubMenu && propertyName != "Projects" || 
-            !IsProjectsSubMenu && propertyName != "Contexts")
+        if (IsProjectsSubMenu && propertyName != nameof(EDataRefreshType.Projects) || 
+            !IsProjectsSubMenu && propertyName != nameof(EDataRefreshType.Contexts))
         {
             return false;
         }

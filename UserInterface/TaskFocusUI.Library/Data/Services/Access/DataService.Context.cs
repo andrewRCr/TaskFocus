@@ -19,7 +19,7 @@ namespace TaskFocusUI.Library.Data.Services
         // helper methods
         // ====================
 
-        private async Task ProcessLocalContextUpdate(ContextDisplayModel workingContext, bool nameChanged = false)
+        private void ProcessLocalContextUpdate(ContextDisplayModel workingContext, bool nameChanged = false)
         {
             if (nameChanged)
             {
@@ -27,7 +27,6 @@ namespace TaskFocusUI.Library.Data.Services
                 List<TaskDisplayModel> contextTasks;
                 if (workingContext.Id != null)
                 {
-
                     contextTasks = _dataState.GetWorkingTasks()!.Where(x => x.ContextId == workingContext.Id).ToList();
                     foreach (TaskDisplayModel task in contextTasks)
                     {
@@ -99,9 +98,7 @@ namespace TaskFocusUI.Library.Data.Services
 
             var displayContextList = _mapper.Map<List<ContextDisplayModel>>(contextList);
             _dataState.SetContexts(displayContextList);
-
-            List<ContextDisplayModel> workingDisplayContextList = displayContextList.ConvertAll(context => context.Clone());
-            _dataState.SetWorkingContexts(workingDisplayContextList);
+            UpdateWorkingContextsFromDataState();
 
             _dataState.InvokeDataStateChanged(nameof(EDataRefreshType.Contexts));
         }
@@ -120,7 +117,7 @@ namespace TaskFocusUI.Library.Data.Services
         // validates request, processes local add, flags for sync, refreshes UI
         public ContextDisplayModel? AddContext(ContextModel newContext)
         {
-            if (string.IsNullOrWhiteSpace(newContext.ContextName)) { return null; }
+            if (string.IsNullOrWhiteSpace(newContext.ContextName)) return null;
 
             if (!_dataHelper.IsNewContextNameUnique(newContext.ContextName))
             {
@@ -133,7 +130,6 @@ namespace TaskFocusUI.Library.Data.Services
             // determine OrderIndex for context
             newDisplayContext.OrderIndex = _dataState.GetContexts()!.Count;
             // give temp local tracking id
-            //newDisplayContext.TempLocalId = ++_dataState.TempContextId;
             var currentTempId = _dataState.GetTempContextId();
             newDisplayContext.TempLocalId = _dataState.SetTempProjectId(++currentTempId);
 
@@ -153,7 +149,7 @@ namespace TaskFocusUI.Library.Data.Services
         }
 
         // validates request, processes local deletion, flags for sync, refreshes UI
-        public async Task DeleteContext(ContextDisplayModel workingContext)
+        public void DeleteContext(ContextDisplayModel workingContext)
         {
             // map from ContextDisplayModel to ContextModel
             ContextModel context = _mapper.Map<ContextModel>(workingContext);
@@ -203,7 +199,7 @@ namespace TaskFocusUI.Library.Data.Services
         }
 
         // validates request, performs additional processing, flags for sync, refreshes UI
-        public async Task UpdateContextData(ContextDisplayModel workingContext)
+        public void UpdateContextData(ContextDisplayModel workingContext)
         {
             CollectionDataCompareResult compareResult = _dataHelper.HasContextDataChanged(workingContext);
 
@@ -227,13 +223,13 @@ namespace TaskFocusUI.Library.Data.Services
             if (Interlocked.Increment(ref _contextUpdateEntered) != 1) { return; }
             _contextBeingUpdated = workingContext;
 
-            await ProcessLocalContextUpdate(workingContext, compareResult.CollectionNameChanged);
+            ProcessLocalContextUpdate(workingContext, compareResult.CollectionNameChanged);
 
             // unlock
             Interlocked.Exchange(ref _contextUpdateEntered, 0);
             _contextBeingUpdated = null;
             // trigger UI update
-            _dataState.InvokeDataStateChanged("Contexts");
+            _dataState.InvokeDataStateChanged(nameof(EDataRefreshType.Contexts));
         }
     }
 }

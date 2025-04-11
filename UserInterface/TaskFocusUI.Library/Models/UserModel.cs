@@ -11,7 +11,7 @@ namespace TaskFocusUI.Library.Models
         public string Email { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
-        public Dictionary<string, string> Roles { get; set; } = new Dictionary<string, string>();
+        public Dictionary<string, string> Roles { get; set; } = [];
 
         // for sync
         public ESyncableUserDataType DataType { get; } = ESyncableUserDataType.User;

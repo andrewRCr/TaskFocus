@@ -14,28 +14,6 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
         private bool _isProjectCollection;   
         private int _focusedCollectionId;
 
-        private string? _focusedCollectionName;
-        public string? FocusedCollectionName
-        {
-            get { return _focusedCollectionName; }
-            set
-            { 
-                _focusedCollectionName = value; 
-                NotifyOfPropertyChange(() => FocusedCollectionName);
-            }
-        }
-
-        private string? _collectionTypeStr;
-        public string? CollectionTypeStr
-        {
-            get { return _collectionTypeStr; }
-            set 
-            { 
-                _collectionTypeStr = value; 
-                NotifyOfPropertyChange(() => CollectionTypeStr);
-            }
-        }
-
         public DeleteCollectionDialogViewModel(IEventAggregator events,
                                                IAppState appState,
                                                IWindowManager window,
@@ -53,6 +31,28 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
             CollectionTypeStr = isProjectCollection ? "project  " : "context  ";
         }
 
+        private string? _focusedCollectionName;
+        public string? FocusedCollectionName
+        {
+            get { return _focusedCollectionName; }
+            set
+            {
+                _focusedCollectionName = value;
+                NotifyOfPropertyChange(() => FocusedCollectionName);
+            }
+        }
+
+        private string? _collectionTypeStr;
+        public string? CollectionTypeStr
+        {
+            get { return _collectionTypeStr; }
+            set
+            {
+                _collectionTypeStr = value;
+                NotifyOfPropertyChange(() => CollectionTypeStr);
+            }
+        }
+
         protected override async Task ProcessSubmitAction()
         {
             if (_isProjectCollection)
@@ -65,7 +65,7 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
                 IsFeedbackError = false;
                 FeedbackMessage = null;
 
-                await _dataService.DeleteProject(SelectedProject);
+                _dataService.DeleteProject(SelectedProject);
 
                 FeedbackMessage = "Project deleted!";
                 await Task.Delay(TimeSpan.FromSeconds(_successMsgDisplaySec));
@@ -84,7 +84,7 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
                 IsFeedbackError = false;
                 FeedbackMessage = null;
 
-                await _dataService.DeleteContext(SelectedContext);
+                _dataService.DeleteContext(SelectedContext);
 
                 FeedbackMessage = "Context deleted!";
                 await Task.Delay(TimeSpan.FromSeconds(_successMsgDisplaySec));

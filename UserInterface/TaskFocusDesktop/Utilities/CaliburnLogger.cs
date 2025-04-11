@@ -1,11 +1,8 @@
 ﻿using Caliburn.Micro;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Windows.Documents;
-using TaskFocusUI.Library.Data.State;
 using TaskFocusUI.Library.Logging;
 
 namespace TaskFocusUI.Library

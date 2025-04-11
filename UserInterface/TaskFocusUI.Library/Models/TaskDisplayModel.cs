@@ -76,7 +76,6 @@ namespace TaskFocusUI.Library.Models
             {
                 _projectName = value;
                 CallPropertyChanged(nameof(ProjectName));
-                //Debug.WriteLine($"{TaskName}'s property ProjectName changed to {ProjectName}");
             }
         }
 

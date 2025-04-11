@@ -9,7 +9,10 @@ using TaskFocusUI.Library.Data.Utilities;
 namespace TaskFocusDesktop.ViewModels.Base
 {
     public class DialogViewModelBase : TaskViewModelBase
-    {       
+    {
+        protected const string _dialogIdentifier = "ShellDialogHost";
+        protected const double _successMsgDisplaySec = 0.65;
+
         public DialogViewModelBase(IEventAggregator events,
                            IAppState appState,
                            IWindowManager window,
@@ -23,10 +26,8 @@ namespace TaskFocusDesktop.ViewModels.Base
             _dataHelper = dataHelper;
         }
 
-        protected const string _dialogIdentifier = "ShellDialogHost";
-        protected const double _successMsgDisplaySec = 0.65;
-
         public RelayCommand ProcessSubmitActionCommand => new RelayCommand(async execute => await ProcessSubmitAction());
+        public RelayCommand CloseDialogCommand => new RelayCommand(execute => CloseDialog());
 
         private string? _feedbackMessage;
         public string? FeedbackMessage
@@ -104,8 +105,6 @@ namespace TaskFocusDesktop.ViewModels.Base
                 NotifyOfPropertyChange(() => HeaderText);
             }
         }
-
-        public RelayCommand CloseDialogCommand => new RelayCommand(execute =>  CloseDialog());
 
         protected virtual void CloseDialog()
         {

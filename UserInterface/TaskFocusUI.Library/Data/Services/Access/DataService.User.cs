@@ -20,13 +20,24 @@ namespace TaskFocusUI.Library.Data.Services
             _dataState.SetWorkingCurrentUser(workingCurrentUser);
         }
 
+        // wrappers, so front-end only deals with the data service
         public async Task<bool> CheckUserExists(UserModel user) => await _userEndpoint.CheckUserExists(user);
+        public async Task<bool> CheckPasswordValid(CheckPasswordModel checkPasswordModel) => await _userEndpoint.CheckPasswordValid(checkPasswordModel);
+        public async Task<bool> CheckUserEmailConfirmed(UserModel userModel) => await _userEndpoint.CheckUserEmailConfirmed(userModel);
+        public async Task ConfirmEmail(ConfirmEmailModel confirmEmailModel) => await _userEndpoint.ConfirmEmail(confirmEmailModel);
+        public async Task ConfirmUpdatedEmail(ConfirmUpdatedEmailModel confirmUpdatedEmailModel) => await _userEndpoint.ConfirmUpdatedEmail(confirmUpdatedEmailModel);
+        public async Task SendEmailConfirmationLink(UserModel userModel) => await _userEndpoint.SendEmailConfirmationLink(userModel);
+        public async Task SendPasswordResetEmail(UserModel userModel) => await _userEndpoint.SendPasswordResetEmail(userModel);
+        public async Task SendPasswordChangeSuccessEmail(UserModel user) => await _userEndpoint.SendPasswordChangeSuccessEmail(user);
 
         // data state CRUD operations
         // ====================
 
         // for front-end access to data state
         public UserDisplayModel? GetDataStateCurrentUser() => _dataState.GetWorkingCurrentUser();
+
+        // for bypassing display mapping
+        public async Task<UserModel> GetRawCurrentUserData() => await _userEndpoint.GetCurrentUserData();
 
         // for populating local data state
         public async Task FetchRemoteUserData()
@@ -36,6 +47,8 @@ namespace TaskFocusUI.Library.Data.Services
             _dataState.SetCurrentUser(displayUserData); 
             UpdateWorkingCurrentUserFromDataState(); // will trigger UI update
         }
+
+        public async Task CreateUser(CreateUserModel userModel) => await _userEndpoint.CreateUser(userModel);
 
         // update local data state: user name data (only)
         // validates request, performs additional processing, flags for sync, refreshes UI
@@ -62,17 +75,18 @@ namespace TaskFocusUI.Library.Data.Services
             }
         }
 
-        public async Task RequestUpdateEmail(UserModel user)
+        public async Task<bool> RequestUpdateEmail(UserModel user)
         {
             // lock
-            if (Interlocked.Increment(ref _userUpdateEntered) != 1) { return; }
+            if (Interlocked.Increment(ref _userUpdateEntered) != 1) { return false; }
 
-            await _userEndpoint.RequestUpdateEmail(user);
+            bool result = await _userEndpoint.RequestUpdateEmail(user);
             // ensure local data state updated, as this property is user-editable and visible
             InvokeSyncRequest(nameof(RequestUpdateEmail)); 
 
             // unlock
             Interlocked.Exchange(ref _userUpdateEntered, 0);
+            return result;
         }
 
         public async Task UpdatePassword(CreateUserModel updatedUserModel)
@@ -85,5 +99,11 @@ namespace TaskFocusUI.Library.Data.Services
             // unlock
             Interlocked.Exchange(ref _userUpdateEntered, 0);
         }
+
+        public async Task ResetPassword(ResetPasswordModel resetPasswordModel) => await _userEndpoint.ResetPassword(resetPasswordModel);
+
+
+
+
     }
 }

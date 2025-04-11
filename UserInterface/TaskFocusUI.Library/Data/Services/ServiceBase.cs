@@ -10,6 +10,16 @@ namespace TaskFocusUI.Library.Data.Services
 {
     public class ServiceBase
     {
+        protected ILogger<ServiceBase>? _logger;
+        protected IMapper _mapper;
+        protected IDataHelper _dataHelper;
+        protected IDataState _dataState;
+
+        protected IUserEndpoint _userEndpoint;
+        protected ITaskEndpoint _taskEndpoint;
+        protected IProjectEndpoint _projectEndpoint;
+        protected IContextEndpoint _contextEndpoint;
+
         public ServiceBase(IMapper mapper,
                            IDataHelper dataHelper,
                            IDataState dataState,
@@ -27,16 +37,6 @@ namespace TaskFocusUI.Library.Data.Services
             _projectEndpoint = projectEndpoint;
             _contextEndpoint = contextEndpoint;
         }
-
-        protected ILogger<ServiceBase>? _logger;
-        protected IMapper _mapper;
-        protected IDataHelper _dataHelper;
-        protected IDataState _dataState;
-
-        protected IUserEndpoint _userEndpoint;
-        protected ITaskEndpoint _taskEndpoint;
-        protected IProjectEndpoint _projectEndpoint;
-        protected IContextEndpoint _contextEndpoint;
 
         // helper methods
         // ====================

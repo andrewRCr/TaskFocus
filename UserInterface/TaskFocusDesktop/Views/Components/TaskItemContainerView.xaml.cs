@@ -126,7 +126,7 @@ namespace TaskFocusDesktop.Views.Components
 
                 // flag for highlighting
                 IsDragging = true;
-                Debug.WriteLine("MOUSE DOWN - DRAGGING");
+                //Debug.WriteLine("MOUSE DOWN - DRAGGING");
 
                 object taskItem = frameworkElement.DataContext;
                 DragDropEffects dragDropResult = DragDrop.DoDragDrop(frameworkElement,
@@ -136,7 +136,7 @@ namespace TaskFocusDesktop.Views.Components
                 {
                     UndoPreviewInsertTaskItem();
                     IsDragging = false;
-                    Debug.WriteLine("MOUSE UP - DRAGGING STOPPED");
+                    //Debug.WriteLine("MOUSE UP - DRAGGING STOPPED");
                 }
             }
         }
@@ -195,7 +195,7 @@ namespace TaskFocusDesktop.Views.Components
             {
                 // remove visual highlighting flag
                 IsDragging = false;
-                Debug.WriteLine("DRAGGING STOPPED");
+                //Debug.WriteLine("DRAGGING STOPPED");
 
                 // drag/drop action was fully completed; update remote order accordingly
                 if (IsProjectContainer)
@@ -319,7 +319,7 @@ namespace TaskFocusDesktop.Views.Components
 
                     // will trigger a DataService.UpdateCollectionOrderingIndices call
                     item[OrderingIndex] = vm.FocusedProjectTasks.IndexOf(item);
-                    Debug.WriteLine($"{item.TaskName} OrderingIndex({OrderingIndex}): {item[OrderingIndex]}");
+                    //Debug.WriteLine($"{item.TaskName} OrderingIndex({OrderingIndex}): {item[OrderingIndex]}");
 
                     // ensure rebuilt local on next drag/drop
                     _previousLocalOrder.Clear();
@@ -341,7 +341,7 @@ namespace TaskFocusDesktop.Views.Components
 
                     // will trigger a DataService.UpdateCollectionOrderingIndices call
                     item[OrderingIndex] = vm.FocusedContextTasks.IndexOf(item);
-                    Debug.WriteLine($"{item.TaskName} OrderingIndex({OrderingIndex}): {item[OrderingIndex]}");
+                    //Debug.WriteLine($"{item.TaskName} OrderingIndex({OrderingIndex}): {item[OrderingIndex]}");
                 }
             }
             else
@@ -359,7 +359,7 @@ namespace TaskFocusDesktop.Views.Components
 
                     // will trigger a DataService.UpdateCollectionOrderingIndices call
                     item[OrderingIndex] = vm.LocalTasks.IndexOf(item);
-                    Debug.WriteLine($"{item.TaskName} OrderingIndex({OrderingIndex}): {item[OrderingIndex]}");
+                    //Debug.WriteLine($"{item.TaskName} OrderingIndex({OrderingIndex}): {item[OrderingIndex]}");
                 }
             }
         }

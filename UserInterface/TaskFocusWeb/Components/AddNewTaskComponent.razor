@@ -1,6 +1,4 @@
-﻿@using TaskFocusUI.Library.Data.Services
-@using TaskFocusUI.Library.Data.Services.Access
-@inherits _ComponentStateAwareBase
+﻿@inherits _ComponentStateAwareBase
 @inject IDataService DataService
 @inject ISnackbar Snackbar
 
@@ -186,12 +184,12 @@
         if (_focusedProjectIdStr != null && AppState.ShowProjectSubMenu)
         {
             GetProjectFromId();
-            if (ProjectParam != null) { _newTask.ProjectName = ProjectParam.ProjectName; }
+            if (ProjectParam != null) _newTask.ProjectName = ProjectParam.ProjectName;
         }
         else if (_focusedContextIdStr != null && AppState.ShowContextSubMenu)
         {
             GetContextFromId();
-            if (ContextParam != null){ _newTask.ContextName = ContextParam.ContextName; }
+            if (ContextParam != null) _newTask.ContextName = ContextParam.ContextName; 
         }
     }
 
@@ -249,18 +247,18 @@
         if (_newTaskForm.IsValid)
         {
             _newTaskInputsVisible = false;
-            await OnValidNewTaskSubmit();
+            OnValidNewTaskSubmit();
         }
         else { Snackbar.Add("Unable to add task; please try again.", Severity.Error); }
     }
 
-    private async Task OnValidNewTaskSubmit()
+    private void OnValidNewTaskSubmit()
     {
         errorMessage = string.Empty;
 
         try
         {
-            await DataService.AddTask(_newTask);
+            DataService.AddTask(_newTask);
             Snackbar.Add("Task added.", Severity.Success);
         }
         catch (Exception ex)

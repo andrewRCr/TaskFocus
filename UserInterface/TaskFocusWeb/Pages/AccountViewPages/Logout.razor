@@ -33,8 +33,8 @@
 
     protected override bool HandleAppStateChanged(string propertyName, AppState appState)
     {
-        if (!appRefreshTriggers.Contains(propertyName)) { return false; }
-        if (AppState.CanRefresh) { Task.Run(async() => await HandleLogout()); }
+        if (!appRefreshTriggers.Contains(propertyName)) return false;
+        if (AppState.CanRefresh) Task.Run(async() => await HandleLogout());
 
         return AppState.CanRefresh;
     }

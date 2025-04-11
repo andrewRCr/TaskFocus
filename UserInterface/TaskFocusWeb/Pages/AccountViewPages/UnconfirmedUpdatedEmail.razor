@@ -4,11 +4,6 @@
 @inject NavigationManager NavManager
 @inject IDataService DataService
 @inject IAuthenticationService AuthService
-@inject IUserEndpoint UserEndpoint
-@using Microsoft.AspNetCore.WebUtilities
-@using TaskFocusUI.Library.Data.Services
-@using TaskFocusUI.Library.Data.Services.Access
-@using TaskFocusUI.Library.Data.State
 
 <PageTitle>TaskFocus</PageTitle>
 
@@ -112,7 +107,7 @@
             {
                 try
                 {
-                    await UserEndpoint.ConfirmUpdatedEmail(_confirmUpdatedEmailModel);
+                    await DataService.ConfirmUpdatedEmail(_confirmUpdatedEmailModel);
 
                     await CheckEmailUpdatedStatus();
                     if (_emailUpdateHasBeenProcessed)
@@ -143,7 +138,7 @@
     {
         if (DataService.GetDataStateCurrentUser != null)
         {
-            UserModel currentUserData = await UserEndpoint.GetCurrentUserData();
+            UserModel currentUserData = await DataService.GetRawCurrentUserData();
             UserModel updatedUserModel = currentUserData;
             updatedUserModel.Email = _confirmUpdatedEmailModel.NewEmail;
 
@@ -173,7 +168,7 @@
     {
         if (_isAuthenticated)
         {
-            UserModel currentUserData = await UserEndpoint.GetCurrentUserData();
+            UserModel currentUserData = await DataService.GetRawCurrentUserData();
             _emailUpdateHasBeenProcessed = currentUserData.Email == _confirmUpdatedEmailModel.NewEmail;
 
             if (!_emailUpdateHasBeenProcessed)

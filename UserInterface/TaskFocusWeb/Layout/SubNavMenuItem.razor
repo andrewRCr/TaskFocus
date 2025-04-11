@@ -1,7 +1,4 @@
-﻿@using TaskFocusUI.Library.Data.Services
-@using TaskFocusUI.Library.Data.Services.Access
-@inherits _ComponentStateAwareBase
-
+﻿@inherits _ComponentStateAwareBase
 @inject IDataService DataService
 @inject ISnackbar Snackbar
 
@@ -174,8 +171,8 @@ Style="background-color: #27272f">
         await VerifyAuthAndRedirectIfExpired();
         _deleteDialogVisible = false;
 
-        if (IsProjectsSubMenu) { await DataService.DeleteProject(ProjectParam); }
-        else { await DataService.DeleteContext(ContextParam); }
+        if (IsProjectsSubMenu) DataService.DeleteProject(ProjectParam);
+        else DataService.DeleteContext(ContextParam);
 
         AppState.DialogProvider.DismissAll();
         Snackbar.Add($"{_collectionTypeName} deleted.", Severity.Success);
