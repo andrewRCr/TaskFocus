@@ -98,11 +98,11 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             {
                 List<TaskDisplayModel> unorderedCompletedTasks = _dataService.GetDataStateTasks()!.Where(x => x.Completed).ToList();
            
-                _completedTasks = new ObservableCollection<TaskDisplayModel>(unorderedCompletedTasks.OrderBy(x => x.DateCompleted).ToList());
-                SubscribeToTaskPropertyChangedEvents(_completedTasks);
+                CompletedTasks = new ObservableCollection<TaskDisplayModel>(unorderedCompletedTasks.OrderBy(x => x.DateCompleted).ToList());
+                SubscribeToTaskPropertyChangedEvents(CompletedTasks);
 
-                ShowEmptyTaskListTutorialText = _completedTasks.Count == 0;
-                TaskCount = _completedTasks.Count;
+                ShowEmptyTaskListTutorialText = CompletedTasks.Count == 0;
+                TaskCount = CompletedTasks.Count;
                 UpdateScrollHeight(AppWindowHeight);
             }
         }

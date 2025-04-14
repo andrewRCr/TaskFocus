@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using TaskFocusDesktop.ViewModels.Base;
 using TaskFocusUI.Library.Data.Services.Access;
@@ -69,11 +70,11 @@ namespace TaskFocusDesktop.ViewModels.MainContent
                     }
                 }
 
-                _todayTasks = new ObservableCollection<TaskDisplayModel>(combinedTodayTasks.OrderBy(x => x.TodayIndex).ToList());
-                SubscribeToTaskPropertyChangedEvents(_todayTasks);
+                TodayTasks = new ObservableCollection<TaskDisplayModel>(combinedTodayTasks.OrderBy(x => x.TodayIndex).ToList());
+                SubscribeToTaskPropertyChangedEvents(TodayTasks);
 
-                ShowEmptyTaskListTutorialText = _todayTasks.Count == 0;
-                TaskCount = _todayTasks.Count;
+                ShowEmptyTaskListTutorialText = TodayTasks.Count == 0;
+                TaskCount = TodayTasks.Count;
                 UpdateScrollHeight(AppWindowHeight);
             }
         }
