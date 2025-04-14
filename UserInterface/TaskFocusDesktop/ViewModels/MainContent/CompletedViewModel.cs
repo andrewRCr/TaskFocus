@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading.Tasks;
+using System.Threading;
+using TaskFocusDesktop.EventModels;
+using TaskFocusDesktop.Utilities;
 using TaskFocusDesktop.ViewModels.Base;
 using TaskFocusUI.Library.Data.Services.Access;
 using TaskFocusUI.Library.Data.State;
@@ -117,6 +121,17 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             LoadAllLocalData();
             //_logger.Info("CompletedViewModel: returned true on HandleDataStateChanged!");
             return true;
+        }
+
+        // ViewSwitchedEvent handler
+        public override async Task HandleAsync(ViewSwitchedEvent message, CancellationToken cancellationToken)
+        {
+            if (message.SwitchedContentPanel == ViewCatalog.ContentPanel.MainContent)
+            {
+                UnsubscribeFromTaskPropertyChangedEvents(CompletedTasks);
+            }
+
+            await base.HandleAsync(message, cancellationToken);
         }
     }
 }

@@ -2,6 +2,7 @@
 using System;
 using System.ComponentModel;
 using System.Dynamic;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using TaskFocusDesktop.Commands;
@@ -162,6 +163,18 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             LoadLocalUserData();
 
             return true;
+        }
+
+        // ViewSwitchedEvent handler
+        public override async Task HandleAsync(ViewSwitchedEvent message, CancellationToken cancellationToken)
+        {
+            if (message.SwitchedContentPanel == ViewCatalog.ContentPanel.MainContent)
+            {
+                LocalCurrentUser.PropertyChanged -= OnExistingUserPropertyChanged!; // unsubscribe from property changed events
+                LocalSettings.PropertyChanged -= OnExistingSettingsPropertyChanged!;
+            }
+
+            await base.HandleAsync(message, cancellationToken);
         }
     }
 }

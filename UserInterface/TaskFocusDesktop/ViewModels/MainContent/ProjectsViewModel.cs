@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using TaskFocusDesktop.EventModels;
+using TaskFocusDesktop.Utilities;
 using TaskFocusDesktop.ViewModels.Base;
 using TaskFocusUI.Library.Data.Services.Access;
 using TaskFocusUI.Library.Data.State;
@@ -122,6 +123,17 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             LoadLocalTaskData();
             //_logger.Info("ProjectsViewModel: returned true on HandleDataStateChanged!");
             return true;
+        }
+
+        // ViewSwitchedEvent handler
+        public override async Task HandleAsync(ViewSwitchedEvent message, CancellationToken cancellationToken)
+        {
+            if (message.SwitchedContentPanel == ViewCatalog.ContentPanel.MainContent)
+            {
+                UnsubscribeFromTaskPropertyChangedEvents(FocusedProjectTasks);
+            }
+
+            await base.HandleAsync(message, cancellationToken);
         }
     }
 }

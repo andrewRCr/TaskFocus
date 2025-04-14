@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using TaskFocusDesktop.Commands;
 using TaskFocusDesktop.EventModels;
+using TaskFocusDesktop.Utilities;
 using TaskFocusUI.Library.Data.Services.Access;
 using TaskFocusUI.Library.Data.State;
 using TaskFocusUI.Library.Data.Utilities;
@@ -308,7 +309,7 @@ namespace TaskFocusDesktop.ViewModels.Base
 
             if (!_dataService.IsTaskCurrentlyBeingUpdated(senderTask))
             {
-                //_logger.Info($"workingTask property changed: {senderTask.TaskName}'s property {changedProperty} was changed.");
+                //_logger.Info($"{this.ToString()}: workingTask property changed: {senderTask.TaskName}'s property {changedProperty} was changed.");
                 _dataService.UpdateTaskData(senderTask);
             }
         }
@@ -390,6 +391,18 @@ namespace TaskFocusDesktop.ViewModels.Base
         {
             UpdateScrollHeight((int)message.NewAppWindowHeight);
             return Task.CompletedTask;
+        }
+
+        // ViewSwitchedEvent handler
+        public override async Task HandleAsync(ViewSwitchedEvent message, CancellationToken cancellationToken)
+        {
+            if (message.SwitchedContentPanel == ViewCatalog.ContentPanel.MainContent)
+            {
+                _dataState.DataStateChanged += DataStateChanged;
+                UnsubscribeFromTaskPropertyChangedEvents(LocalTasks);
+            }
+
+            await base.HandleAsync(message, cancellationToken);
         }
     }
 }
