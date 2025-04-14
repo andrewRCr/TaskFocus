@@ -151,7 +151,7 @@ stages:
           - task: AzureWebApp@1
             displayName: 'Deploy TaskFocusWeb UI app'
             inputs:
-              azureSubscription: 'Azure subscription 1(1)(0af9f1a9-e361-440d-926a-b29173434193)'
+              azureSubscription: 'Azure subscription 1(0af9f1a9-e361-440d-926a-b29173434193)'
               appType: 'webApp'
               appName: 'TaskFocus'
               package: '$(Pipeline.Workspace)/API_drop/TaskFocusWeb.zip'
