@@ -1,5 +1,4 @@
-﻿using Nextended.Core.Extensions;
-using System;
+﻿using System;
 using System.Globalization;
 using System.Windows.Data;
 
@@ -21,7 +20,7 @@ namespace TaskFocusDesktop.Utilities
                 if (direction == Parameters.IsNullOrWhiteSpace)
                 {
                     string valueStr = (string)value;
-                    return valueStr.IsNullOrWhiteSpace();
+                    return string.IsNullOrWhiteSpace(valueStr);
                 }
             }
 

@@ -1,16 +1,18 @@
-﻿using System.ComponentModel;
+﻿using Microsoft.VisualBasic;
+using Newtonsoft.Json;
+using System;
+using System.ComponentModel;
 
 namespace TaskFocusUI.Library.Models
 {
-    public class UserSettingsDisplayModel : INotifyPropertyChanged
+    public class UserSettingsDisplayModel : INotifyPropertyChanged, ISyncableUserData
     {
         public string Id { get; set; }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-        public void CallPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
+        // for sync
+        public ESyncableUserDataType DataType { get; } = ESyncableUserDataType.Settings;
+        public DateTimeOffset ServerLastUpdated { get; set; }
+        public DateTimeOffset ClientLastUpdated { get; set; }
 
         // user-editable properties
         // ====================
@@ -45,6 +47,29 @@ namespace TaskFocusUI.Library.Models
                 _deleteDelayDays = value;
                 CallPropertyChanged(nameof(DeleteDelayDays));
             }
+        }
+
+        public UserSettingsDisplayModel Clone()
+        {
+            var serialized = JsonConvert.SerializeObject(this);
+            return JsonConvert.DeserializeObject<UserSettingsDisplayModel>(serialized)!;
+        }
+
+        // for updating while maintaining references
+        public void ValueAssign(UserSettingsDisplayModel source)
+        {
+            Id = source.Id;
+            CleanUpImmediately = source.CleanUpImmediately;
+            CleanUpDelayDays = source.CleanUpDelayDays;
+            DeleteDelayDays = source.DeleteDelayDays;
+            ServerLastUpdated = source.ServerLastUpdated;
+            ClientLastUpdated = source.ClientLastUpdated;
+        }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+        public void CallPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

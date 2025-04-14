@@ -6,22 +6,22 @@
 
 @if (IsLocalDataLoaded())
 {
-    if (LocalTasks!.Count() > 0)
+    if (_todayTasks!.Count() > 0)
     {
         <MudTreeView T="TaskContainerComponent" Width="100%">
 
             <MudTreeViewItem T="TaskContainerComponent"
-                             Expanded="true"
-                             Icon="@Icons.Material.Filled.Today"
-                             Text="Today"
-                             TextTypo="Typo.button">
+            Expanded="true"
+            Icon="@Icons.Material.Filled.Today"
+            Text="Today"
+            TextTypo="Typo.button">
 
-                <TaskContainerComponent ContainerTaskItemsParam="@LocalTasks" 
-                                        ContainerIdentifierParam="Today" 
-                                        ContainerOrderingTypeParam="Today"
-                                        ContainerItemsSelectorParam="@ItemsSelector"
-                                        ContainerProjectsParam="@LocalProjects" 
-                                        ContainerContextsParam="@LocalContexts" />
+                <TaskContainerComponent ContainerTaskItemsParam="@_todayTasks" 
+                ContainerIdentifierParam="Today" 
+                ContainerOrderingTypeParam="Today"
+                ContainerItemsSelectorParam="@ItemsSelector"
+                ContainerProjectsParam="@LocalProjects" 
+                ContainerContextsParam="@LocalContexts" />
             </MudTreeViewItem>
         </MudTreeView>
     }
@@ -29,10 +29,10 @@
     {
         <MudTreeView T="MudContainer" Width="75%">
             <MudTreeViewItem T="MudContainer"
-                             Expanded="true"
-                             Icon="@Icons.Material.Filled.Today"
-                             Text="Today"
-                             TextTypo="Typo.button">
+            Expanded="true"
+            Icon="@Icons.Material.Filled.Today"
+            Text="Today"
+            TextTypo="Typo.button">
 
                 <MudContainer MaxWidth="MaxWidth.Medium">
                     <MudPaper Elevation="25" Class="pa-0 my-2">
@@ -57,39 +57,34 @@
 </MudContainer>
 
 @code {
+
+    private List<TaskDisplayModel>? _todayTasks;
+
     protected override void CustomAuthenticatedOnInit()
     {
         LoadAllLocalData();
     }
 
-    protected override async Task OnInitializedAsync()
+    protected override bool IsLocalDataLoaded()
     {
-        await base.OnInitializedAsync();
-
-        // remove TodayIndex from any completed (but not CleanedUp) tasks from view if completed > 1 day ago
-        var oldCompletedTodayTasks = DataState.Tasks!.Where(x => x.TodayIndex != null && x.Completed && (x.DateCompleted < DateTime.Now.Date)).ToList();
-        foreach (TaskDisplayModel task in oldCompletedTodayTasks)
-        {
-            // force update: will detect and remove TodayIndex, as well as shift other task indices accordingly if needed
-            await DataService.UpdateTaskData(task, true);
-        }
+        return _todayTasks != null && LocalProjects != null && LocalContexts != null;
     }
 
     protected override void LoadLocalTaskData()
     {
-        if (DataState.IsDataLoaded())
+        if (DataService.IsDataStateLoaded())
         {
-            List<TaskDisplayModel> dueTasks = DataState.Tasks!.Where(x => 
+            List<TaskDisplayModel> dueTasks = DataService.GetDataStateTasks()!.Where(x => 
                 (x.DueDate <= DateTime.Now.Date) && !x.CleanedUp && 
                 (x.DateCompleted == null || x.DateCompleted == DateTime.Now.Date)).ToList();
-            List<TaskDisplayModel> starredTasks = DataState.Tasks!.Where(x => 
+            List<TaskDisplayModel> starredTasks = DataService.GetDataStateTasks()!.Where(x =>
                 (x.Starred == true) && !x.CleanedUp && 
                 (x.DateCompleted == null || x.DateCompleted == DateTime.Now.Date)).ToList();
-            List<TaskDisplayModel> todayTasks = dueTasks.Union(starredTasks).ToList();
+            List<TaskDisplayModel> combinedTodayTasks = dueTasks.Union(starredTasks).ToList();
 
             // ensure any newly due/overdue tasks have a TodayIndex
-            int todayTasksWithTodayIndexCount = todayTasks.Where(x => x.TodayIndex != null).ToList().Count();
-            foreach (TaskDisplayModel task in todayTasks)
+            int todayTasksWithTodayIndexCount = combinedTodayTasks.Where(x => x.TodayIndex != null).ToList().Count();
+            foreach (TaskDisplayModel task in combinedTodayTasks)
             {
                 if (task.DueDate <= DateTime.Now.Date && task.TodayIndex == null)
                 {
@@ -98,40 +93,15 @@
                 }
             }
 
-            todayTasks = todayTasks.OrderBy(x => x.TodayIndex).ToList();
-            LocalTasks = todayTasks;
-            foreach (TaskDisplayModel task in LocalTasks!)
-            {
-                task.PropertyChanged += OnExistingTaskPropertyChanged!; // subscribe to property changed event
-            }
+            _todayTasks = combinedTodayTasks.OrderBy(x => x.TodayIndex).ToList();
+            SubscribeToTaskPropertyChangedEvents(_todayTasks);
         }
     }
 
-    public override bool ItemsSelector(TaskDisplayModel item, string dropzone)
+    public override void Dispose()
     {
-        return true;
-    }
-
-    protected override bool HandleAppStateChanged(string propertyName, AppState appState)
-    {
-        if (!appRefreshTriggers.Contains(propertyName)) { return false; }
-        if (AppState.CanRefresh) { LoadAlertMessage(); }
-
-        return AppState.CanRefresh;
-    }
-
-    protected override bool HandleDataStateChanged(string propertyName, IDataState dataState)
-    {
-        if (!dataRefreshTriggers.Contains(propertyName))
-        {
-            return false;
-        }
-
-        if (AppState.CanRefresh)
-        {
-            LoadAllLocalData();
-        }
-
-        return AppState.CanRefresh;
+        // unsubscribe from event handlers
+        base.Dispose(); // for -= AppStateChanged; -= DataStateChanged;
+        UnsubscribeFromTaskPropertyChangedEvents(_todayTasks);
     }
 }

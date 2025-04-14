@@ -48,7 +48,7 @@ namespace TaskFocusUI.Library.API
             }
         }
 
-        public async Task AddProject(ProjectModel newProject, string userId)
+        public async Task<ProjectModel> AddProject(ProjectModel newProject, string userId)
         {
             newProject.UserId = userId;
 
@@ -57,6 +57,8 @@ namespace TaskFocusUI.Library.API
                 if (response.IsSuccessStatusCode)
                 {
                     _logger?.LogInformation("API: AddProject request processed successfully.");
+                    var result = await response.Content.ReadAsAsync<ProjectModel>();
+                    return result;
                 }
                 else { throw new Exception(response.ReasonPhrase); }
             }

@@ -1,4 +1,5 @@
-﻿@inherits _ComponentBase
+﻿@inherits _ComponentStateAwareBase
+@inject IDataService DataService
 @inject NavigationManager NavManager
 
 @code {
@@ -7,6 +8,13 @@
 
     protected List<string> appRefreshTriggers = new List<string> {
         nameof(AppState.AlertMessage) };
+
+    private List<TaskDisplayModel>? _localTasks;
+    public List<TaskDisplayModel>? LocalTasks
+    {
+        get { return _localTasks; }
+        set { _localTasks = value; }
+    }
 
     protected override void OnInitialized()
     {
@@ -35,5 +43,80 @@
     public virtual bool ItemsSelector(TaskDisplayModel item, string dropzone)
     {
         return true;
+    }
+
+    protected void SubscribeToTaskPropertyChangedEvents(List<TaskDisplayModel>? tasks)
+    {
+        if (tasks == null) return;
+        foreach (TaskDisplayModel task in tasks)
+        {
+            // ensure only one subscriber
+            task.PropertyChanged -= OnExistingTaskPropertyChanged!;
+            task.PropertyChanged += OnExistingTaskPropertyChanged!;
+        }
+    }
+
+    protected void UnsubscribeFromTaskPropertyChangedEvents(List<TaskDisplayModel>? tasks)
+    {
+        if (tasks == null) return;
+        foreach (TaskDisplayModel task in tasks) { task.PropertyChanged -= OnExistingTaskPropertyChanged!; }
+    }
+
+    public override void Dispose()
+    {
+        // unsubscribe from event handlers
+        base.Dispose(); // for -= AppStateChanged; -= DataStateChanged;
+        UnsubscribeFromTaskPropertyChangedEvents(LocalTasks);
+    }
+
+    protected void LoadAllLocalData()
+    {
+        LoadLocalTaskData();
+        LoadLocalProjectData();
+        LoadLocalContextData();
+    }
+
+    protected virtual void LoadLocalTaskData()
+    {
+        // defined differently in children where applicable; this is default behavior
+        if (DataService.IsDataStateLoaded())
+        {
+            LocalTasks = DataService.GetDataStateTasks();
+            SubscribeToTaskPropertyChangedEvents(LocalTasks);
+        }
+    }
+
+    protected async void OnExistingTaskPropertyChanged(object sender, PropertyChangedEventArgs e)
+    {
+        await VerifyAuthAndRedirectIfExpired();
+
+        string? changedProperty = e.PropertyName;
+        TaskDisplayModel senderTask = (TaskDisplayModel)sender;
+
+        if (!DataService.IsTaskCurrentlyBeingUpdated(senderTask))
+        {
+            //Console.WriteLine($"workingTask property changed: {senderTask.TaskName}'s property {changedProperty}");
+            DataService.UpdateTaskData(senderTask);
+        }
+    }
+
+    protected override bool HandleAppStateChanged(string propertyName, AppState appState)
+    {
+        if (!appRefreshTriggers.Contains(propertyName)) return false;
+        else if (AppState.CanRefresh) LoadAlertMessage();
+
+        return AppState.CanRefresh;
+    }
+
+    protected override bool HandleDataStateChanged(string propertyName, IDataState dataState)
+    {
+        if (!dataRefreshTriggers.Contains(propertyName)) return false;
+        else if (AppState.CanRefresh)
+        {
+            LoadAllLocalData();
+            //Console.WriteLine($"TaskViewPageBase: returned true on HandleDataStateChanged. changed property causing True return: {propertyName}");
+        }
+
+        return AppState.CanRefresh;
     }
 }

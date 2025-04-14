@@ -4,25 +4,24 @@ using System.Threading.Tasks;
 using TaskFocusDesktop.EventModels;
 using TaskFocusDesktop.Utilities;
 using TaskFocusDesktop.ViewModels.Base;
-using TaskFocusUI.Library;
-using TaskFocusUI.Library.Utilities;
+using TaskFocusUI.Library.Data.Services.Access;
+using TaskFocusUI.Library.Data.State;
+using TaskFocusUI.Library.Data.Utilities;
 
 namespace TaskFocusDesktop.ViewModels.SidePanel
 {
     public class SubNavMenuViewModel : TaskViewModelBase
     {
-        public bool IsProjectsSubMenu { get { return ActiveMainContentView == ViewCatalog.MainContentView.Projects; } }
+        public bool IsProjectsSubMenu { get => ActiveMainContentView == ViewCatalog.MainContentView.Projects; }
 
-        public string HeaderText { get { return IsProjectsSubMenu ? "PROJECTS" : "CONTEXTS"; } }
+        public string HeaderText { get => IsProjectsSubMenu ? "PROJECTS" : "CONTEXTS"; }
 
         public SubNavMenuViewModel(IEventAggregator events,
                                    IAppState appState,
                                    IWindowManager window,
                                    IDataState dataState,
                                    IDataService dataService,
-                                   IDataHelper dataHelper) : base(events, appState, window, dataState, dataService, dataHelper)
-        {
-        }
+                                   IDataHelper dataHelper) : base(events, appState, window, dataState, dataService, dataHelper) {}
 
         public override async Task HandleAsync(ViewSwitchedEvent message, CancellationToken cancellationToken)
         {

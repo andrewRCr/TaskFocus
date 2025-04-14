@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
 using TaskFocusDesktop.ViewModels.Base;
-using TaskFocusUI.Library;
+using TaskFocusUI.Library.Data.Services.Access;
+using TaskFocusUI.Library.Data.State;
+using TaskFocusUI.Library.Data.Utilities;
 using TaskFocusUI.Library.Models;
-using TaskFocusUI.Library.Utilities;
 
 namespace TaskFocusDesktop.ViewModels.MainContent
 {
@@ -21,6 +21,17 @@ namespace TaskFocusDesktop.ViewModels.MainContent
                               IDataHelper dataHelper) : base(events, appState, window, dataState, dataService, dataHelper)
         {
             OrderingIndex = "InboxIndex";
+        }
+
+        private ObservableCollection<TaskDisplayModel>? _inboxTasks;
+        public ObservableCollection<TaskDisplayModel>? InboxTasks
+        {
+            get { return _inboxTasks; }
+            set
+            {
+                _inboxTasks = value;
+                NotifyOfPropertyChange(() => InboxTasks);
+            }
         }
 
         private bool _showEmptyTaskListTutorialText = false;
@@ -42,44 +53,17 @@ namespace TaskFocusDesktop.ViewModels.MainContent
 
         protected override void LoadLocalTaskData()
         {
-            if (_dataState.IsDataLoaded())
+            if (_dataService.IsDataStateLoaded())
             {
-                List<TaskDisplayModel> inboxTasks = _dataState.Tasks!.Where(x => (x.ProjectId == null || x.ContextId == null) && !x.CleanedUp).ToList();
-                var orderedInboxTasks = inboxTasks.OrderBy(x => x.InboxIndex);
-                inboxTasks = orderedInboxTasks.ToList();
-                LocalTasks = new ObservableCollection<TaskDisplayModel>(inboxTasks);
+                List<TaskDisplayModel> unorderedInboxTasks = _dataService.GetDataStateTasks()!.Where(
+                    x => (x.ProjectId == null || x.ContextId == null) && !x.CleanedUp).ToList();
+                InboxTasks = new ObservableCollection<TaskDisplayModel>(unorderedInboxTasks.OrderBy(x => x.InboxIndex).ToList());
+                SubscribeToTaskPropertyChangedEvents(InboxTasks);
 
-                foreach (TaskDisplayModel task in LocalTasks!)
-                {
-                    task.PropertyChanged += OnExistingTaskPropertyChanged!; // subscribe to property changed event
-                }
-
-                ShowEmptyTaskListTutorialText = LocalTasks.Count == 0;
-
-                TaskCount = LocalTasks.Count;
+                ShowEmptyTaskListTutorialText = InboxTasks.Count == 0;
+                TaskCount = InboxTasks.Count;
                 UpdateScrollHeight(AppWindowHeight);
             }
-        }
-
-        // saves updated task data to server on property change
-        protected override async void OnExistingTaskPropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            string? changedProperty = e.PropertyName;
-            TaskDisplayModel senderTask = (TaskDisplayModel)sender;
-            _logger.Info($"{senderTask.TaskName}'s property {changedProperty} was changed.");
-
-            // if a reorder update, need to prevent a remote data fetch until after the entire collection
-            // has been updated. CanUpdateOrderIndices will only be true on the final task in collection
-            if (changedProperty!.Contains("Index"))
-            {
-                if (!CanUpdateOrderingIndices) { return; }
-                else
-                {
-                    List<TaskDisplayModel> tasksToUpdate = LocalTasks!.ToList();
-                    await _dataService.UpdateCollectionOrderingIndices(tasksToUpdate);               
-                }
-            }
-            else { await _dataService.UpdateTaskData(senderTask); }
         }
 
         protected override bool HandleDataStateChanged(string propertyName, IDataState dataState)
@@ -90,7 +74,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             }
 
             LoadAllLocalData();
-            Debug.WriteLine("InboxViewModel: returned true on HandleDataStateChanged!");
+            //_logger.Info($"InboxViewModel: returned true on HandleDataStateChanged! due to property: {propertyName}");
             return true;
         }
     }

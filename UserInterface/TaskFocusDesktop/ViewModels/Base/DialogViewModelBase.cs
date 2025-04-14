@@ -2,17 +2,32 @@
 using MaterialDesignThemes.Wpf;
 using System.Threading.Tasks;
 using TaskFocusDesktop.Commands;
-using TaskFocusUI.Library;
-using TaskFocusUI.Library.Utilities;
+using TaskFocusUI.Library.Data.State;
+using TaskFocusUI.Library.Data.Services.Access;
+using TaskFocusUI.Library.Data.Utilities;
 
 namespace TaskFocusDesktop.ViewModels.Base
 {
     public class DialogViewModelBase : TaskViewModelBase
-    {       
+    {
         protected const string _dialogIdentifier = "ShellDialogHost";
         protected const double _successMsgDisplaySec = 0.65;
 
+        public DialogViewModelBase(IEventAggregator events,
+                           IAppState appState,
+                           IWindowManager window,
+                           IDataState dataState,
+                           IDataService dataService,
+                           IDataHelper dataHelper) : base(events, appState, window, dataState, dataService, dataHelper)
+        {
+            _events = events;
+            _window = window;
+            _dataService = dataService;
+            _dataHelper = dataHelper;
+        }
+
         public RelayCommand ProcessSubmitActionCommand => new RelayCommand(async execute => await ProcessSubmitAction());
+        public RelayCommand CloseDialogCommand => new RelayCommand(execute => CloseDialog());
 
         private string? _feedbackMessage;
         public string? FeedbackMessage
@@ -89,21 +104,6 @@ namespace TaskFocusDesktop.ViewModels.Base
                 _headerText = value;
                 NotifyOfPropertyChange(() => HeaderText);
             }
-        }
-
-        public RelayCommand CloseDialogCommand => new RelayCommand(execute =>  CloseDialog());
-
-        public DialogViewModelBase(IEventAggregator events,
-                                   IAppState appState,
-                                   IWindowManager window,
-                                   IDataState dataState,
-                                   IDataService dataService,
-                                   IDataHelper dataHelper) : base(events, appState, window, dataState, dataService, dataHelper)
-        {
-            _events = events;
-            _window = window;
-            _dataService = dataService;
-            _dataHelper = dataHelper;
         }
 
         protected virtual void CloseDialog()

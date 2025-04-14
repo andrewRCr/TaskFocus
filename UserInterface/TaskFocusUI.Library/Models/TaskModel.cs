@@ -20,5 +20,9 @@ namespace TaskFocusUI.Library.Models
         public bool Starred { get; set; } = false;
         public int? TodayIndex { get; set; }
         public bool CleanedUp { get; set; } = false;
+        // for sync
+        public DateTimeOffset ServerLastUpdated { get; set; }
+        public DateTimeOffset ClientLastUpdated { get; set; }
+        public DateTimeOffset? Deleted { get; set; }
     }
 }

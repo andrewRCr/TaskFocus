@@ -1,12 +1,9 @@
 ﻿@page "/register"
 
-@inherits _ComponentBase
+@inherits _ComponentStateAwareBase
 @inject IDataService DataService
-@inject IUserEndpoint UserEndpoint
 @inject IAuthenticationService AuthService
 @inject NavigationManager NavManager
-@using System.Text.RegularExpressions
-@using System.ComponentModel.DataAnnotations
 
 @if (!string.IsNullOrWhiteSpace(errorMessage))
 {
@@ -162,10 +159,10 @@
         {
             // indicate processing to user
             _loading = true;
-            await UserEndpoint.CreateUser(userModel);
+            await DataService.CreateUser(userModel);
 
             UserModel createdUserModel = new() { Email = userModel.Email };
-            bool success = await UserEndpoint.CheckUserExists(createdUserModel);
+            bool success = await DataService.CheckUserExists(createdUserModel);
             if (success)
             {
                 // set Alert notification + navigate to unconfirmed email page

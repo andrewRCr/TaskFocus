@@ -14,7 +14,9 @@
 	@ContextIndex int,
 	@Starred bit,
 	@TodayIndex int,
-	@CleanedUp bit
+	@CleanedUp bit,
+	@ClientLastUpdated datetimeoffset(7),
+	@ServerLastUpdated datetimeoffset(7)
 AS
 BEGIN
 	SET NOCOUNT ON;
@@ -31,6 +33,8 @@ BEGIN
 		ContextIndex = @ContextIndex,
 		Starred = cast(@Starred as bit),
 		TodayIndex = @TodayIndex,
-		CleanedUp = cast(@CleanedUp as bit)
+		CleanedUp = cast(@CleanedUp as bit),
+		ClientLastUpdated = @ClientLastUpdated,
+		ServerLastUpdated = @ServerLastUpdated
 	WHERE Id = @Id;
 END

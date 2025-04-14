@@ -30,11 +30,12 @@ namespace TaskFocusAPI.Library.DataAccess
             return contexts;
         }
 
-        public void AddContext(ContextModel newContext, string userId)
+        public ContextModel AddContext(ContextModel newContext, string userId)
         {
             newContext.UserId = userId;
 
-            _sqlDataAccess.SaveData("dbo.spContext_Insert", newContext, "TaskFocusData");
+            var insertedRow = _sqlDataAccess.SaveDataAndLoadInsertedRow("dbo.spContext_Insert", newContext, "TaskFocusData");
+            return insertedRow.FirstOrDefault();
         }
 
         public void UpdateContextData(ContextModel frontEndContext)
@@ -53,6 +54,10 @@ namespace TaskFocusAPI.Library.DataAccess
 
             dbContext.ContextName = frontEndContext.ContextName.Trim();
             dbContext.OrderIndex = frontEndContext.OrderIndex;
+
+            // sync meta-data
+            dbContext.ClientLastUpdated = frontEndContext.ClientLastUpdated;
+            dbContext.ServerLastUpdated = frontEndContext.ServerLastUpdated;
 
             try
             {

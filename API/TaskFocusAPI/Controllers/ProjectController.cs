@@ -32,10 +32,11 @@ namespace TaskFocusAPI.Controllers
         }
 
         [HttpPost]
-        public void Post(ProjectModel newProject)
+        public ProjectModel Post(ProjectModel newProject)
         {
             string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            _projectData.AddProject(newProject, userId);
+            ProjectModel insertedProject = _projectData.AddProject(newProject, userId);
+            return insertedProject;
         }
 
         [HttpPut]

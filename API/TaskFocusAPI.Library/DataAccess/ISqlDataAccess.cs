@@ -11,6 +11,7 @@ namespace TaskFocusAPI.Library.DataAccess
         List<T> LoadDataInTransaction<T, U>(string storedProcedure, U parameters);
         void RollbackTransaction();
         void SaveData<T>(string storedProcedure, T parameters, string connectionStringName);
+        List<T> SaveDataAndLoadInsertedRow<T>(string storedProcedure, T parameters, string connectionStringName);
         void SaveDataInTransaction<T>(string storedProcedure, T parameters);
         void StartTransaction(string connectionStringName);
     }

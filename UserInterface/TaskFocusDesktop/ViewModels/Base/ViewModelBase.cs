@@ -56,6 +56,20 @@ namespace TaskFocusDesktop.ViewModels.Base
 
         public ICommand ExitSubNavMenuCommand => new RelayCommand(async execute => await RequestExitSubNavMenu());
 
+        protected async Task RequestExitSubNavMenu()
+        {
+            await RequestSidePanelViewSwitch(ViewCatalog.SidePanelView.NavMenu);
+        }
+
+        protected async Task VerifyAuthAndRedirectIfExpired()
+        {
+            if (!_appState.IsAuthenticated)
+            {
+                _appState.AlertMessage = "Session expired; please log in again.";
+                await RequestMainContentViewSwitch(ViewCatalog.MainContentView.Home);
+            }
+        }
+
         protected async Task RequestMainContentViewSwitch(ViewCatalog.MainContentView requestedMainContentView)
         {
             var requestEvent = new RequestViewSwitchEvent(
@@ -70,6 +84,7 @@ namespace TaskFocusDesktop.ViewModels.Base
             await _events.PublishOnUIThreadAsync(requestEvent);
         }
 
+        // ViewSwitchedEvent handler
         public virtual async Task HandleAsync(ViewSwitchedEvent message, CancellationToken cancellationToken)
         {
             switch (message.SwitchedContentPanel)
@@ -83,11 +98,6 @@ namespace TaskFocusDesktop.ViewModels.Base
             }
 
             await Task.CompletedTask;
-        }
-
-        protected async Task RequestExitSubNavMenu()
-        {
-            await RequestSidePanelViewSwitch(ViewCatalog.SidePanelView.NavMenu);
         }
     }
 }

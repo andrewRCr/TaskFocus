@@ -13,5 +13,8 @@ namespace TaskFocusAPI.Library.Models
         public bool Completed { get; set; } = false;
         public DateTime? DateCompleted { get; set; }
         public int? OrderIndex { get; set; }
+        // for sync
+        public DateTimeOffset ServerLastUpdated { get; set; }
+        public DateTimeOffset ClientLastUpdated { get; set; }
     }
 }

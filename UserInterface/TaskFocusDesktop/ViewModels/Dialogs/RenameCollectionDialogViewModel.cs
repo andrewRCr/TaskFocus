@@ -1,11 +1,11 @@
 ﻿using Caliburn.Micro;
 using MaterialDesignThemes.Wpf;
-using Nextended.Core.Extensions;
 using System;
 using System.Threading.Tasks;
 using TaskFocusDesktop.ViewModels.Base;
-using TaskFocusUI.Library;
-using TaskFocusUI.Library.Utilities;
+using TaskFocusUI.Library.Data.Services.Access;
+using TaskFocusUI.Library.Data.State;
+using TaskFocusUI.Library.Data.Utilities;
 
 namespace TaskFocusDesktop.ViewModels.Dialogs
 {
@@ -13,18 +13,6 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
     {
         private bool _isProjectCollection; 
         private int _focusedCollectionId;
-
-        private PackIconKind _headerIconKind;
-        public PackIconKind HeaderIconKind
-        {
-            get { return _headerIconKind; }
-            set 
-            { 
-                _headerIconKind = value; 
-                NotifyOfPropertyChange(() => HeaderIconKind);
-            }
-        }
-
 
         public RenameCollectionDialogViewModel(IEventAggregator events,
                                                IAppState appState,
@@ -43,6 +31,17 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
             HeaderIconKind = _isProjectCollection ? PackIconKind.ClipboardText : PackIconKind.Animation;
         }
 
+        private PackIconKind _headerIconKind;
+        public PackIconKind HeaderIconKind
+        {
+            get { return _headerIconKind; }
+            set
+            {
+                _headerIconKind = value;
+                NotifyOfPropertyChange(() => HeaderIconKind);
+            }
+        }
+
         protected override void CloseDialog()
         {
             UpdatedCollectionName = null;
@@ -58,7 +57,7 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
 
                 if (SelectedProject == null) { return; }
 
-                if (UpdatedCollectionName.IsNullOrWhiteSpace())
+                if (string.IsNullOrWhiteSpace(UpdatedCollectionName))
                 {
                     IsFeedbackError = true;
                     FeedbackMessage = "Project name cannot be empty; please try again.";
@@ -74,7 +73,7 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
                     FeedbackMessage = null;
 
                     SelectedProject.ProjectName = UpdatedCollectionName!;
-                    await _dataService.UpdateProjectData(SelectedProject);
+                    _dataService.UpdateProjectData(SelectedProject);
 
                     FeedbackMessage = "Project renamed!";
                     await Task.Delay(TimeSpan.FromSeconds(_successMsgDisplaySec));
@@ -92,7 +91,7 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
 
                 if (SelectedContext == null) { return; }
 
-                if (UpdatedCollectionName.IsNullOrWhiteSpace())
+                if (string.IsNullOrWhiteSpace(UpdatedCollectionName))
                 {
                     IsFeedbackError = true;
                     FeedbackMessage = "Context name cannot be empty; please try again.";
@@ -108,7 +107,7 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
                     FeedbackMessage = null;
 
                     SelectedContext.ContextName = UpdatedCollectionName!;
-                    await _dataService.UpdateContextData(SelectedContext);
+                    _dataService.UpdateContextData(SelectedContext);
 
                     FeedbackMessage = "Context renamed!";
                     await Task.Delay(TimeSpan.FromSeconds(_successMsgDisplaySec));

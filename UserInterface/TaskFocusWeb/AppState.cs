@@ -1,4 +1,6 @@
-﻿namespace TaskFocusWeb
+﻿using MudBlazor;
+
+namespace TaskFocusWeb
 {
     public delegate void AppStateChangedHandler(String propertyName, AppState state);
 
@@ -36,6 +38,17 @@
             {
                 _canRefresh = value;
                 AppStateChanged?.Invoke(nameof(CanRefresh), this);
+            }
+        }
+
+        private bool _postSyncLogoutRequested = false;
+        public bool PostSyncLogoutRequested
+        {
+            get { return _postSyncLogoutRequested; }
+            set
+            {
+                _postSyncLogoutRequested = value;
+                AppStateChanged?.Invoke(nameof(PostSyncLogoutRequested), this);
             }
         }
 
@@ -83,6 +96,13 @@
             }
         }
 
+        private MudDialogProvider _dialogProvider;
+        public MudDialogProvider DialogProvider
+        {
+            get { return _dialogProvider; }
+            set { _dialogProvider = value; }
+        }
+
         public void ClearAlertMessage()
         {
             _alertSeverity = MudBlazor.Severity.Info;
@@ -93,6 +113,11 @@
         {
             _alertSeverity = MudBlazor.Severity.Error;
             AlertMessage = "There was an error when attempting to log in. Please try again.";
+        }
+
+        public void RequestManualRefresh()
+        {
+            AppStateChanged?.Invoke(nameof(RequestManualRefresh), this);
         }
     }
 }

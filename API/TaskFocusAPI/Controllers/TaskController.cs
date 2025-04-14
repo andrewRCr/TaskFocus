@@ -51,10 +51,11 @@ namespace TaskFocusAPI.Controllers
         }
 
         [HttpPost]
-        public void Post(TaskModel newTask)
+        public TaskModel Post(TaskModel newTask)
         {
             string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            _taskData.AddTask(newTask, userId);
+            TaskModel insertedTask = _taskData.AddTask(newTask, userId);
+            return insertedTask;
         }
 
         [HttpPut]

@@ -39,10 +39,7 @@ namespace TaskFocusWeb.Authentication
             var authResult = await _httpClient.PostAsync(apiAuthUri, data);
             var authContent = await authResult.Content.ReadAsStringAsync();
 
-            if (!authResult.IsSuccessStatusCode)
-            {
-                return null;
-            }
+            if (!authResult.IsSuccessStatusCode) return null;         
 
             var result = JsonSerializer.Deserialize<AuthenticatedUserModel>(
                 authContent,

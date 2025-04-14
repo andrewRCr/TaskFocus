@@ -5,15 +5,15 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Dynamic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using TaskFocusDesktop.Commands;
 using TaskFocusDesktop.EventModels;
-using TaskFocusUI.Library;
+using TaskFocusUI.Library.Data.Services.Access;
+using TaskFocusUI.Library.Data.State;
+using TaskFocusUI.Library.Data.Utilities;
 using TaskFocusUI.Library.Models;
-using TaskFocusUI.Library.Utilities;
 
 namespace TaskFocusDesktop.ViewModels.Base
 {
@@ -23,6 +23,30 @@ namespace TaskFocusDesktop.ViewModels.Base
         protected IDataState _dataState;
         protected IDataService _dataService;
         protected IDataHelper _dataHelper;
+
+        protected List<string> dataRefreshTriggers = new List<string> {
+            nameof(EDataRefreshType.Tasks), nameof(EDataRefreshType.Projects), nameof(EDataRefreshType.Contexts) };
+
+        public TaskViewModelBase(IEventAggregator events,
+                                 IAppState appState,
+                                 IWindowManager window,
+                                 IDataState dataState,
+                                 IDataService dataService,
+                                 IDataHelper dataHelper) : base(events, appState)
+        {
+            _events = events;
+            _window = window;
+            _dataState = dataState;
+            _dataService = dataService;
+            _dataHelper = dataHelper;
+
+            _dataState.DataStateChanged += DataStateChanged;
+            AppWindowHeight = (int)appState.AppWindowHeight;
+        }
+
+        public string? OrderingIndex { get; set; }
+        public RelayCommand DeleteTaskCommand => new RelayCommand(execute => TryDeleteSelectedTask());
+        public RelayCommand ClearSelectedTaskProjectCommand => new RelayCommand(execute => ClearSelectedTaskProject());
 
         private int _appWindowHeight;
         public int AppWindowHeight
@@ -68,65 +92,11 @@ namespace TaskFocusDesktop.ViewModels.Base
             }
         }
 
-        public TaskViewModelBase(IEventAggregator events,
-                                 IAppState appState,
-                                 IWindowManager window,
-                                 IDataState dataState,
-                                 IDataService dataService,
-                                 IDataHelper dataHelper) : base(events, appState)
-        {
-            _events = events;
-            _window = window;
-            _dataState = dataState;
-            _dataService = dataService;
-            _dataHelper = dataHelper;
-
-            _dataState.DataStateChanged += DataStateChanged;
-            AppWindowHeight = (int)appState.AppWindowHeight;
-        }
-
-        public string? OrderingIndex { get; set; }
-
         private bool _canUpdateOrderingIndices;
         public bool CanUpdateOrderingIndices
         {
             get { return _canUpdateOrderingIndices; }
             set { _canUpdateOrderingIndices = value; }
-        }
-
-        public RelayCommand DeleteTaskCommand => new RelayCommand(async execute => await TryDeleteSelectedTask());
-
-        protected async Task TryDeleteSelectedTask()
-        {
-            if (SelectedTaskItem != null)
-            {
-                await _dataService.DeleteTask(SelectedTaskItem);
-            }
-        }
-
-        public RelayCommand ClearSelectedTaskProjectCommand => new RelayCommand(execute => ClearSelectedTaskProject());
-
-        protected void ClearSelectedTaskProject()
-        {
-            if (SelectedTaskItem != null)
-            {
-                // will trigger an API remote data update call
-                SelectedTaskItem.ProjectName = null;
-            }
-        }
-
-        protected List<string> dataRefreshTriggers = new List<string> {
-        nameof(IDataState.Tasks), nameof(IDataState.Projects), nameof(IDataState.Contexts) };
-
-        // to be defined in child components as needed
-        protected virtual bool HandleDataStateChanged(string propertyName, IDataState dataState)
-        {
-            return false;
-        }
-
-        private async void DataStateChanged(string propertyName, IDataState dataState)
-        {
-            bool changesOccured = HandleDataStateChanged(propertyName, dataState);
         }
 
         private ObservableCollection<TaskDisplayModel>? _localTasks;
@@ -183,8 +153,8 @@ namespace TaskFocusDesktop.ViewModels.Base
                 NotifyOfPropertyChange(() => SelectedProject);
 
                 // debug
-                string selectedProjectText = SelectedProject != null ? SelectedProject.ProjectName : "NULL";
-                Debug.WriteLine($"SelectedProject: {selectedProjectText}");
+                //string selectedProjectText = SelectedProject != null ? SelectedProject.ProjectName : "NULL";
+                //_logger.Info($"SelectedProject: {selectedProjectText}");
             }
         }
 
@@ -196,6 +166,23 @@ namespace TaskFocusDesktop.ViewModels.Base
             {
                 _selectedContext = value;
                 NotifyOfPropertyChange(() => SelectedContext);
+            }
+        }
+
+        protected void TryDeleteSelectedTask()
+        {
+            if (SelectedTaskItem != null)
+            {
+                _dataService.DeleteTask(SelectedTaskItem);
+            }
+        }
+
+        protected void ClearSelectedTaskProject()
+        {
+            if (SelectedTaskItem != null)
+            {
+                // will trigger an API remote data update call
+                SelectedTaskItem.ProjectName = null;
             }
         }
 
@@ -229,52 +216,14 @@ namespace TaskFocusDesktop.ViewModels.Base
             LoadLocalTaskData();
             LoadLocalProjectData();
             LoadLocalContextData();
-
-            PerformTaskCleanup();
-        }
-
-        protected void PerformTaskCleanup()
-        {
-            if (LocalTasks != null && _dataState.IsDataLoaded())
-            {
-                foreach (TaskDisplayModel task in LocalTasks)
-                {
-                    if (task.Completed)
-                    {
-                        TimeSpan interval = (DateTime.Now - (DateTime)task.DateCompleted!);
-                        int daysPassedSinceTaskCompletion = interval.Days;
-
-                        // check if should delete
-                        int deleteIntervalSetting = _dataState.UserSettings.DeleteDelayDays;
-                        if (daysPassedSinceTaskCompletion > deleteIntervalSetting)
-                        {
-                            Task.Run(() => _dataService.DeleteTask(task).Wait());
-                        }
-
-                        // handle CleanedUp status
-                        else if (!task.CleanedUp)
-                        {
-                            if (_dataState.UserSettings.CleanUpImmediately) { task.CleanedUp = true; }
-                            else
-                            {
-                                int cleanupIntervalSetting = _dataState.UserSettings.CleanUpDelayDays;
-                                if (daysPassedSinceTaskCompletion > cleanupIntervalSetting) { task.CleanedUp = true; }
-                            }
-                        }
-                    }
-                }
-            }
         }
 
         protected virtual void LoadLocalTaskData()
         {
-            if (_dataState.IsDataLoaded())
+            if (_dataService.IsDataStateLoaded())
             {
-                LocalTasks = new ObservableCollection<TaskDisplayModel>(_dataState.Tasks!);
-                foreach (TaskDisplayModel task in LocalTasks!)
-                {
-                    task.PropertyChanged += OnExistingTaskPropertyChanged!; // subscribe to property changed event
-                }
+                LocalTasks = new ObservableCollection<TaskDisplayModel>(_dataService.GetDataStateTasks()!);
+                SubscribeToTaskPropertyChangedEvents(LocalTasks);
                 TaskCount = LocalTasks.Count;
                 UpdateScrollHeight(AppWindowHeight);
             }
@@ -282,58 +231,139 @@ namespace TaskFocusDesktop.ViewModels.Base
 
         protected virtual void LoadLocalProjectData()
         {
-            if (_dataState.IsDataLoaded())
+            if (_dataService.IsDataStateLoaded())
             {
-                LocalProjects = new ObservableCollection<ProjectDisplayModel>(_dataState.Projects!.OrderBy(x => x.OrderIndex));
-                foreach (ProjectDisplayModel project in LocalProjects!)
-                {
-                    project.PropertyChanged += OnExistingProjectPropertyChanged!; // subscribe to property changed event
-                }
+                var projects = _dataService.GetDataStateProjects()!;
+                projects.Sort((a, b) => Nullable.Compare(a.OrderIndex, b.OrderIndex));
+                LocalProjects = new ObservableCollection<ProjectDisplayModel>(projects);              
             }
         }
 
         protected virtual void LoadLocalContextData()
         {
-            if (_dataState.IsDataLoaded())
+            if (_dataService.IsDataStateLoaded())
             {
-                LocalContexts = new ObservableCollection<ContextDisplayModel>(_dataState.Contexts!.OrderBy(x => x.OrderIndex));
-                foreach (ContextDisplayModel context in LocalContexts!)
-                {
-                    context.PropertyChanged += OnExistingContextPropertyChanged!; // subscribe to property changed event
-                }
+                var contexts = _dataService.GetDataStateContexts()!;
+                contexts.Sort((a, b) => Nullable.Compare(a.OrderIndex, b.OrderIndex));
+                LocalContexts = new ObservableCollection<ContextDisplayModel>(contexts);
             }
+        }
+
+        protected void SubscribeToTaskPropertyChangedEvents(ObservableCollection<TaskDisplayModel>? tasks)
+        {
+            if (tasks == null) return;
+            foreach (TaskDisplayModel task in tasks)
+            {
+                // ensure only one subscriber
+                task.PropertyChanged -= OnExistingTaskPropertyChanged!;
+                task.PropertyChanged += OnExistingTaskPropertyChanged!;
+            }
+        }
+
+        protected void UnsubscribeFromTaskPropertyChangedEvents(ObservableCollection<TaskDisplayModel>? tasks)
+        {
+            if (tasks == null) return;
+            foreach (TaskDisplayModel task in tasks) task.PropertyChanged -= OnExistingTaskPropertyChanged!;
+        }
+
+        protected void SubscribeToProjectPropertyChangedEvents(ObservableCollection<ProjectDisplayModel>? projects)
+        {
+            if (projects == null) return;
+            foreach (ProjectDisplayModel project in projects)
+            {
+                // ensure only one subscriber
+                project.PropertyChanged -= OnExistingProjectPropertyChanged!;
+                project.PropertyChanged += OnExistingProjectPropertyChanged!;
+            }
+        }
+
+        protected void UnsubscribeFromProjectPropertyChangedEvents(ObservableCollection<ProjectDisplayModel>? projects)
+        {
+            if (projects == null) return;
+            foreach (ProjectDisplayModel project in projects) project.PropertyChanged -= OnExistingProjectPropertyChanged!;
+        }
+
+        protected void SubscribeToContextPropertyChangedEvents(ObservableCollection<ContextDisplayModel>? contexts)
+        {
+            foreach (ContextDisplayModel context in contexts!)
+            {
+                // ensure only one subscriber
+                context.PropertyChanged -= OnExistingContextPropertyChanged!;
+                context.PropertyChanged += OnExistingContextPropertyChanged!;
+            }
+        }
+
+        protected void UnsubscribeFromContextPropertyChangedEvents(ObservableCollection<ContextDisplayModel>? contexts)
+        {
+            if (contexts == null) return;
+            foreach (ContextDisplayModel context in contexts) context.PropertyChanged -= OnExistingContextPropertyChanged!;
         }
 
         // saves updated task data to server on property change
         protected virtual async void OnExistingTaskPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
+            await VerifyAuthAndRedirectIfExpired();
+
             string? changedProperty = e.PropertyName;
             TaskDisplayModel senderTask = (TaskDisplayModel)sender;
-            _logger.Info($"{senderTask.TaskName}'s property {changedProperty} was changed.");
 
-            await _dataService.UpdateTaskData(senderTask);
+            if (!_dataService.IsTaskCurrentlyBeingUpdated(senderTask))
+            {
+                //_logger.Info($"workingTask property changed: {senderTask.TaskName}'s property {changedProperty} was changed.");
+                _dataService.UpdateTaskData(senderTask);
+            }
         }
 
         // saves updated project data to server on property change
         protected virtual async void OnExistingProjectPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
+            await VerifyAuthAndRedirectIfExpired();
+
             string? changedProperty = e.PropertyName;
             ProjectDisplayModel senderProject = (ProjectDisplayModel)sender;
-            _logger.Info($"{senderProject.ProjectName}'s property {changedProperty} was changed.");
 
-            // only ProjectSubNavMenuVieWModel handles reorder updates
-            if (changedProperty!.Contains("Index")) { return; }
-            else { await _dataService.UpdateProjectData(senderProject); }
+            if (!_dataService.IsProjectCurrentlyBeingUpdated(senderProject))
+            {
+                //_logger.Info($"workingProject property changed: {senderProject.ProjectName}'s property {changedProperty} was changed.");
+
+                // only ProjectSubNavMenuVieWModel handles reorder updates
+                if (changedProperty!.Contains("Index")) return;
+                else _dataService.UpdateProjectData(senderProject);
+            }
         }
 
         // saves updated context data to server on property change
         protected virtual async void OnExistingContextPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
+            await VerifyAuthAndRedirectIfExpired();
+
             string? changedProperty = e.PropertyName;
             ContextDisplayModel senderContext = (ContextDisplayModel)sender;
-            _logger.Info($"{senderContext.ContextName}'s property {changedProperty} was changed.");
 
-            await _dataService.UpdateContextData(senderContext);
+            if (!_dataService.IsContextCurrentlyBeingUpdated(senderContext))
+            {
+                //_logger.Info($"workingContext property changed: {senderContext.ContextName}'s property {changedProperty} was changed.");
+
+                // only ContextSubNavMenuVieWModel handles reorder updates
+                if (changedProperty!.Contains("Index"))return;
+                else _dataService.UpdateContextData(senderContext);
+            }
+        }
+
+        // to be defined in child components as needed; does nothing by default
+        private async void DataStateChanged(string propertyName, IDataState dataState)
+        {
+            bool changesOccured = HandleDataStateChanged(propertyName, dataState);
+            if (changesOccured)
+            {
+                //await InvokeAsync(StateHasChanged);
+            }
+        }
+
+        // to be defined in child components as needed
+        protected virtual bool HandleDataStateChanged(string propertyName, IDataState dataState)
+        {
+            return false;
         }
 
         // updates task listbox and containing scrollviewer height values dynamically
@@ -356,6 +386,7 @@ namespace TaskFocusDesktop.ViewModels.Base
             AppWindowHeight = appWindowHeight;
         }
 
+        // AppWindowHeightChangedEvent handler
         public Task HandleAsync(AppWindowHeightChangedEvent message, CancellationToken cancellationToken)
         {
             UpdateScrollHeight((int)message.NewAppWindowHeight);

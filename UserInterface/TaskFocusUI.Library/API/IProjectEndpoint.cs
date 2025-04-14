@@ -8,8 +8,8 @@ namespace TaskFocusUI.Library.API
     {
         Task<ProjectModel> GetProjectById(int projectId);
         Task<List<ProjectModel>> GetAllProjectsForUser();
-        Task AddProject(ProjectModel newProject, string userId);
-        Task DeleteProject(ProjectModel projectToDelete);
+        Task<ProjectModel> AddProject(ProjectModel newProject, string userId);
         Task UpdateProject(ProjectModel projectToUpdate);
+        Task DeleteProject(ProjectModel projectToDelete);
     }
 }

@@ -5,27 +5,41 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using TaskFocusDesktop.EventModels;
 using TaskFocusDesktop.ViewModels.Base;
-using TaskFocusUI.Library;
 using TaskFocusUI.Library.API;
+using TaskFocusUI.Library.Data.Services.Access;
+using TaskFocusUI.Library.Data.State;
+using TaskFocusUI.Library.Data.Utilities;
 using TaskFocusUI.Library.Models;
-using TaskFocusUI.Library.Utilities;
 
 namespace TaskFocusDesktop.ViewModels.Dialogs
 {
     public class ChangePasswordDialogViewModel : DialogViewModelBase
     {
-        private IUserEndpoint _userEndpoint;
         private IAPIHelper _apiHelper;
         private ILoggedInUserModel _loggedInUser;
         private CreateUserModel _authUserModel = new();
+
+        public ChangePasswordDialogViewModel(IEventAggregator events,
+                                             IAppState appState,
+                                             IWindowManager window,
+                                             IDataState dataState,
+                                             IDataService dataService,
+                                             IDataHelper dataHelper,
+                                             IAPIHelper apiHelper, 
+                                             ILoggedInUserModel loggedInUser) : base(events, appState, window, dataState, dataService, dataHelper)
+        {
+            _apiHelper = apiHelper;
+            _loggedInUser = loggedInUser;
+            HeaderText = "CHANGE PASSWORD";
+        }
 
         private string _newPassword = string.Empty;
         public string NewPassword
         {
             get { return _newPassword; }
-            set 
-            { 
-                _newPassword = value; 
+            set
+            {
+                _newPassword = value;
                 NotifyOfPropertyChange(() => NewPassword);
             }
         }
@@ -34,33 +48,11 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
         public string ConfirmNewPassword
         {
             get { return _confirmNewPassword; }
-            set 
-            { 
+            set
+            {
                 _confirmNewPassword = value;
                 NotifyOfPropertyChange(() => ConfirmNewPassword);
             }
-        }
-
-        public ChangePasswordDialogViewModel(IEventAggregator events,
-                                             IAppState appState,
-                                             IWindowManager window,
-                                             IDataState dataState,
-                                             IDataService dataService,
-                                             IDataHelper dataHelper,
-                                             IUserEndpoint userEndpoint,
-                                             IAPIHelper apiHelper, 
-                                             ILoggedInUserModel loggedInUser) : base(events, appState, window, dataState, dataService, dataHelper)
-        {
-            _userEndpoint = userEndpoint;
-            _apiHelper = apiHelper;
-            _loggedInUser = loggedInUser;
-            HeaderText = "CHANGE PASSWORD";
-        }
-
-        protected override void CloseDialog()
-        {
-            NewPassword = string.Empty;
-            base.CloseDialog();
         }
 
         private string? PasswordStrength(string pw)
@@ -92,6 +84,12 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
             return null;
         }
 
+        protected override void CloseDialog()
+        {
+            NewPassword = string.Empty;
+            base.CloseDialog();
+        }
+
         protected override async Task ProcessSubmitAction()
         {
             // validate
@@ -116,10 +114,10 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
                     // add new pw to model for update
                     _authUserModel.Password = NewPassword;
                     _authUserModel.ConfirmPassword = ConfirmNewPassword;
-                    await _userEndpoint.UpdatePassword(_authUserModel);
+                    await _dataService.UpdatePassword(_authUserModel);
 
                     CheckPasswordModel checkPasswordModel = new() { Email = _authUserModel.Email, Password = _authUserModel.Password };
-                    bool success = await _userEndpoint.CheckPasswordValid(checkPasswordModel);
+                    bool success = await _dataService.CheckPasswordValid(checkPasswordModel);
                     if (success)
                     {
                         // update auth state: log user out
@@ -147,7 +145,7 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
 
                         // send email confirmation 
                         UserModel user = new UserModel { Email = _authUserModel.Email };
-                        await _userEndpoint.SendPasswordChangeSuccessEmail(user);
+                        await _dataService.SendPasswordChangeSuccessEmail(user);
                     }
                 }
                 catch (Exception ex)

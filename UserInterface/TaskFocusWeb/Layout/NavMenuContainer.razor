@@ -1,4 +1,4 @@
-﻿@inherits _ComponentBase
+﻿@inherits _ComponentStateAwareBase
 
 <MudStack Spacing="0" Row="true" Style="height:100%">
 
@@ -19,7 +19,7 @@
 
     protected override bool HandleDataStateChanged(string propertyName, IDataState dataState)
     {
-        if (propertyName != nameof(DataState.Projects))
+        if (propertyName != nameof(EDataRefreshType.Projects) && propertyName != nameof(EDataRefreshType.Contexts))
         {
             return false;
         }

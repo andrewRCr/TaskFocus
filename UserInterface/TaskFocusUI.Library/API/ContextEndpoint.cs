@@ -48,7 +48,7 @@ namespace TaskFocusUI.Library.API
             }
         }
 
-        public async Task AddContext(ContextModel newContext, string userId)
+        public async Task<ContextModel> AddContext(ContextModel newContext, string userId)
         {
             newContext.UserId = userId;
 
@@ -57,6 +57,8 @@ namespace TaskFocusUI.Library.API
                 if (response.IsSuccessStatusCode)
                 {
                     _logger?.LogInformation("API: AddContext request processed successfully.");
+                    var result = await response.Content.ReadAsAsync<ContextModel>();
+                    return result;
                 }
                 else { throw new Exception(response.ReasonPhrase); }
             }

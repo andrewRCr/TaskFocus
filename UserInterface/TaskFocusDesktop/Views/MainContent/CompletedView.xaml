@@ -87,7 +87,7 @@
                                               Margin="15 0 0 0"
                                               CanReorder="False"
                                               ListBoxHeight="{Binding ListBoxHeight}"
-                                              ContainerTasks="{Binding LocalTasks}" />
+                                              ContainerTasks="{Binding CompletedTasks}" />
         </ScrollViewer>
         
     </Grid>

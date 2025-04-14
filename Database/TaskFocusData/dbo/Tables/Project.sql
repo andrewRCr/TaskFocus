@@ -8,6 +8,8 @@
     [Completed] BIT NOT NULL DEFAULT 0, 
     [DateCompleted] DATETIME2 NULL, 
     [OrderIndex] INT NULL, 
+    [ClientLastUpdated] DATETIMEOFFSET NOT NULL DEFAULT getutcdate(), 
+    [ServerLastUpdated] DATETIMEOFFSET NOT NULL DEFAULT getutcdate(), 
     CONSTRAINT [FK_Project_ToUser] FOREIGN KEY (UserId) REFERENCES [User](Id), 
     CONSTRAINT [FK_Project_ToContext] FOREIGN KEY (ContextId) REFERENCES Context(Id)
 )

@@ -1,21 +1,30 @@
 ﻿using Caliburn.Micro;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using TaskFocusDesktop.EventModels;
 using TaskFocusDesktop.ViewModels.Base;
-using TaskFocusUI.Library;
+using TaskFocusUI.Library.Data.Services.Access;
+using TaskFocusUI.Library.Data.State;
+using TaskFocusUI.Library.Data.Utilities;
 using TaskFocusUI.Library.Models;
-using TaskFocusUI.Library.Utilities;
 
 namespace TaskFocusDesktop.ViewModels.MainContent
 {
     public class ProjectsViewModel : TaskViewModelBase, INotifyPropertyChanged, IHandle<FocusedProjectChangedEvent>
     {
+        public ProjectsViewModel(IEventAggregator events,
+                                IAppState appState,
+                                IWindowManager window,
+                                IDataState dataState,
+                                IDataService dataService,
+                                IDataHelper dataHelper) : base(events, appState, window, dataState, dataService, dataHelper)
+        {
+            OrderingIndex = "ProjectIndex";
+            _events.SubscribeOnPublishedThread(this);
+        }
+
         private bool _showNoFocusedProjectTutorialText = false;
         public bool ShowNoFocusedProjectTutorialText
         {
@@ -60,21 +69,29 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             }
         }
 
-        public ProjectsViewModel(IEventAggregator events,
-                                 IAppState appState,
-                                 IWindowManager window,
-                                 IDataState dataState,
-                                 IDataService dataService,
-                                 IDataHelper dataHelper) : base(events, appState, window, dataState, dataService, dataHelper)
+        private async Task SetFocusedProjectProperties()
         {
-            OrderingIndex = "ProjectIndex";
-            _events.SubscribeOnPublishedThread(this);
-        }
+            if (FocusedProjectId != null)
+            { await _dataService.FetchRemoteProjectAndTasksById((int)FocusedProjectId); }
 
-        public async Task HandleAsync(FocusedProjectChangedEvent message, CancellationToken cancellationToken)
-        {
-            FocusedProjectId = message.NewFocusedProjectId;
-            await SetFocusedProjectProperties();
+            if (_dataHelper.FocusedProject != null)
+            {
+                ShowNoFocusedProjectTutorialText = false;
+                FocusedProjectName = _dataHelper.FocusedProject.ProjectName.ToUpper();
+                var projectTasks = _dataHelper.FocusedProjectTasks;
+
+                FocusedProjectTasks = new ObservableCollection<TaskDisplayModel>(projectTasks!);
+                SubscribeToTaskPropertyChangedEvents(FocusedProjectTasks);
+
+                TaskCount = FocusedProjectTasks.Count;
+                UpdateScrollHeight(AppWindowHeight);
+            }
+            else
+            {
+                FocusedProjectId = null; // may have been deleted
+                FocusedProjectName = null;
+                FocusedProjectTasks = null;
+            }
         }
 
         protected override void OnViewLoaded(object view)
@@ -89,53 +106,10 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             await SetFocusedProjectProperties();
         }
 
-        private async Task SetFocusedProjectProperties()
+        public async Task HandleAsync(FocusedProjectChangedEvent message, CancellationToken cancellationToken)
         {
-            if (FocusedProjectId != null)
-            { await _dataService.FetchRemoteProjectAndTasksById((int)FocusedProjectId); }
-
-            if (_dataHelper.FocusedProject != null)
-            {
-                ShowNoFocusedProjectTutorialText = false;
-                FocusedProjectName = _dataHelper.FocusedProject.ProjectName.ToUpper();
-                var projectTasks = _dataHelper.FocusedProjectTasks;
-                FocusedProjectTasks = new ObservableCollection<TaskDisplayModel>(projectTasks);
-
-                foreach (TaskDisplayModel task in FocusedProjectTasks!)
-                {
-                    task.PropertyChanged += OnExistingTaskPropertyChanged!; // subscribe to property changed event
-                }
-
-                TaskCount = FocusedProjectTasks.Count;
-                UpdateScrollHeight(AppWindowHeight);
-            }
-            else
-            {
-                FocusedProjectId = null; // may have been deleted
-                FocusedProjectName = null;
-                FocusedProjectTasks = null;
-            }
-        }
-
-        // saves updated task data to server on property change
-        protected override async void OnExistingTaskPropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            string? changedProperty = e.PropertyName;
-            TaskDisplayModel senderTask = (TaskDisplayModel)sender;
-            _logger.Info($"{senderTask.TaskName}'s property {changedProperty} was changed.");
-
-            // if a reorder update, need to prevent a remote data fetch until after the entire collection
-            // has been updated. CanUpdateOrderIndices will only be true on the final task in collection
-            if (changedProperty!.Contains("Index"))
-            {
-                if (!CanUpdateOrderingIndices) { return; }
-                else
-                {
-                    List<TaskDisplayModel> tasksToUpdate = FocusedProjectTasks!.ToList();
-                    await _dataService.UpdateCollectionOrderingIndices(tasksToUpdate);
-                }
-            }
-            else { await _dataService.UpdateTaskData(senderTask); }
+            FocusedProjectId = message.NewFocusedProjectId;
+            await SetFocusedProjectProperties();
         }
 
         protected override bool HandleDataStateChanged(string propertyName, IDataState dataState)
@@ -146,7 +120,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             }
 
             LoadLocalTaskData();
-            Debug.WriteLine("ProjectsViewModel: returned true on HandleDataStateChanged!");
+            //_logger.Info("ProjectsViewModel: returned true on HandleDataStateChanged!");
             return true;
         }
     }

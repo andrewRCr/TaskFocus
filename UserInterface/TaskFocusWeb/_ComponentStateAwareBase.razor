@@ -1,0 +1,192 @@
+﻿@inherits ComponentBase
+@implements IDisposable
+@inject IDataService DataService
+@inject NavigationManager NavManager
+
+@code {
+    [Inject]
+    protected AppState AppState { get; private set; } = default!;
+
+    [Inject]
+    protected IDataState DataState { get; private set; } = default!;
+
+    [CascadingParameter]
+    public Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    protected bool _isAuthenticated = false;
+
+    protected List<string> dataRefreshTriggers = new List<string> {
+        nameof(EDataRefreshType.Tasks), nameof(EDataRefreshType.Projects), nameof(EDataRefreshType.Contexts) };
+
+    private List<ProjectDisplayModel>? _localProjects;
+    public List<ProjectDisplayModel>? LocalProjects
+    {
+        get { return _localProjects; }
+        set { _localProjects = value; }
+    }
+
+    private List<ContextDisplayModel>? _localContexts;
+    public List<ContextDisplayModel>? LocalContexts
+    {
+        get { return _localContexts; }
+        set { _localContexts = value; }
+    }
+
+    // to be defined in child components as needed; does nothing by default
+    protected virtual bool HandleAppStateChanged(String propertyName, AppState appState)
+    {
+        return false;
+    }
+
+    private async void AppStateChanged(String propertyName, AppState appState)
+    {
+        bool changesOccured = HandleAppStateChanged(propertyName, appState);
+        if (changesOccured)
+        {
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    // to be defined in child components as needed; does nothing by default
+    protected virtual bool HandleDataStateChanged(String propertyName, IDataState dataState)
+    {
+        return false;
+    }
+
+    private async void DataStateChanged(String propertyName, IDataState dataState)
+    {
+        bool changesOccured = HandleDataStateChanged(propertyName, dataState);
+        if (changesOccured)
+        {
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    public virtual void Dispose()
+    {
+        AppState.AppStateChanged -= AppStateChanged;
+        DataState.DataStateChanged -= DataStateChanged;
+    }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        AppState.AppStateChanged += AppStateChanged;
+        DataState.DataStateChanged += DataStateChanged;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await VerifyAuth();
+        if (_isAuthenticated)
+        {
+            // do any child-specific loading/filtering of data
+            CustomAuthenticatedOnInit();
+        }
+    }
+
+    // to be defined in children as needed
+    protected virtual void CustomAuthenticatedOnInit() {}
+
+    protected async Task VerifyAuth()
+    {
+        var authState = await AuthState;
+        _isAuthenticated = authState.User.Identity!.IsAuthenticated;
+    }
+
+    protected async Task VerifyAuthAndRedirectIfExpired()
+    {
+        await VerifyAuth();
+        if (!_isAuthenticated)
+        {
+            AppState.AlertSeverity = Severity.Warning;
+            AppState.AlertMessage = "Session expired; please log in again.";
+            NavManager.NavigateTo("/");
+        }
+    }
+
+    protected void SetCanRefresh(bool newCanRefresh) => AppState.CanRefresh = newCanRefresh;
+
+    // to be defined in children as required
+    protected virtual bool IsLocalDataLoaded() { return false; }
+
+    protected virtual void LoadLocalProjectData()
+    {
+    if (DataService.IsDataStateLoaded())
+        {
+            LocalProjects = DataService.GetDataStateProjects();
+            LocalProjects!.Sort((a, b) => Nullable.Compare(a.OrderIndex, b.OrderIndex));
+        }
+    }
+
+    protected virtual void LoadLocalContextData()
+    {
+    if (DataService.IsDataStateLoaded())
+        {
+            LocalContexts = DataService.GetDataStateContexts();
+            LocalContexts!.Sort((a, b) => Nullable.Compare(a.OrderIndex, b.OrderIndex));
+        }
+    }
+
+    protected void SubscribeToProjectPropertyChangedEvents(List<ProjectDisplayModel>? projects)
+    {
+        if (projects == null) return;
+        foreach (ProjectDisplayModel project in projects)
+        {
+            // ensure only one subscriber
+            project.PropertyChanged -= OnExistingProjectPropertyChanged!;
+            project.PropertyChanged += OnExistingProjectPropertyChanged!;
+        }
+    }
+
+    protected void UnsubscribeFromProjectPropertyChangedEvents(List<ProjectDisplayModel>? projects)
+    {
+        if (projects == null) return;
+        foreach (ProjectDisplayModel project in projects) { project.PropertyChanged -= OnExistingProjectPropertyChanged!; }
+    }
+
+    protected void SubscribeToContextPropertyChangedEvents(List<ContextDisplayModel>? contexts)
+    {
+        foreach (ContextDisplayModel context in contexts!)
+        {
+            // ensure only one subscriber
+            context.PropertyChanged -= OnExistingContextPropertyChanged!;
+            context.PropertyChanged += OnExistingContextPropertyChanged!;
+        }
+    }
+
+    protected void UnsubscribeFromContextPropertyChangedEvents(List<ContextDisplayModel>? contexts)
+    {
+        if (contexts == null) return;
+        foreach (ContextDisplayModel context in contexts) context.PropertyChanged -= OnExistingContextPropertyChanged!;
+    }
+
+    // saves updated project data to local data state on property change
+    protected async void OnExistingProjectPropertyChanged(object sender, PropertyChangedEventArgs e)
+    {
+        await VerifyAuthAndRedirectIfExpired();
+
+        string? changedProperty = e.PropertyName;
+        ProjectDisplayModel senderProject = (ProjectDisplayModel)sender;
+
+        if (!DataService.IsProjectCurrentlyBeingUpdated(senderProject))
+        {
+             DataService.UpdateProjectData(senderProject);
+        }
+    }
+
+    // saves updated context data to local data state on property change
+    protected async void OnExistingContextPropertyChanged(object sender, PropertyChangedEventArgs e)
+    {
+        await VerifyAuthAndRedirectIfExpired();
+
+        string? changedProperty = e.PropertyName;
+        ContextDisplayModel senderContext = (ContextDisplayModel)sender;
+
+        if (!DataService.IsContextCurrentlyBeingUpdated(senderContext))
+        {
+            DataService.UpdateContextData(senderContext);
+        }
+    }
+}

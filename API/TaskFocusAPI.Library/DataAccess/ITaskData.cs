@@ -8,7 +8,7 @@ namespace TaskFocusAPI.Library.DataAccess
         TaskModel GetTaskById(int taskId);
         List<TaskModel> GetAllTasksForUser(string userId);
         List<TaskModel> GetInboxTasksForUser(string userId);
-        void AddTask(TaskModel newTask, string userId);
+        TaskModel AddTask(TaskModel newTask, string userId);
         void DeleteTask(TaskModel taskToDelete);
         void UpdateTaskData(TaskModel frontEndTask);
         List<TaskModel> GetAllProjectTasksById(int projectId);

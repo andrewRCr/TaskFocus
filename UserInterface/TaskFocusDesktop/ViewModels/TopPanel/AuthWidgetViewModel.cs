@@ -3,24 +3,30 @@ using System;
 using System.Threading.Tasks;
 using TaskFocusDesktop.EventModels;
 using TaskFocusDesktop.ViewModels.Base;
-using TaskFocusUI.Library.API;
 using TaskFocusUI.Library.Models;
 
 namespace TaskFocusDesktop.ViewModels.TopPanel
 {
     public class AuthWidgetViewModel : ViewModelBase
     {
-        private IAPIHelper _apiHelper;
         private ILoggedInUserModel? _loggedInUser;
 
-        private string? _userEmailAddressStr;
-        public string? UserEmailAddressStr
+        public AuthWidgetViewModel(ILoggedInUserModel loggedInUser,
+                                   IEventAggregator events,
+                                   IAppState appState) : base(events, appState)
         {
-            get { return _userEmailAddressStr; }
+            _loggedInUser = loggedInUser;
+            if (_loggedInUser != null) UserFirstNameStr = _loggedInUser.FirstName;      
+        }
+
+        private string? _userFirstNameStr;
+        public string? UserFirstNameStr
+        {
+            get { return _userFirstNameStr; }
             set 
-            { 
-                _userEmailAddressStr = value;
-                NotifyOfPropertyChange(() => UserEmailAddressStr);
+            {
+                _userFirstNameStr = value;
+                NotifyOfPropertyChange(() => UserFirstNameStr);
             }
         }
 
@@ -38,21 +44,7 @@ namespace TaskFocusDesktop.ViewModels.TopPanel
 
         public bool IsErrorMsgVisible
         {
-            get
-            {
-                return !string.IsNullOrEmpty(ErrorMessage);
-            }
-        }
-
-        public AuthWidgetViewModel(IAPIHelper aPIHelper, ILoggedInUserModel loggedInUser, IEventAggregator events, IAppState appState) : base(events, appState)
-        {
-            _apiHelper = aPIHelper;
-            _loggedInUser = loggedInUser;
-
-            if (_loggedInUser != null)
-            {
-                UserEmailAddressStr = _loggedInUser.Email;
-            }
+            get =>!string.IsNullOrEmpty(ErrorMessage);         
         }
 
         public async Task LogOut()
@@ -60,10 +52,8 @@ namespace TaskFocusDesktop.ViewModels.TopPanel
             try
             {
                 ErrorMessage = null;
-
-                _apiHelper.LogOutUser();
                 _loggedInUser!.ResetUserModel();
-                UserEmailAddressStr = null;
+                UserFirstNameStr = null;
 
                 // raise logout event for LoginWidget to handle 
                 await _events.PublishOnUIThreadAsync(new LogoutNotifyEvent());

@@ -1,34 +1,39 @@
-﻿@inherits _ComponentBase
+﻿@inherits _ComponentStateAwareBase
+@inject IDataService DataService
 
-<MudLink Href="/settings">@_currentUserEmail</MudLink>
-<MudIcon Icon="@Icons.Material.Filled.Logout" Color="Color.Inherit" Class="ml-6 mr-3" />
+<MudText>Welcome,&nbsp</MudText>
+<MudLink Href="/settings">@_currentUserFirstName</MudLink>
+<MudIcon Icon="@Icons.Material.Filled.Logout" Color="Color.Inherit" Class="ml-3 mr-3" />
 <MudLink Href="logout">Log Out</MudLink>
 
 @code {
-    private string _currentUserEmail = string.Empty;
+    private string _currentUserFirstName = string.Empty;
+
+    private void LoadCurrentUserFirstName()
+    {
+        if (DataService.GetDataStateCurrentUser() != null)
+        {
+            _currentUserFirstName = DataService.GetDataStateCurrentUser()!.FirstName!;
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
-        dataRefreshTriggers = new List<string> { nameof(DataState.CurrentUser) };
+        dataRefreshTriggers = new List<string> { nameof(EDataRefreshType.User) };
 
         var authState = await AuthState;
         _isAuthenticated = authState.User.Identity!.IsAuthenticated;
-        if (_isAuthenticated)
-        {
-            _currentUserEmail = authState.User.Identity.Name!;
-        }
+        if (_isAuthenticated) LoadCurrentUserFirstName();
     }
 
     protected override bool HandleDataStateChanged(string propertyName, IDataState dataState)
     {
-        if (!dataRefreshTriggers.Contains(propertyName))
-        {
-            return false;
-        }
-
-        if (AppState.CanRefresh)
+        if (!dataRefreshTriggers.Contains(propertyName))return false;
+        else if (AppState.CanRefresh)
         {
             InvokeAsync(VerifyAuth);
+            LoadCurrentUserFirstName();
+            //Console.WriteLine($"AuthWidget returned True on HandleDataStateChanged, due to {propertyName}");
         }
 
         return AppState.CanRefresh;

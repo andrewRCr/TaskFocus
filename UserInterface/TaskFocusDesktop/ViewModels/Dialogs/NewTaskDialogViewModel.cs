@@ -1,25 +1,42 @@
 ﻿using Caliburn.Micro;
 using MaterialDesignThemes.Wpf;
-using Nextended.Core.Extensions;
 using System;
 using System.Dynamic;
 using System.Threading.Tasks;
 using System.Windows;
 using TaskFocusDesktop.ViewModels.Base;
-using TaskFocusUI.Library;
+using TaskFocusUI.Library.Data.Services.Access;
+using TaskFocusUI.Library.Data.State;
+using TaskFocusUI.Library.Data.Utilities;
 using TaskFocusUI.Library.Models;
-using TaskFocusUI.Library.Utilities;
 
 namespace TaskFocusDesktop.ViewModels.Dialogs
 {
     public class NewTaskDialogViewModel : DialogViewModelBase
     {
+        public NewTaskDialogViewModel(IEventAggregator events,
+                                      IAppState appState,
+                                      IWindowManager window,
+                                      IDataState dataState,
+                                      IDataService dataService,
+                                      IDataHelper dataHelper,
+                                      string? focusedProjectName = null,
+                                      string? focusedContextName = null) : base(events, appState, window, dataState, dataService, dataHelper)
+        {
+            HeaderText = "ADD NEW TASK";
+            NewTask = new TaskDisplayModel();
+
+            // context-awareness: if on Projects or Contexts pages and have highlighted in the UI a particular one, pre-populate field
+            if (focusedProjectName != null) { NewTask.ProjectName = focusedProjectName; }
+            else if (focusedContextName != null) { NewTask.ContextName = focusedContextName; }
+        }
+
         private TaskDisplayModel? _newTask;
         public TaskDisplayModel? NewTask
         {
             get { return _newTask; }
-            set 
-            { 
+            set
+            {
                 _newTask = value;
                 NotifyOfPropertyChange(() => NewTask);
             }
@@ -27,7 +44,7 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
 
         private bool _userHasProjects;
         public bool UserHasProjects
-        { 
+        {
             get { return _userHasProjects; }
             set
             {
@@ -45,23 +62,6 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
                 _userHasContexts = value;
                 NotifyOfPropertyChange(() => UserHasContexts);
             }
-        }
-
-        public NewTaskDialogViewModel(IEventAggregator events,
-                                      IAppState appState,
-                                      IWindowManager window,
-                                      IDataState dataState,
-                                      IDataService dataService,
-                                      IDataHelper dataHelper,
-                                      string? focusedProjectName = null,
-                                      string? focusedContextName = null) : base(events, appState, window, dataState, dataService, dataHelper)
-        {
-            HeaderText = "ADD NEW TASK";
-            NewTask = new TaskDisplayModel();
-
-            // context-awareness: if on Projects or Contexts pages and have highlighted in the UI a particular one, pre-populate field
-            if (focusedProjectName != null) { NewTask.ProjectName = focusedProjectName; }
-            else if (focusedContextName != null) { NewTask.ContextName = focusedContextName; }
         }
 
         protected override async void OnViewLoaded(object view)
@@ -92,7 +92,7 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
         {
             if (NewTask != null)
             {
-                if (NewTask.TaskName.IsNullOrWhiteSpace())
+                if (string.IsNullOrWhiteSpace(NewTask.TaskName))
                 {
                     IsFeedbackError = true;
                     FeedbackMessage = "Task name cannot be empty; please try again.";
@@ -102,7 +102,7 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
                     IsFeedbackError = false;
                     FeedbackMessage = null;
 
-                    await _dataService.AddTask(NewTask);
+                    _dataService.AddTask(NewTask);
 
                     FeedbackMessage = "Task added!";
                     await Task.Delay(TimeSpan.FromSeconds(_successMsgDisplaySec));

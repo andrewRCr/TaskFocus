@@ -1,10 +1,9 @@
 ﻿@page "/unconfirmedupdatedemail"
 
-@inherits _ComponentBase
+@inherits _ComponentStateAwareBase
 @inject NavigationManager NavManager
+@inject IDataService DataService
 @inject IAuthenticationService AuthService
-@inject IUserEndpoint UserEndpoint
-@using Microsoft.AspNetCore.WebUtilities
 
 <PageTitle>TaskFocus</PageTitle>
 
@@ -41,9 +40,9 @@
 
                         <MudText Class="pb-2 px-4 text-center">
                             <MudButton ButtonType="ButtonType.Button" 
-                                       Variant="Variant.Text" 
-                                       Color="Color.Primary" 
-                                       OnClick="ResendConfirmLink">Resend</MudButton>
+                            Variant="Variant.Text" 
+                            Color="Color.Primary" 
+                            OnClick="ResendConfirmLink">Resend</MudButton>
                         </MudText>
 
                     </MudPaper>
@@ -95,7 +94,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        dataRefreshTriggers = new List<string> { nameof(DataState.CurrentUser) };
+        dataRefreshTriggers = new List<string> { nameof(EDataRefreshType.User) };
         await VerifyAuth();
         await CheckEmailUpdatedStatus();
         LoadAlertMessage();
@@ -108,7 +107,7 @@
             {
                 try
                 {
-                    await UserEndpoint.ConfirmUpdatedEmail(_confirmUpdatedEmailModel);
+                    await DataService.ConfirmUpdatedEmail(_confirmUpdatedEmailModel);
 
                     await CheckEmailUpdatedStatus();
                     if (_emailUpdateHasBeenProcessed)
@@ -137,15 +136,16 @@
 
     private async Task ResendConfirmLink()
     {
-        if (DataState.CurrentUser != null)
+        if (DataService.GetDataStateCurrentUser != null)
         {
-            UserModel updatedUserModel = DataState.CurrentUser;
+            UserModel currentUserData = await DataService.GetRawCurrentUserData();
+            UserModel updatedUserModel = currentUserData;
             updatedUserModel.Email = _confirmUpdatedEmailModel.NewEmail;
 
             try
             {
                 _loading = true; // indicate request processing
-                await UserEndpoint.RequestUpdateEmail(updatedUserModel);
+                await DataService.RequestUpdateEmail(updatedUserModel);
                 _loading = false;
 
                 AppState.AlertSeverity = Severity.Success;
@@ -168,7 +168,7 @@
     {
         if (_isAuthenticated)
         {
-            UserModel currentUserData = await UserEndpoint.GetCurrentUserData();
+            UserModel currentUserData = await DataService.GetRawCurrentUserData();
             _emailUpdateHasBeenProcessed = currentUserData.Email == _confirmUpdatedEmailModel.NewEmail;
 
             if (!_emailUpdateHasBeenProcessed)

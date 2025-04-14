@@ -1,27 +1,27 @@
-﻿@inherits _ComponentBase
+﻿@inherits _ComponentStateAwareBase
 
 @if (ContainerTaskItemsParam.Count > 0)
 {
     <MudDropContainer @ref=_container
-                      T="TaskDisplayModel"
-                      Items="@ContainerTaskItemsParam"
-                      ItemsSelector="@ContainerItemsSelectorParam"
-                      ItemPicked="()=>SetCanRefresh(false)"
-                      ItemDropped="OnItemDropped">
+    T="TaskDisplayModel"
+    Items="@ContainerTaskItemsParam"
+    ItemsSelector="@ContainerItemsSelectorParam"
+    ItemPicked="()=>SetCanRefresh(false)"
+    ItemDropped="OnItemDropped">
 
         <ChildContent>
             <MudDropZone T="TaskDisplayModel"
-                         Identifier="@ContainerIdentifierParam"
-                         AllowReorder="@CanReorderParam"
-                         ItemIsDisabled="(task)=>IsDraggingDisabled(task)"
-                         Class="rounded mud-background-gray px-2 py-1 ma-2" />
+            Identifier="@ContainerIdentifierParam"
+            AllowReorder="@CanReorderParam"
+            ItemIsDisabled="(task)=>IsDraggingDisabled(task)"
+            Class="rounded mud-background-gray px-2 py-1 ma-2" />
         </ChildContent>
 
         <ItemRenderer>
             <MudPaper Elevation="25" Class="pa-0 my-2">
                 <TaskItemComponent TaskParam="@context"
-                                   ProjectsParam="@ContainerProjectsParam"
-                                   ContextsParam="@ContainerContextsParam" />
+                ProjectsParam="@ContainerProjectsParam"
+                ContextsParam="@ContainerContextsParam" />
             </MudPaper>
         </ItemRenderer>
 
@@ -86,8 +86,8 @@ else
     private void RefreshContainer()
     {
         ContainerTaskItemsParam = ContainerTaskItemsParam.OrderBy(x => x[_orderingIndex]).ToList();
-        StateHasChanged(); // update the binding to the container
         _container.Refresh(); // container refreshes internal state
+        StateHasChanged(); // update the binding to the container
     }
 
     private void UpdateLocalOrder(MudItemDropInfo<TaskDisplayModel> reorderedDropItem)
@@ -102,19 +102,20 @@ else
             {
                 ContainerTaskItemsParam.RemoveAt(oldIndex);
                 ContainerTaskItemsParam.Insert(newIndex, oldItem);
-                UpdateRemoteOrder(reorderedDropItem);
+                UpdateDataStateOrder(reorderedDropItem);
             }
         }
     }
 
-    private void UpdateRemoteOrder(MudItemDropInfo<TaskDisplayModel> reorderedDropItem)
+    private void UpdateDataStateOrder(MudItemDropInfo<TaskDisplayModel> reorderedDropItem)
     {
         AppState.CanRefresh = false;
 
         foreach (var item in ContainerTaskItemsParam)
         {
-            // will trigger an API UpdateTaskData call
-            item[_orderingIndex] = ContainerTaskItemsParam.IndexOf(item);
+            // will trigger a PropertyChanged -> UpdateTaskData call
+            bool changed = (int)item[_orderingIndex] != ContainerTaskItemsParam.IndexOf(item);
+            if (changed) item[_orderingIndex] = ContainerTaskItemsParam.IndexOf(item);
         }
         AppState.CanRefresh = true;
     }
@@ -128,7 +129,9 @@ else
 
         if (AppState.CanRefresh)
         {
-            if (CanReorderParam && _container != null) { RefreshContainer(); }
+            if (CanReorderParam && _container != null) { 
+                RefreshContainer(); 
+            }           
         }
 
         return AppState.CanRefresh;

@@ -1,5 +1,6 @@
-﻿@inherits _ComponentBase
+﻿@inherits _ComponentStateAwareBase
 @inject IDataService DataService
+@inject IDataSyncService DataSyncService
 @inject ISnackbar Snackbar
 
 <MudNavMenu Bordered="true" Style="width: 300px;">
@@ -120,11 +121,11 @@ Style="background-color: #27272f" >
         // always display if no collections exist
         if (IsProjectsSubMenu && LocalProjects != null)
         {
-            if (!newActive && LocalProjects.Count == 0) { return; }
+            if (!newActive && LocalProjects.Count == 0) return;
         }
         else if (!IsProjectsSubMenu && LocalContexts != null)
         {
-            if (!newActive && LocalContexts.Count == 0) { return; }
+            if (!newActive && LocalContexts.Count == 0) return;
         }
 
         _addCollectionButtonClassStr = newActive ? "ml-1" : "invisible";
@@ -171,34 +172,28 @@ Style="background-color: #27272f" >
 
     protected override void LoadLocalProjectData()
     {
-        if (DataState.IsDataLoaded())
+        if (DataService.IsDataStateLoaded())
         {
-            List<ProjectDisplayModel> projects = DataState.Projects!;
-            projects = projects.OrderBy(x => x.OrderIndex).ToList();
-            LocalProjects = projects;
-
-            foreach (ProjectDisplayModel project in LocalProjects!)
-            {
-                // subscribe to property changed event
-                project.PropertyChanged += OnExistingProjectPropertyChanged!; 
-            }
+            base.LoadLocalProjectData();
+            SubscribeToProjectPropertyChangedEvents(LocalProjects);
         }
     }
 
     protected override void LoadLocalContextData()
     {
-        if (DataState.IsDataLoaded())
+        if (DataService.IsDataStateLoaded())
         {
-            List<ContextDisplayModel> contexts = DataState.Contexts!;
-            contexts = contexts.OrderBy(x => x.OrderIndex).ToList();
-            LocalContexts = contexts;
-
-            foreach (ContextDisplayModel context in LocalContexts!)
-            {
-                // subscribe to property changed event
-                context.PropertyChanged += OnExistingContextPropertyChanged!;                                                                     
-            }
+            base.LoadLocalContextData();
+            SubscribeToContextPropertyChangedEvents(LocalContexts);
         }
+    }
+
+    public override void Dispose()
+    {
+        // unsubscribe from event handlers
+        base.Dispose(); // for -= AppStateChanged; -= DataStateChanged;
+        UnsubscribeFromProjectPropertyChangedEvents(LocalProjects);
+        UnsubscribeFromContextPropertyChangedEvents(LocalContexts);
     }
 
     private void ResetToAllItemsView()
@@ -217,22 +212,22 @@ Style="background-color: #27272f" >
 
     private void SetFocusedItemIdStr(int itemId)
     {
-        if (IsProjectsSubMenu) { AppState.FocusedProjectIdStr = itemId.ToString(); }
-        else { AppState.FocusedContextIdStr = itemId.ToString(); ; }
+        if (IsProjectsSubMenu) AppState.FocusedProjectIdStr = itemId.ToString();
+        else AppState.FocusedContextIdStr = itemId.ToString(); ;
     }
 
     private async Task TrySubmitNewCollection()
     {
         await VerifyAuthAndRedirectIfExpired();
-
+        
         if (string.IsNullOrWhiteSpace(_newCollectionName))
         {
             Snackbar.Add($"{_collectionTypeName} name is required.", Severity.Error);
         }
-        else { await SubmitNewCollection(); }
+        else { SubmitNewCollection(); }
     }
 
-    private async Task SubmitNewCollection()
+    private void SubmitNewCollection()
     {
         _newCollectionDialogVisible = false;
 
@@ -240,13 +235,13 @@ Style="background-color: #27272f" >
         {
             ProjectModel newProject = new();
             newProject.ProjectName = _newCollectionName;
-            await DataService.AddProject(newProject);
+            DataService.AddProject(newProject);
         }
         else
         {
             ContextModel newContext = new();
             newContext.ContextName = _newCollectionName;
-            await DataService.AddContext(newContext);
+            DataService.AddContext(newContext);
         }
 
         _newCollectionName = string.Empty;
@@ -262,15 +257,12 @@ Style="background-color: #27272f" >
 
     protected override bool HandleDataStateChanged(String propertyName, IDataState dataState)
     {
-        if (!dataRefreshTriggers.Contains(propertyName))
-        {
-            return false;
-        }
-
-        if (AppState.CanRefresh)
+        if (!dataRefreshTriggers.Contains(propertyName)) return false;   
+        else if (AppState.CanRefresh)
         {
             LoadLocalProjectData();
             LoadLocalContextData();
+            //Console.WriteLine($"SubNavMenu: returned true on HandleDataStateChanged. changed property causing True return: {propertyName}");
         }
 
         return AppState.CanRefresh;

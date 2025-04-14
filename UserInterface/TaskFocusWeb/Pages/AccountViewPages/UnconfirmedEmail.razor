@@ -1,10 +1,9 @@
 ﻿@page "/unconfirmedemail"
 
-@inherits _ComponentBase
+@inherits _ComponentStateAwareBase
 @inject NavigationManager NavManager
 @inject IAuthenticationService AuthService
-@inject IUserEndpoint UserEndpoint
-@using Microsoft.AspNetCore.WebUtilities
+@inject IDataService DataService
 
 <PageTitle>TaskFocus</PageTitle>
 
@@ -28,7 +27,7 @@
 
         @if (!_isConfirmed)
         {
-                <MudContainer MaxWidth="MaxWidth.ExtraSmall" Class="mt-6">
+            <MudContainer MaxWidth="MaxWidth.ExtraSmall" Class="mt-6">
 
                 <MudText Typo="Typo.button" Color="Color.Primary">
                     Email Unconfirmed
@@ -41,9 +40,9 @@
 
                     <MudText Class="pb-2 px-4 text-center">
                         <MudButton ButtonType="ButtonType.Button" 
-                                   Variant="Variant.Text" 
-                                   Color="Color.Primary" 
-                                   OnClick="ResendConfirmLink">Resend</MudButton>
+                        Variant="Variant.Text" 
+                        Color="Color.Primary" 
+                        OnClick="ResendConfirmLink">Resend</MudButton>
                     </MudText>
 
                 </MudPaper>
@@ -94,7 +93,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        dataRefreshTriggers = new List<string> { nameof(DataState.CurrentUser) };
+        dataRefreshTriggers = new List<string> { nameof(EDataRefreshType.User) };
         await CheckConfirmedStatus();
         LoadAlertMessage();
 
@@ -104,7 +103,7 @@
             {
                 try
                 {
-                    await UserEndpoint.ConfirmEmail(_confirmEmailModel);
+                    await DataService.ConfirmEmail(_confirmEmailModel);
 
                     await CheckConfirmedStatus();
                     if (_isConfirmed)
@@ -136,7 +135,7 @@
         UserModel userModel = new UserModel { Email = _confirmEmailModel.Email };
 
         _loading = true; // indicate request processing
-        await UserEndpoint.SendEmailConfirmationLink(userModel);
+        await DataService.SendEmailConfirmationLink(userModel);
         _loading = false;
 
         AppState.AlertSeverity = Severity.Success;
@@ -148,7 +147,7 @@
     {
         if (string.IsNullOrWhiteSpace(_confirmEmailModel.Email)) { _isConfirmed = false; }
         UserModel checkConfirmModel = new UserModel { Email = _confirmEmailModel.Email };
-        _isConfirmed = await UserEndpoint.CheckUserEmailConfirmed(checkConfirmModel);
+        _isConfirmed = await DataService.CheckUserEmailConfirmed(checkConfirmModel);
     }
 
     private void LoadAlertMessage()

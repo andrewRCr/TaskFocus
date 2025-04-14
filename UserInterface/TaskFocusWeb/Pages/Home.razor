@@ -1,8 +1,7 @@
 ﻿@page "/"
-@inherits _ComponentBase
+@inherits _ComponentStateAwareBase
 @inject NavigationManager NavManager
-@inject IUserEndpoint UserEndpoint
-@using System.ComponentModel.DataAnnotations
+@inject IDataService DataService
 
 <PageTitle>TaskFocus</PageTitle>
 
@@ -103,7 +102,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        dataRefreshTriggers = new List<string> { nameof(DataState.CurrentUser) };
+        dataRefreshTriggers = new List<string> { nameof(EDataRefreshType.User) };
         await VerifyAuth();
         LoadAlertMessage();
 
@@ -137,7 +136,7 @@
     {
         _loading = true; // indicate request processing
         UserModel userModel = new() { Email = _userModel.Email };
-        bool validUser = await UserEndpoint.CheckUserExists(userModel);
+        bool validUser = await DataService.CheckUserExists(userModel);
         if (!validUser)
         {
             _loading = false;
@@ -160,7 +159,7 @@
         {
             //_loading = true; // indicate request processing
             UserModel userModel = new() { Email = _userModel.Email };
-            await UserEndpoint.SendPasswordResetEmail(userModel);
+            await DataService.SendPasswordResetEmail(userModel);
             _loading = false;
 
             AppState.AlertSeverity = Severity.Success;

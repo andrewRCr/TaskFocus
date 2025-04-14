@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
 using System.Diagnostics;
+using static TaskFocusUI.Library.Logging.CustomLoggerConfiguration;
 
 namespace TaskFocusUI.Library.Logging
 {
@@ -17,30 +18,46 @@ namespace TaskFocusUI.Library.Logging
             Memory = memory;
         }
 
-        IDisposable ILogger.BeginScope<TState>(TState state) => default;
+        IDisposable ILogger.BeginScope<TState>(TState state) => default!;
+
+        private string GetTopLevelString(string nameStr)
+        {
+            string[] values = nameStr.ToString()!.Split('.');
+            return values[values.Length - 1];
+        }
 
         public bool IsEnabled(LogLevel logLevel)
         {
             return logLevel >= _config.ConsoleMinLogLevel;
         }
 
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        public void Log<TState>(LogLevel logLevel,
+                                EventId eventId,
+                                TState state,
+                                Exception? exception,
+                                Func<TState, Exception?, string> formatter)
         {
-            if (!IsEnabled(logLevel)) { return; }
+            if (!IsEnabled(logLevel))  return; 
             
             if (_config.EventId == 0 || _config.EventId == eventId.Id)
             {
-                // console logging
-                Console.WriteLine($"[{eventId.Id,2}: {logLevel,-12}] {_name} - {formatter(state, exception)}");
-                Debug.WriteLine($"[{eventId.Id,2}: {logLevel,-12}] {_name} - {formatter(state, exception)}");
-
-                // in-memory logging
-                if (logLevel >= _config.InMemoryMinLogLevel)
+                // console logging (both desktopUI + webUI)
+                switch (_config.LogLevels[logLevel])
                 {
-                    Memory.LogItem($"[{eventId.Id,2}: {logLevel,-12}] {_name} - {formatter(state, exception)}");
+                    case LogFormat.Short:
+                            Debug.WriteLine($"{GetTopLevelString(_name)}: {DateTime.Now.ToString("HH:mm:ss")} {formatter(state, exception)}");
+                        break;
+                    case LogFormat.Long:
+                            Debug.WriteLine($"[{eventId.Id,2}: {logLevel,-12}] {_name} {DateTime.Now.ToString("HH:mm:ss")} - {formatter(state, exception)}");
+                        break;
+                    default:
+                        break;
                 }
-            }
-            
+             
+                // in-memory logging
+                if (logLevel >= _config.InMemoryMinLogLevel)             
+                    Memory.LogItem($"[{eventId.Id,2}: {logLevel,-12}] {_name} - {formatter(state, exception)}");              
+            }         
         }
     }
 }

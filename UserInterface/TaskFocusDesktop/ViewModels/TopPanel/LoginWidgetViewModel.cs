@@ -7,6 +7,7 @@ using System.Windows;
 using TaskFocusDesktop.EventModels;
 using TaskFocusDesktop.ViewModels.Base;
 using TaskFocusUI.Library.API;
+using TaskFocusUI.Library.Data.Services.Access;
 using TaskFocusUI.Library.Models;
 using Windows.Security.Credentials;
 
@@ -18,27 +19,26 @@ namespace TaskFocusDesktop.ViewModels.TopPanel
         private string _password = string.Empty;
         private IAPIHelper _apiHelper;
         protected IWindowManager _window;
-        protected IUserEndpoint _userEndpoint;
+        protected IDataService _dataService;
         private string? _errorMessage;
         private string _resourceName = "TaskFocus";
-        private string? _defaultUserName;
         private bool _storedCredentialsWereFound = false;
 
         public LoginWidgetViewModel(IAPIHelper aPIHelper,
-                                    IWindowManager window,
-                                    IEventAggregator events,
-                                    IAppState appState,
-                                    IUserEndpoint userEndpoint) : base(events, appState)
+                            IWindowManager window,
+                            IEventAggregator events,
+                            IAppState appState,
+                            IDataService dataService) : base(events, appState)
         {
             _apiHelper = aPIHelper;
             _window = window;
-            _userEndpoint = userEndpoint;
+            _dataService = dataService;
         }
 
         private bool _enableLoginFormControls;
         public bool EnableLoginFormControls
         {
-            get { return _enableLoginFormControls; }
+            get => _enableLoginFormControls;
             set 
             { 
                 _enableLoginFormControls = value; 
@@ -48,7 +48,7 @@ namespace TaskFocusDesktop.ViewModels.TopPanel
 
         public string Username
         {
-            get { return _username; }
+            get => _username;
             set
             {
                 _username = value;
@@ -59,7 +59,7 @@ namespace TaskFocusDesktop.ViewModels.TopPanel
 
         public string Password
         {
-            get { return _password; }
+            get => _password;
             set
             {
                 _password = value;
@@ -70,15 +70,12 @@ namespace TaskFocusDesktop.ViewModels.TopPanel
 
         public bool IsErrorMsgVisible
         {
-            get
-            {
-                return !string.IsNullOrEmpty(ErrorMessage);
-            }
+            get => !string.IsNullOrEmpty(ErrorMessage);
         }
 
         public string? ErrorMessage
         {
-            get { return _errorMessage; }
+            get => _errorMessage;
             set
             {
                 _errorMessage = value;
@@ -89,9 +86,60 @@ namespace TaskFocusDesktop.ViewModels.TopPanel
 
         public bool CanLogIn
         {
-            get
+            get => !string.IsNullOrWhiteSpace(Username) && !string.IsNullOrWhiteSpace(Password);
+        }
+
+        private PasswordCredential? GetCredentialFromLocker()
+        {
+            PasswordCredential credential = null;
+            var vault = new PasswordVault();
+            IReadOnlyList<PasswordCredential> credentialList = null;
+
+            try
             {
-                return !string.IsNullOrWhiteSpace(Username) && !string.IsNullOrWhiteSpace(Password);
+                credentialList = vault.FindAllByResource(_resourceName);
+            }
+            catch (Exception) { return null; }
+
+            if (credentialList.Count > 0)
+            {
+                credential = credentialList[0];
+            }
+
+            return credential;
+        }
+
+        protected override async void OnViewLoaded(object view)
+        {
+            base.OnViewLoaded(view);
+
+            try
+            {
+                // check for stored credentials
+                var loginCredential = GetCredentialFromLocker();
+                if (loginCredential != null)
+                {
+                    // stored credential found in the locker
+                    // populate the Password property for automatic login
+                    _storedCredentialsWereFound = true;
+                    loginCredential.RetrievePassword();
+                    Username = loginCredential.UserName;
+                    Password = loginCredential.Password;
+                }
+                if (_appState.ShouldAutoLogin) { await LogIn(); }
+                else { EnableLoginFormControls = true; }
+            }
+            catch (Exception ex)
+            {
+                dynamic settings = new ExpandoObject();
+                settings.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+                settings.ResizeMode = ResizeMode.NoResize;
+                settings.Title = "Exception!";
+
+                var status = IoC.Get<StatusInfoViewModel>();
+                status.UpdateMessage($"{ex.Source} threw an exception:", ex.Message);
+                await _window.ShowDialogAsync(status, null, settings);
+                await TryCloseAsync();
             }
         }
 
@@ -106,7 +154,7 @@ namespace TaskFocusDesktop.ViewModels.TopPanel
 
                 // run pre-login checks
                 UserModel attemptLoginUserModel = new UserModel { Email = Username };
-                bool exists = await _userEndpoint.CheckUserExists(attemptLoginUserModel);
+                bool exists = await _dataService.CheckUserExists(attemptLoginUserModel);
                 if (!exists)
                 {
                     _appState.AlertMessage = "No matching user found.";
@@ -115,7 +163,7 @@ namespace TaskFocusDesktop.ViewModels.TopPanel
                 }
                 else
                 {
-                    bool confirmed = await _userEndpoint.CheckUserEmailConfirmed(attemptLoginUserModel);
+                    bool confirmed = await _dataService.CheckUserEmailConfirmed(attemptLoginUserModel);
                     if (!confirmed)
                     {
                         _appState.AlertMessage = "Please confirm your email address before logging in.";
@@ -170,60 +218,6 @@ namespace TaskFocusDesktop.ViewModels.TopPanel
                 Console.WriteLine(ex.Message.ToString());
                 _appState.AlertMessage = ex.Message;
             }
-        }
-
-        protected override async void OnViewLoaded(object view)
-        {
-            base.OnViewLoaded(view);
-
-            try
-            {
-                // check for stored credentials
-                var loginCredential = GetCredentialFromLocker();
-                if (loginCredential != null)
-                {
-                    // stored credential found in the locker
-                    // populate the Password property for automatic login
-                    _storedCredentialsWereFound = true;
-                    loginCredential.RetrievePassword();
-                    Username = loginCredential.UserName;
-                    Password = loginCredential.Password;                       
-                }
-                if (_appState.ShouldAutoLogin) { await LogIn(); }
-                else { EnableLoginFormControls = true; }
-            }
-            catch (Exception ex)
-            {
-                dynamic settings = new ExpandoObject();
-                settings.WindowStartupLocation = WindowStartupLocation.CenterOwner;
-                settings.ResizeMode = ResizeMode.NoResize;
-                settings.Title = "Exception!";
-
-                var status = IoC.Get<StatusInfoViewModel>();
-                status.UpdateMessage($"{ex.Source} threw an exception:", ex.Message);
-                await _window.ShowDialogAsync(status, null, settings);
-                await TryCloseAsync();
-            }           
-        }
-
-        private Windows.Security.Credentials.PasswordCredential? GetCredentialFromLocker()
-        {
-            Windows.Security.Credentials.PasswordCredential credential = null;
-            var vault = new Windows.Security.Credentials.PasswordVault();
-            IReadOnlyList<PasswordCredential> credentialList = null;
-
-            try
-            {
-                credentialList = vault.FindAllByResource(_resourceName);
-            }
-            catch (Exception) { return null; }
-
-            if (credentialList.Count > 0)
-            {
-                credential = credentialList[0];
-            }
-
-            return credential;
         }
     }
 }

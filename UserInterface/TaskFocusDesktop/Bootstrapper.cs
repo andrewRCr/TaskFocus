@@ -12,9 +12,13 @@ using TaskFocusDesktop.Utilities;
 using TaskFocusDesktop.ViewModels;
 using TaskFocusUI.Library;
 using TaskFocusUI.Library.API;
+using TaskFocusUI.Library.Data.Services;
+using TaskFocusUI.Library.Data.State;
 using TaskFocusUI.Library.Logging;
 using TaskFocusUI.Library.Models;
-using TaskFocusUI.Library.Utilities;
+using TaskFocusUI.Library.Data.Services.Synchronization;
+using TaskFocusUI.Library.Data.Services.Access;
+using TaskFocusUI.Library.Data.Utilities;
 
 namespace TaskFocusDesktop
 {
@@ -45,6 +49,8 @@ namespace TaskFocusDesktop
                 cfg.CreateMap<ContextDisplayModel, ContextModel>();
                 cfg.CreateMap<UserSettingsModel, UserSettingsDisplayModel>();
                 cfg.CreateMap<UserSettingsDisplayModel, UserSettingsModel>();
+                cfg.CreateMap<UserModel, UserDisplayModel>();
+                cfg.CreateMap<UserDisplayModel, UserModel>();
             });
 
             return config.CreateMapper();
@@ -95,8 +101,7 @@ namespace TaskFocusDesktop
                 .PerRequest<IUserEndpoint, UserEndpoint>()
                 .PerRequest<ITaskEndpoint, TaskEndpoint>()
                 .PerRequest<IProjectEndpoint, ProjectEndpoint>()
-                .PerRequest<IContextEndpoint, ContextEndpoint>()
-                .PerRequest<IDataService, DataService>();
+                .PerRequest<IContextEndpoint, ContextEndpoint>();
 
             // use these singular instances
             _container
@@ -106,7 +111,9 @@ namespace TaskFocusDesktop
                 .Singleton<IAPIHelper, APIHelper>()
                 .Singleton<IDataHelper, DataHelper>()
                 .Singleton<IDataState, DataState>()
-                .Singleton<IAppState, AppState>();        
+                .Singleton<IAppState, AppState>()
+                .Singleton<IDataService, DataService>()
+                .Singleton<IDataSyncService, DataSyncService>();
 
             // register view models - create new instance each time one is requested
             GetType().Assembly.GetTypes()

@@ -80,7 +80,7 @@
                                               CanReorder="True"
                                               ListBoxHeight="{Binding ListBoxHeight}"
                                               OrderingIndex="{Binding OrderingIndex}"
-                                              ContainerTasks="{Binding LocalTasks}" />
+                                              ContainerTasks="{Binding TodayTasks}" />
 
         </ScrollViewer>
 

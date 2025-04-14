@@ -1,4 +1,5 @@
-﻿@inherits _ComponentBase
+﻿@inherits _ComponentStateAwareBase
+@inject IDataService DataService
 
 <MudExpansionPanels DisableBorders="true" 
                     MultiExpansion="true"
@@ -47,16 +48,16 @@
 
     private void UpdateParametersFromDataState()
     {
-        if (DataState.IsDataLoaded())
+        if (DataService.IsDataStateLoaded())
         {
-            ContainerProjectItemsParam = DataState.Projects!;
+            ContainerProjectItemsParam = DataService.GetDataStateProjects()!;
             StateHasChanged();
         }
     }
 
     protected override bool HandleDataStateChanged(string propertyName, IDataState dataState)
     {
-        if (propertyName != nameof(DataState.Projects))
+        if (propertyName != nameof(EDataRefreshType.Projects))
         {
             return false;
         }

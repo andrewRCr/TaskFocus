@@ -7,7 +7,9 @@
 	@ContextId int,
 	@ContextName nvarchar(128),
 	@DueDate datetime2,
-	@OrderIndex int
+	@OrderIndex int,
+	@ServerLastUpdated datetimeoffset(7),
+	@ClientLastUpdated datetimeoffset(7)
 AS
 BEGIN
 	SET NOCOUNT ON;
@@ -18,6 +20,8 @@ BEGIN
 		DateCompleted = @DateCompleted, 
 		ContextId = @ContextId, 
 		DueDate = @DueDate,
-		OrderIndex = @OrderIndex
+		OrderIndex = @OrderIndex,
+		ServerLastUpdated = @ServerLastUpdated, 
+		ClientLastUpdated = @ClientLastUpdated
 	WHERE Id = @Id;
 END

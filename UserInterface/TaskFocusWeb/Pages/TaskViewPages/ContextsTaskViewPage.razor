@@ -1,6 +1,6 @@
 ﻿@page "/contexts"
 @inherits _TaskViewPageBase
-@inject IContextEndpoint ContextEndpoint
+@inject IDataService DataService
 
 <PageTitle>TaskFocus: Contexts</PageTitle>
 
@@ -98,12 +98,17 @@
         _focusedContextIdStr = AppState.FocusedContextIdStr;
     }
 
+    protected override bool IsLocalDataLoaded()
+    {
+        return LocalTasks != null && LocalProjects != null & LocalContexts != null;
+    }
+
     protected void GetContextFromId()
     {
         isValid = int.TryParse(_focusedContextIdStr, out integerContextId);
         if (isValid)
         {
-            ContextParam = DataState.Contexts!.Find(x => x.Id == integerContextId)!;
+            ContextParam = DataService.GetDataStateContexts()!.Find(x => x.Id == integerContextId)!;
         }
     }
 
@@ -114,12 +119,19 @@
 
     protected override bool HandleAppStateChanged(String propertyName, AppState appState)
     {
-        if (propertyName != nameof(AppState.FocusedContextIdStr) && !appRefreshTriggers.Contains(propertyName))
+        if (propertyName == nameof(AppState.RequestManualRefresh))
+        {
+            if (AppState.CanRefresh)
+            {
+                StateHasChanged();
+                return true;
+            }
+        }
+        else if (propertyName != nameof(AppState.FocusedContextIdStr) && !appRefreshTriggers.Contains(propertyName))
         {
             return false;
         }
-
-        if (AppState.CanRefresh)
+        else if (AppState.CanRefresh)
         {
             _focusedContextIdStr = appState.FocusedContextIdStr;
             LoadAlertMessage();
@@ -135,15 +147,8 @@
 
     protected override bool HandleDataStateChanged(String propertyName, IDataState dataState)
     {
-        if (!dataRefreshTriggers.Contains(propertyName))
-        {
-            return false;
-        }
-
-        if (AppState.CanRefresh)
-        {
-            LoadAllLocalData();
-        }
+        if (!dataRefreshTriggers.Contains(propertyName)) return false;
+        else if (AppState.CanRefresh) LoadAllLocalData();
 
         return AppState.CanRefresh;
     }

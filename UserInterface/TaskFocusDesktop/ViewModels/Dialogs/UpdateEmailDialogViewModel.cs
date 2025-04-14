@@ -1,23 +1,37 @@
 ﻿using Caliburn.Micro;
 using MaterialDesignThemes.Wpf;
-using Nextended.Core.Extensions;
 using System;
 using System.Threading.Tasks;
 using TaskFocusDesktop.EventModels;
 using TaskFocusDesktop.ViewModels.Base;
-using TaskFocusUI.Library;
 using TaskFocusUI.Library.API;
+using TaskFocusUI.Library.Data.Services.Access;
+using TaskFocusUI.Library.Data.State;
+using TaskFocusUI.Library.Data.Utilities;
 using TaskFocusUI.Library.Models;
-using TaskFocusUI.Library.Utilities;
 
 namespace TaskFocusDesktop.ViewModels.Dialogs
 {
     public class UpdateEmailDialogViewModel : DialogViewModelBase
     {
-        private IUserEndpoint _userEndpoint;
         private IAPIHelper _apiHelper;
         private ILoggedInUserModel _loggedInUser;
         private UserModel _userModel = new();
+
+        public UpdateEmailDialogViewModel(IEventAggregator events,
+                                  IAppState appState,
+                                  IWindowManager window,
+                                  IDataState dataState,
+                                  IDataService dataService,
+                                  IDataHelper dataHelper,
+                                  IAPIHelper apiHelper,
+                                  ILoggedInUserModel loggedInUser) : base(events, appState, window, dataState, dataService, dataHelper)
+        {
+            _loggedInUser = loggedInUser;
+            _apiHelper = apiHelper;
+            HeaderText = "UPDATE EMAIL ADDRESS";
+            UpdatedEmailAddress = _dataService.GetDataStateCurrentUser()!.Email;
+        }
 
         private string? _updatedEmailAddress;
         public string? UpdatedEmailAddress
@@ -30,23 +44,6 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
             }
         }
 
-        public UpdateEmailDialogViewModel(IEventAggregator events,
-                                          IAppState appState,
-                                          IWindowManager window,
-                                          IDataState dataState,
-                                          IDataService dataService,
-                                          IDataHelper dataHelper,
-                                          IUserEndpoint userEndpoint,
-                                          IAPIHelper apiHelper,
-                                          ILoggedInUserModel loggedInUser) : base(events, appState, window, dataState, dataService, dataHelper)
-        {
-            _userEndpoint = userEndpoint;
-            _loggedInUser = loggedInUser;
-            _apiHelper = apiHelper;
-            HeaderText = "UPDATE EMAIL ADDRESS";
-            UpdatedEmailAddress = _dataState.CurrentUser!.Email;
-        }
-
         protected override void CloseDialog()
         {
             UpdatedEmailAddress = null;
@@ -55,14 +52,14 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
 
         protected override async Task ProcessSubmitAction()
         {
-            if (UpdatedEmailAddress.IsNullOrWhiteSpace())
+            if (string.IsNullOrWhiteSpace(UpdatedEmailAddress))
             {
                 IsFeedbackError = true;
                 FeedbackMessage = "Email address cannot be empty; please try again.";
             }
 
             _userModel.Email = UpdatedEmailAddress!;
-            bool emailTaken = await _userEndpoint.CheckUserExists(_userModel);
+            bool emailTaken = await _dataService.CheckUserExists(_userModel);
             if (emailTaken)
             {
                 IsFeedbackError = true;
@@ -76,7 +73,7 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
                     _userModel.FirstName = _loggedInUser.FirstName;
                     _userModel.LastName = _loggedInUser.LastName;
 
-                    bool success = await _userEndpoint.RequestUpdateEmail(_userModel);
+                    bool success = await _dataService.RequestUpdateEmail(_userModel);
 
                     if (success)
                     {

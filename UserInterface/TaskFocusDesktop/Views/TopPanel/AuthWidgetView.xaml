@@ -14,12 +14,18 @@
                     VerticalAlignment="Center"
                     Margin="0 0 50 0">
 
+            <TextBlock Text="Welcome, "
+                       Foreground="{StaticResource ForegroundMainBrush}"
+                       FontSize="14"
+                       VerticalAlignment="Center"
+                       />
+
             <Button HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     Margin="0 0 15 0"
                     Style="{StaticResource HyperlinkStyleButton}"
                     Foreground="{StaticResource ForegroundHighlightBrush}"
-                    Content="{Binding UserEmailAddressStr}"
+                    Content="{Binding UserFirstNameStr}"
                     Command="{Binding SwitchToSettingsViewCommand}" />
 
             <materialDesign:PackIcon Kind="Logout"

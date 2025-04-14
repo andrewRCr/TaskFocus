@@ -92,7 +92,7 @@ namespace TaskFocusUI.Library.API
             }
         }
 
-        public async Task AddTask(TaskModel task, string userId)
+        public async Task<TaskModel> AddTask(TaskModel task, string userId)
         {
             task.UserId = userId;
 
@@ -101,6 +101,8 @@ namespace TaskFocusUI.Library.API
                 if (response.IsSuccessStatusCode)
                 {
                     _logger?.LogInformation("API: AddTask request processed successfully.");
+                    var result = await response.Content.ReadAsAsync<TaskModel>(); 
+                    return result;
                 }
                 else { throw new Exception(response.ReasonPhrase); }
             }

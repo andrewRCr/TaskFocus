@@ -54,12 +54,13 @@ namespace TaskFocusAPI.Library.DataAccess
             return allContextTasks;
         }
 
-        public void AddTask(TaskModel newTask, string userId)
+        public TaskModel AddTask(TaskModel newTask, string userId)
         {
             newTask.UserId = userId;
             if (newTask.Completed) { newTask.DateCompleted = DateTime.Now; }
 
-            _sqlDataAccess.SaveData("dbo.spTask_Insert", newTask, "TaskFocusData");
+            var insertedRow = _sqlDataAccess.SaveDataAndLoadInsertedRow("dbo.spTask_Insert", newTask, "TaskFocusData");
+            return insertedRow.FirstOrDefault();
         }
 
         public void DeleteTask(TaskModel taskToDelete)
@@ -107,6 +108,10 @@ namespace TaskFocusAPI.Library.DataAccess
             dbTask.ProjectId = frontEndTask.ProjectId;
             dbTask.ContextId = frontEndTask.ContextId;
             dbTask.CleanedUp = frontEndTask.CleanedUp;
+
+            // sync meta-data
+            dbTask.ClientLastUpdated = frontEndTask.ClientLastUpdated;
+            dbTask.ServerLastUpdated = frontEndTask.ServerLastUpdated;
 
             try
             {

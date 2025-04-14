@@ -1,5 +1,7 @@
 ﻿using Caliburn.Micro;
 using MaterialDesignThemes.Wpf;
+using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -12,10 +14,12 @@ using TaskFocusDesktop.ViewModels.Dialogs;
 using TaskFocusDesktop.ViewModels.MainContent;
 using TaskFocusDesktop.ViewModels.SidePanel;
 using TaskFocusDesktop.ViewModels.TopPanel;
-using TaskFocusUI.Library;
 using TaskFocusUI.Library.API;
+using TaskFocusUI.Library.Data.Services.Access;
+using TaskFocusUI.Library.Data.Services.Synchronization;
+using TaskFocusUI.Library.Data.State;
+using TaskFocusUI.Library.Data.Utilities;
 using TaskFocusUI.Library.Models;
-using TaskFocusUI.Library.Utilities;
 
 namespace TaskFocusDesktop.ViewModels
 {
@@ -24,17 +28,9 @@ namespace TaskFocusDesktop.ViewModels
                                   IHandle<RequestViewSwitchEvent>, 
                                   IHandle<RequestShowDialogEvent>, 
                                   IHandle<FocusedProjectChangedEvent>, 
-                                  IHandle<FocusedContextChangedEvent>
+                                  IHandle<FocusedContextChangedEvent>,
+                                  IHandle<PostSyncActionRequestEvent>
     {
-        private IAPIHelper _apiHelper;
-        private ILoggedInUserModel _loggedInUser;
-        private IEventAggregator _events;
-        protected IWindowManager _window;
-        protected IDataService _dataService;
-        protected IDataHelper _dataHelper;
-        protected IDataState _dataState;
-        protected IAppState _appState;
-        protected IUserEndpoint _userEndpoint;
         private ILog _logger = LogManager.GetLog(typeof(ShellViewModel));
         private const string _dialogIdentifier = "ShellDialogHost";
         private string? _focusedProjectName;
@@ -42,10 +38,75 @@ namespace TaskFocusDesktop.ViewModels
         private string? _focusedContextName;
         private int? _focusedContextId;
 
+        private IAPIHelper _apiHelper;
+        private ILoggedInUserModel _loggedInUser;
+        private IEventAggregator _events;
+        protected IWindowManager _window;
+        protected IDataService _dataService;
+        protected IDataSyncService _dataSyncService;
+        protected IDataHelper _dataHelper;
+        protected IDataState _dataState;
+        protected IAppState _appState;
+
+        protected List<string> dataRefreshTriggers = new List<string> {
+            nameof(EDataRefreshType.AppRequestedSyncCompleted) };
+
+        public ShellViewModel(IAPIHelper apiHelper,
+                      ILoggedInUserModel loggedInUser,
+                      IEventAggregator events,
+                      IDataService dataService,
+                      IDataSyncService dataSyncService,
+                      IDataHelper dataHelper,
+                      IDataState dataState,
+                      IAppState appState)
+        {
+            _apiHelper = apiHelper;
+            _loggedInUser = loggedInUser;
+            _events = events;
+            _dataService = dataService;
+            _dataSyncService = dataSyncService;
+            _dataHelper = dataHelper;
+            _dataState = dataState;
+            _appState = appState;
+
+            _events.SubscribeOnPublishedThread(this);
+            _dataState.DataStateChanged += DataStateChanged;
+
+            // top widget panel
+            TopWidgetPanel = IsUserLoggedIn ? IoC.Get<AuthWidgetViewModel>() : IoC.Get<LoginWidgetViewModel>();
+            ActivateItemAsync(TopWidgetPanel, new CancellationToken());
+
+            // side menu panel
+            SideMenuPanel = IoC.Get<NavMenuViewModel>();
+            ActivateItemAsync(SideMenuPanel, new CancellationToken());
+
+            // main content panel
+            MainContentPanel = IsUserLoggedIn ? IoC.Get<InboxViewModel>() : IoC.Get<HomeViewModel>();
+            ActivateItemAsync(MainContentPanel, new CancellationToken());
+
+            // set current main content view enum to default
+            ActiveMainContentView = IsUserLoggedIn ? ViewCatalog.MainContentView.Inbox : ViewCatalog.MainContentView.Home;
+
+            UpdateMiniNavIconColor();
+        }
+
+        // app appearance props
+        // ====================
+
+        public double WindowMinimumWidth { get; set; } = 600;
+        public double WindowMinimumHeight { get; set; } = 400;
+        public bool Borderless { get => (ShellWindowState == WindowState.Maximized); }
+        public int TitleBarHeight { get; set; } = 26;
+        public GridLength TitleBarHeightGridLength { get => new GridLength(TitleBarHeight + ResizeBorder); }
+        public int ResizeBorder { get; set; } = 6;
+        public Thickness ResizeBorderThickness { get => new Thickness(ResizeBorder + OuterMarginSize); }
+        public Thickness OuterMarginSizeThickness { get => new Thickness(OuterMarginSize); }
+        public CornerRadius WindowCornerRadius { get => new CornerRadius(WindowRadius); }
+
         private WindowState _shellWindowState;
         public WindowState ShellWindowState
         {
-            get { return _shellWindowState;}
+            get => _shellWindowState;
             set 
             { 
                 _shellWindowState = value;
@@ -63,22 +124,22 @@ namespace TaskFocusDesktop.ViewModels
         private int _outerMarginSize = 10;
         public int OuterMarginSize
         {
-            get { return Borderless ? 0 : _outerMarginSize; }
-            set { _outerMarginSize = value; }
+            get => Borderless ? 0 : _outerMarginSize;
+            set => _outerMarginSize = value;
         }
 
         // radius of the edges of the window
         private int _windowRadius = 10;
         public int WindowRadius
         {
-            get { return Borderless ? 0 : _windowRadius; }
-            set { _windowRadius = value; }
+            get => Borderless ? 0 : _windowRadius;
+            set => _windowRadius = value;
         }
 
         private SolidColorBrush _miniNavIconColor;
         public SolidColorBrush MiniNavIconColor
         {
-            get { return _miniNavIconColor; }
+            get => _miniNavIconColor;
             set 
             { 
                 _miniNavIconColor = value;
@@ -86,10 +147,23 @@ namespace TaskFocusDesktop.ViewModels
             }
         }
 
+        public string WindowMaxRestoreIcon
+        {
+            get  => ShellWindowState == WindowState.Maximized ? "WindowRestore" : "WindowMaximize";       
+        }
+
+        // app behavior props
+        // ====================
+
+        public bool IsUserLoggedIn
+        {
+            get => !string.IsNullOrWhiteSpace(_loggedInUser.Token);
+        }
+
         private Screen? _topWidgetPanel;
         public Screen? TopWidgetPanel
         {
-            get { return _topWidgetPanel; }
+            get => _topWidgetPanel;
             set
             {
                 _topWidgetPanel = value;
@@ -141,110 +215,33 @@ namespace TaskFocusDesktop.ViewModels
             }
         }
 
-        public string WindowMaxRestoreIcon
+        private bool _enableManualSyncButton;
+        public bool EnableManualSyncButton
         {
-            get
+            get { return _enableManualSyncButton; }
+            set
             {
-                return ShellWindowState == WindowState.Maximized ? "WindowRestore" : "WindowMaximize";
+                _enableManualSyncButton = value;
+                NotifyOfPropertyChange(() => EnableManualSyncButton);
             }
         }
-
-        public bool IsUserLoggedIn
-        {
-            get
-            {
-                return !string.IsNullOrWhiteSpace(_loggedInUser.Token);
-            }
-        }
-
-        public double WindowMinimumWidth { get; set; } = 600;
-
-        public double WindowMinimumHeight { get; set; } = 400;
-
-        // true if the window should be borderless because it is docked or maximized
-        public bool Borderless { get { return (ShellWindowState == WindowState.Maximized); } }
-
-        public int TitleBarHeight { get; set; } = 26;
-
-        public GridLength TitleBarHeightGridLength { get { return new GridLength(TitleBarHeight + ResizeBorder); } }
-
-        public int ResizeBorder { get; set; } = 6;
-
-        public Thickness ResizeBorderThickness { get { return new Thickness(ResizeBorder + OuterMarginSize); } }
-
-        public Thickness OuterMarginSizeThickness { get { return new Thickness(OuterMarginSize); } }
-
-        public CornerRadius WindowCornerRadius { get { return new CornerRadius(WindowRadius); } }
 
         public ICommand MinimizeCommand => new RelayCommand(execute => ShellWindowState = WindowState.Minimized);
-
         public ICommand MaximizeCommand => new RelayCommand(execute => ShellWindowState ^= WindowState.Maximized);
-
-        public ICommand CloseCommand => new RelayCommand(async execute => await TryCloseAsync());
-
+        public ICommand CloseCommand => new RelayCommand(execute => ExitApplication());
         public ICommand TitleBarMenuCommand => new RelayCommand(execute => SystemCommands.ShowSystemMenu(Application.Current.MainWindow, GetSystemMenuPosition()));
 
         public ICommand SwitchToInboxViewCommand => new RelayCommand(async execute => await SwitchMainContentView(ViewCatalog.MainContentView.Inbox));
-
         public ICommand SwitchToTodayViewCommand => new RelayCommand(async execute => await SwitchMainContentView(ViewCatalog.MainContentView.Today));
-
         public ICommand SwitchToProjectsViewCommand => new RelayCommand(async execute => await SwitchMainContentView(ViewCatalog.MainContentView.Projects));
-
         public ICommand SwitchToContextsViewCommand => new RelayCommand(async execute => await SwitchMainContentView(ViewCatalog.MainContentView.Contexts));
-
         public ICommand SwitchToCompletedViewCommand => new RelayCommand(async execute => await SwitchMainContentView(ViewCatalog.MainContentView.Completed));
-
         public ICommand SwitchToSettingsViewCommand => new RelayCommand(async execute => await SwitchMainContentView(ViewCatalog.MainContentView.Settings));
 
         public ICommand OpenNewTaskDialogCommand => new RelayCommand(async execute => await ShowDialog(ViewCatalog.DialogView.AddNewTaskDialog));
 
-        public ShellViewModel(IAPIHelper apiHelper,
-                              ILoggedInUserModel loggedInUser,
-                              IEventAggregator events,
-                              IDataService dataService,
-                              IDataHelper dataHelper,
-                              IDataState dataState,
-                              IAppState appState,
-                              IUserEndpoint userEndpoint)
-        {
-            _apiHelper = apiHelper;
-            _loggedInUser = loggedInUser;
-            _events = events;
-            _dataService = dataService;
-            _dataHelper = dataHelper;
-            _dataState = dataState;
-            _appState = appState;
-            _userEndpoint = userEndpoint;
-
-            _events.SubscribeOnPublishedThread(this);
-
-            // top widget panel
-            TopWidgetPanel = IsUserLoggedIn ? IoC.Get<AuthWidgetViewModel>() : IoC.Get<LoginWidgetViewModel>();
-            ActivateItemAsync(TopWidgetPanel, new CancellationToken());
-
-            // side menu panel
-            SideMenuPanel = IoC.Get<NavMenuViewModel>();
-            ActivateItemAsync(SideMenuPanel, new CancellationToken());
-
-            // main content panel
-            MainContentPanel = IsUserLoggedIn ? IoC.Get<InboxViewModel>() : IoC.Get<HomeViewModel>();
-            ActivateItemAsync(MainContentPanel, new CancellationToken());
-
-            // set current main content view enum to default
-            ActiveMainContentView = IsUserLoggedIn ? ViewCatalog.MainContentView.Inbox : ViewCatalog.MainContentView.Home;
-            _appState = appState;
-            _userEndpoint = userEndpoint;
-
-            UpdateMiniNavIconColor();
-        }
-
-        protected override void OnViewLoaded(object view)
-        {
-            base.OnViewLoaded(view);
-            Window appWindow = (Window)GetView();
-            _appState.AppWindowHeight = appWindow.Height;
-            appWindow.SizeChanged += AppWindow_SizeChanged;
-        }
+        // app appearance methods
+        // ====================
 
         private void AppWindow_SizeChanged(object sender, SizeChangedEventArgs e)
         {
@@ -282,23 +279,50 @@ namespace TaskFocusDesktop.ViewModels
             MiniNavIconColor = (SolidColorBrush)new BrushConverter().ConvertFrom(hexValue)!;
         }
 
-        public async Task ExitApplication()
+        // app behavior methods
+        // ====================
+
+        private void ExitApplication()
         {
-            await TryCloseAsync();
+            RequestSyncAndPostActionEvent(EPostSyncAction.Exit);
         }
 
+        private void DataStateChanged(String propertyName, IDataState dataState)
+        {
+            bool changesOccured = HandleDataStateChanged(propertyName, dataState);
+            if (changesOccured)
+            {
+                //_logger.Info($"ShellViewModel: returned true on HandleDataStateChanged. changed property causing True return: {propertyName}");
+            }
+        }
+
+        // on state refresh, check for a requested post-sync action and fire event to fulfill if needed
+        protected bool HandleDataStateChanged(string propertyName, IDataState dataState)
+        {
+            if (!dataRefreshTriggers.Contains(propertyName)) return false;
+            else if (_appState.PendingPostSyncAction != EPostSyncAction.None)
+            {
+                _events.PublishOnUIThreadAsync(new PostSyncActionRequestEvent(_appState.PendingPostSyncAction));
+                _appState.PendingPostSyncAction = EPostSyncAction.None; // reset
+            }
+
+            return true;
+        }
+
+        protected override void OnViewLoaded(object view)
+        {
+            base.OnViewLoaded(view);
+            Window appWindow = (Window)GetView();
+            _appState.AppWindowHeight = appWindow.Height;
+            appWindow.SizeChanged += AppWindow_SizeChanged;
+        }
+
+        // AuthStatusChangedEvent handler
         public async Task HandleAsync(AuthStatusChangedEvent message, CancellationToken cancellationToken)
         {
-            switch (message.NewAuthStatus)
-            {
-                case true:
-                    await HandleLogIn();
-                    break;
-
-                case false:
-                    await HandleLogOut();
-                    break;
-            }
+            bool authenticated = message.NewAuthStatus;
+            if (authenticated) await HandleLogIn();
+            else { RequestSyncAndPostActionEvent(EPostSyncAction.Logout); }
         }
 
         public async Task HandleLogIn()
@@ -307,7 +331,12 @@ namespace TaskFocusDesktop.ViewModels
             _appState.IsAuthenticated = true;
             UpdateMiniNavIconColor();
 
-            await _dataService.FetchAllRemoteData();
+            // if DataState has no remote data loaded, load it
+            if (!_dataService.IsDataStateLoaded())
+            {
+                _dataService.InvokeSyncRequest($"{this.ToString()}: {nameof(HandleLogIn)}");
+            }
+            //EnableManualSyncButton = true; // disabled; dev-only
 
             TopWidgetPanel = IoC.Get<AuthWidgetViewModel>();
             await ActivateItemAsync(TopWidgetPanel, new CancellationToken());
@@ -317,21 +346,56 @@ namespace TaskFocusDesktop.ViewModels
             ActiveMainContentView = ViewCatalog.MainContentView.Inbox;
         }
 
-        public async Task HandleLogOut()
+        public void RequestSyncAndPostActionEvent(EPostSyncAction action)
         {
-            NotifyOfPropertyChange(() => IsUserLoggedIn);
-            _appState.IsAuthenticated = false;
-            _appState.ShouldAutoLogin = false;
-            UpdateMiniNavIconColor();
-
-            TopWidgetPanel = IoC.Get<LoginWidgetViewModel>();
-            await ActivateItemAsync(TopWidgetPanel, new CancellationToken());
-
-            MainContentPanel = IoC.Get<HomeViewModel>();
-            await ActivateItemAsync(MainContentPanel, new CancellationToken());
-            ActiveMainContentView = ViewCatalog.MainContentView.Home;
+            _appState.PendingPostSyncAction = action;
+            _dataService.InvokeSyncRequest($"{this.ToString()}: {nameof(RequestSyncAndPostActionEvent)}", true);
+            EnableManualSyncButton = false;
         }
 
+        // PostSyncActionRequestEvent handler
+        public async Task HandleAsync(PostSyncActionRequestEvent message, CancellationToken cancellationToken)
+        {
+            switch (message.RequestedAction)
+            {
+                case EPostSyncAction.Logout:
+
+                    _apiHelper.LogOutUser();
+                    NotifyOfPropertyChange(() => IsUserLoggedIn);
+                    _appState.IsAuthenticated = false;
+                    _appState.ShouldAutoLogin = false;
+                    UpdateMiniNavIconColor();
+
+                    TopWidgetPanel = IoC.Get<LoginWidgetViewModel>();
+                    await ActivateItemAsync(TopWidgetPanel, new CancellationToken());
+
+                    MainContentPanel = IoC.Get<HomeViewModel>();
+                    await ActivateItemAsync(MainContentPanel, new CancellationToken());
+                    ActiveMainContentView = ViewCatalog.MainContentView.Home;
+
+                    _dataService.ResetDataStateOnLogout();
+
+                    break;
+
+                case EPostSyncAction.Exit:
+
+                    await TryCloseAsync();
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        // disabled; dev-only
+        public void ManualSync()
+        {
+            EnableManualSyncButton = false;
+            _dataService.InvokeSyncRequest($"{this.ToString()}: {nameof(ManualSync)}");
+            //EnableManualSyncButton = true; // dev-only
+        }
+
+        // RequestViewSwitchEvent handler
         public async Task HandleAsync(RequestViewSwitchEvent message, CancellationToken cancellationToken)
         {
             switch (message.RequestedContentPanel)
@@ -431,6 +495,7 @@ namespace TaskFocusDesktop.ViewModels
             await _events.PublishOnUIThreadAsync(switchedEvent);
         }
 
+        // RequestShowDialogEvent handler
         public async Task HandleAsync(RequestShowDialogEvent message, CancellationToken cancellationToken)
         {
             await ShowDialog(message.RequestedDialogView);
@@ -491,12 +556,12 @@ namespace TaskFocusDesktop.ViewModels
 
                 case ViewCatalog.DialogView.UpdateEmailDialog:
                     dialogVM = new UpdateEmailDialogViewModel(
-                        _events, _appState, dummyWindow, _dataState, _dataService, _dataHelper, _userEndpoint, _apiHelper, _loggedInUser);
+                        _events, _appState, dummyWindow, _dataState, _dataService, _dataHelper, _apiHelper, _loggedInUser);
                     break;
 
                 case ViewCatalog.DialogView.ChangePasswordDialog:
                    extendedDialogVM = new ChangePasswordDialogViewModel(
-                        _events, _appState, dummyWindow, _dataState, _dataService, _dataHelper, _userEndpoint, _apiHelper, _loggedInUser);
+                        _events, _appState, dummyWindow, _dataState, _dataService, _dataHelper, _apiHelper, _loggedInUser);
                     break;
 
                 default:
@@ -512,6 +577,7 @@ namespace TaskFocusDesktop.ViewModels
             }
         }
 
+        // FocusedProjectChangedEvent handler
         public Task HandleAsync(FocusedProjectChangedEvent message, CancellationToken cancellationToken)
         {
             _focusedProjectName = message.NewFocusedProjectName;
@@ -519,6 +585,7 @@ namespace TaskFocusDesktop.ViewModels
             return Task.CompletedTask;
         }
 
+        // FocusedContextChangedEvent handler
         public Task HandleAsync(FocusedContextChangedEvent message, CancellationToken cancellationToken)
         {
             _focusedContextName = message.NewFocusedContextName;

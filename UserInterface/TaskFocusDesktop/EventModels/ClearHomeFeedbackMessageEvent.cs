@@ -2,8 +2,6 @@
 {
     public class ClearHomeFeedbackMessageEvent
     {
-        public ClearHomeFeedbackMessageEvent()
-        {
-        }
+        public ClearHomeFeedbackMessageEvent() {}
     }
 }

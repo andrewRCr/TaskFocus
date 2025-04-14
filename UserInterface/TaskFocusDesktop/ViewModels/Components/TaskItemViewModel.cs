@@ -2,7 +2,5 @@
 
 namespace TaskFocusDesktop.ViewModels.Components
 {
-    class TaskItemViewModel : UserControl
-    {
-    }
+    class TaskItemViewModel : UserControl {}
 }

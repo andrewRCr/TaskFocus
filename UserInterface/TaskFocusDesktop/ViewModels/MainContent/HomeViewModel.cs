@@ -1,5 +1,4 @@
 ﻿using Caliburn.Micro;
-using Nextended.Core.Extensions;
 using System;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -24,6 +23,23 @@ namespace TaskFocusDesktop.ViewModels.MainContent
         protected IUserEndpoint _userEndpoint;
         protected const double _alertMsgDisplaySec = 4.0;
         protected bool _loading = false;
+
+        public HomeViewModel(IEventAggregator events,
+                     IAppState appState,
+                     IUserEndpoint userEndpoint) : base(events, appState)
+        {
+            _events = events;
+            _events.SubscribeOnPublishedThread(this);
+            _userEndpoint = userEndpoint;
+
+            ShowNotAuthenticatedMessage = !_appState.IsAuthenticated;
+            ShowForgotPasswordToggle = !_appState.IsAuthenticated;
+
+            FeedbackMessage = _appState.AlertMessage;
+        }
+
+        public ICommand ToggleShowForgotPasswordInput => new RelayCommand(execute => ShowForgotPasswordInput = !ShowForgotPasswordInput);
+        public ICommand RequestSubmitForgotPasswordForm => new RelayCommand(async execute => await SubmitForgotPasswordForm());
 
         private bool _showPleaseWaitLoginMessage = false;
         public bool ShowPleaseWaitLoginMessage
@@ -145,23 +161,6 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             }
         }
 
-        public HomeViewModel(IEventAggregator events,
-                             IAppState appState,
-                             IUserEndpoint userEndpoint) : base(events, appState)
-        {
-            _events = events;
-            _events.SubscribeOnPublishedThread(this);
-            _userEndpoint = userEndpoint;
-
-            ShowNotAuthenticatedMessage = !_appState.IsAuthenticated;
-            ShowForgotPasswordToggle = !_appState.IsAuthenticated;
-
-            FeedbackMessage = _appState.AlertMessage;
-        }
-
-        public ICommand ToggleShowForgotPasswordInput => new RelayCommand(execute => ShowForgotPasswordInput = !ShowForgotPasswordInput);
-        public ICommand RequestSubmitForgotPasswordForm => new RelayCommand(async execute => await SubmitForgotPasswordForm());
-
         Task IHandle<LoginNotifyEvent>.HandleAsync(LoginNotifyEvent message, CancellationToken cancellationToken)
         {
             ShowPleaseWaitLoginMessage = true;
@@ -203,7 +202,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             return Task.CompletedTask;
         }
 
-        public static bool IsValidEmailAddress(string emailAddress)
+        private static bool IsValidEmailAddress(string emailAddress)
         {
             string pattern = @"^\s*[\w\-\+_']+(\.[\w\-\+_']+)*\@[A-Za-z0-9]([\w\.-]*[A-Za-z0-9])?\.[A-Za-z][A-Za-z\.]*[A-Za-z]$";
             var regex = new Regex(pattern, RegexOptions.IgnoreCase);
@@ -215,7 +214,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
         {
             IsFeedbackError = false;
 
-            if (ForgotPasswordEmailAddress.IsNullOrWhiteSpace())
+            if (string.IsNullOrWhiteSpace(ForgotPasswordEmailAddress))
             {
                 IsFeedbackError = true;
                 FeedbackMessage = "Email address cannot be empty; please try again.";
