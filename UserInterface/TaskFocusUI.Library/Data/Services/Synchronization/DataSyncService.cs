@@ -146,7 +146,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             if (_syncInProgress) throw new Exception("Sync already in progress; operation aborted.");
 
             _syncInProgress = true;
-            LogInformation($"Starting synchronization... (LastSync prior: {_dataState.GetLastSync()}");
+            LogInformation($"Starting synchronization... (LastSync prior: {_dataState.GetLastSync()})");
 
             // process any time-relevant changes to task state
             _dataService.PerformCompletedTaskCleanup();

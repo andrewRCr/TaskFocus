@@ -2,7 +2,6 @@
 using System;
 using System.ComponentModel;
 using System.Reflection;
-using System.Threading.Tasks;
 
 namespace TaskFocusUI.Library.Models
 {
