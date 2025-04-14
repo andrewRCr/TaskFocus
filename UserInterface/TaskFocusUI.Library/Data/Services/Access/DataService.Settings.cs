@@ -49,11 +49,12 @@ namespace TaskFocusUI.Library.Data.Services
                 _dataState.GetUserSettings()!.ValueAssign(workingSettings);
 
                 // add copy to ChangedSettingsData
-                // don't duplicate if already had another update prior to push
+                // don't duplicate if already had another update prior to push; update values instead
                 if (_dataState.GetChangedSettingsData() == null) _dataState.SetChangedSettingsData(workingSettings.Clone());
+                else _dataState.GetChangedSettingsData()!.ValueAssign(workingSettings);
 
-                // unlock; UI update will be triggered by PropertyChanged call on property set
-                Interlocked.Exchange(ref _settingsUpdateEntered, 0);
+                    // unlock; UI update will be triggered by PropertyChanged call on property set
+                    Interlocked.Exchange(ref _settingsUpdateEntered, 0);
             }
         }
     }

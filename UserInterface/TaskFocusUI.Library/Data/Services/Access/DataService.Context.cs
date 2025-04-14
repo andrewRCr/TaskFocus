@@ -56,10 +56,11 @@ namespace TaskFocusUI.Library.Data.Services
                 if (dataStateContext != null) dataStateContext.ValueAssign(workingContext);
 
                 // add copy to ChangedContextData
-                // don't duplicate if already had another update prior to push
+                // don't duplicate if already had another update prior to push; update values instead
                 var alreadyQueued = _dataState.GetChangedContextData().Where(
                     x => x.Id == workingContext.Id);
-                if (!alreadyQueued.Any()) { _dataState.GetChangedContextData().Add(workingContext.Clone()); }
+                if (!alreadyQueued.Any()) _dataState.GetChangedContextData().Add(workingContext.Clone());
+                else alreadyQueued.FirstOrDefault()!.ValueAssign(workingContext);
             }
         }
 

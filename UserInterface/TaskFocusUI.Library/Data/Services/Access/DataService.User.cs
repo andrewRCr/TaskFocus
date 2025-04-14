@@ -66,11 +66,12 @@ namespace TaskFocusUI.Library.Data.Services
                     _dataState.GetCurrentUser()!.ValueAssign(workingCurrentUser);
 
                     // add to changedUserData
-                    // don't duplicate if already had another update prior to push
+                    // don't duplicate if already had another update prior to push; update values instead
                     if (_dataState.GetChangedUserData() == null) _dataState.SetChangedUserData(workingCurrentUser.Clone());
+                    else _dataState.GetChangedUserData()!.ValueAssign(workingCurrentUser);
 
-                    // unlock; UI update will be triggered by PropertyChanged call on property set
-                    Interlocked.Exchange(ref _userUpdateEntered, 0);
+                        // unlock; UI update will be triggered by PropertyChanged call on property set
+                        Interlocked.Exchange(ref _userUpdateEntered, 0);
                 }
             }
         }

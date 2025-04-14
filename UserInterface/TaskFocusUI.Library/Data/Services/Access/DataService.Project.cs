@@ -54,10 +54,11 @@ namespace TaskFocusUI.Library.Data.Services
                 if (dataStateProject != null) dataStateProject.ValueAssign(workingProject);
 
                 // add copy to ChangedProjectData
-                // don't duplicate if already had another update prior to push
-                var alreadyQueued = _dataState.GetChangedContextData().Where(
+                // don't duplicate if already had another update prior to push; update values instead
+                var alreadyQueued = _dataState.GetChangedProjectData().Where(
                     x => x.Id == workingProject.Id);
-                if (!alreadyQueued.Any()) { _dataState.GetChangedProjectData().Add(workingProject.Clone()); }
+                if (!alreadyQueued.Any()) _dataState.GetChangedProjectData().Add(workingProject.Clone());
+                else alreadyQueued.FirstOrDefault()!.ValueAssign(workingProject);
             }
         }
 

@@ -334,10 +334,11 @@ namespace TaskFocusUI.Library.Data.Services
                 if (dataStateTask != null) dataStateTask.ValueAssign(workingTask);
 
                 // add copy to ChangedTaskData
-                // don't duplicate if already had another update pending prior to push
+                // don't duplicate if already had another update pending prior to push; update values instead
                 var alreadyQueued = _dataState.GetChangedTaskData().Where(
                     x => x.Id == workingTask.Id);
-                if (!alreadyQueued.Any()) { _dataState.GetChangedTaskData().Add(workingTask.Clone()); }
+                if (!alreadyQueued.Any())  _dataState.GetChangedTaskData().Add(workingTask.Clone()); 
+                else alreadyQueued.FirstOrDefault()!.ValueAssign(workingTask);
             }
         }
 
