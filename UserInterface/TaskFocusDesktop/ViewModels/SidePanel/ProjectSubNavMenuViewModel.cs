@@ -91,18 +91,19 @@ namespace TaskFocusDesktop.ViewModels.SidePanel
             }
         }
 
-        // saves updated project data to server on property change
+        // saves updated project data to local data state on property change
         protected override async void OnExistingProjectPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             await VerifyAuthAndRedirectIfExpired();
 
             string? changedProperty = e.PropertyName;
             ProjectDisplayModel senderProject = (ProjectDisplayModel)sender;
-            _logger.Info($"{senderProject.ProjectName}'s property {changedProperty} was changed.");
+            //_logger.Info($"{senderProject.ProjectName}'s property {changedProperty} was changed.");
 
             if (!_dataService.IsProjectCurrentlyBeingUpdated(senderProject))
             {
-                _dataService.UpdateProjectData(senderProject);
+                if (changedProperty!.Contains("Index") && CanUpdateOrderingIndices)
+                    _dataService.UpdateProjectData(senderProject);
             }
         }
 

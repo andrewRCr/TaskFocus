@@ -100,21 +100,6 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             return true;
         }
 
-        // calls TrySync() on passed interval
-        private async Task PeriodicSync(TimeSpan interval, CancellationToken cancellationToken = default)
-        {
-            using PeriodicTimer timer = new(interval);
-            while (true)
-            {
-                try
-                {
-                    await timer.WaitForNextTickAsync(cancellationToken);
-                    await TrySync();
-                }
-                catch (Exception ex) { LogError(ex.Message); }
-            }
-        }
-
         // on client launch, populate empty DataState + initialize PeriodicSync
         private async Task InitSync()
         {
@@ -127,13 +112,28 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                 LogInformation("InitSync complete; DataState populated.");
 
                 // initialize periodic sync
-                TimeSpan interval = TimeSpan.FromSeconds(60);
+                TimeSpan interval = TimeSpan.FromSeconds(180);
                 await PeriodicSync(interval);
             }
             catch (Exception ex)
             {
                 LogError(ex.Message);
                 throw;
+            }
+        }
+
+        // calls TrySync() on passed interval
+        private async Task PeriodicSync(TimeSpan interval, CancellationToken cancellationToken = default)
+        {
+            using PeriodicTimer timer = new(interval);
+            while (true)
+            {
+                try
+                {
+                    await timer.WaitForNextTickAsync(cancellationToken);
+                    await TrySync();
+                }
+                catch (Exception ex) { LogError(ex.Message); }
             }
         }
 

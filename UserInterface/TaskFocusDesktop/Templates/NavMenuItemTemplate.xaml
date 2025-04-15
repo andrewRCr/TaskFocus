@@ -18,7 +18,7 @@
                 Background="Transparent"
                 BorderThickness="0"
                 Height="50"
-                Width="300" >
+                Width="250" >
 
             <Grid>
 
@@ -38,7 +38,7 @@
                 
                 <!-- selected indicator (highlight vertical strip on right side) -->
                 <Rectangle x:Name="SelectedIndicator" 
-                           Tag="{Binding Path=Header}"
+                           Tag="Header"
                            Grid.Column="1"
                            VerticalAlignment="Stretch" 
                            HorizontalAlignment="Right"
@@ -60,7 +60,7 @@
                         Panel.ZIndex="-1"
                         Grid.ColumnSpan="2"
                         Height="50"
-                        Width="300" 
+                        Width="250" 
                         Margin="0"
                         Background="{StaticResource BackgroundMidGreyBrush}" >
 

@@ -100,11 +100,12 @@ namespace TaskFocusDesktop.ViewModels.SidePanel
 
             string? changedProperty = e.PropertyName;
             ContextDisplayModel senderContext = (ContextDisplayModel)sender;
-            _logger.Info($"{senderContext.ContextName}'s property {changedProperty} was changed.");
+            //_logger.Info($"{senderContext.ContextName}'s property {changedProperty} was changed.");
 
             if (!_dataService.IsContextCurrentlyBeingUpdated(senderContext))
             {
-                _dataService.UpdateContextData(senderContext);
+                if (changedProperty!.Contains("Index") && CanUpdateOrderingIndices)
+                    _dataService.UpdateContextData(senderContext);
             }
         }
 

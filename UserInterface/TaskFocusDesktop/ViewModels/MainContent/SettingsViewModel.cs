@@ -131,7 +131,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             }
         }
 
-        // saves updated user settings data to server on property change
+        // saves updated user settings data to local data state on property change
         protected async void OnExistingSettingsPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             string? changedProperty = e.PropertyName;
@@ -141,7 +141,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             _dataService.UpdateSettingsData(senderSettings);
         }
 
-        // saves updated user data to server on property change
+        // saves updated user data to local data state on property change
         protected async void OnExistingUserPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             string? changedProperty = e.PropertyName;

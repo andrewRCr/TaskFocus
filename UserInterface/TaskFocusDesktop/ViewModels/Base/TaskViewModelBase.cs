@@ -299,7 +299,7 @@ namespace TaskFocusDesktop.ViewModels.Base
             foreach (ContextDisplayModel context in contexts) context.PropertyChanged -= OnExistingContextPropertyChanged!;
         }
 
-        // saves updated task data to server on property change
+        // saves updated task data to local data state on property change
         protected virtual async void OnExistingTaskPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             await VerifyAuthAndRedirectIfExpired();
@@ -309,12 +309,14 @@ namespace TaskFocusDesktop.ViewModels.Base
 
             if (!_dataService.IsTaskCurrentlyBeingUpdated(senderTask))
             {
+                if (changedProperty!.Contains("Index") && CanUpdateOrderingIndices)
+
                 //_logger.Info($"{this.ToString()}: workingTask property changed: {senderTask.TaskName}'s property {changedProperty} was changed.");
                 _dataService.UpdateTaskData(senderTask);
             }
         }
 
-        // saves updated project data to server on property change
+        // saves updated project data to local data state on property change
         protected virtual async void OnExistingProjectPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             await VerifyAuthAndRedirectIfExpired();
@@ -326,13 +328,13 @@ namespace TaskFocusDesktop.ViewModels.Base
             {
                 //_logger.Info($"workingProject property changed: {senderProject.ProjectName}'s property {changedProperty} was changed.");
 
-                // only ProjectSubNavMenuVieWModel handles reorder updates
+                // only ProjectSubNavMenuViewModel handles reorder updates
                 if (changedProperty!.Contains("Index")) return;
                 else _dataService.UpdateProjectData(senderProject);
             }
         }
 
-        // saves updated context data to server on property change
+        // saves updated context data to local data state on property change
         protected virtual async void OnExistingContextPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             await VerifyAuthAndRedirectIfExpired();
@@ -344,7 +346,7 @@ namespace TaskFocusDesktop.ViewModels.Base
             {
                 //_logger.Info($"workingContext property changed: {senderContext.ContextName}'s property {changedProperty} was changed.");
 
-                // only ContextSubNavMenuVieWModel handles reorder updates
+                // only ContextSubNavMenuViewModel handles reorder updates
                 if (changedProperty!.Contains("Index"))return;
                 else _dataService.UpdateContextData(senderContext);
             }

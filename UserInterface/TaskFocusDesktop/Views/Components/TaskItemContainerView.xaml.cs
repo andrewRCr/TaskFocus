@@ -168,9 +168,6 @@ namespace TaskFocusDesktop.Views.Components
                         foreach (var task in vm.LocalTasks!) { _previousLocalOrder.Add(task, vm.LocalTasks!.IndexOf(task)); }
                     }
 
-                    //var vm = (TaskViewModelBase)TaskContainerListBox.DataContext;
-                    //foreach (var task in vm.LocalTasks!) { _previousLocalOrder.Add(task, vm.LocalTasks!.IndexOf(task)); }
-
                     _isPreviousLocalOrderStored = true;
                 }
 
@@ -205,7 +202,7 @@ namespace TaskFocusDesktop.Views.Components
                     int previousIndex = _previousLocalOrder[insertedTaskItem];
 
                     bool orderChanged = previousIndex != vm.FocusedProjectTasks!.IndexOf(insertedTaskItem);
-                    if (orderChanged) { UpdateRemoteOrder(); }
+                    if (orderChanged) { UpdateDataStateOrder(); }
                 }
                 else if (IsContextContainer)
                 {
@@ -214,7 +211,7 @@ namespace TaskFocusDesktop.Views.Components
                     int previousIndex = _previousLocalOrder[insertedTaskItem];
 
                     bool orderChanged = previousIndex != vm.FocusedContextTasks!.IndexOf(insertedTaskItem);
-                    if (orderChanged) { UpdateRemoteOrder(); }
+                    if (orderChanged) { UpdateDataStateOrder(); }
                 }
                 else
                 {
@@ -223,14 +220,14 @@ namespace TaskFocusDesktop.Views.Components
                     int previousIndex = _previousLocalOrder[insertedTaskItem];
 
                     bool orderChanged = previousIndex != vm.LocalTasks!.IndexOf(insertedTaskItem);
-                    if (orderChanged) { UpdateRemoteOrder(); }
+                    if (orderChanged) { UpdateDataStateOrder(); }
                 }
             }
         }
 
         public void PreviewInsertTaskItem(TaskDisplayModel insertedTaskItem, TaskDisplayModel targetTaskItem)
         {
-            if (insertedTaskItem == targetTaskItem) { return; }
+            if (insertedTaskItem == targetTaskItem) return;
 
             if (IsProjectContainer)
             {
@@ -302,7 +299,7 @@ namespace TaskFocusDesktop.Views.Components
             _isPreviousLocalOrderStored = false;
         }
 
-        private void UpdateRemoteOrder()
+        private void UpdateDataStateOrder()
         {
             if (IsProjectContainer)
             {
@@ -317,8 +314,9 @@ namespace TaskFocusDesktop.Views.Components
                         vm.CanUpdateOrderingIndices = true;
                     }
 
-                    // will trigger a DataService.UpdateCollectionOrderingIndices call
-                    item[OrderingIndex] = vm.FocusedProjectTasks.IndexOf(item);
+                    // will trigger a PropertyChanged -> UpdateTaskData call
+                    bool changed = (int)item[OrderingIndex] != vm.FocusedProjectTasks.IndexOf(item);
+                    if (changed) item[OrderingIndex] = vm.FocusedProjectTasks.IndexOf(item);
                     //Debug.WriteLine($"{item.TaskName} OrderingIndex({OrderingIndex}): {item[OrderingIndex]}");
 
                     // ensure rebuilt local on next drag/drop
@@ -339,8 +337,9 @@ namespace TaskFocusDesktop.Views.Components
                         vm.CanUpdateOrderingIndices = true;
                     }
 
-                    // will trigger a DataService.UpdateCollectionOrderingIndices call
-                    item[OrderingIndex] = vm.FocusedContextTasks.IndexOf(item);
+                    // will trigger a PropertyChanged -> UpdateTaskData call
+                    bool changed = (int)item[OrderingIndex] != vm.FocusedContextTasks.IndexOf(item);
+                    if (changed) item[OrderingIndex] = vm.FocusedContextTasks.IndexOf(item);
                     //Debug.WriteLine($"{item.TaskName} OrderingIndex({OrderingIndex}): {item[OrderingIndex]}");
                 }
             }
@@ -357,9 +356,10 @@ namespace TaskFocusDesktop.Views.Components
                         vm.CanUpdateOrderingIndices = true;
                     }
 
-                    // will trigger a DataService.UpdateCollectionOrderingIndices call
-                    item[OrderingIndex] = vm.LocalTasks.IndexOf(item);
-                    //Debug.WriteLine($"{item.TaskName} OrderingIndex({OrderingIndex}): {item[OrderingIndex]}");
+                    // will trigger a PropertyChanged -> UpdateTaskData call
+                    bool changed = (int)item[OrderingIndex] != vm.LocalTasks.IndexOf(item);
+                    if (changed) item[OrderingIndex] = vm.LocalTasks.IndexOf(item);
+                    Debug.WriteLine($"{item.TaskName} OrderingIndex({OrderingIndex}): {item[OrderingIndex]}");
                 }
             }
         }

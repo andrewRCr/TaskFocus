@@ -83,6 +83,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
 
                 FocusedContextTasks = new ObservableCollection<TaskDisplayModel>(contextTasks!);
                 SubscribeToTaskPropertyChangedEvents(FocusedContextTasks);
+                LocalTasks = FocusedContextTasks;
 
                 TaskCount = FocusedContextTasks.Count;
                 UpdateScrollHeight(AppWindowHeight);

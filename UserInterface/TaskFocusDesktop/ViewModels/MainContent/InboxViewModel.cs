@@ -13,6 +13,7 @@ using TaskFocusUI.Library.Data.Services.Access;
 using TaskFocusUI.Library.Data.State;
 using TaskFocusUI.Library.Data.Utilities;
 using TaskFocusUI.Library.Models;
+using System.Diagnostics;
 
 namespace TaskFocusDesktop.ViewModels.MainContent
 {
@@ -53,7 +54,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
         protected override void OnViewLoaded(object view)
         {
             base.OnViewLoaded(view);
-            ActiveMainContentView = Utilities.ViewCatalog.MainContentView.Inbox;
+            ActiveMainContentView = ViewCatalog.MainContentView.Inbox;
         }
 
         protected override void LoadLocalTaskData()
@@ -64,6 +65,12 @@ namespace TaskFocusDesktop.ViewModels.MainContent
                     x => (x.ProjectId == null || x.ContextId == null) && !x.CleanedUp).ToList();
                 InboxTasks = new ObservableCollection<TaskDisplayModel>(unorderedInboxTasks.OrderBy(x => x.InboxIndex).ToList());
                 SubscribeToTaskPropertyChangedEvents(InboxTasks);
+                LocalTasks = InboxTasks;
+
+                foreach (var task in LocalTasks)
+                {
+                    Debug.WriteLine($"{task.TaskName}'s OrderIndex: {task.InboxIndex}");
+                }
 
                 ShowEmptyTaskListTutorialText = InboxTasks.Count == 0;
                 TaskCount = InboxTasks.Count;

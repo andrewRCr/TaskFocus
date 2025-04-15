@@ -104,6 +104,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
            
                 CompletedTasks = new ObservableCollection<TaskDisplayModel>(unorderedCompletedTasks.OrderBy(x => x.DateCompleted).ToList());
                 SubscribeToTaskPropertyChangedEvents(CompletedTasks);
+                LocalTasks = CompletedTasks;
 
                 ShowEmptyTaskListTutorialText = CompletedTasks.Count == 0;
                 TaskCount = CompletedTasks.Count;

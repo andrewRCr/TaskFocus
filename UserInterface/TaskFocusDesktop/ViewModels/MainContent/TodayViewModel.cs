@@ -76,6 +76,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
 
                 TodayTasks = new ObservableCollection<TaskDisplayModel>(combinedTodayTasks.OrderBy(x => x.TodayIndex).ToList());
                 SubscribeToTaskPropertyChangedEvents(TodayTasks);
+                LocalTasks = TodayTasks;
 
                 ShowEmptyTaskListTutorialText = TodayTasks.Count == 0;
                 TaskCount = TodayTasks.Count;

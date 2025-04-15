@@ -31,13 +31,6 @@
                 Height="50"
                 Width="60" >
 
-            <Border.Background>
-                <MultiBinding Converter="{StaticResource ActiveMainViewToVisibilityConverter}">
-                    <Binding Path="Header" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type MenuItem}}"/>
-                    <Binding Path="DataContext.ActiveMainContentView" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}"/>
-                </MultiBinding>
-            </Border.Background>
-
             <Grid>
                 
                 <!-- icon --> 

@@ -241,13 +241,13 @@ namespace TaskFocusDesktop.Views.SidePanel
                 int previousIndex = _previousLocalOrder[insertedProjectItem];
 
                 bool orderChanged = previousIndex != vm.LocalProjects!.IndexOf(insertedProjectItem);
-                if (orderChanged) { UpdateDataStateOrder(); }
+                if (orderChanged) UpdateDataStateOrder();
             }
         }
 
         public void PreviewInsertProjectItem(ProjectDisplayModel insertedProjectItem, ProjectDisplayModel targetProjectItem)
         {
-            if (insertedProjectItem == targetProjectItem) { return; }
+            if (insertedProjectItem == targetProjectItem) return;
 
             var vm = (ProjectSubNavMenuViewModel)subNavMenuListBox.DataContext;
             int oldIndex = vm.LocalProjects!.IndexOf(insertedProjectItem);

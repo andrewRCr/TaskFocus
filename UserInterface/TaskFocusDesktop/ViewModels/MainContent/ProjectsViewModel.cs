@@ -83,6 +83,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
 
                 FocusedProjectTasks = new ObservableCollection<TaskDisplayModel>(projectTasks!);
                 SubscribeToTaskPropertyChangedEvents(FocusedProjectTasks);
+                LocalTasks = FocusedProjectTasks;
 
                 TaskCount = FocusedProjectTasks.Count;
                 UpdateScrollHeight(AppWindowHeight);
