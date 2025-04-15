@@ -1,5 +1,6 @@
 ﻿using Caliburn.Micro;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Dynamic;
 using System.Threading;
@@ -9,6 +10,7 @@ using TaskFocusDesktop.Commands;
 using TaskFocusDesktop.EventModels;
 using TaskFocusDesktop.Utilities;
 using TaskFocusDesktop.ViewModels.Base;
+using TaskFocusUI.Library.Data.Services;
 using TaskFocusUI.Library.Data.Services.Access;
 using TaskFocusUI.Library.Data.State;
 using TaskFocusUI.Library.Data.Utilities;
@@ -25,16 +27,21 @@ namespace TaskFocusDesktop.ViewModels.MainContent
                          IDataService dataService,
                          IDataHelper dataHelper) : base(events, appState, window, dataState, dataService, dataHelper)
         {
-            dataRefreshTriggers = [nameof(EDataRefreshType.User), nameof(EDataRefreshType.Settings)];
+            dataRefreshTriggers = [
+                nameof(EDataRefreshType.User), 
+                nameof(EDataRefreshType.Settings),
+                nameof(EDataRefreshType.SyncStatus),
+                nameof(EDataRefreshType.SyncResult)];
         }
 
         public RelayCommand RequestUpdateEmailDialogCommand => new RelayCommand(async execute => await RequestUpdateEmailDialog());
         public RelayCommand RequestChangePasswordDialogCommand => new RelayCommand(async execute => await RequestChangePasswordDialog());
+        public RelayCommand RequestManualDataSyncCommand => new RelayCommand(execute => ManualSync());
 
         private UserSettingsDisplayModel _localSettings = default!;
         public UserSettingsDisplayModel LocalSettings
         {
-            get { return _localSettings; }
+            get => _localSettings;
             set 
             { 
                 _localSettings = value; 
@@ -45,7 +52,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
         private UserDisplayModel _localCurrentUser = default!;
         public UserDisplayModel LocalCurrentUser
         {
-            get { return _localCurrentUser; }
+            get => _localCurrentUser;
             set
             {
                 _localCurrentUser = value;
@@ -56,7 +63,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
         private string? _cleanDaysTextStr;
         public string? CleanDaysTextStr
         {
-            get { return _cleanDaysTextStr; }
+            get => _cleanDaysTextStr;
             set 
             {
                 _cleanDaysTextStr = value;
@@ -67,11 +74,66 @@ namespace TaskFocusDesktop.ViewModels.MainContent
         private string? _deleteDaysTextStr;
         public string? DeleteDaysTextStr
         {
-            get { return _deleteDaysTextStr; }
+            get => _deleteDaysTextStr;
             set 
             {
                 _deleteDaysTextStr = value; 
                 NotifyOfPropertyChange(() => DeleteDaysTextStr);
+            }
+        }
+
+        private string? _lastSyncStr;
+        public string? LastSyncStr
+        {
+            get => _lastSyncStr; 
+            set
+            {
+                _lastSyncStr = value;
+                NotifyOfPropertyChange(() => LastSyncStr);
+            }
+        }
+
+        private string? _lastSyncResultStr;
+        public string? LastSyncResultStr
+        {
+            get => _lastSyncResultStr;
+            set
+            {
+                _lastSyncResultStr = value;
+                NotifyOfPropertyChange(() => LastSyncResultStr);
+            }
+        }
+
+        private string? _nextSyncStr;
+        public string? NextSyncStr
+        {
+            get => _nextSyncStr;
+            set
+            {
+                _nextSyncStr = value;
+                NotifyOfPropertyChange(() => NextSyncStr);
+            }
+        }
+
+        private DataSyncResult _lastSyncResult;
+        public DataSyncResult LastSyncResult
+        {
+            get => _lastSyncResult;
+            set 
+            {
+                _lastSyncResult = value;
+                NotifyOfPropertyChange(() => LastSyncResult);
+            }
+        }
+
+        private bool _enableManualSyncButton;
+        public bool EnableManualSyncButton
+        {
+            get => _enableManualSyncButton;
+            set
+            {
+                _enableManualSyncButton = value;
+                NotifyOfPropertyChange(() => EnableManualSyncButton);
             }
         }
 
@@ -87,6 +149,53 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             await _events.PublishOnUIThreadAsync(requestShowDialogEvent);
         }
 
+        // user-invoked manual sync request
+        private void ManualSync()
+        {
+            EnableManualSyncButton = false;
+            _dataService.InvokeSyncRequest($"{this.ToString()}: {nameof(ManualSync)}");
+        }
+
+        private void GetLastSyncStr()
+        {
+            DateTimeOffset lastSync = _dataService.GetDataStateLastSync();
+            string dateStr = string.Empty;
+
+            if (lastSync.DateTime.Date == DateTime.Today) dateStr = "Today";
+            else if (lastSync.DateTime.Date == DateTime.Today.AddDays(-1)) dateStr = "Yesterday";
+            else dateStr = lastSync.DateTime.ToShortDateString();
+
+            LastSyncStr = dateStr + ", " + lastSync.DateTime.ToShortTimeString();
+        }
+
+        private void GetLastSyncResultStr()
+        {
+            string syncResultStr = string.Empty;
+            DataSyncResult lastSyncResult = _dataService.GetDataStateLastSyncResult();
+
+            if (!_dataHelper.SyncChangesDetected(lastSyncResult)) syncResultStr = "No changes to data detected.";
+            else syncResultStr = $"{lastSyncResult.NumRowsInserted} rows added, {lastSyncResult.NumRowsDeleted} rows deleted, {lastSyncResult.NumRowsUpdated} rows updated.";
+
+            LastSyncResultStr = syncResultStr;
+        }
+
+        private void GetNextPeriodicSyncTimeStr()
+        {
+            string nextSyncStr = string.Empty;
+            DateTime lastSync = _dataService.GetDataStateLastSync().DateTime;
+            DateTime nextSync = lastSync.AddSeconds(_dataService.GetSyncIntervalSeconds());
+
+            NextSyncStr = "Today, " + nextSync.ToShortTimeString();
+        }
+
+        private void LoadSyncMetaData()
+        {
+            GetLastSyncStr();
+            GetLastSyncResultStr();
+            GetNextPeriodicSyncTimeStr();
+            EnableManualSyncButton = _dataService.GetCurrentSyncStatus() == ESyncStatus.Synchronized;
+        }
+
         protected override async void OnViewLoaded(object view)
         {
             base.OnViewLoaded(view);
@@ -95,6 +204,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             {
                 LoadLocalSettingsData();
                 LoadLocalUserData();
+                LoadSyncMetaData();
             }
             catch (Exception ex)
             {
@@ -161,6 +271,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
 
             LoadLocalSettingsData();
             LoadLocalUserData();
+            LoadSyncMetaData();
 
             return true;
         }
@@ -168,7 +279,8 @@ namespace TaskFocusDesktop.ViewModels.MainContent
         // ViewSwitchedEvent handler
         public override async Task HandleAsync(ViewSwitchedEvent message, CancellationToken cancellationToken)
         {
-            if (message.SwitchedContentPanel == ViewCatalog.ContentPanel.MainContent)
+            if (message.SwitchedContentPanel == ViewCatalog.ContentPanel.MainContent && 
+                ActiveMainContentView == ViewCatalog.MainContentView.Settings)
             {
                 LocalCurrentUser.PropertyChanged -= OnExistingUserPropertyChanged!; // unsubscribe from property changed events
                 LocalSettings.PropertyChanged -= OnExistingSettingsPropertyChanged!;

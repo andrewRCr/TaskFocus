@@ -23,9 +23,9 @@ namespace TaskFocusUI.Library.Data.Utilities
 
     public struct DataSyncResult
     {
-        public int numRowsInserted = 0;
-        public int numRowsDeleted = 0;
-        public int numRowsUpdated = 0;
+        public int NumRowsInserted = 0;
+        public int NumRowsDeleted = 0;
+        public int NumRowsUpdated = 0;
 
         public DataSyncResult() {}
     }
@@ -300,16 +300,16 @@ namespace TaskFocusUI.Library.Data.Utilities
         public DataSyncResult CombineSyncResults(DataSyncResult resultA, DataSyncResult resultB)
         {
             DataSyncResult combinedResult;
-            combinedResult.numRowsInserted = resultA.numRowsInserted + resultB.numRowsInserted;
-            combinedResult.numRowsDeleted = resultA.numRowsDeleted + resultB.numRowsDeleted;
-            combinedResult.numRowsUpdated = resultA.numRowsUpdated + resultB.numRowsUpdated;
+            combinedResult.NumRowsInserted = resultA.NumRowsInserted + resultB.NumRowsInserted;
+            combinedResult.NumRowsDeleted = resultA.NumRowsDeleted + resultB.NumRowsDeleted;
+            combinedResult.NumRowsUpdated = resultA.NumRowsUpdated + resultB.NumRowsUpdated;
 
             return combinedResult;
         }
 
         public bool SyncChangesDetected(DataSyncResult result)
         {
-            return result.numRowsInserted != 0 || result.numRowsDeleted != 0 || result.numRowsUpdated != 0;
+            return result.NumRowsInserted != 0 || result.NumRowsDeleted != 0 || result.NumRowsUpdated != 0;
         }
     }
 }

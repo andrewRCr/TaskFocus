@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using TaskFocusUI.Library.Data.State;
+using TaskFocusUI.Library.Data.Utilities;
 using TaskFocusUI.Library.Models;
 
 namespace TaskFocusUI.Library.Data.Services.Access
@@ -10,8 +12,13 @@ namespace TaskFocusUI.Library.Data.Services.Access
         event EventHandler<string>? SyncRequestHandler;
         event EventHandler<string>? SyncWithCompletionNotifyRequestHandler;
         void InvokeSyncRequest(string sourceName, bool notifyOnCompletion = false);
+
         bool IsDataStateLoaded();
         bool IsAppRequestedSyncCompleted();
+        DateTimeOffset GetDataStateLastSync();
+        DataSyncResult GetDataStateLastSyncResult();
+        ESyncStatus GetCurrentSyncStatus();
+        int GetSyncIntervalSeconds();
         void ResetDataStateOnLogout();
 
         Task FetchAllRemoteData();

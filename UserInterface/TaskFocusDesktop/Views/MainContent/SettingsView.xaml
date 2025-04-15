@@ -12,7 +12,7 @@
              xmlns:maincontent="clr-namespace:TaskFocusDesktop.ViewModels.MainContent" 
              d:DataContext="{d:DesignInstance Type=maincontent:SettingsViewModel}"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800"
+             d:DesignHeight="600" d:DesignWidth="1200"
              Style="{StaticResource BaseMainContentViewStyle}" >
 
     <Grid x:Name="MainGridBackground" 
@@ -21,6 +21,8 @@
           PreviewMouseDown="MainGridBackground_PreviewMouseDown" >
 
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -160,7 +162,7 @@
         <!-- account/profile header  -->
         <StackPanel Grid.Row="2"
                     Orientation="Horizontal"
-                    Margin="10 30 0 10" >
+                    Margin="10 40 0 10" >
 
             <materialDesign:PackIcon Kind="AccountCircle"
                                      VerticalAlignment="Center"
@@ -223,6 +225,82 @@
 
             </StackPanel>
        
+        </StackPanel>
+
+        <!-- sync header  -->
+        <StackPanel Grid.Row="4"
+                    Orientation="Horizontal"
+                    Margin="10 40 0 10" >
+
+            <materialDesign:PackIcon Kind="Sync"
+                                     VerticalAlignment="Center"
+                                     Margin="10 0 10 0"
+                                     Foreground="{StaticResource ForegroundMainBrush}"
+                                     Height="24"
+                                     Width="24" />
+
+            <TextBlock Style="{StaticResource HeaderTextStyle}"
+                       VerticalAlignment="Center" Margin="0 2 0 0"
+                       Text="DATA SYNCHRONIZATION" />
+
+        </StackPanel>
+
+        <!-- SYNC METADATA  -->
+        <StackPanel Grid.Row="5" 
+                    Orientation="Vertical"
+                    Margin="55 10 0 0" >
+
+            <StackPanel Orientation="Vertical">
+
+                <TextBlock FontSize="14" 
+                           Margin="0 0 0 0"
+                           HorizontalAlignment="Left" 
+                           VerticalAlignment="Center"
+                           utilities:TextBlockHelper.TrimRuns="True" >
+
+                    <TextBlock.Inlines>
+                        <Run Text="Last synchronized:  "/>
+                        <Run Text="{Binding LastSyncStr}" />
+                    </TextBlock.Inlines>
+                </TextBlock>
+
+                <TextBlock FontSize="14" 
+                           Margin="0 0 0 8"
+                           HorizontalAlignment="Left" 
+                           VerticalAlignment="Center"
+                           utilities:TextBlockHelper.TrimRuns="True" >
+
+                    <TextBlock.Inlines>
+                        <Run Text="Last sync result:  "/>
+                        <Run Text="{Binding LastSyncResultStr}" />
+                    </TextBlock.Inlines>
+                </TextBlock>
+
+                <TextBlock FontSize="14" 
+                           Margin="0 0 0 5"
+                           HorizontalAlignment="Left" 
+                           VerticalAlignment="Center"
+                           utilities:TextBlockHelper.TrimRuns="True" >
+
+                    <TextBlock.Inlines>
+                        <Run Text="Next automatic background sync:  "/>
+                        <Run Text="{Binding NextSyncStr}" />
+                    </TextBlock.Inlines>
+                </TextBlock>
+
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Margin="0 15 0 0">
+
+                <Button Content="MANUAL SYNC"
+                        IsEnabled="{Binding EnableManualSyncButton}"
+                        Command="{Binding RequestManualDataSyncCommand}"
+                        Style="{StaticResource dialogSubmitButtonStyle}"
+                        Margin="0 0 15 0" />
+
+
+            </StackPanel>
+
         </StackPanel>
 
     </Grid>

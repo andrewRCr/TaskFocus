@@ -99,13 +99,10 @@
             </AuthorizeView>
         </MudMainContent>
 
-        <!-- global add new task component (+ button) -->
+        <!-- global add new task component (+ button) / sync status bar -->
         <AuthorizeView>
             <Authorized>
-                @if (DataService.IsDataStateLoaded())
-                {
-                    <AddNewTaskComponent />
-                }
+                <AppBarComponent />              
             </Authorized>
             <NotAuthorized />
         </AuthorizeView>

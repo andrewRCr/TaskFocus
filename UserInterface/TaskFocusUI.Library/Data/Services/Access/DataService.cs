@@ -72,6 +72,14 @@ namespace TaskFocusUI.Library.Data.Services
         // for checking if front-end is clear to proceed with some post-sync action (logout, exit)
         public bool IsAppRequestedSyncCompleted() => _dataState.GetAppRequestedSyncCompleted();
 
+        public DateTimeOffset GetDataStateLastSync() => _dataState.GetLastSync();
+
+        public DataSyncResult GetDataStateLastSyncResult() => _dataState.GetLastSyncResult();
+
+        public ESyncStatus GetCurrentSyncStatus() => _dataState.GetCurrentSyncStatus();
+
+        public int GetSyncIntervalSeconds() => _dataState.GetSyncIntervalSeconds();
+
         public void ResetDataStateOnLogout()
         {
             _dataState.SetCurrentUser(null);

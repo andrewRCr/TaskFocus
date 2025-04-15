@@ -3,22 +3,46 @@
 @inject ISnackbar Snackbar
 
 <MudAppBar Bottom="true" 
-           Fixed="true" 
-           Color="Color.Transparent" 
-           Elevation="0" >
+Fixed="true" 
+Color="Color.Transparent" 
+Elevation="0" >
 
-    <MudIconButton Class="rounded-circle"
-                   Icon="@Icons.Material.Filled.Add"
-                   Color="Color.Primary"
-                   Variant="Variant.Filled"
-                   Size="Size.Large"
-                   Edge="Edge.Start"
-                   OnClick="ShowNewTaskInput" />
+
+        <MudGrid Justify="Justify.Center">
+
+            <MudItem xs="1" Class="mt-2">
+
+            @if (DataService.IsDataStateLoaded())
+            {
+                <MudIconButton Class="rounded-circle"
+                Icon="@Icons.Material.Filled.Add"
+                Color="Color.Primary"
+                Variant="Variant.Filled"
+                Size="Size.Large"
+                Edge="Edge.Start"
+                OnClick="ShowNewTaskInput" />
+            }
+
+            </MudItem>
+
+            <MudItem xs="10">
+                <MudSpacer />
+            </MudItem>
+
+            <MudItem xs="1" Class="mt-2">
+                <MudStack Row="true" Justify="Justify.FlexEnd">
+                    <MudText Align="Align.Right">Status: <MudText Inline="true" Color="@GetSyncStatusColor()">@GetSyncStatusString()</MudText></MudText>
+                </MudStack>
+            </MudItem>
+
+        </MudGrid>
+    
+
 </MudAppBar>
 
 <MudDialog @bind-IsVisible=_newTaskInputsVisible 
-            Options="dialogOptions"
-            Style="background-color: #27272f" >
+Options="dialogOptions"
+Style="background-color: #27272f" >
 
     <TitleContent>
         <MudStack Row="true" Spacing="1">
@@ -34,9 +58,9 @@
             <MudStack Row="true">
 
                 <MudForm @ref="_newTaskForm" 
-                         @bind-IsValid="@_newTaskIsValid" 
-                         @bind-Errors="@_newTaskErrors" 
-                         Model="_newTask">
+                @bind-IsValid="@_newTaskIsValid" 
+                @bind-Errors="@_newTaskErrors" 
+                Model="_newTask">
 
                     <MudGrid Justify="Justify.SpaceAround" Spacing="@(_gridSpacing)">
 
@@ -46,32 +70,32 @@
                             <MudItem xs="8" sm="5" md="3" lg="3" xl="3">
 
                                 <MudTextField @bind-Value="_newTask.TaskName" 
-                                              Placeholder="Task" 
-                                              Variant="Variant.Text" 
-                                              Margin="Margin.Dense"
-                                              Required="true"
-                                              RequiredError=" "
-                                              AutoGrow 
-                                              AutoFocus="false" />
+                                Placeholder="Task" 
+                                Variant="Variant.Text" 
+                                Margin="Margin.Dense"
+                                Required="true"
+                                RequiredError=" "
+                                AutoGrow 
+                                AutoFocus="false" />
                             </MudItem>
 
                             <!-- projectName input-->
                             <MudItem xs="8" sm="5" md="3" lg="3" xl="3">
 
                                 <MudAutocomplete @ref="_projectSelectInput"
-                                                 T="string"
-                                                 @bind-Value="_newTask.ProjectName"
-                                                 SearchFunc="@((x)=> ItemCollectionSearch(_projectNames, x))"
-                                                 Margin="Margin.Dense"
-                                                 Dense="true"
-                                                 Placeholder="Project"
-                                                 Disabled="@_isProjectInputDisabled"
-                                                 AnchorOrigin="Origin.BottomCenter"
-                                                 ResetValueOnEmptyText="true"
-                                                 Strict="false"
-                                                 CoerceText="true"
-                                                 SelectOnClick="true"
-                                                 SelectValueOnTab="true">
+                                T="string"
+                                @bind-Value="_newTask.ProjectName"
+                                SearchFunc="@((x)=> ItemCollectionSearch(_projectNames, x))"
+                                Margin="Margin.Dense"
+                                Dense="true"
+                                Placeholder="Project"
+                                Disabled="@_isProjectInputDisabled"
+                                AnchorOrigin="Origin.BottomCenter"
+                                ResetValueOnEmptyText="true"
+                                Strict="false"
+                                CoerceText="true"
+                                SelectOnClick="true"
+                                SelectValueOnTab="true">
 
                                     <ItemTemplate Context="e">
                                         <MudText>
@@ -85,19 +109,19 @@
                             <MudItem xs="8" sm="5" md="3" lg="3" xl="3">
 
                                 <MudAutocomplete @ref="_contextSelectInput"
-                                                 T="string"
-                                                 @bind-Value="_newTask.ContextName"
-                                                 SearchFunc="@((x) => ItemCollectionSearch(_contextNames, x))"
-                                                 Margin="Margin.Dense"
-                                                 Dense="true"
-                                                 Placeholder="Context"
-                                                 Disabled="@_isContextInputDisabled"
-                                                 AnchorOrigin="Origin.BottomCenter"
-                                                 ResetValueOnEmptyText="true"
-                                                 Strict="false"
-                                                 CoerceText="true"
-                                                 SelectOnClick="true"
-                                                 SelectValueOnTab="true">
+                                T="string"
+                                @bind-Value="_newTask.ContextName"
+                                SearchFunc="@((x) => ItemCollectionSearch(_contextNames, x))"
+                                Margin="Margin.Dense"
+                                Dense="true"
+                                Placeholder="Context"
+                                Disabled="@_isContextInputDisabled"
+                                AnchorOrigin="Origin.BottomCenter"
+                                ResetValueOnEmptyText="true"
+                                Strict="false"
+                                CoerceText="true"
+                                SelectOnClick="true"
+                                SelectValueOnTab="true">
 
                                     <ItemTemplate Context="e">
                                         <MudText>
@@ -111,13 +135,13 @@
                             <MudItem xs="8" sm="5" md="2" lg="2" xl="2">
 
                                 <MudDatePicker @ref="_datePicker"
-                                               @bind-Date="_newTask.DueDate"
-                                               OnClick="()=> _datePicker.SelectAsync()"
-                                               Placeholder="Due"
-                                               Margin="Margin.Dense"
-                                               DisableToolbar="true"
-                                               Editable="true"
-                                               AutoClose="false">
+                                @bind-Date="_newTask.DueDate"
+                                OnClick="()=> _datePicker.SelectAsync()"
+                                Placeholder="Due"
+                                Margin="Margin.Dense"
+                                DisableToolbar="true"
+                                Editable="true"
+                                AutoClose="false">
 
                                     <PickerActions>
                                         <MudButton Class="mr-auto align-self-start" OnClick="@(() => _datePicker.Clear())">Clear</MudButton>
@@ -173,6 +197,20 @@
             CloseOnEscapeKey = true
     };
 
+    private MudBlazor.Color GetSyncStatusColor()
+    {
+        return GetSyncStatusString() == "Synchronized" ? Color.Primary : Color.Default;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        dataRefreshTriggers = new List<string> { 
+            nameof(EDataRefreshType.Tasks), 
+            nameof(EDataRefreshType.Projects), 
+            nameof(EDataRefreshType.Contexts),
+            nameof(EDataRefreshType.SyncStatus)};
+    }
+
     protected override void CustomAuthenticatedOnInit()
     {
         _newTask = new();
@@ -196,7 +234,7 @@
     private async void ShowNewTaskInput()
     {
         await VerifyAuthAndRedirectIfExpired();
-       
+
         CustomAuthenticatedOnInit(); 
         _newTaskInputsVisible = true;      
     }
@@ -283,5 +321,18 @@
         {
             ContextParam = DataService.GetDataStateContexts()!.Find(x => x.Id == integerContextId)!;
         }
+    }
+
+    protected override bool HandleDataStateChanged(string propertyName, IDataState dataState)
+    {
+        if (!dataRefreshTriggers.Contains(propertyName)) return false;
+        else if (AppState.CanRefresh)
+        {
+            //GetSyncStatusString();
+            GetSyncStatusColor();
+            //Console.WriteLine($"AppBarComponent returned True on HandleDataStateChanged, due to {propertyName}");
+        }
+
+        return AppState.CanRefresh;
     }
 }

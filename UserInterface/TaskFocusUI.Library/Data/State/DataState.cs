@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
+using TaskFocusUI.Library.Data.Utilities;
 using TaskFocusUI.Library.Models;
 
 namespace TaskFocusUI.Library.Data.State
@@ -11,7 +13,16 @@ namespace TaskFocusUI.Library.Data.State
         Tasks,
         Projects,
         Contexts,
+        SyncStatus,
+        SyncResult,
         AppRequestedSyncCompleted
+    }
+
+    public enum ESyncStatus
+    {
+        Initializing,
+        Synchronized,
+        SyncInProgress
     }
 
     public class DataState : IDataState, IDataStateInternal
@@ -25,14 +36,47 @@ namespace TaskFocusUI.Library.Data.State
             DataStateChanged?.Invoke(propertyName, this);
         }
 
+        private ESyncStatus _currentSyncStatus = ESyncStatus.Initializing;
+        ESyncStatus IDataStateInternal.CurrentSyncStatus
+        {
+            get => _currentSyncStatus;
+            set
+            {
+                _currentSyncStatus = value;
+                DataStateChanged?.Invoke(nameof(EDataRefreshType.SyncStatus), this);
+            }
+        }
+
+        private int _syncInterval = 180;
+        int IDataStateInternal.SyncInterval
+        {
+            get => _syncInterval;
+            set
+            {
+                _syncInterval = value;
+                DataStateChanged?.Invoke(nameof(IDataStateInternal.SyncInterval), this);
+            }
+        }
+
         private DateTimeOffset _lastSync = DateTimeOffset.MinValue;
         DateTimeOffset IDataStateInternal.LastSync
         {
-            get { return _lastSync; }
+            get => _lastSync;
             set
             {
                 _lastSync = value;
                 DataStateChanged?.Invoke(nameof(IDataStateInternal.LastSync), this);
+            }
+        }
+
+        private DataSyncResult _lastSyncResult = default;
+        DataSyncResult IDataStateInternal.LastSyncResult
+        {
+            get => _lastSyncResult;
+            set
+            {
+                _lastSyncResult = value;
+                DataStateChanged?.Invoke(nameof(EDataRefreshType.SyncResult), this);
             }
         }
 

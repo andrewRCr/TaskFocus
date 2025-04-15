@@ -15,6 +15,7 @@ using TaskFocusDesktop.ViewModels.MainContent;
 using TaskFocusDesktop.ViewModels.SidePanel;
 using TaskFocusDesktop.ViewModels.TopPanel;
 using TaskFocusUI.Library.API;
+using TaskFocusUI.Library.Data.Services;
 using TaskFocusUI.Library.Data.Services.Access;
 using TaskFocusUI.Library.Data.Services.Synchronization;
 using TaskFocusUI.Library.Data.State;
@@ -49,7 +50,7 @@ namespace TaskFocusDesktop.ViewModels
         protected IAppState _appState;
 
         protected List<string> dataRefreshTriggers = new List<string> {
-            nameof(EDataRefreshType.AppRequestedSyncCompleted) };
+            nameof(EDataRefreshType.AppRequestedSyncCompleted), nameof(EDataRefreshType.SyncStatus) };
 
         public ShellViewModel(IAPIHelper apiHelper,
                       ILoggedInUserModel loggedInUser,
@@ -174,7 +175,7 @@ namespace TaskFocusDesktop.ViewModels
         private Screen? _sideMenuPanel;
         public Screen? SideMenuPanel
         {
-            get { return _sideMenuPanel; }
+            get => _sideMenuPanel;
             set
             {
                 _sideMenuPanel = value;
@@ -185,7 +186,7 @@ namespace TaskFocusDesktop.ViewModels
         private Screen? _mainContentPanel;
         public Screen? MainContentPanel
         {
-            get { return _mainContentPanel; }
+            get => _mainContentPanel;
             set
             {
                 _mainContentPanel = value;
@@ -196,7 +197,7 @@ namespace TaskFocusDesktop.ViewModels
         private ViewCatalog.MainContentView _activeMainContentView;
         public ViewCatalog.MainContentView ActiveMainContentView
         {
-            get { return _activeMainContentView; }
+            get => _activeMainContentView;
             set
             {
                 _activeMainContentView = value;
@@ -207,7 +208,7 @@ namespace TaskFocusDesktop.ViewModels
         private ViewCatalog.SidePanelView _activeSidePanelView;
         public ViewCatalog.SidePanelView ActiveSidePanelView
         {
-            get { return _activeSidePanelView; }
+            get => _activeSidePanelView;            
             set
             {
                 _activeSidePanelView = value;
@@ -215,14 +216,25 @@ namespace TaskFocusDesktop.ViewModels
             }
         }
 
-        private bool _enableManualSyncButton;
-        public bool EnableManualSyncButton
+        private string _syncStatusStr = "Initializing...";
+        public string SyncStatusStr
         {
-            get { return _enableManualSyncButton; }
+            get => _syncStatusStr;
             set
             {
-                _enableManualSyncButton = value;
-                NotifyOfPropertyChange(() => EnableManualSyncButton);
+                _syncStatusStr = value;
+                NotifyOfPropertyChange(() => SyncStatusStr);
+            }
+        }
+
+        private SolidColorBrush _syncStatusColor;
+        public SolidColorBrush SyncStatusColor
+        {
+            get => _syncStatusColor;
+            set
+            {
+                _syncStatusColor = value;
+                NotifyOfPropertyChange(() => SyncStatusColor);
             }
         }
 
@@ -279,6 +291,36 @@ namespace TaskFocusDesktop.ViewModels
             MiniNavIconColor = (SolidColorBrush)new BrushConverter().ConvertFrom(hexValue)!;
         }
 
+        private void UpdateSyncStatusColor()
+        {
+            string hexValue = SyncStatusStr == "Synchronized" ? "#776be7" : "#ffffff"; // foreground highlight/white
+            SyncStatusColor = (SolidColorBrush)new BrushConverter().ConvertFrom(hexValue)!;
+        }
+
+        private string GetSyncStatusString()
+        {
+            string statusStr = "?";
+            switch (_dataService.GetCurrentSyncStatus())
+            {
+                case (ESyncStatus.Initializing):
+                    statusStr = "Initializing...";
+                    break;
+
+                case (ESyncStatus.Synchronized):
+                    statusStr = "Synchronized";
+                    break;
+
+                case (ESyncStatus.SyncInProgress):
+                    statusStr = "Syncing...";
+                    break;
+
+                default:
+                    break;
+            }
+
+            return statusStr;
+        }
+
         // app behavior methods
         // ====================
 
@@ -305,6 +347,9 @@ namespace TaskFocusDesktop.ViewModels
                 _events.PublishOnUIThreadAsync(new PostSyncActionRequestEvent(_appState.PendingPostSyncAction));
                 _appState.PendingPostSyncAction = EPostSyncAction.None; // reset
             }
+
+            SyncStatusStr = GetSyncStatusString();
+            UpdateSyncStatusColor();
 
             return true;
         }
@@ -336,7 +381,9 @@ namespace TaskFocusDesktop.ViewModels
             {
                 _dataService.InvokeSyncRequest($"{this.ToString()}: {nameof(HandleLogIn)}");
             }
-            //EnableManualSyncButton = true; // disabled; dev-only
+
+            GetSyncStatusString();
+            UpdateSyncStatusColor();
 
             TopWidgetPanel = IoC.Get<AuthWidgetViewModel>();
             await ActivateItemAsync(TopWidgetPanel, new CancellationToken());
@@ -350,7 +397,6 @@ namespace TaskFocusDesktop.ViewModels
         {
             _appState.PendingPostSyncAction = action;
             _dataService.InvokeSyncRequest($"{this.ToString()}: {nameof(RequestSyncAndPostActionEvent)}", true);
-            EnableManualSyncButton = false;
         }
 
         // PostSyncActionRequestEvent handler
@@ -387,12 +433,10 @@ namespace TaskFocusDesktop.ViewModels
             }
         }
 
-        // disabled; dev-only
+        // user-invoked manual sync request
         public void ManualSync()
         {
-            EnableManualSyncButton = false;
             _dataService.InvokeSyncRequest($"{this.ToString()}: {nameof(ManualSync)}");
-            //EnableManualSyncButton = true; // dev-only
         }
 
         // RequestViewSwitchEvent handler

@@ -67,11 +67,6 @@ namespace TaskFocusDesktop.ViewModels.MainContent
                 SubscribeToTaskPropertyChangedEvents(InboxTasks);
                 LocalTasks = InboxTasks;
 
-                foreach (var task in LocalTasks)
-                {
-                    Debug.WriteLine($"{task.TaskName}'s OrderIndex: {task.InboxIndex}");
-                }
-
                 ShowEmptyTaskListTutorialText = InboxTasks.Count == 0;
                 TaskCount = InboxTasks.Count;
                 UpdateScrollHeight(AppWindowHeight);
@@ -93,7 +88,8 @@ namespace TaskFocusDesktop.ViewModels.MainContent
         // ViewSwitchedEvent handler
         public override async Task HandleAsync(ViewSwitchedEvent message, CancellationToken cancellationToken)
         {
-            if (message.SwitchedContentPanel == ViewCatalog.ContentPanel.MainContent)
+            if (message.SwitchedContentPanel == ViewCatalog.ContentPanel.MainContent &&
+                ActiveMainContentView == ViewCatalog.MainContentView.Inbox)
             {
                 UnsubscribeFromTaskPropertyChangedEvents(InboxTasks);
             }

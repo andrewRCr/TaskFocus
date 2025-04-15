@@ -508,7 +508,6 @@ namespace TaskFocusUI.Library.Data.Services
         {
             TaskDataCompareResult compareResult = _dataHelper.HasTaskDataChanged(workingTask);
 
-            Console.WriteLine($"compareResult.HasChanged: {compareResult.HasChanged}");
             if (compareResult.HasChanged || forceUpdate)
             {
                 if (_taskBeingUpdated != null)
@@ -534,7 +533,6 @@ namespace TaskFocusUI.Library.Data.Services
                 Interlocked.Exchange(ref _taskUpdateEntered, 0);
                 _taskBeingUpdated = null;
 
-                Console.WriteLine("1 task update complete");
                 // trigger UI update
                 _dataState.InvokeDataStateChanged(nameof(EDataRefreshType.Tasks));
             }

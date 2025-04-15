@@ -2,6 +2,7 @@
 
 @inherits _ComponentStateAwareBase
 @inject IDataService DataService
+@inject IDataHelper DataHelper
 @inject IAuthenticationService AuthService
 @inject ISnackbar Snackbar
 @inject NavigationManager NavManager
@@ -153,6 +154,37 @@
                         OnClick="OpenUpdatePasswordDialog"
                         Color="Color.Primary">
                             Change password
+                        </MudButton>
+
+                    </MudContainer>
+
+                </MudTreeViewItem>
+            </MudTreeView>
+
+            <!-- data sync info -->
+            <MudTreeView T="MudContainer" Width="100%" Class="mt-5">
+
+                <MudTreeViewItem T="MudContainer"
+                Expanded="true"
+                Icon="@Icons.Material.Filled.Sync"
+                Text="Data Synchronization"
+                TextTypo="Typo.button">
+
+                    <MudContainer MaxWidth="MaxWidth.Medium" >
+
+                        <MudStack Class="ml-4" Spacing="0">
+                            <MudText Class="mt-3" Style="">Last synchronized:&nbsp;&nbsp;<MudText Inline="true" Color="Color.Default">@_lastSyncStr</MudText></MudText>
+                            <MudText>Last sync result:&nbsp;&nbsp;<MudText Inline="true">@_lastSyncResultStr</MudText> </MudText>
+                            <MudText Class="mt-3" Style="">Next automatic background sync:&nbsp;&nbsp;<MudText Inline="true" Color="Color.Default">@_nextSyncStr</MudText></MudText>
+                        </MudStack>
+
+                        <MudButton OnClick="ManualDataSync"
+                        Class="mt-5 ml-4"
+                        Color="Color.Primary"
+                        Variant="Variant.Filled"
+                        ButtonType="ButtonType.Button"
+                        Disabled=@_disableManualSyncButton>
+                            Manual Sync
                         </MudButton>
 
                     </MudContainer>
@@ -334,6 +366,11 @@
     private MudBlazor.Severity _alertSeverity = Severity.Normal;
     private string _alertMessage = string.Empty;
 
+    private string _lastSyncStr = "?";
+    private string _lastSyncResultStr = "?";
+    private string _nextSyncStr = "?";
+    private bool _disableManualSyncButton = false;
+
     private UserSettingsDisplayModel _localSettings = default!;
     public UserSettingsDisplayModel LocalSettings
     {
@@ -348,14 +385,63 @@
         set { _localCurrentUser = value; }
     }
 
+    private void GetLastSyncStr()
+    {
+        DateTimeOffset lastSync = DataService.GetDataStateLastSync();
+        string dateStr = string.Empty;
+
+        if (lastSync.DateTime.Date == DateTime.Today) dateStr = "Today";
+        else if (lastSync.DateTime.Date == DateTime.Today.AddDays(-1)) dateStr = "Yesterday";
+        else dateStr = lastSync.DateTime.ToShortDateString();
+
+        _lastSyncStr = dateStr + ", " + lastSync.DateTime.ToShortTimeString();
+    }
+
+    private void GetLastSyncResultStr()
+    {
+        string syncResultStr = string.Empty;
+        DataSyncResult lastSyncResult = DataService.GetDataStateLastSyncResult();
+
+        if (!DataHelper.SyncChangesDetected(lastSyncResult)) syncResultStr = "No changes to data detected.";
+        else syncResultStr = $"{lastSyncResult.NumRowsInserted} rows added, {lastSyncResult.NumRowsDeleted} rows deleted, {lastSyncResult.NumRowsUpdated} rows updated.";
+
+        _lastSyncResultStr = syncResultStr;
+    }
+
+    private void GetNextPeriodicSyncTimeStr()
+    {
+        string nextSyncStr = string.Empty;
+        DateTime lastSync = DataService.GetDataStateLastSync().DateTime;
+        DateTime nextSync = lastSync.AddSeconds(DataService.GetSyncIntervalSeconds());
+
+        _nextSyncStr = "Today, " + nextSync.ToShortTimeString();
+    }
+
+    private void LoadSyncMetaData()
+    {
+        GetLastSyncStr();
+        GetLastSyncResultStr();
+        GetNextPeriodicSyncTimeStr();
+    }
+
+    private void ManualDataSync()
+    {
+        DataService.InvokeSyncRequest(this.ToString()!, false);
+    }
+
     protected override void OnInitialized()
     {
         base.OnInitialized();
         AppState.ShowProjectSubMenu = false;
         AppState.ShowContextSubMenu = false;
 
-        dataRefreshTriggers = new List<string> { nameof(EDataRefreshType.Settings), nameof(EDataRefreshType.User) };
+        dataRefreshTriggers = new List<string> { 
+            nameof(EDataRefreshType.Settings), 
+            nameof(EDataRefreshType.User),
+            nameof(EDataRefreshType.SyncStatus),
+            nameof(EDataRefreshType.SyncResult)};
         LoadAlertMessage();
+        LoadSyncMetaData();
     }
 
     protected override async Task OnInitializedAsync()
@@ -599,6 +685,9 @@
         {
             LoadLocalSettingsData();
             LoadLocalUserData();
+            LoadSyncMetaData();
+
+            _disableManualSyncButton = DataService.GetCurrentSyncStatus() == ESyncStatus.SyncInProgress;
         }
 
         return AppState.CanRefresh;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using TaskFocusUI.Library.Data.Utilities;
 using TaskFocusUI.Library.Models;
 
 namespace TaskFocusUI.Library.Data.State
@@ -56,10 +57,25 @@ namespace TaskFocusUI.Library.Data.State
         public static void SetWorkingContexts(this IDataState iface,
                                               List<ContextDisplayModel>? contexts) => ((IDataStateInternal)iface).WorkingContexts = contexts;
 
+        public static ESyncStatus GetCurrentSyncStatus(this IDataState iface) => ((IDataStateInternal)iface).CurrentSyncStatus;
+
+        public static void SetCurrentSyncStatus(this IDataState iface,
+                                          ESyncStatus status) => ((IDataStateInternal)iface).CurrentSyncStatus = status;
+
+        public static int GetSyncIntervalSeconds(this IDataState iface) => ((IDataStateInternal)iface).SyncInterval;
+
+        public static void SetSyncIntervalSeconds(this IDataState iface,
+                                          int intervalSeconds) => ((IDataStateInternal)iface).SyncInterval = intervalSeconds;
+
         public static DateTimeOffset GetLastSync(this IDataState iface) => ((IDataStateInternal)iface).LastSync;
 
         public static void SetLastSync(this IDataState iface,
                                           DateTimeOffset time) => ((IDataStateInternal)iface).LastSync = time;
+
+        public static DataSyncResult GetLastSyncResult(this IDataState iface) => ((IDataStateInternal)iface).LastSyncResult;
+
+        public static void SetLastSyncResult(this IDataState iface,
+                                          DataSyncResult result) => ((IDataStateInternal)iface).LastSyncResult = result;
 
         public static bool GetAppRequestedSyncCompleted(this IDataState iface) => ((IDataStateInternal)iface).AppRequestedSyncCompleted;
 

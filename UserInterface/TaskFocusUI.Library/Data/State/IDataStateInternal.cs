@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using TaskFocusUI.Library.Data.Utilities;
 using TaskFocusUI.Library.Models;
 
 namespace TaskFocusUI.Library.Data.State
@@ -21,7 +22,10 @@ namespace TaskFocusUI.Library.Data.State
         List<ContextDisplayModel>? Contexts { get; set; }
         List<ContextDisplayModel>? WorkingContexts { get; set; }
 
+        ESyncStatus CurrentSyncStatus { get; set; }
+        int SyncInterval { get; set; }
         DateTimeOffset LastSync { get; set; }
+        DataSyncResult LastSyncResult { get; set; }
         bool AppRequestedSyncCompleted { get; set; }
 
         UserDisplayModel? ChangedUserData { get; set; }

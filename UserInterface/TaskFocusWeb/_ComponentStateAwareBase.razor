@@ -113,7 +113,7 @@
 
     protected virtual void LoadLocalProjectData()
     {
-    if (DataService.IsDataStateLoaded())
+        if (DataService.IsDataStateLoaded())
         {
             LocalProjects = DataService.GetDataStateProjects();
             LocalProjects!.Sort((a, b) => Nullable.Compare(a.OrderIndex, b.OrderIndex));
@@ -122,7 +122,7 @@
 
     protected virtual void LoadLocalContextData()
     {
-    if (DataService.IsDataStateLoaded())
+        if (DataService.IsDataStateLoaded())
         {
             LocalContexts = DataService.GetDataStateContexts();
             LocalContexts!.Sort((a, b) => Nullable.Compare(a.OrderIndex, b.OrderIndex));
@@ -172,7 +172,7 @@
 
         if (!DataService.IsProjectCurrentlyBeingUpdated(senderProject))
         {
-             DataService.UpdateProjectData(senderProject);
+            DataService.UpdateProjectData(senderProject);
         }
     }
 
@@ -188,5 +188,29 @@
         {
             DataService.UpdateContextData(senderContext);
         }
+    }
+
+    protected string GetSyncStatusString()
+    {
+        string statusStr = "?";
+        switch (DataService.GetCurrentSyncStatus())
+        {
+            case (ESyncStatus.Initializing):
+                statusStr = "Initializing...";
+                break;
+
+            case (ESyncStatus.Synchronized):
+                statusStr = "Synchronized";
+                break;
+
+            case (ESyncStatus.SyncInProgress):
+                statusStr = "Syncing...";
+                break;
+
+            default:
+                break;
+        }
+
+        return statusStr;
     }
 }

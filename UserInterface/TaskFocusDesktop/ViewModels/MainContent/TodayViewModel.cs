@@ -99,7 +99,8 @@ namespace TaskFocusDesktop.ViewModels.MainContent
         // ViewSwitchedEvent handler
         public override async Task HandleAsync(ViewSwitchedEvent message, CancellationToken cancellationToken)
         {
-            if (message.SwitchedContentPanel == ViewCatalog.ContentPanel.MainContent)
+            if (message.SwitchedContentPanel == ViewCatalog.ContentPanel.MainContent && 
+                ActiveMainContentView == ViewCatalog.MainContentView.Today)
             {
                 UnsubscribeFromTaskPropertyChangedEvents(TodayTasks);
             }

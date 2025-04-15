@@ -17,7 +17,6 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
     public class DataSyncService : ServiceBase, IDataSyncService
     {
         private IDataService _dataService;
-        private bool _syncInProgress = false;
 
         private UserDisplayModel? _pushedUserData;
         private UserSettingsDisplayModel? _pushedUserSettingsData;
@@ -109,10 +108,12 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                 // process any time-relevant changes to task state for next sync
                 _dataService.PerformCompletedTaskCleanup();
                 _dataState.SetLastSync(DateTimeOffset.Now); // log
+                _dataState.SetLastSyncResult(new DataSyncResult());
+                _dataState.SetCurrentSyncStatus(ESyncStatus.Synchronized);
                 LogInformation("InitSync complete; DataState populated.");
 
                 // initialize periodic sync
-                TimeSpan interval = TimeSpan.FromSeconds(180);
+                TimeSpan interval = TimeSpan.FromSeconds(_dataState.GetSyncIntervalSeconds());
                 await PeriodicSync(interval);
             }
             catch (Exception ex)
@@ -143,9 +144,9 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
         // syncs at row level; LastUpdated determines who wins at the server
         private async Task Sync(bool notifyOnCompletion = false)
         {
-            if (_syncInProgress) throw new Exception("Sync already in progress; operation aborted.");
+            if (_dataState.GetCurrentSyncStatus() == ESyncStatus.SyncInProgress) throw new Exception("Sync already in progress; operation aborted.");
 
-            _syncInProgress = true;
+            _dataState.SetCurrentSyncStatus(ESyncStatus.SyncInProgress);
             LogInformation($"Starting synchronization... (LastSync prior: {_dataState.GetLastSync()})");
 
             // process any time-relevant changes to task state
@@ -162,9 +163,10 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             _dataState.SetLastSync(DateTimeOffset.Now);
 
             LogInformation("Synchronization complete.");
-            LogInformation($"PUSH: {pushResult.numRowsInserted} rows inserted, {pushResult.numRowsDeleted} rows deleted, {pushResult.numRowsUpdated} rows updated.");
-            LogInformation($"PULL: {pullResult.numRowsInserted} rows inserted, {pullResult.numRowsDeleted} rows deleted, {pullResult.numRowsUpdated} rows updated.");
-            _syncInProgress = false;
+            LogInformation($"PUSH: {pushResult.NumRowsInserted} rows inserted, {pushResult.NumRowsDeleted} rows deleted, {pushResult.NumRowsUpdated} rows updated.");
+            LogInformation($"PULL: {pullResult.NumRowsInserted} rows inserted, {pullResult.NumRowsDeleted} rows deleted, {pullResult.NumRowsUpdated} rows updated.");
+            _dataState.SetCurrentSyncStatus(ESyncStatus.Synchronized);
+            _dataState.SetLastSyncResult(_dataHelper.CombineSyncResults(pushResult, pullResult));
 
             // notify for post-sync action in client app, if was requested
             if (notifyOnCompletion) _dataState.SetAppRequestedSyncCompleted(true); 
@@ -261,7 +263,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                     else
                     {
                         _pushedUserData = changedClientUser;
-                        result.numRowsUpdated++;
+                        result.NumRowsUpdated++;
                     }
 
                     break;
@@ -274,7 +276,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                     else
                     {
                         _pushedUserSettingsData = changedClientSettings;
-                        result.numRowsUpdated++;
+                        result.NumRowsUpdated++;
                     }
 
                     break;
@@ -339,7 +341,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                         break;
                 }
 
-                result.numRowsInserted++;
+                result.NumRowsInserted++;
             }
             else if (data.Deleted.HasValue) // delete
             {
@@ -367,7 +369,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                         break;
                 }
                         
-                result.numRowsDeleted++;
+                result.NumRowsDeleted++;
             }
             else // update
             {
@@ -393,7 +395,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                             int index = _dataState.GetTasks()!.FindIndex(x => x.Id == data.Id);
                             if (index != -1) { _dataState.GetTasks()![index] = (TaskDisplayModel)data; }
 
-                            result.numRowsUpdated++;
+                            result. NumRowsUpdated++;
                         }
                         break;
 
@@ -417,7 +419,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                             int index = _dataState.GetProjects()!.FindIndex(x => x.Id == data.Id);
                             if (index != -1) { _dataState.GetProjects()![index] = (ProjectDisplayModel)data; }
 
-                            result.numRowsUpdated++;
+                            result.NumRowsUpdated++;
                         }
                         break;
 
@@ -441,7 +443,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                             int index = _dataState.GetContexts()!.FindIndex(x => x.Id == data.Id);
                             if (index != -1) { _dataState.GetContexts()![index] = (ContextDisplayModel)data; }
 
-                            result.numRowsUpdated++;
+                            result.NumRowsUpdated++;
                         }
                         break;
                 }
@@ -597,7 +599,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                             break;
                     }
 
-                    result.numRowsUpdated++;
+                    result.NumRowsUpdated++;
                 }
             }
 
@@ -624,13 +626,13 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                     if (clientTask == null) // insert
                     {
                         _dataState.GetTasks()!.Add(displayServerTask.Clone());
-                        result.numRowsInserted++;
+                        result.NumRowsInserted++;
                     }
                     else // update
                     {
                         int i = _dataState.GetTasks()!.IndexOf(clientTask);
                         _dataState.GetTasks()![i] = displayServerTask;
-                        result.numRowsUpdated++;
+                        result.NumRowsUpdated++;
                     }
 
                     break;
@@ -648,13 +650,13 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                     if (clientProject == null) // insert
                     {
                         _dataState.GetProjects()!.Add(displayServerProject.Clone());
-                        result.numRowsInserted++;
+                        result.NumRowsInserted++;
                     }
                     else // update
                     {
                         int i = _dataState.GetProjects()!.IndexOf(clientProject);
                         _dataState.GetProjects()![i] = displayServerProject;
-                        result.numRowsUpdated++;
+                        result.NumRowsUpdated++;
                     }
                     break;
 
@@ -671,13 +673,13 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                     if (clientContext == null) // insert
                     {
                         _dataState.GetContexts()!.Add(displayServerContext.Clone());
-                        result.numRowsInserted++;
+                        result.NumRowsInserted++;
                     }
                     else // update
                     {
                         int i = _dataState.GetContexts()!.IndexOf(clientContext);
                         _dataState.GetContexts()![i] = displayServerContext;
-                        result.numRowsUpdated++;
+                        result.NumRowsUpdated++;
                     }
                     break;
                 default:
@@ -705,7 +707,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                         {
                             _dataService.HandleIndexShiftsOnTaskDeletion(clientDisplayTask);
                             _dataState.GetTasks()!.Remove(clientDisplayTask);
-                            pullDeletionsResult.numRowsDeleted++;
+                            pullDeletionsResult.NumRowsDeleted++;
                         }
                     }
 
@@ -723,7 +725,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                             // ensure other projects have updated OrderIndex values
                             _dataService.ShiftCollectionOrderIndices(clientDisplayProject, _dataState.GetProjects()!);
                             _dataState.GetProjects()!.Remove(clientDisplayProject);
-                            pullDeletionsResult.numRowsDeleted++;
+                            pullDeletionsResult.NumRowsDeleted++;
                         }
                     }
 
@@ -741,7 +743,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                             // ensure other contexts have updated OrderIndex values
                             _dataService.ShiftCollectionOrderIndices(clientDisplayContext, _dataState.GetContexts()!);
                             _dataState.GetContexts()!.Remove(clientDisplayContext);
-                            pullDeletionsResult.numRowsDeleted++;
+                            pullDeletionsResult.NumRowsDeleted++;
                         }
                     }
                     break;
