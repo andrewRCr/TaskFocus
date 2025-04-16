@@ -384,6 +384,24 @@ namespace TaskFocusUI.Library.Data.Services
             }
         }
 
+        // manages today-view task time-sensitive auto deletion / cleanedUp status; for use prior to each sync
+        void IDataServiceInternal.PerformTodayTaskCleanup()
+        {
+            var combinedTodayTasks = GetTodayTasks();
+
+            // ensure any newly due/overdue tasks have a TodayIndex
+            int todayTasksWithTodayIndexCount = combinedTodayTasks.Where(x => x.TodayIndex != null).ToList().Count();
+            foreach (TaskDisplayModel task in combinedTodayTasks)
+            {
+                if (task.DueDate <= DateTime.Now.Date && task.TodayIndex == null)
+                {
+                    task.TodayIndex = todayTasksWithTodayIndexCount;
+                    UpdateTaskData(task, true);
+                    todayTasksWithTodayIndexCount++;
+                }
+            }
+        }
+
         void IDataServiceInternal.HandleIndexShiftsOnTaskDeletion(TaskDisplayModel task)
         {
             if (task.ProjectId == null || task.ContextId == null)
@@ -403,6 +421,8 @@ namespace TaskFocusUI.Library.Data.Services
                 ShiftTaskCollectionSourceIndices(task, "TodayIndex");
             }
         }
+
+        public List<TaskDisplayModel> GetTodayTasks() => _dataHelper.GetTodayWorkingTasks();
 
         public bool IsTaskCurrentlyBeingUpdated(TaskDisplayModel task)
         {

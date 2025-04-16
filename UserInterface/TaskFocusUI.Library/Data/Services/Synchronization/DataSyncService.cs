@@ -107,6 +107,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                 await _dataService.FetchAllRemoteData();
                 // process any time-relevant changes to task state for next sync
                 _dataService.PerformCompletedTaskCleanup();
+                _dataService.PerformTodayTaskCleanup();
                 _dataState.SetLastSync(DateTimeOffset.Now); // log
                 _dataState.SetLastSyncResult(new DataSyncResult());
                 _dataState.SetCurrentSyncStatus(ESyncStatus.Synchronized);
@@ -151,6 +152,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
 
             // process any time-relevant changes to task state
             _dataService.PerformCompletedTaskCleanup();
+            _dataService.PerformTodayTaskCleanup();
 
             // push all client rows locally changed since last sync to the server
             DataSyncResult pushResult = await PushSync();

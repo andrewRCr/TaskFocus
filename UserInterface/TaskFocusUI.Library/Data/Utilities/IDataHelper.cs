@@ -12,6 +12,7 @@ namespace TaskFocusUI.Library.Data.Utilities
 
         TaskDataCompareResult HasTaskDataChanged(TaskDisplayModel workingTask);
         bool IsTaskDueOrOverDue(TaskDisplayModel workingTask);
+        List<TaskDisplayModel> GetTodayWorkingTasks();
 
         CollectionDataCompareResult HasProjectDataChanged(ProjectDisplayModel workingProject);
         bool IsNewProjectNameUnique(string proposedProjectName);

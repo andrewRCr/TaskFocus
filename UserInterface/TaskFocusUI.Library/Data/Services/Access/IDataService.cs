@@ -40,6 +40,7 @@ namespace TaskFocusUI.Library.Data.Services.Access
         void DeleteTask(TaskDisplayModel displayTask);
         void UpdateTaskData(TaskDisplayModel displayTask, bool forceUpdate = false);
         bool IsTaskCurrentlyBeingUpdated(TaskDisplayModel task);
+        List<TaskDisplayModel> GetTodayTasks();
 
         ProjectDisplayModel? AddProject(ProjectModel newProject);
         void DeleteProject(ProjectDisplayModel displayProject);

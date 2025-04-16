@@ -73,26 +73,8 @@
     protected override void LoadLocalTaskData()
     {
         if (DataService.IsDataStateLoaded())
-        {
-            List<TaskDisplayModel> dueTasks = DataService.GetDataStateTasks()!.Where(x => 
-                (x.DueDate <= DateTime.Now.Date) && !x.CleanedUp && 
-                (x.DateCompleted == null || x.DateCompleted == DateTime.Now.Date)).ToList();
-            List<TaskDisplayModel> starredTasks = DataService.GetDataStateTasks()!.Where(x =>
-                (x.Starred == true) && !x.CleanedUp && 
-                (x.DateCompleted == null || x.DateCompleted == DateTime.Now.Date)).ToList();
-            List<TaskDisplayModel> combinedTodayTasks = dueTasks.Union(starredTasks).ToList();
-
-            // ensure any newly due/overdue tasks have a TodayIndex
-            int todayTasksWithTodayIndexCount = combinedTodayTasks.Where(x => x.TodayIndex != null).ToList().Count();
-            foreach (TaskDisplayModel task in combinedTodayTasks)
-            {
-                if (task.DueDate <= DateTime.Now.Date && task.TodayIndex == null)
-                {
-                    task.TodayIndex = todayTasksWithTodayIndexCount;
-                    todayTasksWithTodayIndexCount++;
-                }
-            }
-
+        {         
+            var combinedTodayTasks = DataService.GetTodayTasks();
             _todayTasks = combinedTodayTasks.OrderBy(x => x.TodayIndex).ToList();
             SubscribeToTaskPropertyChangedEvents(_todayTasks);
         }

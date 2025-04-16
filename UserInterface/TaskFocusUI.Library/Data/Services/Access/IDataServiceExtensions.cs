@@ -18,5 +18,8 @@ namespace TaskFocusUI.Library.Data.Services.Access
 
         public static void PerformCompletedTaskCleanup(this IDataService iface) => 
             ((IDataServiceInternal)iface).PerformCompletedTaskCleanup();
+
+        public static void PerformTodayTaskCleanup(this IDataService iface) =>
+            ((IDataServiceInternal)iface).PerformTodayTaskCleanup();
     }
 }

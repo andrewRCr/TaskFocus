@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using TaskFocusUI.Library.Data.Services;
 using TaskFocusUI.Library.Data.State;
 using TaskFocusUI.Library.Models;
 
@@ -112,6 +113,19 @@ namespace TaskFocusUI.Library.Data.Utilities
             }
 
             return false;
+        }
+
+        public List<TaskDisplayModel> GetTodayWorkingTasks()
+        {
+            List<TaskDisplayModel> dueTasks = _dataState.GetWorkingTasks()!.Where(x =>
+                (x.DueDate <= DateTime.Now.Date) && !x.CleanedUp &&
+                (x.DateCompleted == null || x.DateCompleted == DateTime.Now.Date)).ToList();
+            List<TaskDisplayModel> starredTasks = _dataState.GetWorkingTasks()!.Where(x =>
+                (x.Starred == true) && !x.CleanedUp &&
+                (x.DateCompleted == null || x.DateCompleted == DateTime.Now.Date)).ToList();
+            List<TaskDisplayModel> combinedTodayTasks = dueTasks.Union(starredTasks).ToList();
+
+            return combinedTodayTasks;
         }
 
         // project helpers

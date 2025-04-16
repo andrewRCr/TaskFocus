@@ -10,5 +10,6 @@ namespace TaskFocusUI.Library.Data.Services.Access
         void ShiftCollectionOrderIndices<T>(T collectionDisplayModel, List<T> collectionSource) where T : ICollectionDisplayModel;
         void UpdateAllWorkingDataAfterPull();
         void PerformCompletedTaskCleanup();
+        void PerformTodayTaskCleanup();
     }
 }
