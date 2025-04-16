@@ -1,12 +1,11 @@
 # TaskFocus
 
 Personal task management application with both native desktop and web-based user interfaces.  
-Allows users to create and manage their to-do items, using concepts from the Getting Things Done (GTD) productivity system.  
-Full-stack application built with C# and .NET, with continuous integration and deployment via Azure DevOps pipelines.  
+Allows users to create and manage their to-do items, using concepts from the Getting Things Done (GTD) productivity system. Full-stack application built with C# and .NET, with continuous integration and deployment via Azure DevOps pipelines.  
 
- Today view | Img2 | Img3 | Img4
+ Today view | Projects view | Contexts view | Settings view
 |------------|-------------|-------------|-------------|
-| <img src="https://github.com/user-attachments/assets/c2da97b3-39d6-47af-a9ee-be2e7a75714c" width="250"> | <img src="" width="250"> | <img src="" width="250"> | <img src="" width="250"> |  
+| <img src="https://github.com/user-attachments/assets/c2da97b3-39d6-47af-a9ee-be2e7a75714c" width="250"> | <img src="https://github.com/user-attachments/assets/fccab5df-9227-48d8-8721-8ebad11147ce" width="250"> | <img src="https://github.com/user-attachments/assets/cd4be72c-c171-40fc-9758-3d73b11ae287" width="250"> | <img src="https://github.com/user-attachments/assets/0aa0ec16-8414-4333-9d26-95c3c60f76ab" width="250"> |  
 
 The app utilizes both dependency injection and class libraries for modularity/separation of concerns.  
 Web app built using Blazor Web Assembly (WASM) and MudBlazor.  
@@ -31,9 +30,9 @@ The parameters for these automatic clean-up and deletion intervals are exposed a
 Features user authentication and authorization, including transactional email with automated email address confirmation and email address/username and password change/reset functionality.
 
 ## Usage
-For demo usage, please register as a new user.
-Please note that email confirmation is required.  
-Desktop app (Windows):  [Download](RELEASE URL - UPDATE)
+For demo usage, please register as a new user. Please note that email confirmation is required.  
+
+Desktop app (Windows): [Download](https://github.com/andrewRCr/TaskFocus/releases/latest)  
 Web app: [taskfocus.andrewcreekmore.com](https://taskfocus.andrewcreekmore.com)
 
 ## Future Development
