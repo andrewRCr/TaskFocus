@@ -39,10 +39,12 @@
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
             <utilities:InvertableBooleanToVisibilityConverter x:Key="InvertableBooleanToVisibilityConverter" />
             <utilities:ActiveMainViewToVisibilityConverter x:Key="ActiveMainViewToVisibilityConverter" />
+            <utilities:NavMenuIntToBooleanConverter x:Key="NavMenuIntToBooleanConverter" />
             <utilities:DictionaryItemBooleanToVisibilityConverter x:Key="DictionaryItemBooleanToVisibilityConverter" />
-            <utilities:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+            <utilities:InverseBooleanConverter x:Key="InverseBooleanConverter" /> 
             <utilities:DueTextStrConverter x:Key="DueTextStrConverter" />
             <utilities:DueTextColorConverter x:Key="DueTextColorConverter" />
+            <utilities:IsSelectedCollectionToColorConverter x:Key="IsSelectedCollectionToColorConverter" />
 
         </ResourceDictionary>
     </Application.Resources>

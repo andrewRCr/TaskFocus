@@ -15,6 +15,7 @@
         <ResourceDictionary>
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
             <utilities:ActiveMainViewToVisibilityConverter x:Key="ActiveMainViewToVisibilityConverter" />
+            <utilities:NavMenuIntToBooleanConverter x:Key="NavMenuIntToBooleanConverter" />
         </ResourceDictionary>
     </UserControl.Resources>
     
@@ -31,6 +32,10 @@
                 </Menu.ItemsPanel>
 
                 <MenuItem Header="Inbox" 
+                          IsCheckable="True"
+                          IsChecked="{Binding NavMenuSelection, 
+                                     ConverterParameter=1, 
+                                     Converter={StaticResource NavMenuIntToBooleanConverter}, Mode=TwoWay}"
                           Template="{StaticResource NavMenuItem_Template}" 
                           Command="{Binding SwitchToInboxViewCommand}" >
 
@@ -40,7 +45,11 @@
 
                 </MenuItem>
 
-                <MenuItem Header="Today"
+                <MenuItem Header="Today"                    
+                          IsCheckable="True"
+                          IsChecked="{Binding NavMenuSelection, 
+                                     ConverterParameter=2, 
+                                     Converter={StaticResource NavMenuIntToBooleanConverter}, Mode=TwoWay}"
                           Template="{StaticResource NavMenuItem_Template}"
                           Command="{Binding SwitchToTodayViewCommand}" >
 
@@ -51,6 +60,10 @@
                 </MenuItem>
 
                 <MenuItem Header="Projects" 
+                          IsCheckable="True"
+                          IsChecked="{Binding NavMenuSelection, 
+                                     ConverterParameter=3, 
+                                     Converter={StaticResource NavMenuIntToBooleanConverter}, Mode=TwoWay}"                         
                           Template="{StaticResource NavMenuItem_Template}"
                           Command="{Binding SwitchToProjectsViewCommand}" >
 
@@ -61,6 +74,10 @@
                 </MenuItem>
 
                 <MenuItem Header="Contexts" 
+                          IsCheckable="True"
+                          IsChecked="{Binding NavMenuSelection, 
+                                     ConverterParameter=4, 
+                                     Converter={StaticResource NavMenuIntToBooleanConverter}, Mode=TwoWay}"                         
                           Template="{StaticResource NavMenuItem_Template}"
                           Command="{Binding SwitchToContextsViewCommand}" >
 
@@ -70,7 +87,11 @@
 
                 </MenuItem>
 
-                <MenuItem Header="[ Completed ]" 
+                <MenuItem Header="[ Completed ]"
+                          IsCheckable="True"
+                          IsChecked="{Binding NavMenuSelection, 
+                                     ConverterParameter=5, 
+                                     Converter={StaticResource NavMenuIntToBooleanConverter}, Mode=TwoWay}"                         
                           Template="{StaticResource NavMenuItem_Template}"
                           Command="{Binding SwitchToCompletedViewCommand}" >
 

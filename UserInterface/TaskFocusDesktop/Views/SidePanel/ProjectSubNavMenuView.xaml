@@ -130,6 +130,13 @@
 
                                     </StackPanel>
 
+                                    <ListBoxItem.Foreground>
+                                        <MultiBinding Converter="{StaticResource IsSelectedCollectionToColorConverter}">
+                                            <Binding Path="ProjectName"/>
+                                            <Binding Path="DataContext.SelectedProject.ProjectName" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type ListBox}}"/>
+                                        </MultiBinding>
+                                    </ListBoxItem.Foreground>
+
                                 </ListBoxItem>
 
                             </DataTemplate>

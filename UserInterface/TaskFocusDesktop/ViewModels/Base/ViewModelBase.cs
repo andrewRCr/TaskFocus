@@ -93,8 +93,32 @@ namespace TaskFocusDesktop.ViewModels.Base
             switch (message.SwitchedContentPanel)
             {
                 case ViewCatalog.ContentPanel.MainContent:
+
+                    switch (message.NewMainContentView)
+                    {
+                        case ViewCatalog.MainContentView.Inbox:
+                            _appState.NavMenuSelection = 1;
+                            break;
+                        case ViewCatalog.MainContentView.Today:
+                            _appState.NavMenuSelection = 2;
+                            break;
+                        case ViewCatalog.MainContentView.Projects:
+                            _appState.NavMenuSelection = 3;
+                            break;
+                        case ViewCatalog.MainContentView.Contexts:
+                            _appState.NavMenuSelection = 4;
+                            break;
+                        case ViewCatalog.MainContentView.Completed:
+                            _appState.NavMenuSelection = 5;
+                            break;
+                        default:
+                            _appState.NavMenuSelection = 0;
+                            break;
+                    }
+
                     ActiveMainContentView = message.NewMainContentView;
                     break;
+
                 case ViewCatalog.ContentPanel.SidePanel:
                     ActiveSidePanelView = message.NewSidePanelView;
                     break;

@@ -69,5 +69,16 @@ namespace TaskFocusDesktop
                 AppStateChanged?.Invoke(nameof(AppWindowHeight), this);
             }
         }
+
+        private int _navMenuSelection = 1; // inbox selected by default
+        public int NavMenuSelection
+        {
+            get => _navMenuSelection;
+            set
+            {
+                _navMenuSelection = value;
+                AppStateChanged?.Invoke(nameof(NavMenuSelection), this);
+            }
+        }
     }
 }

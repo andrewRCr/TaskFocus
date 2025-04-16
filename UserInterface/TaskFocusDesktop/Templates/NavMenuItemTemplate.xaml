@@ -29,13 +29,13 @@
 
                 <!-- menu text -->
                 <ContentPresenter x:Name="HeaderText"
-                                  ContentSource="Header" 
+                                  ContentSource="Header"                                
                                   Grid.Column="0"
                                   HorizontalAlignment="Left"
                                   RecognizesAccessKey="True"
                                   Margin="20,0,0,0"
                                   VerticalAlignment="Center" />
-                
+
                 <!-- selected indicator (highlight vertical strip on right side) -->
                 <Rectangle x:Name="SelectedIndicator" 
                            Tag="Header"
@@ -87,6 +87,9 @@
                 <Setter TargetName="MenuItemBorder"
                         Property="Background"
                         Value="{StaticResource BackgroundMidGreyBrush}" />
+            </Trigger>
+
+            <Trigger Property="IsChecked" Value="True" >
                 <Setter Property="TextBlock.Foreground" Value="{StaticResource ForegroundHighlightBrush}" />
             </Trigger>
 

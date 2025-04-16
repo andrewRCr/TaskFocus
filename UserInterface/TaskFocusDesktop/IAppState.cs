@@ -12,5 +12,6 @@ namespace TaskFocusDesktop
 
         string AlertMessage { get; set; }
         double AppWindowHeight { get; set; }
+        int NavMenuSelection { get; set; }
     }
 }
