@@ -4,9 +4,9 @@ Personal task management application with both native desktop and web-based user
 Allows users to create and manage their to-do items, using concepts from the Getting Things Done (GTD) productivity system.  
 Full-stack application built with C# and .NET, with continuous integration and deployment via Azure DevOps pipelines.  
 
- Today view | Img2 | Img3 | Img4
+ Today | Projects | Contexts | Settings
 |------------|-------------|-------------|-------------|
-| <img src="https://github.com/user-attachments/assets/c2da97b3-39d6-47af-a9ee-be2e7a75714c" width="250"> | <img src="" width="250"> | <img src="" width="250"> | <img src="" width="250"> |  
+| <img src="https://github.com/user-attachments/assets/c2da97b3-39d6-47af-a9ee-be2e7a75714c" width="250"> | <img src="https://github.com/user-attachments/assets/fccab5df-9227-48d8-8721-8ebad11147ce" width="250"> | <img src="https://github.com/user-attachments/assets/cd4be72c-c171-40fc-9758-3d73b11ae287" width="250"> | <img src="https://github.com/user-attachments/assets/0aa0ec16-8414-4333-9d26-95c3c60f76ab" width="250"> |  
 
 The app utilizes both dependency injection and class libraries for modularity/separation of concerns.  
 Web app built using Blazor Web Assembly (WASM) and MudBlazor.  
