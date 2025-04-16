@@ -31,9 +31,9 @@ The parameters for these automatic clean-up and deletion intervals are exposed a
 Features user authentication and authorization, including transactional email with automated email address confirmation and email address/username and password change/reset functionality.
 
 ## Usage
-For demo usage, please register as a new user.
-Please note that email confirmation is required.  
-Desktop app (Windows):  [Download](RELEASE URL - UPDATE)
+For demo usage, please register as a new user. Please note that email confirmation is required.  
+
+Desktop app (Windows): [Download](https://github.com/andrewRCr/TaskFocus/releases/latest)  
 Web app: [taskfocus.andrewcreekmore.com](https://taskfocus.andrewcreekmore.com)
 
 ## Future Development
