@@ -16,10 +16,10 @@ namespace TaskFocusDesktop.Utilities
                     DateTime dueDateValue = (DateTime)value;
                     if (dueDateValue == DateTime.Today) { return "Green"; }
                     else if (dueDateValue < DateTime.Today) { return "#f64e62"; }
-                    else { return "White"; }
+                    else return "#c2c2c5";  // foreground main
                 }
             }
-            return "White"; // default
+            return "c2c2c5"; // default: foreground main
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

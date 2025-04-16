@@ -29,7 +29,7 @@
 
                 <!-- menu text -->
                 <ContentPresenter x:Name="HeaderText"
-                                  ContentSource="Header"                                
+                                  ContentSource="Header"                                   
                                   Grid.Column="0"
                                   HorizontalAlignment="Left"
                                   RecognizesAccessKey="True"
@@ -76,12 +76,7 @@
         </Border>
 
         <ControlTemplate.Triggers>
-
-            <Trigger Property="Content" SourceName="HeaderText" Value="[ Completed ]">
-                <Setter Property="TextBlock.FontStyle" Value="Italic" />
-                <Setter Property="TextBlock.Foreground" Value="{StaticResource ForegroundSecondaryBrush}" />
-            </Trigger>
-
+            
             <Trigger Property="IsHighlighted"
                      Value="True">
                 <Setter TargetName="MenuItemBorder"
@@ -92,6 +87,70 @@
             <Trigger Property="IsChecked" Value="True" >
                 <Setter Property="TextBlock.Foreground" Value="{StaticResource ForegroundHighlightBrush}" />
             </Trigger>
+
+            <Trigger Property="Content" SourceName="HeaderText" Value="[ Completed ]">
+                <Setter Property="TextBlock.FontStyle" Value="Italic" />
+            </Trigger>
+
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="Content" SourceName="HeaderText" Value="[ Completed ]"/>
+                    <Condition Property="IsChecked" Value="False" />
+                </MultiTrigger.Conditions>
+                <MultiTrigger.Setters>
+                    <Setter Property="TextBlock.Foreground" Value="{StaticResource ForegroundCompletedBrush}" />
+                </MultiTrigger.Setters>
+            </MultiTrigger>
+
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="Content" SourceName="HeaderText" Value="Inbox"/>
+                    <Condition Property="IsChecked" Value="False" />
+                </MultiTrigger.Conditions>
+                <MultiTrigger.Setters>
+                    <Setter Property="TextBlock.Foreground" Value="{StaticResource ForegroundMainBrush}" />
+                </MultiTrigger.Setters>
+            </MultiTrigger>
+
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="Content" SourceName="HeaderText" Value="Inbox"/>
+                    <Condition Property="IsChecked" Value="False" />
+                </MultiTrigger.Conditions>
+                <MultiTrigger.Setters>
+                    <Setter Property="TextBlock.Foreground" Value="{StaticResource ForegroundMainBrush}" />
+                </MultiTrigger.Setters>
+            </MultiTrigger>
+
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="Content" SourceName="HeaderText" Value="Today"/>
+                    <Condition Property="IsChecked" Value="False" />
+                </MultiTrigger.Conditions>
+                <MultiTrigger.Setters>
+                    <Setter Property="TextBlock.Foreground" Value="{StaticResource ForegroundMainBrush}" />
+                </MultiTrigger.Setters>
+            </MultiTrigger>
+
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="Content" SourceName="HeaderText" Value="Projects"/>
+                    <Condition Property="IsChecked" Value="False" />
+                </MultiTrigger.Conditions>
+                <MultiTrigger.Setters>
+                    <Setter Property="TextBlock.Foreground" Value="{StaticResource ForegroundMainBrush}" />
+                </MultiTrigger.Setters>
+            </MultiTrigger>
+
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="Content" SourceName="HeaderText" Value="Contexts"/>
+                    <Condition Property="IsChecked" Value="False" />
+                </MultiTrigger.Conditions>
+                <MultiTrigger.Setters>
+                    <Setter Property="TextBlock.Foreground" Value="{StaticResource ForegroundMainBrush}" />
+                </MultiTrigger.Setters>
+            </MultiTrigger>
 
         </ControlTemplate.Triggers>
     </ControlTemplate>

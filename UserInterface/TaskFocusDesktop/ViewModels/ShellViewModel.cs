@@ -2,6 +2,7 @@
 using MaterialDesignThemes.Wpf;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -15,7 +16,6 @@ using TaskFocusDesktop.ViewModels.MainContent;
 using TaskFocusDesktop.ViewModels.SidePanel;
 using TaskFocusDesktop.ViewModels.TopPanel;
 using TaskFocusUI.Library.API;
-using TaskFocusUI.Library.Data.Services;
 using TaskFocusUI.Library.Data.Services.Access;
 using TaskFocusUI.Library.Data.Services.Synchronization;
 using TaskFocusUI.Library.Data.State;
@@ -89,6 +89,7 @@ namespace TaskFocusDesktop.ViewModels
             ActiveMainContentView = IsUserLoggedIn ? ViewCatalog.MainContentView.Inbox : ViewCatalog.MainContentView.Home;
 
             UpdateMiniNavIconColor();
+            UpdateSettingsMenuItemColor();
         }
 
         // app appearance props
@@ -148,6 +149,17 @@ namespace TaskFocusDesktop.ViewModels
             }
         }
 
+        private SolidColorBrush _settingsMenuItemColor;
+        public SolidColorBrush SettingsMenuItemColor
+        {
+            get => _settingsMenuItemColor;
+            set 
+            { 
+                _settingsMenuItemColor = value;
+                NotifyOfPropertyChange(() => SettingsMenuItemColor);
+            }
+        }
+
         public string WindowMaxRestoreIcon
         {
             get  => ShellWindowState == WindowState.Maximized ? "WindowRestore" : "WindowMaximize";       
@@ -158,7 +170,7 @@ namespace TaskFocusDesktop.ViewModels
 
         public bool IsUserLoggedIn
         {
-            get => !string.IsNullOrWhiteSpace(_loggedInUser.Token);
+            get => !string.IsNullOrWhiteSpace(_loggedInUser.Token);        
         }
 
         private Screen? _topWidgetPanel;
@@ -287,13 +299,19 @@ namespace TaskFocusDesktop.ViewModels
 
         private void UpdateMiniNavIconColor()
         {
-            string hexValue = IsUserLoggedIn ? "#c2c2c5" : "#737379"; // foreground main/tertiary
+            string hexValue = IsUserLoggedIn ? "#c2c2c5" : "#737379"; // foreground main/tertiary 939397
             MiniNavIconColor = (SolidColorBrush)new BrushConverter().ConvertFrom(hexValue)!;
+        }
+
+        private void UpdateSettingsMenuItemColor()
+        {
+            string hexValue = ActiveMainContentView == ViewCatalog.MainContentView.Settings ? "#776be7" : "#c2c2c5"; // foreground highlight/main
+            SettingsMenuItemColor = (SolidColorBrush)new BrushConverter().ConvertFrom(hexValue)!;
         }
 
         private void UpdateSyncStatusColor()
         {
-            string hexValue = SyncStatusStr == "Synchronized" ? "#776be7" : "#ffffff"; // foreground highlight/white
+            string hexValue = SyncStatusStr == "Synchronized" ? "#776be7" : "#c2c2c5"; // foreground highlight/main
             SyncStatusColor = (SolidColorBrush)new BrushConverter().ConvertFrom(hexValue)!;
         }
 
@@ -507,6 +525,9 @@ namespace TaskFocusDesktop.ViewModels
             // notify other views
             var switchedEvent = new ViewSwitchedEvent(ViewCatalog.ContentPanel.MainContent, ActiveMainContentView);
             await _events.PublishOnUIThreadAsync(switchedEvent);
+
+            // handle settings menu item (as it exists outside NavMenu)
+            UpdateSettingsMenuItemColor();
         }
 
         public async Task SwitchSidePanelView(ViewCatalog.SidePanelView requestedSidePanelView)

@@ -8,6 +8,8 @@ namespace TaskFocusDesktop.ViewModels.SidePanel
         public NavMenuViewModel(IEventAggregator events, IAppState appState) : base(events, appState) 
         {
             NavMenuSelection = appState.NavMenuSelection;
+
+            appState.AppStateChanged +=HandleAppStateChanged;
         }
 
         private int _navMenuSelection;
@@ -19,6 +21,11 @@ namespace TaskFocusDesktop.ViewModels.SidePanel
                 _navMenuSelection = value;
                 NotifyOfPropertyChange(() => NavMenuSelection);
             }
+        }
+
+        private void HandleAppStateChanged(string propertyName, AppState state)
+        {
+            if (propertyName == nameof(AppState.NavMenuSelection)) NavMenuSelection = state.NavMenuSelection;
         }
     }
 }

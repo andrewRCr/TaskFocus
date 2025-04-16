@@ -111,6 +111,9 @@ namespace TaskFocusDesktop.ViewModels.Base
                         case ViewCatalog.MainContentView.Completed:
                             _appState.NavMenuSelection = 5;
                             break;
+                        case ViewCatalog.MainContentView.Settings:
+                            _appState.NavMenuSelection = 0;
+                            break;
                         default:
                             _appState.NavMenuSelection = 0;
                             break;

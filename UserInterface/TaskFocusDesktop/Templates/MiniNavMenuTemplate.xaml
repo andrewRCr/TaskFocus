@@ -85,6 +85,7 @@
             </Menu.ItemsPanel>
 
             <MenuItem Header="Inbox" 
+                      Foreground="{StaticResource ForegroundMainBrush}"
                       Template="{StaticResource MiniNavMenuItem_Template}"
                       Command="{Binding SwitchToInboxViewCommand}" >
 
@@ -95,6 +96,7 @@
             </MenuItem>
 
             <MenuItem Header="Today"
+                      Foreground="{StaticResource ForegroundMainBrush}"
                       Template="{StaticResource MiniNavMenuItem_Template}"
                       Command="{Binding SwitchToTodayViewCommand}" >
 
@@ -105,6 +107,7 @@
             </MenuItem>
 
             <MenuItem Header="Projects" 
+                      Foreground="{StaticResource ForegroundMainBrush}"
                       Template="{StaticResource MiniNavMenuItem_Template}"
                       Command="{Binding SwitchToProjectsViewCommand}">
 
@@ -115,6 +118,7 @@
             </MenuItem>
 
             <MenuItem Header="Contexts" 
+                      Foreground="{StaticResource ForegroundMainBrush}"
                       Template="{StaticResource MiniNavMenuItem_Template}"
                       Command="{Binding SwitchToContextsViewCommand}">
 
@@ -125,11 +129,12 @@
             </MenuItem>
 
             <MenuItem Header="Completed" 
+                      Foreground="{StaticResource ForegroundCompletedBrush}"
                       Template="{StaticResource MiniNavMenuItem_Template}"
                       Command="{Binding SwitchToCompletedViewCommand}">
 
                 <MenuItem.Icon>
-                    <materialDesign:PackIcon Kind="PlaylistCheck" Style="{StaticResource MiniNavMenuIconStyle}" />
+                    <materialDesign:PackIcon Kind="PlaylistCheck" Foreground="{StaticResource ForegroundCompletedBrush}" Style="{StaticResource MiniNavMenuIconStyle}" />
                 </MenuItem.Icon>
 
             </MenuItem>
