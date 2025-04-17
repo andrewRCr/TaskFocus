@@ -1,7 +1,7 @@
 # TaskFocus
 
 Personal task management application with both native desktop and web-based user interfaces.  
-Allows users to create and manage their to-do items, using concepts from the Getting Things Done (GTD) productivity system. Full-stack application built with C# and .NET, with continuous integration and deployment via Azure DevOps pipelines.  
+Allows users to create and manage to-do items, using concepts from the Getting Things Done (GTD) productivity system. Full-stack application built with C# and .NET, with continuous integration and deployment via Azure DevOps pipelines.  
 
  Today view | Projects view | Contexts view | Settings view
 |------------|-------------|-------------|-------------|
@@ -27,10 +27,11 @@ The Completed view displays tasks marked done but not yet deleted.
 Completed tasks can also remain in their original view for a user-defined length of time before being "cleaned up" - i.e., moved to the Completed view exclusively prior to eventual deletion.
 The parameters for these automatic clean-up and deletion intervals are exposed as user settings.
 
-Features user authentication and authorization, including transactional email with automated email address confirmation and email address/username and password change/reset functionality.
+Features user authentication and authorization, including transactional email with automated email address confirmation and email address/username and password change/reset functionality.  
+Bi-directional data synchronization is performed automatically in the background on a periodic interval, but can also be triggered manually by the user.
 
 ## Usage
-For demo usage, please register as a new user. Please note that email confirmation is required.  
+For demo usage, please register as a new user. Note that email confirmation is required.  
 
 Desktop app (Windows): [Download](https://github.com/andrewRCr/TaskFocus/releases/latest)  
 Web app: [taskfocus.andrewcreekmore.com](https://taskfocus.andrewcreekmore.com)
@@ -45,4 +46,4 @@ Web app: [taskfocus.andrewcreekmore.com](https://taskfocus.andrewcreekmore.com)
 -- CalDAV support for external calendar integration
 - synchronization improvements:
 -- offline support - persistent local data storage for both clients, with merge handling when reconnected
--- merge conflict logic
+-- column-level differential merge conflict logic
