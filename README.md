@@ -1,13 +1,11 @@
 # TaskFocus
 
-Personal task management application with both native desktop and web-based user interfaces.  
-Allows users to create and manage to-do items, using concepts from the Getting Things Done (GTD) productivity system. Full-stack application built with C# and .NET, with continuous integration and deployment via Azure DevOps pipelines.  
+Personal task management application with both native desktop and web-based user interfaces. Allows users to create and manage to-do items, using concepts from the Getting Things Done (GTD) productivity system. Full-stack application built with C# and .NET, with continuous integration and deployment via Azure DevOps pipelines. Utilizes both dependency injection and class libraries for separation of concerns.  
 
  Today view | Projects view | Contexts view | Settings view
 |------------|-------------|-------------|-------------|
 | <img src="https://github.com/user-attachments/assets/c2da97b3-39d6-47af-a9ee-be2e7a75714c" width="250"> | <img src="https://github.com/user-attachments/assets/fccab5df-9227-48d8-8721-8ebad11147ce" width="250"> | <img src="https://github.com/user-attachments/assets/cd4be72c-c171-40fc-9758-3d73b11ae287" width="250"> | <img src="https://github.com/user-attachments/assets/0aa0ec16-8414-4333-9d26-95c3c60f76ab" width="250"> |  
 
-The app utilizes both dependency injection and class libraries for modularity/separation of concerns.  
 Web app built using Blazor Web Assembly (WASM) and MudBlazor.  
 Desktop app built using WPF and Caliburn Micro following the Model-View-ViewModel (MVVM) architectural pattern.  
 Backend consists of an API built with .NET 8 and SQL Server databases, using Identity, JSON Web Tokens (JWT), and Entity Framework for mapping of user account data.  
