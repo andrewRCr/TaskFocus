@@ -424,8 +424,9 @@
         GetNextPeriodicSyncTimeStr();
     }
 
-    private void ManualDataSync()
+    private async Task ManualDataSync()
     {
+        await VerifyAuthAndRedirectIfExpired();
         DataService.InvokeSyncRequest(this.ToString()!, false);
     }
 

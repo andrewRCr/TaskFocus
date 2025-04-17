@@ -36,7 +36,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
 
         public RelayCommand RequestUpdateEmailDialogCommand => new RelayCommand(async execute => await RequestUpdateEmailDialog());
         public RelayCommand RequestChangePasswordDialogCommand => new RelayCommand(async execute => await RequestChangePasswordDialog());
-        public RelayCommand RequestManualDataSyncCommand => new RelayCommand(execute => ManualSync());
+        public RelayCommand RequestManualDataSyncCommand => new RelayCommand(async execute => await ManualSync());
 
         private UserSettingsDisplayModel _localSettings = default!;
         public UserSettingsDisplayModel LocalSettings
@@ -150,8 +150,9 @@ namespace TaskFocusDesktop.ViewModels.MainContent
         }
 
         // user-invoked manual sync request
-        private void ManualSync()
+        private async Task ManualSync()
         {
+            await VerifyAuthAndRedirectIfExpired();
             EnableManualSyncButton = false;
             _dataService.InvokeSyncRequest($"{this.ToString()}: {nameof(ManualSync)}");
         }

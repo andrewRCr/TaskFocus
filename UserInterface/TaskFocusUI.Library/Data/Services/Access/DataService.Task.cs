@@ -52,14 +52,8 @@ namespace TaskFocusUI.Library.Data.Services
             if (task.TodayIndex == null && (task.Starred || _dataHelper.IsTaskDueOrOverDue(task)) &&
                 !(task.Completed && task.DateCompleted != DateTime.Now.Date))
             {
-                //List<TaskDisplayModel> starredTasks = _dataState.Tasks!
-                //    .Where(x => x.Starred).ToList();
-
                 List<TaskDisplayModel> starredTasks = _dataState.GetTasks()!
                     .Where(x => x.Starred).ToList();
-
-                //List<TaskDisplayModel> dueTasks = _dataState.Tasks!
-                //    .Where(x => x.DueDate <= DateTime.Now.Date).ToList();
 
                 List<TaskDisplayModel> dueTasks = _dataState.GetTasks()!
                     .Where(x => x.DueDate <= DateTime.Now.Date).ToList();
@@ -67,28 +61,13 @@ namespace TaskFocusUI.Library.Data.Services
                 List<TaskDisplayModel> todayTasks = dueTasks.Concat(starredTasks).ToList();
                 var pushedTodayTasks = todayTasks.Where(x => x.Id != null).ToList();
                 pushedTodayTasks = pushedTodayTasks.DistinctBy(x => x.Id).ToList();
-                //Console.WriteLine($"pushedTodayTasks count: {pushedTodayTasks.Count}, contents:");
-                //foreach (var item in pushedTodayTasks)
-                //{
-                //    Console.WriteLine($"{item.TaskName}, {item.Id}");
-                //}
 
                 var unpushedTodayTasks = todayTasks.Where(x => x.Id == null).ToList();
                 unpushedTodayTasks = unpushedTodayTasks.DistinctBy(x => x.TempLocalId).ToList();
-                //Console.WriteLine($"unpushedTodayTasks count: {unpushedTodayTasks.Count}, contents: ");
-
-                //foreach (var item in unpushedTodayTasks)
-                //{
-                //    Console.WriteLine($"{item.TaskName}, {item.TempLocalId}");
-                //}
-
 
                 todayTasks = pushedTodayTasks.Concat(unpushedTodayTasks).ToList();
-                //Console.WriteLine($"todayTasks count: {todayTasks.Count}");
 
-                //task.TodayIndex = todayTasks.Count > 0 ? (todayTasks.Count) : 0;
                 task.TodayIndex = todayTasks.Count;
-                //Console.WriteLine($"newly assigned TodayIndex: {task.TodayIndex}");
             }
         }
 

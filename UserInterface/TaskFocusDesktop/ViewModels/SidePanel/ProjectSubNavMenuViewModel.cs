@@ -102,8 +102,8 @@ namespace TaskFocusDesktop.ViewModels.SidePanel
 
             if (!_dataService.IsProjectCurrentlyBeingUpdated(senderProject))
             {
-                if (changedProperty!.Contains("Index") && CanUpdateOrderingIndices)
-                    _dataService.UpdateProjectData(senderProject);
+                if (changedProperty!.Contains("Index") && !CanUpdateOrderingIndices) return;
+                _dataService.UpdateProjectData(senderProject);
             }
         }
 

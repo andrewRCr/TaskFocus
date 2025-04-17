@@ -357,6 +357,7 @@ namespace TaskFocusDesktop.Views.Components
                     }
 
                     // will trigger a PropertyChanged -> UpdateTaskData call
+                    Debug.WriteLine($"{item.TaskName} item[OrderingIndex] == null: {item[OrderingIndex] == null}");
                     bool changed = (int)item[OrderingIndex] != vm.LocalTasks.IndexOf(item);
                     if (changed) item[OrderingIndex] = vm.LocalTasks.IndexOf(item);
                     Debug.WriteLine($"{item.TaskName} OrderingIndex({OrderingIndex}): {item[OrderingIndex]}");

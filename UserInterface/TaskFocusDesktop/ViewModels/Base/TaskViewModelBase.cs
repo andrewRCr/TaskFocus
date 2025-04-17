@@ -309,7 +309,7 @@ namespace TaskFocusDesktop.ViewModels.Base
 
             if (!_dataService.IsTaskCurrentlyBeingUpdated(senderTask))
             {
-                if (changedProperty!.Contains("Index") && CanUpdateOrderingIndices)
+                if (changedProperty!.Contains("Index") && !CanUpdateOrderingIndices) return;
 
                 //_logger.Info($"{this.ToString()}: workingTask property changed: {senderTask.TaskName}'s property {changedProperty} was changed.");
                 _dataService.UpdateTaskData(senderTask);
