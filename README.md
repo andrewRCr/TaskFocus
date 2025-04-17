@@ -36,13 +36,13 @@ Desktop app (Windows): [Download](https://github.com/andrewRCr/TaskFocus/release
 Web app: [taskfocus.andrewcreekmore.com](https://taskfocus.andrewcreekmore.com)
 
 ## Future Development
-- overall UX improvements:
--- desktop app: minimal "docked mode" version of UI and global inbox quick-entry widget
--- improved mobile web app UX and/or dedicated, native mobile app
-- app domain content feature improvements:
--- nested sub-collections (projects, contexts) and sub-tasks
--- support for repeating tasks and defer/start dates
--- CalDAV support for external calendar integration
-- synchronization improvements:
--- offline support - persistent local data storage for both clients, with merge handling when reconnected
--- column-level differential merge conflict logic
+- overall UX improvements:  
+-- desktop app: minimal "docked mode" version of UI and global inbox quick-entry widget  
+-- improved mobile web app UX and/or dedicated, native mobile app  
+- app domain content feature improvements:  
+-- nested sub-collections (projects, contexts) and sub-tasks  
+-- support for repeating tasks and defer/start dates  
+-- CalDAV support for external calendar integration  
+- synchronization improvements:  
+-- offline support - persistent local data storage for both clients, with merge handling when reconnected  
+-- column-level differential merge conflict handling (currently handled at row level)  
