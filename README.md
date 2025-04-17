@@ -4,7 +4,7 @@ Personal task management application with both native desktop and web-based user
 
  Today view | Projects view | Contexts view | Settings view
 |------------|-------------|-------------|-------------|
-| <img src="https://github.com/user-attachments/assets/c2da97b3-39d6-47af-a9ee-be2e7a75714c" width="250"> | <img src="https://github.com/user-attachments/assets/fccab5df-9227-48d8-8721-8ebad11147ce" width="250"> | <img src="https://github.com/user-attachments/assets/cd4be72c-c171-40fc-9758-3d73b11ae287" width="250"> | <img src="https://github.com/user-attachments/assets/0aa0ec16-8414-4333-9d26-95c3c60f76ab" width="250"> |  
+| <img src="https://github.com/user-attachments/assets/c88bc20c-60cf-4b83-9ffa-152124f01990" width="250"> | <img src="https://github.com/user-attachments/assets/4f1f6bff-7154-4d1e-8709-bc734c6c80cb" width="250"> | <img src="https://github.com/user-attachments/assets/5ded333b-56f3-4f5a-b001-0179577c0b6e" width="250"> | <img src="https://github.com/user-attachments/assets/87c99d45-f895-45fe-90d7-69b7cd96d0d7" width="250"> |  
 
 Web app built using Blazor Web Assembly (WASM) and MudBlazor.  
 Desktop app built using WPF and Caliburn Micro following the Model-View-ViewModel (MVVM) architectural pattern.  
@@ -26,6 +26,7 @@ Completed tasks can also remain in their original view for a user-defined length
 The parameters for these automatic clean-up and deletion intervals are exposed as user settings.
 
 Features user authentication and authorization, including transactional email with automated email address confirmation and email address/username and password change/reset functionality.  
+
 Bi-directional data synchronization is performed automatically in the background on a periodic interval, but can also be triggered manually by the user.
 
 ## Usage
