@@ -22,7 +22,8 @@ namespace TaskFocusUI.Library.Data.State
     {
         Initializing,
         Synchronized,
-        SyncInProgress
+        SyncInProgress,
+        SyncFailed,
     }
 
     public class DataState : IDataState, IDataStateInternal

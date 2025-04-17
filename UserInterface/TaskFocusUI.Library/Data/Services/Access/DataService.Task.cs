@@ -130,8 +130,7 @@ namespace TaskFocusUI.Library.Data.Services
                     //}
 
                     task.ProjectIndex = projectTasks.Count;
-                    LogInformation($"{task.TaskName}: new ProjectId is {task.ProjectId}, projectName {task.ProjectName}");
-                    //LogInformation($"{task.TaskName}: new ProjectIndex is {task.ProjectIndex}");
+                   // LogInformation($"{task.TaskName}: new ProjectId is {task.ProjectId}, projectName {task.ProjectName}");
                 }           
             }
         }

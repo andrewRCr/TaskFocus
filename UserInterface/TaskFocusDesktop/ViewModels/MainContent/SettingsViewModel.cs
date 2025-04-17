@@ -194,7 +194,7 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             GetLastSyncStr();
             GetLastSyncResultStr();
             GetNextPeriodicSyncTimeStr();
-            EnableManualSyncButton = _dataService.GetCurrentSyncStatus() == ESyncStatus.Synchronized;
+            EnableManualSyncButton = _dataService.GetCurrentSyncStatus() != ESyncStatus.SyncInProgress;
         }
 
         protected override async void OnViewLoaded(object view)

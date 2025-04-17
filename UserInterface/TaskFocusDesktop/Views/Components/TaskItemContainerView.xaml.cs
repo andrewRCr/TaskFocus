@@ -112,7 +112,7 @@ namespace TaskFocusDesktop.Views.Components
             {
                 List<Type> typesToIgnore = new() {
                     typeof(CheckBox), typeof(TextBox), typeof(TextBlock), typeof(PackIcon), typeof(DatePicker), typeof(ComboBox), 
-                    typeof(Button), typeof(ToggleButton), typeof(CustomControls.CircularButton), 
+                    typeof(Button), typeof(CustomControls.CircularButton), typeof(CalendarDayButton),
                     typeof(CustomControls.CheckBoxButton), typeof(CustomControls.TaskCollectionComboBox), typeof(DatePickerTextBox) };
                 string textBoxViewStr = "System.Windows.Controls.TextBoxView"; // internal WPF component; no public API
 
@@ -357,10 +357,9 @@ namespace TaskFocusDesktop.Views.Components
                     }
 
                     // will trigger a PropertyChanged -> UpdateTaskData call
-                    Debug.WriteLine($"{item.TaskName} item[OrderingIndex] == null: {item[OrderingIndex] == null}");
                     bool changed = (int)item[OrderingIndex] != vm.LocalTasks.IndexOf(item);
                     if (changed) item[OrderingIndex] = vm.LocalTasks.IndexOf(item);
-                    Debug.WriteLine($"{item.TaskName} OrderingIndex({OrderingIndex}): {item[OrderingIndex]}");
+                    //Debug.WriteLine($"{item.TaskName} OrderingIndex({OrderingIndex}): {item[OrderingIndex]}");
                 }
             }
         }
