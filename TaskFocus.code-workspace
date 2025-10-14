@@ -1,0 +1,63 @@
+{
+    "folders": [
+        {
+            "name": "TaskFocus (Root)",
+            "path": "."
+        }
+    ],
+    "settings": {
+        // OmniSharp C# configuration (better WSL compatibility)
+        "dotnet.server.useOmnisharp": true,
+        "omnisharp.enableEditorConfigSupport": true,
+        "omnisharp.enableRoslynAnalyzers": true,
+        // Focus on the new architecture but keep legacy visible
+        "dotnet.defaultSolution": "./TaskFocus.sln",
+        // File associations
+        "files.associations": {
+            "*.cshtml": "razor",
+            "*.razor": "razor"
+        },
+        // Code formatting
+        "editor.formatOnSave": true,
+        "editor.formatOnPaste": true,
+        "editor.codeActionsOnSave": {
+            "source.fixAll": "explicit",
+            "source.organizeImports": "explicit"
+        },
+        // C# specific
+        "[csharp]": {
+            "editor.defaultFormatter": "ms-dotnettools.csharp",
+            "editor.tabSize": 4,
+            "editor.insertSpaces": true,
+            "files.trimTrailingWhitespace": true
+        },
+        // Markdown
+        "[markdown]": {
+            "editor.wordWrap": "on",
+            "editor.rulers": [120],
+            "files.trimTrailingWhitespace": false
+        },
+        // JSON
+        "[json]": {
+            "editor.defaultFormatter": "vscode.json-language-features"
+        },
+        // Git
+        "git.autofetch": true,
+        "git.confirmSync": false,
+        "git.enableSmartCommit": true
+        "dotnet.completion.showCompletionItemsFromUnimportedNamespaces": true
+    },
+    "extensions": {
+        "recommendations": [
+            "ms-dotnettools.csharp",
+            "ms-dotnettools.vscode-dotnet-runtime",
+            "davidanson.vscode-markdownlint",
+            "editorconfig.editorconfig",
+            "streetsidesoftware.code-spell-checker",
+            "ms-vscode.vscode-json",
+            "redhat.vscode-yaml",
+            "bradlc.vscode-tailwindcss",
+            "ms-vscode.powershell"
+        ]
+    }
+}
