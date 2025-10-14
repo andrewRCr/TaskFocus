@@ -1,4 +1,9 @@
 {
+    // .NET Configuration for C# Dev Kit
+    "dotnet.server.useOmnisharp": false,
+    "dotnet.completion.showCompletionItemsFromUnimportedNamespaces": true,
+    "dotnet.codeLens.enableReferencesCodeLens": true,
+    "dotnet.preferCSharpExtension": true,
   // File Explorer
   "explorer.sortOrder": "type",
   "files.exclude": {
@@ -8,7 +13,7 @@
     "**/*.user": true,
     "**/packages": true
   },
-  
+
   // .NET and C# settings
   "dotnet.completion.showCompletionItemsFromUnimportedNamespaces": true,
   "dotnet.inlayHints.enableInlayHintsForParameters": true,
@@ -17,20 +22,20 @@
   "dotnet.inlayHints.enableInlayHintsForIndexerParameters": true,
   "dotnet.inlayHints.enableInlayHintsForOtherParameters": true,
   "dotnet.inlayHints.suppressInlayHintsForParametersWithDifferingNames": true,
-  
+
   // Code formatting
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
     "source.organizeImports": "explicit",
     "source.fixAll": "explicit"
   },
-  
+
   // Line endings (enforce LF)
   "files.eol": "\n",
-  
+
   // Git
   "git.ignoreLimitWarning": true,
-  
+
   // Search exclusions
   "search.exclude": {
     "**/bin": true,
@@ -40,20 +45,24 @@
     ".arc/active/**": true,
     ".arc/reference/archive/**": false
   },
-  
+
   // File associations
   "files.associations": {
     "*.razor": "razor",
     "*.cshtml": "html"
   },
-  
+
   // Terminal
   "terminal.integrated.defaultProfile.linux": "bash",
-  
+
   // Markdown
   "markdown.validate.enabled": true,
   "[markdown]": {
     "editor.wordWrap": "on",
-    "editor.quickSuggestions": false
+    "editor.quickSuggestions": {
+      "comments": "off",
+      "strings": "off",
+      "other": "off"
+    }
   }
 }
