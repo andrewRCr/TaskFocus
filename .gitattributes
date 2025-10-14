@@ -1,0 +1,46 @@
+# Set default behavior for all files
+* text=auto eol=lf
+
+# Explicitly set line endings for text files
+*.cs text eol=lf
+*.csproj text eol=lf
+*.sln text eol=lf
+*.json text eol=lf
+*.xml text eol=lf
+*.xaml text eol=lf
+*.razor text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.scss text eol=lf
+*.js text eol=lf
+*.ts text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.config text eol=lf
+*.props text eol=lf
+*.targets text eol=lf
+
+# Scripts should use LF (for WSL compatibility)
+*.sh text eol=lf
+*.ps1 text eol=lf
+
+# Binary files should be left untouched
+*.dll binary
+*.exe binary
+*.ico binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.svg binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.pdf binary
+*.zip binary
+*.7z binary
+*.tar binary
+*.gz binary
