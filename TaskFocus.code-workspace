@@ -41,6 +41,7 @@
         "[json]": {
             "editor.defaultFormatter": "vscode.json-language-features"
         },
+        // Markdownlint - VS Code extension reads .markdownlint-cli2.jsonc automatically
         // Git
         "git.autofetch": true,
         "git.confirmSync": false,

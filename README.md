@@ -1,5 +1,7 @@
 # TaskFocus
 
+> **📋 Current Status**: TaskFocus v1.0 (stable release) is available in the `/legacy` directory. TaskFocus v2.0 is currently under development; see [docs/MODERNIZATION.md](docs/MODERNIZATION.md) for details.
+
 Personal task management application with both native desktop and web-based user interfaces. Allows users to create and manage to-do items, using concepts from the Getting Things Done (GTD) productivity system. Full-stack application built with C# and .NET, with continuous integration and deployment via Azure DevOps pipelines. Utilizes both dependency injection and class libraries for separation of concerns.  
 
  Today view | Projects view | Contexts view | Settings view

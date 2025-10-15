@@ -1,20 +1,55 @@
-// Use a JSONC file for comments
+// TaskFocus v2.0 markdownlint-cli2 configuration
 {
   "$schema": "https://raw.githubusercontent.com/DavidAnson/markdownlint-cli2/main/schema/markdownlint-cli2-config-schema.json",
 
-  // Inherit all rules from the base .markdownlint.json file.
-  // This is the recommended setup.
-  "extends": "./.markdownlint.json",
-
-  // Globs for files to lint are specified here for the CLI runner
+  // Globs for files to lint
   "globs": [
     "**/*.md"
   ],
 
-  // Ignore node_modules, which is a default but good to be explicit
+  // Files and directories to ignore
   "ignores": [
     "node_modules",
     "legacy",
     "README.md"
-  ]
+  ],
+
+  // Markdownlint rules configuration
+  "config": {
+    "default": true,
+    "MD003": {
+      "style": "atx"
+    },
+    "MD007": {
+      "indent": 2
+    },
+    "MD010": {
+      "code_blocks": false
+    },
+    "MD013": {
+      "line_length": 120,
+      "code_blocks": false,
+      "tables": false
+    },
+    "MD024": false,
+    "MD025": {
+      "front_matter_title": ""
+    },
+    "MD029": false,
+    "MD033": {
+      "allowed_elements": [
+        "details",
+        "summary",
+        "br",
+        "sub",
+        "sup"
+      ]
+    },
+    "MD036": false,
+    "MD040": false,
+    "MD041": false,
+    "MD046": {
+      "style": "fenced"
+    }
+  }
 }
