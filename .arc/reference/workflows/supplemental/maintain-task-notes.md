@@ -1,16 +1,19 @@
 # Workflow: Maintain Task & Notes Hygiene
 
-Use this workflow when an active task list has accumulated historical notes or when the companion notes document needs pruning. **Execute this workflow before archiving completed incidental work** to ensure both files are reference-ready.
+Use this workflow when an active task list has accumulated historical notes or when the companion notes document needs pruning.
+**Execute this workflow before archiving completed incidental work** to ensure both files are reference-ready.
 
 **Goal:** Keep the task file lean and scannable while preserving rich historical context in the notes file.
 
 ## When to Use This Workflow
 
 **Required:**
+
 - Before archiving completed incidental work (final task documentation step)
 - When task list has accumulated verbose inline explanations (>100 lines of context blocks)
 
 **Optional:**
+
 - Mid-work cleanup when notes file becomes difficult to navigate
 - After major pivots/investigations that generated exploratory content
 
@@ -37,12 +40,14 @@ Use this workflow when an active task list has accumulated historical notes or w
 ### 3. Clean Up Task File
 
 **What to Keep:**
+
 - ✅ Task structure (parent tasks, subtasks, checkboxes)
 - ✅ Concise inline outcome notes (e.g., "✅ Passed", "Bug fix: corrected X → Y")
 - ✅ "Relevant Files" section (helpful reference)
 - ✅ "Completion Summary" section (for completed work)
 
 **What to Migrate to Notes File:**
+
 - ❌ Multi-paragraph "Context" blocks explaining background
 - ❌ Detailed sub-subtask breakdowns (3.6.1.1, 3.6.1.2, etc.)
 - ❌ Verbose decision rationale (keep 1-line summary with "see notes" pointer)
@@ -78,28 +83,33 @@ Use this workflow when an active task list has accumulated historical notes or w
 **This step makes the difference between a notes file that gets used vs ignored.**
 
 **Add Table of Contents:**
+
 - Create TOC section at top (after metadata, before first major section)
 - Group by category: "Major Investigations & Decisions", "Implementation Details", "Historical Context", "Reference"
 - Use markdown anchor links for navigation
 - Keep TOC concise (one-line description per section)
 
 **Update Section Headers:**
+
 - Remove task references from headers (e.g., "Task 5.5: Django Ninja CSRF..." → "CSRF Integration Issue Resolution")
 - Make headers descriptive and standalone (future-you won't remember task numbers)
 - Add brief context line under each major heading
 
 **Remove Temporal Markers:**
+
 - Delete "To be filled", "Pending approval", "Status: PENDING"
 - Update decision records to show final outcomes
 - Change "Next Steps" to "Implementation" or "Resolution"
 
 **Consolidate Exploratory Sections:**
+
 - Preserve the investigation journey but make it scannable
 - Add summary at top of long exploratory sections
 - Use "TLDR" or "Quick Summary" for verbose investigations
 - Example: 300-line CSRF investigation → 50-line summary + detailed journey
 
 **Verify Consistency:**
+
 - Ensure all section headers follow similar patterns
 - Check that anchor links in TOC work
 - Update metadata (Created → Completed date, Status: Active → Complete)
@@ -110,8 +120,8 @@ Use this workflow when an active task list has accumulated historical notes or w
 
 - At the top of both files, confirm the "Related Task/Notes" pointers are accurate
 - Update status metadata:
-    - Task file: `**Status**: Completed`, `**Actual Effort**: ...`
-    - Notes file: `**Status**: Complete`, `**Completed**: YYYY-MM-DD`
+  - Task file: `**Status**: Completed`, `**Actual Effort**: ...`
+  - Notes file: `**Status**: Complete`, `**Completed**: YYYY-MM-DD`
 - Add completion date to both files
 
 ### 7. Quality Checks
@@ -125,6 +135,7 @@ Use this workflow when an active task list has accumulated historical notes or w
 ## Output
 
 **Task File:**
+
 - Lean, scannable structure showing what was accomplished
 - Concise inline notes documenting outcomes
 - Completion summary with metrics and accomplishments
@@ -132,6 +143,7 @@ Use this workflow when an active task list has accumulated historical notes or w
 - **Target:** Can understand scope and outcomes in 2-3 minutes
 
 **Notes File:**
+
 - Table of contents for quick navigation
 - Clean section headers (no temporal markers)
 - Rich historical detail preserved
@@ -139,6 +151,7 @@ Use this workflow when an active task list has accumulated historical notes or w
 - **Target:** Can find specific technical decision or implementation detail in 1 minute
 
 **Archive Ready:**
+
 - Both files suitable for long-term reference
 - No temporal confusion ("pending", "to be filled")
 - Clear, professional documentation
@@ -149,11 +162,14 @@ Use this workflow when an active task list has accumulated historical notes or w
 
 1. **Inline Notes Guideline**: If it's >3 lines explaining a subtask, it should migrate to notes file with a reference pointer.
 
-2. **Task List Question**: "Can I understand what was accomplished by scanning task checkboxes + inline notes in <3 minutes?" If no, it needs cleanup.
+2. **Task List Question**: "Can I understand what was accomplished by scanning task checkboxes + inline notes in
+<3 minutes?" If no, it needs cleanup.
 
-3. **Notes File Question**: "Can I find a specific technical decision without scrolling through 1500 lines?" If no, it needs TOC + headers.
+3. **Notes File Question**: "Can I find a specific technical decision without scrolling through 1500 lines?"  
+If no, it needs TOC + headers.
 
-4. **Migration Pattern**: Don't delete anything - migrate verbose content to "Historical Implementation Details" section in notes file. Storage is cheap, context loss is expensive.
+4. **Migration Pattern**: Don't delete anything - migrate verbose content to "Historical Implementation Details"
+   section in notes file. Storage is cheap, context loss is expensive.
 
 5. **Archival Prep ROI**: 20 minutes of cleanup dramatically increases likelihood of actually using these docs 6 months later.
 

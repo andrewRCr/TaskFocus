@@ -1,12 +1,19 @@
--# Task List Management
+# Task List Management
 
 Guidelines for managing task lists in markdown files to track progress on completing a PRD
 
+TODO: update this doc based on dual-audience version in arc-agentic-dev-framework repo
+TODO: update this doc to remove Python-specific commands and make it more generic
+
 ## Task Implementation
 
-- **One sub-task at a time:** Do **NOT** start the next sub‑task until you ask the user for permission and they say "yes" or "y"
+- **One sub-task at a time:** Do **NOT** start the next sub‑task until you ask the user for permission  
+  and they say "yes" or "y"
 - **Test-first approach:** For new models, APIs, and complex logic, write tests before implementation
-- **Incremental quality checks:** Run linting and type checking on modified files after each sub-task (Ruff for linting with auto-fix, Pyright for fast type checks, mypy for optional full-project CI/periodic validation)
+- **Incremental quality checks:**  
+  Run linting and type checking on modified files after each sub-task  
+  (Ruff for linting with auto-fix, Pyright for fast type checks,  
+  mypy for optional full-project CI/periodic validation)
 - **Immediate documentation:** Update the task list file immediately after completing each subtask
 - **Completion protocol:**
 
@@ -19,19 +26,30 @@ Guidelines for managing task lists in markdown files to track progress on comple
 
   2. If **all** subtasks underneath a parent task are now `[x]`, follow this sequence:
 
-    - **First**: Ensure new code has appropriate test coverage (models, APIs, complex logic)
-    - **Second**: Run the full test suite (`python manage.py test --settings=config.settings_test`, `npm test`, etc.)
-    - **Third**: Run all linting checks (`ruff check apps/ config/`, `python scripts/type_check.py` [runs hybrid Pyright+mypy; requires `npm install` for pyright], `npm run lint`, `npm run type-check`, `npx markdownlint-cli2 "**/*.md"`)
-    - **Fourth**: Check if [PROJECT-STATUS](.arc/reference/constitution/PROJECT-STATUS.md) needs updates (feature progress, completed functionality, updated priorities)
+  - **First**: Ensure new code has appropriate test coverage (models, APIs, complex logic)
+  - **Second**: Run the full test suite (`python manage.py test --settings=config.settings_test`, `npm test`, etc.)
+  - **Third**: Run all linting checks:  
+    - `ruff check apps/ config/`  
+    - `python scripts/type_check.py` (runs hybrid Pyright+mypy; requires `npm install` for pyright)  
+    - `npm run lint`  
+    - `npm run type-check`  
+    - `npx markdownlint-cli2 "**/*.md"`
+  - **Fourth**: Check if [PROJECT-STATUS](.arc/reference/constitution/PROJECT-STATUS.md) needs updates  
+    (feature progress, completed functionality, updated priorities)
 
-  3. Generate standardized readiness report (see [Development Rules](../constitution/DEVELOPMENT-RULES.md) for format) and await user instructions on how to proceed. User may choose to commit changes (AI can execute only if explicitly approved to do so) or review first. When committing, follow [Atomic Commit Workflow](atomic-commit.md) guidelines:
+  3. Generate standardized readiness report  
+     (see [Development Rules](../constitution/DEVELOPMENT-RULES.md) for format)  
+     and await user instructions on how to proceed.  
+     User may choose to commit changes (AI can execute only if explicitly approved to do so) or review first.  
+     When committing, follow [Atomic Commit Workflow](atomic-commit.md) guidelines:
 
-    - Uses conventional commit format (`feat:`, `fix:`, `refactor:`, etc.)
-    - Summarizes what was accomplished in the parent task
-    - Lists key changes and additions
-    - **Accurately references the specific task number being completed** (e.g., "Complete task {TASK_ID}" where {TASK_ID} is the actual subtask like "4.2.3")
-    - References the PRD context and current branch {BRANCH}
-    - **Formats the message as a single-line command using `-m` flags**, replacing placeholders with real values:
+  - Uses conventional commit format (`feat:`, `fix:`, `refactor:`, etc.)
+  - Summarizes what was accomplished in the parent task
+  - Lists key changes and additions
+  - **Accurately references the specific task number being completed**  
+    (e.g., "Complete task {TASK_ID}" where {TASK_ID} is the actual subtask like "4.2.3")
+  - References the PRD context and current branch {BRANCH}
+  - **Formats the message as a single-line command using `-m` flags**, replacing placeholders with real values:
 
       ```
       git commit -m "feat({BRANCH}): add payment validation logic" -m "- Validates card type and expiry" -m "- Adds unit tests for edge cases" -m "Complete task {TASK_ID}" -m "Related to Payment PRD"
@@ -115,23 +133,28 @@ When all parent tasks are complete and ready for integration:
 
 - **After each sub-task**: Update task documentation only
 - **After each parent task**: Check if [PROJECT-STATUS](.arc/reference/constitution/PROJECT-STATUS.md) needs updates:
-    - Feature progress milestones reached
-    - Newly completed functionality to highlight
-    - Updated timelines or priorities
-    - Dependencies that are now resolved
-    - Any other work completed outside the current task list
+  - Feature progress milestones reached
+  - Newly completed functionality to highlight
+  - Updated timelines or priorities
+  - Dependencies that are now resolved
+  - Any other work completed outside the current task list
 
 - **Stop after each individual sub‑task and wait for the user's go‑ahead**
-- **Never complete multiple subtasks in one implementation cycle** - each subtask represents a discrete deliverable that requires individual review
+- **Never complete multiple subtasks in one implementation cycle**  
+  Each subtask represents a discrete deliverable that requires individual review
 - **Each subtask should be documented and approved before moving forward**
 
 ## Incidental Work Management
 
 ### Quick Decision Guide
 
-While working on feature tasks, you may discover quality improvements, refactoring, or tech debt that should be fixed immediately. **Quick decision tree**:
+While working on feature tasks, you may discover quality improvements, refactoring, or tech debt  
+that should be fixed immediately.  
+
+**Quick decision tree**:
 
 **Create incidental task list when:**
+
 - ✅ Multiple subtasks needed (>1 subtask)
 - ✅ Non-trivial effort (>30 minutes estimated)
 - ✅ Cross-cutting concern (affects multiple domains/files)
@@ -139,6 +162,7 @@ While working on feature tasks, you may discover quality improvements, refactori
 - ✅ Worth documenting for handoffs
 
 **Fix inline (no task list) when:**
+
 - ❌ Simple fixes (<30 min, 1 subtask)
 - ❌ Typos, formatting, trivial refactors
 - ❌ Work already in main task list - add subtasks there
@@ -151,6 +175,7 @@ While working on feature tasks, you may discover quality improvements, refactori
 **→ [manage-incidental-work.md](manage-incidental-work.md)** ← Complete workflow documentation
 
 This dedicated workflow covers:
+
 - Decision tree with examples
 - Creation protocol with commit standards
 - Execution following task loop rules
