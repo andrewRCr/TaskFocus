@@ -2,13 +2,13 @@
 
 ## Project Overview
 
-TaskFocus v2.0 is a complete modernization of a personal task management application, rebuilt from the ground up  
+TaskFocus v2.0 is a complete modernization of a personal task management application, rebuilt from the ground up
 to serve as a portfolio project demonstrating best practices in modern .NET and web development.
 
 **Project Type**: Solo portfolio project for skill demonstration
-**Primary Goal**: Showcase clean, maintainable, performant, and well-tested application  
+**Primary Goal**: Showcase clean, maintainable, performant, and well-tested application
 built with modern Microsoft-centric tech stack
-**Target Users**: Technical evaluators (hiring managers, senior engineers)  
+**Target Users**: Technical evaluators (hiring managers, senior engineers)
 and individuals seeking a personal productivity tool
 
 ## ARC Framework Integration
@@ -18,10 +18,10 @@ and individuals seeking a personal productivity tool
 **Constitutional Documents** (Core project foundation):
 
 - [META-PRD](../constitution/META-PRD.md) - Product vision, core features, user flows, and success metrics
-- [PROJECT-STATUS](../constitution/PROJECT-STATUS.md) - Current progress, completed work, and upcoming priorities  
-- [TECHNICAL-ARCHITECTURE](../constitution/TECHNICAL-ARCHITECTURE.md) - Technical architecture, patterns,  
+- [PROJECT-STATUS](../constitution/PROJECT-STATUS.md) - Current progress, completed work, and upcoming priorities
+- [TECHNICAL-ARCHITECTURE](../constitution/TECHNICAL-ARCHITECTURE.md) - Technical architecture, patterns,
   and implementation details
-- [DEVELOPMENT-RULES](../constitution/DEVELOPMENT-RULES.md) - Development standards, quality gates,  
+- [DEVELOPMENT-RULES](../constitution/DEVELOPMENT-RULES.md) - Development standards, quality gates,
   and AI collaboration protocols
 - [QUICK-REFERENCE](../QUICK-REFERENCE.md) - Environment context, command patterns, and tool usage
 
@@ -160,7 +160,7 @@ When working on new features:
 **Session Management**:
 
 - Review CURRENT-SESSION.md at start of work
-- Follow session handoff protocols for context preservation  
+- Follow session handoff protocols for context preservation
 - NEVER update CURRENT-SESSION.md without explicit user instruction
 
 **Task Execution**:
@@ -218,7 +218,7 @@ Before starting ANY work:
 
 - **Set up project foundation** → `workflows/0-define-constitution.md`
 - **Start a new feature** → `workflows/1-create-prd.md`
-- **Break down tasks** → `workflows/2-generate-tasks.md`  
+- **Break down tasks** → `workflows/2-generate-tasks.md`
 - **Implement tasks** → `workflows/3-process-task-loop.md`
 - **Handle maintenance work** → `workflows/supplemental/manage-incidental-work.md`
 - **Hand off session** → `workflows/supplemental/session-handoff.md`
@@ -273,5 +273,5 @@ Before starting ANY work:
 
 ---
 
-*This document is maintained as part of the ARC (Agentic, Recursive, Coordination) development framework.
+*This document is maintained as part of the ARC development framework.
 It provides essential context for both human developers and AI assistants working on this project.*

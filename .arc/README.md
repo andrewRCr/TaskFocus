@@ -1,7 +1,6 @@
 # .arc - ARC Documentation System
 
-This directory contains the complete documentation system for projects using the ARC
-(Agentic, Recursive, Coordination) framework methodology.
+This directory contains the complete documentation system for projects using the ARC framework methodology.
 
 ## Directory Structure
 
