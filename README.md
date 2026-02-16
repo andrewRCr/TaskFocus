@@ -1,49 +1,57 @@
 # TaskFocus
 
-> **📋 Current Status**: TaskFocus v1.0 (stable release) is available in the `/legacy` directory. TaskFocus v2.0 is currently under development; see [docs/MODERNIZATION.md](docs/MODERNIZATION.md) for details.
+> TaskFocus v1.0 is live. A v2.0 modernization is in progress — see
+> [docs/MODERNIZATION.md](docs/MODERNIZATION.md) for details.
 
-Personal task management application with both native desktop and web-based user interfaces. Allows users to create and manage to-do items, using concepts from the Getting Things Done (GTD) productivity system. Full-stack application built with C# and .NET, with continuous integration and deployment via Azure DevOps pipelines. Utilizes both dependency injection and class libraries for separation of concerns.  
+A cross-platform task management application built on the Getting Things Done productivity
+methodology, with both a web interface and a native Windows desktop client powered by a
+shared .NET 8 backend. The GTD domain model organizes tasks along two independent axes —
+projects group related work, contexts group tasks by the conditions needed to complete
+them — with each view maintaining its own drag-and-drop sort order. Both clients stay
+synchronized through bi-directional background polling and manual sync triggers,
+reconciling task state across platforms.
 
- Today view | Projects view | Contexts view | Settings view
-|------------|-------------|-------------|-------------|
-| <img src="https://github.com/user-attachments/assets/c2da97b3-39d6-47af-a9ee-be2e7a75714c" width="250"> | <img src="https://github.com/user-attachments/assets/fccab5df-9227-48d8-8721-8ebad11147ce" width="250"> | <img src="https://github.com/user-attachments/assets/cd4be72c-c171-40fc-9758-3d73b11ae287" width="250"> | <img src="https://github.com/user-attachments/assets/0aa0ec16-8414-4333-9d26-95c3c60f76ab" width="250"> |  
+<p align="center">
+  <a href="https://taskfocus.andrewcreekmore.dev">Live Demo</a>
+  &nbsp;&nbsp;|&nbsp;&nbsp;
+  <a href="https://github.com/andrewRCr/TaskFocus/releases/latest">Download (Windows)</a>
+  &nbsp;&nbsp;|&nbsp;&nbsp;
+  <a href="https://andrewcreekmore.dev/projects/software/taskfocus">Portfolio</a>
+</p>
 
-Web app built using Blazor Web Assembly (WASM) and MudBlazor.  
-Desktop app built using WPF and Caliburn Micro following the Model-View-ViewModel (MVVM) architectural pattern.  
-Backend consists of an API built with .NET 8 and SQL Server databases, using Identity, JSON Web Tokens (JWT), and Entity Framework for mapping of user account data.  
+<div align="center">
+  <a href="https://github.com/user-attachments/assets/c2da97b3-39d6-47af-a9ee-be2e7a75714c"><img src="https://github.com/user-attachments/assets/c2da97b3-39d6-47af-a9ee-be2e7a75714c" width="24%" alt="Today view" /></a>
+  <a href="https://github.com/user-attachments/assets/fccab5df-9227-48d8-8721-8ebad11147ce"><img src="https://github.com/user-attachments/assets/fccab5df-9227-48d8-8721-8ebad11147ce" width="24%" alt="Projects view" /></a>
+  <a href="https://github.com/user-attachments/assets/cd4be72c-c171-40fc-9758-3d73b11ae287"><img src="https://github.com/user-attachments/assets/cd4be72c-c171-40fc-9758-3d73b11ae287" width="24%" alt="Contexts view" /></a>
+  <a href="https://github.com/user-attachments/assets/0aa0ec16-8414-4333-9d26-95c3c60f76ab"><img src="https://github.com/user-attachments/assets/0aa0ec16-8414-4333-9d26-95c3c60f76ab" width="24%" alt="Settings" /></a>
+</div>
 
-## Overview  
-Users can create and organize task data, which is synced between the web and desktop apps.
-Following the GTD productivity system, tasks can be assigned both projects and contexts:
-- *projects* group tasks by relation or dependency
-- *contexts* group tasks that will be performed in similar conditions
+## Details
 
-An Inbox view serves as a default bucket for new tasks that haven't yet had projects/contexts assigned.
-Once fully assigned, tasks are moved from the Inbox view to both their relevant Project and Context views.
-In these views, tasks can be ordered (via drag/drop) arbitrarily and independently (view-relative indexing).
+*Users organize tasks following GTD methodology across web and desktop interfaces, with
+task assignments, ordering, and completions syncing automatically between platforms.*
 
-Tasks can also be given due dates and/or "starred", and such tasks will automatically populate the Today view. 
-The Completed view displays tasks marked done but not yet deleted. 
-Completed tasks can also remain in their original view for a user-defined length of time before being "cleaned up" - i.e., moved to the Completed view exclusively prior to eventual deletion.
-The parameters for these automatic clean-up and deletion intervals are exposed as user settings.
+- GTD-inspired views — Inbox, Today, Projects, Contexts, and Completed — with per-view
+  drag-and-drop ordering
+- Bi-directional data synchronization between web and desktop clients via background
+  polling and manual trigger
+- Task lifecycle management with user-configurable intervals for automatic clean-up
+  and eventual deletion
+- JWT authentication with transactional email for address confirmation, password reset,
+  and account management
+- Blazor Web Assembly frontend with MudBlazor component library for a responsive
+  Material Design interface
+- WPF desktop client following MVVM with Caliburn Micro for convention-based view binding
+  and screen lifecycle management
+- View-relative ordering: every view maintains its own independent sort indices, synced
+  alongside but separately from task data
 
-Features user authentication and authorization, including transactional email with automated email address confirmation and email address/username and password change/reset functionality.  
-Bi-directional data synchronization is performed automatically in the background on a periodic interval, but can also be triggered manually by the user.
+## Technology
 
-## Usage
-For demo usage, please register as a new user. Note that email confirmation is required.  
+- **Frontend (Web):** Blazor Web Assembly, MudBlazor
+- **Frontend (Desktop):** WPF, Caliburn Micro
+- **Backend:** C#, .NET 8, ASP.NET Identity, JWT
+- **Database:** SQL Server, Entity Framework
+- **Infrastructure:** Azure DevOps CI/CD
 
-Desktop app (Windows): [Download](https://github.com/andrewRCr/TaskFocus/releases/latest)  
-Web app: [taskfocus.andrewcreekmore.com](https://taskfocus.andrewcreekmore.com)
-
-## Future Development
-- overall UX improvements:
--- desktop app: minimal "docked mode" version of UI and global inbox quick-entry widget
--- improved mobile web app UX and/or dedicated, native mobile app
-- app domain content feature improvements:
--- nested sub-collections (projects, contexts) and sub-tasks
--- support for repeating tasks and defer/start dates
--- CalDAV support for external calendar integration
-- synchronization improvements:
--- offline support - persistent local data storage for both clients, with merge handling when reconnected
--- column-level differential merge conflict logic
+<p align="center"><a href="#taskfocus">↑ Back to top</a></p>
