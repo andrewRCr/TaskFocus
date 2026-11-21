@@ -100,7 +100,6 @@ namespace TaskFocusAPI.IntegrationTests
             using var response = await ApiFixture.RequestTokenAsync(client, user.Email!, ApiFixture.Password);
 
             await AssertInvalidLoginAsync(response);
-            Assert.False(await CheckPasswordAsync(client, user.Email!, ApiFixture.Password));
         }
 
         [Fact]
@@ -175,23 +174,39 @@ namespace TaskFocusAPI.IntegrationTests
             var user = await fixture.CreateUserAsync();
             await LockAccountAsync(user.Id);
             using var client = fixture.CreateClient();
-            using var emailResponse = await HttpClientJsonExtensions.PostAsJsonAsync(client, "/api/User/SendPasswordResetEmail",
-                new UserModel { Email = user.Email! }, CancellationToken);
-            Assert.Equal(HttpStatusCode.OK, emailResponse.StatusCode);
-            Assert.True(fixture.Emails.PasswordResetLinks.TryGetValue(user.Email!, out string? link));
-            var query = QueryHelpers.ParseQuery(new Uri(link).Query);
 
             const string newPassword = "New-fixture-password!234";
-            using var reset = await HttpClientJsonExtensions.PostAsJsonAsync(client, "/api/User/ResetPassword",
-                new ResetPasswordModel
-                {
-                    Email = query["email"].ToString(),
-                    Token = query["token"].ToString(),
-                    Password = newPassword,
-                    ConfirmPassword = newPassword
-                }, CancellationToken);
-            Assert.Equal(HttpStatusCode.OK, reset.StatusCode);
+            await ResetPasswordFromEmailAsync(client, user.Email!, newPassword);
             await AssertPasswordChangeAllowsSignInAsync(client, user, newPassword);
+        }
+
+        [Fact]
+        public async Task TwoFactorAccountCanVerifyResetPasswordWithoutReceivingToken()
+        {
+            var user = await fixture.CreateUserAsync(twoFactorEnabled: true);
+            using var client = fixture.CreateClient();
+
+            const string newPassword = "New-fixture-password!234";
+            await ResetPasswordFromEmailAsync(client, user.Email!, newPassword);
+
+            Assert.True(await CheckPasswordAsync(client, user.Email!, newPassword));
+            using var response = await ApiFixture.RequestTokenAsync(client, user.Email!, newPassword);
+            await AssertInvalidLoginAsync(response);
+        }
+
+        [Fact]
+        public async Task PasswordCheckLocksTwoFactorAccountAfterFiveWrongPasswords()
+        {
+            var user = await fixture.CreateUserAsync(twoFactorEnabled: true);
+            using var client = fixture.CreateClient();
+
+            for (var i = 0; i < 5; i++)
+            {
+                Assert.False(await CheckPasswordAsync(client, user.Email!, "incorrect-password"));
+            }
+
+            Assert.True((await ReadIdentityUserAsync(user.Id)).LockoutEnd > DateTimeOffset.UtcNow);
+            Assert.False(await CheckPasswordAsync(client, user.Email!, ApiFixture.Password));
         }
 
         [Fact]
@@ -285,6 +300,25 @@ namespace TaskFocusAPI.IntegrationTests
             var user = await users.FindByIdAsync(userId);
             Assert.NotNull(user);
             return user;
+        }
+
+        private async Task ResetPasswordFromEmailAsync(HttpClient client, string email, string newPassword)
+        {
+            using var emailResponse = await HttpClientJsonExtensions.PostAsJsonAsync(client, "/api/User/SendPasswordResetEmail",
+                new UserModel { Email = email }, CancellationToken);
+            Assert.Equal(HttpStatusCode.OK, emailResponse.StatusCode);
+            Assert.True(fixture.Emails.PasswordResetLinks.TryGetValue(email, out string? link));
+            var query = QueryHelpers.ParseQuery(new Uri(link).Query);
+
+            using var reset = await HttpClientJsonExtensions.PostAsJsonAsync(client, "/api/User/ResetPassword",
+                new ResetPasswordModel
+                {
+                    Email = query["email"].ToString(),
+                    Token = query["token"].ToString(),
+                    Password = newPassword,
+                    ConfirmPassword = newPassword
+                }, CancellationToken);
+            Assert.Equal(HttpStatusCode.OK, reset.StatusCode);
         }
 
         private async Task AssertPasswordChangeAllowsSignInAsync(HttpClient client, IdentityUser user, string newPassword)

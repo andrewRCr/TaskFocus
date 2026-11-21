@@ -79,11 +79,10 @@ namespace TaskFocusAPI.Controllers
             {
                 // The web client needs a password verdict to open the confirmation page.
                 return await UnconfirmedPasswordCheck.CheckAsync(_userManager, user, checkPasswordModel.Password) &&
-                    !await _userManager.GetTwoFactorEnabledAsync(user) &&
                     (await _userManager.ResetAccessFailedCountAsync(user)).Succeeded;
             }
 
-            return result.Succeeded && !await _userManager.GetTwoFactorEnabledAsync(user);
+            return result.Succeeded || result.RequiresTwoFactor;
         }
 
         [HttpPost]
