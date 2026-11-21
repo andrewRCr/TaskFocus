@@ -1,32 +1,17 @@
 using System.Collections.Concurrent;
-using TaskFocusAPI.Library.Models;
+using Microsoft.Extensions.Configuration;
+using MimeKit;
 using TaskFocusAPI.Library.Utilities;
 
 namespace TaskFocusAPI.IntegrationTests
 {
-    internal sealed class CapturingEmailSender : IEmailSender
+    internal sealed class CapturingEmailSender(IConfiguration configuration) : EmailSender(configuration)
     {
-        internal ConcurrentDictionary<string, string> ConfirmationLinks { get; } = new();
+        internal ConcurrentQueue<MimeMessage> Messages { get; } = new();
 
-        public Task SendConfirmationLinkAsync(UserModel recipientUser, string confirmationLink)
+        protected override Task SendMessageAsync(MimeMessage message)
         {
-            ConfirmationLinks[recipientUser.Email] = confirmationLink;
-            return Task.CompletedTask;
-        }
-
-        public Task SendPasswordResetLinkAsync(UserModel recipientUser, string resetLink)
-        {
-            return SendEmailAsync(recipientUser, "Password reset", resetLink);
-        }
-
-        public Task Execute(string emailAuthKey, UserModel recipientUser, string subject, string message)
-        {
-            return SendEmailAsync(recipientUser, subject, message);
-        }
-
-        public Task SendEmailAsync(UserModel recipientUser, string subject, string message)
-        {
-            // No outbound mail from the test host.
+            Messages.Enqueue(message);
             return Task.CompletedTask;
         }
     }

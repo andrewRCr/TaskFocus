@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using TaskFocusAPI.Data;
 using TaskFocusAPI.Library.DataAccess;
@@ -26,6 +27,8 @@ namespace TaskFocusAPI.IntegrationTests
         private TaskFocusApiFactory? _factory;
 
         internal CapturingEmailSender Emails => _factory!.Emails;
+        internal CapturingTokenProvider Tokens => _factory!.Tokens;
+        internal IConfigurationRoot Configuration => (IConfigurationRoot)_factory!.Services.GetRequiredService<IConfiguration>();
 
         public async ValueTask InitializeAsync()
         {
@@ -108,23 +111,33 @@ namespace TaskFocusAPI.IntegrationTests
             return new SqlConnection(DatabaseConnection(_sql!.GetConnectionString(), "TaskFocusData"));
         }
 
-        internal async Task<IdentityUser> CreateUserAsync(bool confirmed = true)
+        internal async Task<IdentityUser> CreateUserAsync(bool confirmed = true, string? email = null, string? profileEmail = null,
+                                                          bool createProfile = true)
         {
             await using var scope = _factory!.Services.CreateAsyncScope();
             var users = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
-            string email = NewEmail();
+            email ??= NewEmail();
             var user = new IdentityUser(email) { Email = email, EmailConfirmed = confirmed };
 
             EnsureIdentitySuccess(await users.CreateAsync(user, Password));
-            scope.ServiceProvider.GetRequiredService<IUserData>().CreateUser(new UserModel
+            if (createProfile)
             {
-                Id = user.Id,
-                Email = email,
-                FirstName = "Test",
-                LastName = "User"
-            });
+                scope.ServiceProvider.GetRequiredService<IUserData>().CreateUser(new UserModel
+                {
+                    Id = user.Id,
+                    Email = profileEmail ?? email,
+                    FirstName = "Test",
+                    LastName = "User"
+                });
+            }
             EnsureIdentitySuccess(await users.AddToRoleAsync(user, "User"));
             return user;
+        }
+
+        internal async Task<IdentityUser?> FindIdentityUserAsync(string id)
+        {
+            await using var scope = _factory!.Services.CreateAsyncScope();
+            return await scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>().FindByIdAsync(id);
         }
 
         internal async Task<HttpClient> CreateAuthenticatedClientAsync(IdentityUser? user = null)
