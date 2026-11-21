@@ -26,6 +26,7 @@ namespace TaskFocusAPI.IntegrationTests
         private MsSqlContainer? _sql;
         private TaskFocusApiFactory? _factory;
 
+        internal TaskFocusApiFactory Factory => _factory!;
         internal CapturingEmailSender Emails => _factory!.Emails;
         internal CapturingTokenProvider Tokens => _factory!.Tokens;
         internal IConfigurationRoot Configuration => (IConfigurationRoot)_factory!.Services.GetRequiredService<IConfiguration>();
@@ -112,12 +113,17 @@ namespace TaskFocusAPI.IntegrationTests
         }
 
         internal async Task<IdentityUser> CreateUserAsync(bool confirmed = true, string? email = null, string? profileEmail = null,
-                                                          bool createProfile = true)
+                                                          bool createProfile = true, bool twoFactorEnabled = false)
         {
             await using var scope = _factory!.Services.CreateAsyncScope();
             var users = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
             email ??= NewEmail();
-            var user = new IdentityUser(email) { Email = email, EmailConfirmed = confirmed };
+            var user = new IdentityUser(email)
+            {
+                Email = email,
+                EmailConfirmed = confirmed,
+                TwoFactorEnabled = twoFactorEnabled
+            };
 
             EnsureIdentitySuccess(await users.CreateAsync(user, Password));
             if (createProfile)

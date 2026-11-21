@@ -135,14 +135,27 @@
             bool confirmed = await DataService.CheckUserEmailConfirmed(attemptLoginUserModel);
             if (!confirmed)
             {
-                var confirmationUrl = QueryHelpers.AddQueryString("/unconfirmedemail", "email", email);
-                if (returnUrl is not null && CanUseReturnUrl(email))
+                bool passwordValid = await DataService.CheckPasswordValid(new CheckPasswordModel
                 {
-                    var confirmationKey = SignInRedirect.ConfirmationStorageKey(email);
-                    await LocalStorage.SetItemAsStringAsync(confirmationKey, returnUrl);
-                    confirmationUrl = QueryHelpers.AddQueryString(confirmationUrl, "returnUrl", returnUrl);
+                    Email = email,
+                    Password = userModel.Password
+                });
+                if (passwordValid)
+                {
+                    var confirmationUrl = QueryHelpers.AddQueryString("/unconfirmedemail", "email", email);
+                    if (returnUrl is not null && CanUseReturnUrl(email))
+                    {
+                        var confirmationKey = SignInRedirect.ConfirmationStorageKey(email);
+                        await LocalStorage.SetItemAsStringAsync(confirmationKey, returnUrl);
+                        confirmationUrl = QueryHelpers.AddQueryString(confirmationUrl, "returnUrl", returnUrl);
+                    }
+                    NavManager.NavigateTo(confirmationUrl);
                 }
-                NavManager.NavigateTo(confirmationUrl);
+                else
+                {
+                    AppState.ShowGenericLoginError();
+                    NavManager.NavigateTo(loginUrl);
+                }
             }
             else
             {

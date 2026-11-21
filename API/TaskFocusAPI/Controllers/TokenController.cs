@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using TaskFocusAPI.Data;
 using TaskFocusAPI.Services;
 
 namespace TaskFocusAPI.Controllers
@@ -11,75 +10,62 @@ namespace TaskFocusAPI.Controllers
     public class TokenController : Controller
     {
         private readonly IJwtKeyProvider _keys;
-        private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly SignInManager<IdentityUser> _signInManager;
 
         public TokenController(IJwtKeyProvider keys,
-                               ApplicationDbContext context,
-                               UserManager<IdentityUser> userManager)
+                               UserManager<IdentityUser> userManager,
+                               SignInManager<IdentityUser> signInManager)
         {
             _keys = keys;
-            _context = context;
             _userManager = userManager;
+            _signInManager = signInManager;
         }
 
         [Route("/token")]
         [HttpPost]
         public async Task<IActionResult> Create(string username, string password, string grant_type)
         {
-            if (await IsValidUsernameAndPassword(username, password))
-            {
-                return new ObjectResult(await GenerateToken(username));
-            }
-            else { return BadRequest(); }
-        }
-
-        private async Task<bool> IsValidUsernameAndPassword(string username, string password)
-        {
             var user = await _userManager.FindByEmailAsync(username);
+            if (user == null) { return BadRequest(); }
 
-            if (user == null) { return false; }
-            return await _userManager.CheckPasswordAsync(user, password);
-        }
-
-        private async Task<dynamic> GenerateToken(string username)
-        {
-            var user = await _userManager.FindByEmailAsync(username);
-
-            if (user != null) 
+            var result = await _signInManager.CheckPasswordSignInAsync(user, password, lockoutOnFailure: true);
+            if (result.IsNotAllowed && !user.EmailConfirmed)
             {
-                var roles = from ur in _context.UserRoles
-                            join role in _context.Roles on ur.RoleId equals role.Id
-                            where ur.UserId == user.Id
-                            select new { ur.UserId, ur.RoleId, role.Name };
-
-                var claims = new List<Claim>
-                {
-                    new Claim(ClaimTypes.Name, username),
-                    new Claim(ClaimTypes.NameIdentifier, user.Id),
-                    new Claim(JwtRegisteredClaimNames.Nbf, new DateTimeOffset(DateTime.Now).ToUnixTimeSeconds().ToString()), // not before
-                    new Claim(JwtRegisteredClaimNames.Exp, new DateTimeOffset(DateTime.Now.AddDays(1)).ToUnixTimeSeconds().ToString()), // expiration
-                };
-
-                foreach (var role in roles)
-                {
-                    claims.Add(new Claim(ClaimTypes.Role, role.Name));
-                }
-
-                var token = new JwtSecurityToken(
-                    new JwtHeader(new SigningCredentials(_keys.SigningKey, SecurityAlgorithms.HmacSha256)),
-                    new JwtPayload(claims));
-
-                var output = new
-                {
-                    AccessToken = new JwtSecurityTokenHandler().WriteToken(token),
-                    UserName = username,
-                };
-
-                return output;
+                await UnconfirmedPasswordCheck.CheckAsync(_userManager, user, password);
             }
 
-            return Task.CompletedTask;
+            // Identity checks the password here before it evaluates a second factor.
+            if (!result.Succeeded || await _userManager.GetTwoFactorEnabledAsync(user))
+            {
+                return BadRequest();
+            }
+
+            return new ObjectResult(await GenerateToken(user, username));
         }
+
+        private async Task<TokenResponse> GenerateToken(IdentityUser user, string username)
+        {
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, username),
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                new Claim(JwtRegisteredClaimNames.Nbf, new DateTimeOffset(DateTime.Now).ToUnixTimeSeconds().ToString()), // not before
+                new Claim(JwtRegisteredClaimNames.Exp, new DateTimeOffset(DateTime.Now.AddDays(1)).ToUnixTimeSeconds().ToString()), // expiration
+            };
+
+            foreach (var role in await _userManager.GetRolesAsync(user))
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
+
+            var token = new JwtSecurityToken(
+                new JwtHeader(new SigningCredentials(_keys.SigningKey, SecurityAlgorithms.HmacSha256)),
+                new JwtPayload(claims));
+
+            return new TokenResponse(new JwtSecurityTokenHandler().WriteToken(token), username);
+        }
+
+        private sealed record TokenResponse(string AccessToken, string UserName);
     }
 }

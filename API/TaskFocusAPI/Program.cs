@@ -24,8 +24,12 @@ namespace TaskFocusAPI
                 options.UseSqlServer(connectionString).AddInterceptors(connectionRetry));
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-            builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-                .AddRoles<IdentityRole>()
+            builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
+                {
+                    options.SignIn.RequireConfirmedAccount = true;
+                    options.SignIn.RequireConfirmedEmail = true;
+                    options.Stores.MaxLengthForKeys = 128; // Match the existing Identity schema.
+                })
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
 
@@ -36,8 +40,6 @@ namespace TaskFocusAPI
             {
                 options.TokenLifespan = TimeSpan.FromHours(10);
             });
-
-            builder.Services.Configure<IdentityOptions>(options => options.SignIn.RequireConfirmedEmail = true);
 
             builder.Services.AddCors(policy =>
             {
@@ -136,7 +138,6 @@ namespace TaskFocusAPI
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
-            app.MapRazorPages();
 
             app.Run();
         }
