@@ -2,6 +2,7 @@
 # Run one TaskFocus check from the repository root, locally, in CI or on an arc-offload runner.
 #
 #   scripts/check.sh <unit|integration|build-api|build-desktop|publish-web> [extra dotnet arguments...]
+#   scripts/check.sh probe <script.py> [arguments...]
 #
 # arc-offload routes by this script's path and the subcommand, so keep both stable. The exit status is the
 # check's own.
@@ -9,6 +10,7 @@ set -euo pipefail
 
 usage() {
   echo "usage: scripts/check.sh <unit|integration|build-api|build-desktop|publish-web> [extra dotnet arguments...]" >&2
+  echo "       scripts/check.sh probe <script.py> [arguments...]" >&2
   exit 2
 }
 [ $# -ge 1 ] || usage
@@ -36,6 +38,9 @@ esac
 
 export DOTNET_CLI_TELEMETRY_OPTOUT=1 DOTNET_NOLOGO=1
 ulimit -n "$(ulimit -Hn)" 2>/dev/null || true
+
+# One Playwright release everywhere, so every runner drives the same Chromium build.
+playwright=playwright==1.65.2
 
 # Release builds, and no MSBuild node or compiler server outlives the run.
 common=(--configuration Release --disable-build-servers -nodeReuse:false -p:UseSharedCompilation=false)
@@ -81,6 +86,25 @@ case "$check" in
     # Inside the checkout (ignored), because an offloaded run works in a snapshot of it.
     exec "$dotnet" publish UserInterface/TaskFocusWeb/TaskFocusWeb.csproj "${common[@]}" \
       --output artifacts/publish-web "$@"
+    ;;
+  probe)
+    # A Python Playwright script, such as a browser check against a published build. arc-offload runners get a
+    # minimal PATH, so find uv like dotnet, and put dotnet on PATH for scripts that publish.
+    [ $# -ge 1 ] || usage
+    if [ -x "$HOME/.local/bin/uv" ]; then
+      uv="$HOME/.local/bin/uv"
+    else
+      uv=$(command -v uv || true)
+    fi
+    if [ -z "$uv" ]; then
+      echo "check.sh: probe needs uv (https://docs.astral.sh/uv/)" >&2
+      exit 127
+    fi
+    PATH="$(dirname "$dotnet"):$PATH"
+    export PATH
+    # A no-op when this release's Chromium is already installed.
+    "$uv" run --no-project --with "$playwright" playwright install chromium
+    exec "$uv" run --no-project --with "$playwright" python "$@"
     ;;
   *)
     usage
