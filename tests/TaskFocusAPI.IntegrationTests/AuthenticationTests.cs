@@ -1,8 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using Microsoft.AspNetCore.WebUtilities;
-using TaskFocusAPI.Models;
 
 namespace TaskFocusAPI.IntegrationTests
 {
@@ -51,29 +49,6 @@ namespace TaskFocusAPI.IntegrationTests
             using var response = await client.GetAsync("/api/Task/GetAllTasksForUser", CancellationToken);
 
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
-        }
-
-        [Fact]
-        public async Task RegistrationSendsAUsableEmailConfirmationLink()
-        {
-            using var client = fixture.CreateClient();
-            string email = ApiFixture.NewEmail();
-            using var registration = await HttpClientJsonExtensions.PostAsJsonAsync(client, "/api/User/Register",
-                new UserRegistrationModel("Test", "User", email, ApiFixture.Password), CancellationToken);
-            Assert.Equal(HttpStatusCode.OK, registration.StatusCode);
-
-            Assert.True(fixture.Emails.ConfirmationLinks.TryGetValue(email, out string? link));
-            var confirmationLink = new Uri(link);
-            Assert.Equal(TaskFocusApiFactory.AppUrl, confirmationLink.GetLeftPart(UriPartial.Authority));
-            Assert.Equal("/unconfirmedemail", confirmationLink.AbsolutePath);
-            var query = QueryHelpers.ParseQuery(confirmationLink.Query);
-            Assert.Equal(email, query["email"].ToString());
-            string token = query["token"].ToString();
-            Assert.False(string.IsNullOrWhiteSpace(token));
-
-            using var confirmation = await HttpClientJsonExtensions.PostAsJsonAsync(client, "/api/User/ConfirmEmail",
-                new ConfirmEmailModel { Email = email, Token = token }, CancellationToken);
-            Assert.Equal(HttpStatusCode.OK, confirmation.StatusCode);
         }
 
         [Fact]

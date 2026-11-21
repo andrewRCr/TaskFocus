@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
 using System.Security.Claims;
 using TaskFocusAPI.Data;
 using TaskFocusAPI.Library.DataAccess;
@@ -19,19 +20,19 @@ namespace TaskFocusAPI.Controllers
         private readonly UserManager<IdentityUser> _userManager;
         private readonly IUserData _userData;
         private readonly IEmailSender _emailSender;
-        private readonly IConfiguration _config;
+        private readonly string _appUrl;
 
         public UserController(ApplicationDbContext context,
                               UserManager<IdentityUser> userManager,
                               IUserData userData,
                               IEmailSender emailSender,
-                              IConfiguration config)
+                              [FromKeyedServices("AppUrl")] string appUrl)
         {
             _context = context;
             _userManager = userManager;
             _userData = userData;
             _emailSender = emailSender;
-            _config = config;
+            _appUrl = appUrl;
         }
 
         [HttpGet]
@@ -81,13 +82,13 @@ namespace TaskFocusAPI.Controllers
         public async Task<IActionResult> SendPasswordResetEmail(UserModel userModel)
         {
             IdentityUser? existingUser = await _userManager.FindByEmailAsync(userModel.Email);
-            if (existingUser != null)
+            if (existingUser?.Email is string email)
             {
                 var token = await _userManager.GeneratePasswordResetTokenAsync(existingUser);
-                string resetLink = $"{_config["AppUrl"]}/resetpw?email={existingUser.Email}&token={token}";
+                string resetLink = BuildAccountLink("/resetpw", email, token);
 
-                UserModel currentUser = _userData.GetUserById(existingUser.Id).First();
-                await _emailSender.SendPasswordResetLinkAsync(currentUser, resetLink);
+                UserModel recipient = GetRecoveryRecipient(existingUser.Id, email);
+                await _emailSender.SendPasswordResetLinkAsync(recipient, resetLink);
 
                 return StatusCode(StatusCodes.Status200OK,
                     new Response { Status = "Success", Message = $"Password reset request sent to {existingUser.Email}." });
@@ -154,10 +155,10 @@ namespace TaskFocusAPI.Controllers
         public async Task<IActionResult> SendPasswordChangeSuccessEmail(UserModel userModel)
         {
             IdentityUser? identityUser = await _userManager.FindByEmailAsync(userModel.Email);
-            if (identityUser != null)
+            if (identityUser?.Email is string email)
             {
-                UserModel user = _userData.GetUserById(identityUser.Id).First();
-                await _emailSender.SendEmailAsync(user, "Password changed", "Your TaskFocus password has been successfully updated.");
+                UserModel recipient = GetRecoveryRecipient(identityUser.Id, email);
+                await _emailSender.SendEmailAsync(recipient, "Password changed", "Hello,<br><br>Your TaskFocus password has been successfully updated.");
                 return StatusCode(StatusCodes.Status200OK,
                 new Response { Status = "Success", Message = $"Password changed successfully email sent to {identityUser.Email}." });
             }
@@ -231,17 +232,13 @@ namespace TaskFocusAPI.Controllers
         {
             var existingUser = await _userManager.FindByEmailAsync(userModel.Email);
 
-            if (existingUser != null) 
+            if (existingUser?.Email is string email)
             {
                 var token = await _userManager.GenerateEmailConfirmationTokenAsync(existingUser);
-                string? confirmLink = $"{_config["AppUrl"]}/unconfirmedemail?email={userModel.Email}&token={token}";
-
-                if (confirmLink != null)
-                {
-                    await _emailSender.SendConfirmationLinkAsync(userModel, confirmLink);
-
-                    return Ok();
-                }
+                string confirmLink = BuildAccountLink("/unconfirmedemail", email, token);
+                userModel.Email = email;
+                await _emailSender.SendConfirmationLinkAsync(userModel, confirmLink);
+                return Ok();
             }
 
             return BadRequest();
@@ -278,14 +275,10 @@ namespace TaskFocusAPI.Controllers
 
                         // send email confirmation link
                         var token = await _userManager.GenerateEmailConfirmationTokenAsync(existingUser);
-                        string? confirmLink = $"{_config["AppUrl"]}/unconfirmedemail?email={newUserModel.Email}&token={token}";
-
-                        if (confirmLink != null)
-                        {
-                            await _emailSender.SendConfirmationLinkAsync(newUserModel, confirmLink);
-                            return StatusCode(StatusCodes.Status200OK,
-                               new Response { Status = "Success", Message = $"User successfully created and email confirmation link sent to {user.Email}" });
-                        }
+                        string confirmLink = BuildAccountLink("/unconfirmedemail", newUserModel.Email, token);
+                        await _emailSender.SendConfirmationLinkAsync(newUserModel, confirmLink);
+                        return StatusCode(StatusCodes.Status200OK,
+                           new Response { Status = "Success", Message = $"User successfully created and email confirmation link sent to {user.Email}" });
                     }
                 }
             }
@@ -299,7 +292,6 @@ namespace TaskFocusAPI.Controllers
             if (ModelState.IsValid)
             {
                 string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                UserModel currentUser = _userData.GetUserById(userId).First();
                 IdentityUser? existingIdentityUser = await _userManager.FindByIdAsync(userId!);
 
                 if (existingIdentityUser == null) { return BadRequest(); }
@@ -309,16 +301,15 @@ namespace TaskFocusAPI.Controllers
                     UserModel updatedUserModel = new()
                     {
                         Id = existingIdentityUser.Id,
-                        CreatedDate = currentUser.CreatedDate,
                         FirstName = updatedUser.FirstName,
                         LastName = updatedUser.LastName,
-                        Email = updatedUser.Email,
                         ServerLastUpdated = updatedUser.ServerLastUpdated,
                         ClientLastUpdated = updatedUser.ClientLastUpdated
                     };
 
-                    _userData.UpdateUser(updatedUserModel);
-                    return Ok();
+                    return _userData.UpdateUserName(updatedUserModel)
+                        ? Ok()
+                        : StatusCode(StatusCodes.Status500InternalServerError);
                 } 
             }
 
@@ -344,16 +335,13 @@ namespace TaskFocusAPI.Controllers
 
                     // send email confirmation link
                     var token = await _userManager.GenerateChangeEmailTokenAsync(existingIdentityUser, updatedUser.Email!);
-                    string? confirmLink = $"{_config["AppUrl"]}/unconfirmedupdatedemail?email={updatedUser.Email}&token={token}";
+                    string confirmLink = BuildAccountLink("/unconfirmedupdatedemail", updatedUser.Email, token);
 
                     UserModel updatedUserModel = currentUser;
                     updatedUserModel.Email = updatedUser.Email;
 
-                    if (confirmLink != null)
-                    {
-                        await _emailSender.SendConfirmationLinkAsync(updatedUserModel, confirmLink);
-                        return Ok();
-                    }
+                    await _emailSender.SendConfirmationLinkAsync(updatedUserModel, confirmLink);
+                    return Ok();
                 }
             }
 
@@ -417,6 +405,22 @@ namespace TaskFocusAPI.Controllers
             {
                 throw new Exception(ex.Message);
             }
+        }
+
+        private UserModel GetRecoveryRecipient(string userId, string email)
+        {
+            UserModel recipient = _userData.GetUserById(userId).FirstOrDefault() ?? new UserModel();
+            recipient.Email = email;
+            return recipient;
+        }
+
+        private string BuildAccountLink(string path, string? email, string token)
+        {
+            return QueryHelpers.AddQueryString($"{_appUrl}{path}", new Dictionary<string, string?>
+            {
+                ["email"] = email ?? string.Empty,
+                ["token"] = token
+            });
         }
     }
 }
