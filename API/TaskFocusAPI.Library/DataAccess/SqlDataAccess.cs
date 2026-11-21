@@ -28,9 +28,31 @@ namespace TaskFocusAPI.Library.DataAccess
             return _config.GetConnectionString(name);
         }
 
+        internal SqlConnection CreateConnection(string connectionStringName)
+        {
+            var connection = new SqlConnection(GetConnectionString(connectionStringName));
+            SqlConnectionRetryProvider.Instance.Configure(connection);
+            return connection;
+        }
+
+        private SqlConnection OpenConnection(string connectionStringName)
+        {
+            var connection = CreateConnection(connectionStringName);
+            try
+            {
+                connection.Open();
+                return connection;
+            }
+            catch
+            {
+                connection.Dispose();
+                throw;
+            }
+        }
+
         public List<T> LoadData<T, U>(string storedProcedure, U parameters, string connectionStringName)
         {
-            using (IDbConnection connection = new SqlConnection(GetConnectionString(connectionStringName)))
+            using (IDbConnection connection = OpenConnection(connectionStringName))
             {
                 List<T> rows = connection.Query<T>(storedProcedure, parameters,
                     commandType: CommandType.StoredProcedure).ToList();
@@ -41,7 +63,7 @@ namespace TaskFocusAPI.Library.DataAccess
 
         public void SaveData<T>(string storedProcedure, T parameters, string connectionStringName)
         {
-            using (IDbConnection connection = new SqlConnection(GetConnectionString(connectionStringName)))
+            using (IDbConnection connection = OpenConnection(connectionStringName))
             {
                 connection.Execute(storedProcedure, parameters, commandType: CommandType.StoredProcedure);
             }
@@ -49,7 +71,7 @@ namespace TaskFocusAPI.Library.DataAccess
 
         public List<T> SaveDataAndLoadInsertedRow<T>(string storedProcedure, T parameters, string connectionStringName)
         {
-            using (IDbConnection connection = new SqlConnection(GetConnectionString(connectionStringName)))
+            using (IDbConnection connection = OpenConnection(connectionStringName))
             {
                 List<T> rows = connection.Query<T>(storedProcedure, parameters, commandType: CommandType.StoredProcedure).ToList();
                 return rows;
@@ -58,8 +80,7 @@ namespace TaskFocusAPI.Library.DataAccess
 
         public void StartTransaction(string connectionStringName)
         {
-            _connection = new SqlConnection(GetConnectionString(connectionStringName));
-            _connection.Open();
+            _connection = OpenConnection(connectionStringName);
             _isConnectionClosed = false;
 
             _transaction = _connection.BeginTransaction();
