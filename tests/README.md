@@ -9,11 +9,17 @@ scripts/check.sh integration     # API tests against a SQL Server container
 scripts/check.sh build-api
 scripts/check.sh build-desktop   # cross-targets win-x64 when not on Windows
 scripts/check.sh publish-web     # writes artifacts/publish-web
+scripts/check.sh probe review-probes/check.py   # a Python Playwright script (needs uv)
 ```
 
 Extra arguments go to `dotnet`, for example
 `scripts/check.sh unit --logger trx --results-directory TestResults/unit`. The script uses `~/.dotnet` when it holds
 an SDK, otherwise `dotnet` on `PATH`, and stops unless the SDK is 10.x. It leaves no MSBuild or compiler server running.
+
+`probe` runs a Python script with Playwright through [uv](https://docs.astral.sh/uv/) (`~/.local/bin/uv`, otherwise `uv`
+on `PATH`), for browser checks against a published build. It pins one Playwright release, installs that release's
+Chromium on first use, puts the SDK's `dotnet` on `PATH` for scripts that publish, and passes its arguments to the
+script.
 
 The API tests need Docker or a Docker-compatible Podman service and permission to start a SQL Server container with a
 2.5 GiB memory limit. The first run may download the SQL Server image. With rootless Podman on Linux, start its user
