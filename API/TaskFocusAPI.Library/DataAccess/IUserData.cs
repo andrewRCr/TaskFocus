@@ -10,5 +10,6 @@ namespace TaskFocusAPI.Library.DataAccess
         UserSettingsModel GetUserSettingsById(string id);
         bool UpdateSettingsData(UserSettingsModel frontEndSettings, string userId);
         void UpdateUser(UserModel user);
+        bool UpdateUserName(UserModel user);
     }
 }

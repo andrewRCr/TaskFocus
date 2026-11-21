@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -256,8 +257,7 @@ namespace TaskFocusAPI.IntegrationTests
                 new UserRegistrationModel("Test", "User", email, ApiFixture.Password), CancellationToken);
             Assert.Equal(HttpStatusCode.OK, registration.StatusCode);
 
-            Assert.True(fixture.Emails.ConfirmationLinks.TryGetValue(email, out string? link));
-            var confirmationLink = new Uri(link);
+            var confirmationLink = ReadAccountLink(email, "Confirm your email");
             Assert.Equal(TaskFocusApiFactory.AppUrl, confirmationLink.GetLeftPart(UriPartial.Authority));
             Assert.Equal("/unconfirmedemail", confirmationLink.AbsolutePath);
             var query = QueryHelpers.ParseQuery(confirmationLink.Query);
@@ -307,8 +307,7 @@ namespace TaskFocusAPI.IntegrationTests
             using var emailResponse = await HttpClientJsonExtensions.PostAsJsonAsync(client, "/api/User/SendPasswordResetEmail",
                 new UserModel { Email = email }, CancellationToken);
             Assert.Equal(HttpStatusCode.OK, emailResponse.StatusCode);
-            Assert.True(fixture.Emails.PasswordResetLinks.TryGetValue(email, out string? link));
-            var query = QueryHelpers.ParseQuery(new Uri(link).Query);
+            var query = QueryHelpers.ParseQuery(ReadAccountLink(email, "Reset your password").Query);
 
             using var reset = await HttpClientJsonExtensions.PostAsJsonAsync(client, "/api/User/ResetPassword",
                 new ResetPasswordModel
@@ -319,6 +318,16 @@ namespace TaskFocusAPI.IntegrationTests
                     ConfirmPassword = newPassword
                 }, CancellationToken);
             Assert.Equal(HttpStatusCode.OK, reset.StatusCode);
+        }
+
+        private Uri ReadAccountLink(string email, string subject)
+        {
+            var message = Assert.Single(fixture.Emails.Messages,
+                message => message.Subject == subject && message.To.Mailboxes.Any(recipient => recipient.Address == email));
+            string html = Assert.IsType<string>(message.HtmlBody);
+            var href = Regex.Match(html, "href='([^']*)'");
+            Assert.True(href.Success);
+            return new Uri(WebUtility.HtmlDecode(href.Groups[1].Value));
         }
 
         private async Task AssertPasswordChangeAllowsSignInAsync(HttpClient client, IdentityUser user, string newPassword)

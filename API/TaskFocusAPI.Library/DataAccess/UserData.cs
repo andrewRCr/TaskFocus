@@ -81,5 +81,11 @@ namespace TaskFocusAPI.Library.DataAccess
                 throw new Exception(ex.Message);
             }
         }
+
+        public bool UpdateUserName(UserModel user)
+        {
+            var p = new { user.Id, user.FirstName, user.LastName, user.ServerLastUpdated, user.ClientLastUpdated };
+            return _sqlDataAccess.LoadData<int, dynamic>("dbo.spUser_UpdateName", p, "TaskFocusData").Single() != 0;
+        }
     }
 }

@@ -51,6 +51,17 @@ namespace TaskFocusAPI
             });
 
             // internal services
+            builder.Services.AddKeyedSingleton<string>("AppUrl", (services, _) =>
+            {
+                string? configuredUrl = services.GetRequiredService<IConfiguration>()["AppUrl"];
+                if (!services.GetRequiredService<IHostEnvironment>().IsDevelopment() &&
+                    (!Uri.TryCreate(configuredUrl, UriKind.Absolute, out var appUrl) || appUrl.Scheme != Uri.UriSchemeHttps))
+                {
+                    throw new InvalidOperationException("AppUrl must be an absolute HTTPS URL outside Development.");
+                }
+
+                return configuredUrl?.TrimEnd('/') ?? string.Empty;
+            });
             builder.Services.AddSingleton<IJwtKeyProvider, JwtKeyProvider>();
             builder.Services.AddTransient<IEmailSender, EmailSender>();
             builder.Services.AddTransient<IUserData, UserData>();
@@ -91,6 +102,9 @@ namespace TaskFocusAPI
             });
 
             var app = builder.Build();
+
+            // Validate and bind the URL before requests can generate account links.
+            _ = app.Services.GetRequiredKeyedService<string>("AppUrl");
 
             // configure the HTTP request pipeline
             if (app.Environment.IsDevelopment())
