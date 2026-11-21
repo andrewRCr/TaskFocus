@@ -20,6 +20,12 @@ stages:
       vmImage: 'windows-latest'
 
     steps:
+    - task: UseDotNet@2
+      displayName: 'Install latest .NET 10 SDK'
+      inputs:
+        packageType: 'sdk'
+        version: '10.0.x'
+
     - task: NuGetToolInstaller@1
       inputs:
         versionSpec: 
@@ -36,7 +42,7 @@ stages:
         encoding: 'auto'
         tokenPattern: 'default'
         writeBOM: true
-        actionOnMissing: 'warn'
+        actionOnMissing: 'fail'
         keepToken: false
         actionOnNoFiles: 'continue'
         enableTransforms: false
@@ -111,7 +117,7 @@ stages:
       displayName: 'Build EF ApiAuth DB'
       inputs:
         script: |
-          dotnet tool install --global dotnet-ef
+          dotnet tool install --global dotnet-ef --version 10.0.15
           dotnet ef migrations script -i -o $(build.artifactStagingDirectory)\migrate.sql -p API\TaskFocusAPI\TaskFocusAPI.csproj
 
     - task: PublishBuildArtifacts@1
@@ -124,12 +130,13 @@ stages:
 - stage: 'Dev'
   displayName: 'Deploy to the dev environment'
   dependsOn: Build
-  condition:  succeeded()
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
   jobs:
   - deployment: Deploy_Linux
     displayName: 'Deploy (Linux) job'
+    dependsOn: Deploy_Win
     pool:
-      vmImage: 'ubuntu-20.04'
+      vmImage: 'ubuntu-latest'
     environment: dev
     strategy:
       runOnce:
@@ -146,6 +153,7 @@ stages:
               azureSubscription: 'Azure subscription 1(0af9f1a9-e361-440d-926a-b29173434193)'
               appType: 'webAppLinux'
               appName: 'TaskFocusAPI'
+              runtimeStack: 'DOTNETCORE|10.0'
               package: '$(Pipeline.Workspace)/API_drop/TaskFocusAPI.zip'
     
           - task: AzureWebApp@1
@@ -193,12 +201,3 @@ stages:
               DeploymentAction: 'Publish'
               DacpacFile: '$(Pipeline.Workspace)/SQLdb_drop/TaskFocusData.dacpac'
               IpDetectionMethod: 'AutoDetect'
-
-          - task: AzureFileCopy@5
-            displayName: 'AzureBlob DesktopUI exe File Copy'
-            inputs:
-              SourcePath: '$(Pipeline.Workspace)/DesktopUI_drop/TaskFocusDesktop/TaskFocusDesktop.exe'
-              azureSubscription: 'Azure subscription 1(0af9f1a9-e361-440d-926a-b29173434193)'
-              Destination: 'AzureBlob'
-              storage: 'taskfocusblobstorage'
-              ContainerName: 'applications'

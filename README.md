@@ -2,7 +2,7 @@
 
 A cross-platform task management application built on the Getting Things Done productivity
 methodology, with both a web interface and a native Windows desktop client powered by a
-shared .NET 8 backend. The GTD domain model organizes tasks along two independent axes —
+shared .NET 10 backend. The GTD domain model organizes tasks along two independent axes —
 projects group related work, contexts group tasks by the conditions needed to complete
 them — with each view maintaining its own drag-and-drop sort order. Both clients stay
 synchronized through bi-directional background polling and manual sync triggers,
@@ -47,7 +47,7 @@ task assignments, ordering, and completions syncing automatically between platfo
 
 - **Frontend (Web):** Blazor Web Assembly, MudBlazor
 - **Frontend (Desktop):** WPF, Caliburn Micro
-- **Backend:** C#, .NET 8, ASP.NET Identity, JWT
+- **Backend:** C#, .NET 10, ASP.NET Identity, JWT
 - **Database:** SQL Server, Entity Framework
 - **Infrastructure:** Azure DevOps CI/CD
 

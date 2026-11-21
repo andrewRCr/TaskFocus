@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows10.0.22621.0</TargetFramework>
+    <TargetFramework>net10.0-windows10.0.22621.0</TargetFramework>
     <UseWPF>true</UseWPF>
     <Nullable>enable</Nullable>
     <PublishSingleFile>true</PublishSingleFile>
@@ -31,14 +31,14 @@
     <Content Include="Resources\Images\appicon.ico" />
   </ItemGroup>
   <ItemGroup>
+    <!-- Pinned to 14.x because 15+ needs a commercial license. The known DoS advisories require attacker-controlled object graphs. TaskFocus maps a fixed set of application and display models. -->
     <PackageReference Include="AutoMapper" Version="14.0.0" />
     <PackageReference Include="Caliburn.Micro" Version="4.0.212" />
     <PackageReference Include="MahApps.Metro" Version="2.4.10" />
     <PackageReference Include="MaterialDesignThemes" Version="5.1.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.2" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.FileProviders.Composite" Version="9.0.1" />
-    <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.15" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.15" />
+    <PackageReference Include="Microsoft.Extensions.FileProviders.Composite" Version="10.0.15" />
     <PackageReference Include="WpfScreenHelper" Version="2.1.0" />
   </ItemGroup>
   <ItemGroup>
