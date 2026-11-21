@@ -1,6 +1,12 @@
 
 trigger:
-- '*'
+  branches:
+    include:
+    - '*'
+
+# Branch builds are the pull request check (GitHub status "Standard CI-CD Pipeline").
+# Separate pull-request merge builds would only repeat them.
+pr: none
 
 pool:
   vmImage: 'windows-latest'
