@@ -127,6 +127,36 @@ stages:
         ArtifactName: 'AuthDB_drop'
         publishLocation: 'Container'
   
+  - job: 'Test'
+    displayName: 'Test API and client library'
+    pool:
+      vmImage: 'ubuntu-latest'
+
+    steps:
+    - task: UseDotNet@2
+      inputs:
+        packageType: 'sdk'
+        version: '10.0.x'
+
+    - script: dotnet test tests/TaskFocusAPI.IntegrationTests/TaskFocusAPI.IntegrationTests.csproj --configuration Release --logger trx --collect "XPlat Code Coverage" --results-directory "$(Agent.TempDirectory)/TaskFocusTests/integration"
+      displayName: 'Run API integration tests'
+
+    - script: dotnet test tests/TaskFocusUI.Library.Tests/TaskFocusUI.Library.Tests.csproj --configuration Release --logger trx --collect "XPlat Code Coverage" --results-directory "$(Agent.TempDirectory)/TaskFocusTests/unit"
+      displayName: 'Run client-library unit tests'
+      condition: succeededOrFailed()
+
+    - task: PublishTestResults@2
+      condition: succeededOrFailed()
+      inputs:
+        testResultsFormat: 'VSTest'
+        searchFolder: '$(Agent.TempDirectory)/TaskFocusTests'
+        testResultsFiles: '**/*.trx'
+
+    - task: PublishCodeCoverageResults@2
+      condition: succeededOrFailed()
+      inputs:
+        summaryFileLocation: '$(Agent.TempDirectory)/TaskFocusTests/*/*/coverage.cobertura.xml'
+
 - stage: 'Dev'
   displayName: 'Deploy to the dev environment'
   dependsOn: Build

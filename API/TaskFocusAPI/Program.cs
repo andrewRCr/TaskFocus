@@ -1,11 +1,10 @@
-using Azure.Identity;
-using Azure.Security.KeyVault.Secrets;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.Text;
 using TaskFocusAPI.Data;
+using TaskFocusAPI.Services;
 using TaskFocusAPI.Library.DataAccess;
 using TaskFocusAPI.Library.Utilities;
 
@@ -30,6 +29,7 @@ namespace TaskFocusAPI
                 .AddDefaultTokenProviders();
 
             builder.Services.AddControllersWithViews();
+            builder.Services.AddHealthChecks();
 
             builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
             {
@@ -48,6 +48,7 @@ namespace TaskFocusAPI
             });
 
             // internal services
+            builder.Services.AddSingleton<IJwtKeyProvider, JwtKeyProvider>();
             builder.Services.AddTransient<IEmailSender, EmailSender>();
             builder.Services.AddTransient<IUserData, UserData>();
             builder.Services.AddTransient<ITaskData, TaskData>();
@@ -60,30 +61,19 @@ namespace TaskFocusAPI
                 options.DefaultAuthenticateScheme = "JwtBearer";
                 options.DefaultChallengeScheme = "JwtBearer";
             })
-                .AddJwtBearer("JwtBearer", jwtBearerOptions =>
+                .AddJwtBearer("JwtBearer");
+            builder.Services.AddOptions<JwtBearerOptions>("JwtBearer")
+                .Configure<IJwtKeyProvider>((options, keys) =>
                 {
-                    // pull security key from key vault
-                    string? securityKey = null;
-                    string keyVaultUrl = builder.Configuration.GetValue<string>("AzureKeyVaultUrl")!;
-                    var secretsClient = new SecretClient(new Uri(keyVaultUrl), new DefaultAzureCredential());
-                    securityKey = secretsClient.GetSecret("JwtSecurityKey").Value.Value;
-
-                    if (securityKey != null)
+                    options.TokenValidationParameters = new TokenValidationParameters
                     {
-                        jwtBearerOptions.TokenValidationParameters = new TokenValidationParameters
-                        {
-                            ValidateIssuerSigningKey = true,
-                            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(securityKey)),
-                            ValidateIssuer = false,
-                            ValidateAudience = false,
-                            ValidateLifetime = true,
-                            ClockSkew = TimeSpan.FromMinutes(5)
-                        };
-                    }
-                    else
-                    {
-                        throw new Exception("SecurityKey was a null value!");
-                    }
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKeyResolver = (_, _, _, _) => new[] { keys.SigningKey },
+                        ValidateIssuer = false,
+                        ValidateAudience = false,
+                        ValidateLifetime = true,
+                        ClockSkew = TimeSpan.FromMinutes(5)
+                    };
                 });
 
             builder.Services.AddSwaggerGen(setup =>
@@ -111,6 +101,7 @@ namespace TaskFocusAPI
                 app.UseHsts();
             }
 
+            app.UseHealthChecks("/health");
             app.UseHttpsRedirection();
             app.UseCors("OpenCorsPolicy");
             app.UseStaticFiles();

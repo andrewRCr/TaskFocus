@@ -22,8 +22,6 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.34" PrivateAssets="all" />
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="8.0.34" />
     <PackageReference Include="MudBlazor" Version="6.20.0" />
-    <PackageReference Include="MudBlazor.Extensions" Version="1.7.87" />
-    <PackageReference Include="Toolbelt.AspNetCore.CssLiveReloader" Version="1.1.4" />
   </ItemGroup>
 
   <ItemGroup>
