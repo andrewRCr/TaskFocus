@@ -1,26 +1,24 @@
-﻿using Azure.Identity;
-using Azure.Security.KeyVault.Secrets;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text;
 using TaskFocusAPI.Data;
+using TaskFocusAPI.Services;
 
 namespace TaskFocusAPI.Controllers
 {
     public class TokenController : Controller
     {
-        private readonly IConfiguration _config;
+        private readonly IJwtKeyProvider _keys;
         private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
 
-        public TokenController(IConfiguration config,
+        public TokenController(IJwtKeyProvider keys,
                                ApplicationDbContext context,
                                UserManager<IdentityUser> userManager)
         {
-            _config = config;
+            _keys = keys;
             _context = context;
             _userManager = userManager;
         }
@@ -68,34 +66,17 @@ namespace TaskFocusAPI.Controllers
                     claims.Add(new Claim(ClaimTypes.Role, role.Name));
                 }
 
-                // pull security key from key vault
-                string? securityKey = null;
-                string keyVaultUrl = _config["AzureKeyVaultUrl"]!;
-                var secretsClient = new SecretClient(new Uri(keyVaultUrl), new DefaultAzureCredential());
-                securityKey = secretsClient.GetSecret("JwtSecurityKey").Value.Value;
+                var token = new JwtSecurityToken(
+                    new JwtHeader(new SigningCredentials(_keys.SigningKey, SecurityAlgorithms.HmacSha256)),
+                    new JwtPayload(claims));
 
-                if (securityKey != null)
+                var output = new
                 {
-                    var token = new JwtSecurityToken(
-                        new JwtHeader(
-                            new SigningCredentials(
-                                            new SymmetricSecurityKey(Encoding.UTF8.GetBytes(securityKey)),
-                                                SecurityAlgorithms.HmacSha256)),
-                       new JwtPayload(claims)
-                    );
+                    AccessToken = new JwtSecurityTokenHandler().WriteToken(token),
+                    UserName = username,
+                };
 
-                    var output = new
-                    {
-                        AccessToken = new JwtSecurityTokenHandler().WriteToken(token),
-                        UserName = username,
-                    };
-
-                    return output;
-                }
-                else
-                {
-                    throw new Exception("SecurityKey was a null value!");
-                }
+                return output;
             }
 
             return Task.CompletedTask;
