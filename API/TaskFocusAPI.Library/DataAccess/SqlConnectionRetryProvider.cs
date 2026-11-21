@@ -22,8 +22,14 @@ namespace TaskFocusAPI.Library.DataAccess
                 DeltaTime = TimeSpan.FromSeconds(3),
                 MaxTimeInterval = TimeSpan.FromSeconds(14)
             }).RetryLogic;
-            _isTransient = isTransient ?? RetryLogic.TransientPredicate;
+            var standard = RetryLogic.TransientPredicate;
+            _isTransient = isTransient ?? (ex => standard(ex) || IsConnectTimeout(ex));
         }
+
+        // A database resuming from pause can stall the login until the connection timeout (error -2) instead of
+        // refusing it with 40613. SqlClient's default list leaves -2 out because a command may have run; this
+        // provider only retries opening a connection, so it is safe here.
+        internal static bool IsConnectTimeout(Exception ex) => ex is SqlException { Number: -2 };
 
         internal void Configure(SqlConnection connection)
         {
