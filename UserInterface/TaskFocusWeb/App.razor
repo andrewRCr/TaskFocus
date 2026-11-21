@@ -2,18 +2,19 @@
     <Found Context="routeData">
         <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
             <Authorizing>
-                <MudContainer>
-                    <MudPaper>
-                        <MudText Class="pa-4">
-                            Please wait, we are authorizing you.
-                        </MudText>
-                    </MudPaper>
-                </MudContainer>
+                <span class="app-loading" hidden></span>
             </Authorizing>
 
             <NotAuthorized>
-                <h1>Unauthorized</h1>
-                <p>The page or component you are trying to reach requires authentication. </p>
+                @if (context.User.Identity?.IsAuthenticated == true)
+                {
+                    <h1>Unauthorized</h1>
+                    <p>You don't have permission to access this page.</p>
+                }
+                else
+                {
+                    <RedirectToLogin />
+                }
             </NotAuthorized>
         </AuthorizeRouteView>
 
