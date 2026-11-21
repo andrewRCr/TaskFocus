@@ -32,5 +32,5 @@ Write for a reader who is new to the project. The template has three sections:
 
 The API, web app and libraries build with the .NET 10 SDK on any platform; the desktop app targets Windows and
 cross-builds elsewhere. `scripts/check.sh` runs each check (`unit`, `integration`, `build-api`, `build-desktop`,
-`publish-web`) the way CI does; see [tests/README.md](tests/README.md). The API integration tests need Docker or Podman
+`publish-web`) the way CI does, and `probe` runs a Python Playwright script; see [tests/README.md](tests/README.md). The API integration tests need Docker or Podman
 for a SQL Server container.
