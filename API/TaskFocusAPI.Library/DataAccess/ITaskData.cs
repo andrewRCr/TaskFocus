@@ -5,13 +5,13 @@ namespace TaskFocusAPI.Library.DataAccess
 {
     public interface ITaskData
     {
-        TaskModel GetTaskById(int taskId);
+        TaskModel GetTaskById(int taskId, string userId);
         List<TaskModel> GetAllTasksForUser(string userId);
         List<TaskModel> GetInboxTasksForUser(string userId);
         TaskModel AddTask(TaskModel newTask, string userId);
-        void DeleteTask(TaskModel taskToDelete);
-        void UpdateTaskData(TaskModel frontEndTask);
-        List<TaskModel> GetAllProjectTasksById(int projectId);
-        List<TaskModel> GetAllContextTasksById(int contextId);
+        bool DeleteTask(int? taskId, string userId);
+        ResourceUpdateResult UpdateTaskData(TaskModel frontEndTask, string userId);
+        List<TaskModel> GetAllProjectTasksById(int projectId, string userId);
+        List<TaskModel> GetAllContextTasksById(int contextId, string userId);
     }
 }

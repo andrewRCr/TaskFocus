@@ -103,6 +103,11 @@ namespace TaskFocusAPI.IntegrationTests
             });
         }
 
+        internal SqlConnection CreateDataConnection()
+        {
+            return new SqlConnection(DatabaseConnection(_sql!.GetConnectionString(), "TaskFocusData"));
+        }
+
         internal async Task<IdentityUser> CreateUserAsync(bool confirmed = true)
         {
             await using var scope = _factory!.Services.CreateAsyncScope();

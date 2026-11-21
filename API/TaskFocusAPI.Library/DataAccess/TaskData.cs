@@ -14,10 +14,10 @@ namespace TaskFocusAPI.Library.DataAccess
             _sqlDataAccess = sqlDataAccess;
         }
 
-        public TaskModel GetTaskById(int taskId)
+        public TaskModel GetTaskById(int taskId, string userId)
         {
-            var p = new { Id = taskId };
-            var task = _sqlDataAccess.LoadData<TaskModel, dynamic>("dbo.spTask_GetById", p, "TaskFocusData").FirstOrDefault();
+            var p = new { Id = taskId, UserId = userId };
+            var task = _sqlDataAccess.LoadData<TaskModel, dynamic>("dbo.spTask_GetByIdForUser", p, "TaskFocusData").FirstOrDefault();
 
             return task;
         }
@@ -38,18 +38,18 @@ namespace TaskFocusAPI.Library.DataAccess
             return userInboxTasks;
         }
 
-        public List<TaskModel> GetAllProjectTasksById(int projectId)
+        public List<TaskModel> GetAllProjectTasksById(int projectId, string userId)
         {
-            var p = new { Id = projectId };
-            var allProjectTasks = _sqlDataAccess.LoadData<TaskModel, dynamic>("dbo.spTask_GetAllForProjectId", p, "TaskFocusData");
+            var p = new { Id = projectId, UserId = userId };
+            var allProjectTasks = _sqlDataAccess.LoadData<TaskModel, dynamic>("dbo.spTask_GetAllForProjectIdForUser", p, "TaskFocusData");
 
             return allProjectTasks;
         }
 
-        public List<TaskModel> GetAllContextTasksById(int contextId)
+        public List<TaskModel> GetAllContextTasksById(int contextId, string userId)
         {
-            var p = new { Id = contextId };
-            var allContextTasks = _sqlDataAccess.LoadData<TaskModel, dynamic>("dbo.spTask_GetAllForContextId", p, "TaskFocusData");
+            var p = new { Id = contextId, UserId = userId };
+            var allContextTasks = _sqlDataAccess.LoadData<TaskModel, dynamic>("dbo.spTask_GetAllForContextIdForUser", p, "TaskFocusData");
 
             return allContextTasks;
         }
@@ -59,28 +59,28 @@ namespace TaskFocusAPI.Library.DataAccess
             newTask.UserId = userId;
             if (newTask.Completed) { newTask.DateCompleted = DateTime.Now; }
 
-            var insertedRow = _sqlDataAccess.SaveDataAndLoadInsertedRow("dbo.spTask_Insert", newTask, "TaskFocusData");
+            var insertedRow = _sqlDataAccess.SaveDataAndLoadInsertedRow("dbo.spTask_InsertForUser", newTask, "TaskFocusData");
             return insertedRow.FirstOrDefault();
         }
 
-        public void DeleteTask(TaskModel taskToDelete)
+        public bool DeleteTask(int? taskId, string userId)
         {
-            var p = new { Id = taskToDelete.Id };
-            _sqlDataAccess.SaveData("dbo.spTask_Delete", p, "TaskFocusData");
+            var p = new { Id = taskId, UserId = userId };
+            return _sqlDataAccess.LoadData<int, dynamic>("dbo.spTask_DeleteForUser", p, "TaskFocusData").Single() != 0;
         }
 
-        public void UpdateTaskData(TaskModel frontEndTask)
+        public ResourceUpdateResult UpdateTaskData(TaskModel frontEndTask, string userId)
         {
             if (frontEndTask.Id == null)
             {
-                throw new Exception($"The provided task's Id was a null value.");
+                return ResourceUpdateResult.NotFound;
             }
 
-            var dbTask = GetTaskById((int)frontEndTask.Id);
+            var dbTask = GetTaskById(frontEndTask.Id.Value, userId);
 
             if (dbTask == null)
             {
-                throw new Exception($"The task Id of {frontEndTask.Id} could not be found in the database.");
+                return ResourceUpdateResult.NotFound;
             }
 
             // handle DateCompleted/unflagging CleanedUp on removing Completed status
@@ -93,7 +93,7 @@ namespace TaskFocusAPI.Library.DataAccess
 
             // handle general user-editable properties
             dbTask.Completed = frontEndTask.Completed;
-            dbTask.TaskName = frontEndTask.TaskName.Trim();
+            dbTask.TaskName = frontEndTask.TaskName?.Trim();
             dbTask.DueDate = frontEndTask.DueDate;
             dbTask.Starred = frontEndTask.Starred;
 
@@ -113,14 +113,8 @@ namespace TaskFocusAPI.Library.DataAccess
             dbTask.ClientLastUpdated = frontEndTask.ClientLastUpdated;
             dbTask.ServerLastUpdated = frontEndTask.ServerLastUpdated;
 
-            try
-            {
-                _sqlDataAccess.SaveData("dbo.spTask_Update", dbTask, "TaskFocusData");
-            }
-            catch (System.Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
+            dbTask.UserId = userId;
+            return (ResourceUpdateResult)_sqlDataAccess.LoadData<int, TaskModel>("dbo.spTask_UpdateForUser", dbTask, "TaskFocusData").Single();
         }
     }
 }

@@ -31,18 +31,13 @@ namespace TaskFocusAPI.Library.DataAccess
             return userSettingsData;
         }
 
-        public void UpdateSettingsData(UserSettingsModel frontEndSettings)
+        public bool UpdateSettingsData(UserSettingsModel frontEndSettings, string userId)
         {
-            if (frontEndSettings.Id == null)
-            {
-                throw new Exception($"The provided UserSettings's Id was a null value.");
-            }
-
-            var dbSettings = GetUserSettingsById(frontEndSettings.Id);
+            var dbSettings = GetUserSettingsById(userId);
 
             if (dbSettings == null)
             {
-                throw new Exception($"The Settings Id of {frontEndSettings.Id} could not be found in the database.");
+                return false;
             }
 
             dbSettings.CleanUpImmediately = frontEndSettings.CleanUpImmediately;
@@ -61,6 +56,8 @@ namespace TaskFocusAPI.Library.DataAccess
             {
                 throw new Exception(ex.Message);
             }
+
+            return true;
         }
 
         public void CreateUser(UserModel user)

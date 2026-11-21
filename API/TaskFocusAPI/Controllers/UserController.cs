@@ -184,9 +184,16 @@ namespace TaskFocusAPI.Controllers
 
         [HttpPut]
         [Route("settings")]
-        public void Put(UserSettingsModel updatedSettings)
+        public IActionResult Put(UserSettingsModel updatedSettings)
         {
-            _userData.UpdateSettingsData(updatedSettings);
+            if (updatedSettings.CleanUpDelayDays is < 1 or > 90 ||
+                updatedSettings.DeleteDelayDays is < 1 or > 90)
+            {
+                return BadRequest();
+            }
+
+            string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return _userData.UpdateSettingsData(updatedSettings, userId) ? Ok() : NotFound();
         }
 
         [Authorize(Roles = "Admin")]

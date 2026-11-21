@@ -19,9 +19,11 @@ namespace TaskFocusAPI.Controllers
         }
 
         [HttpGet("{projectId}")]
-        public ProjectModel GetProjectById(int projectId)
+        public ActionResult<ProjectModel> GetProjectById(int projectId)
         {
-            return _projectData.GetProjectById(projectId);
+            string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var project = _projectData.GetProjectById(projectId, userId);
+            return project == null ? NoContent() : project;
         }
 
         [HttpGet]
@@ -32,24 +34,31 @@ namespace TaskFocusAPI.Controllers
         }
 
         [HttpPost]
-        public ProjectModel Post(ProjectModel newProject)
+        public ActionResult<ProjectModel> Post(ProjectModel newProject)
         {
             string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            ProjectModel insertedProject = _projectData.AddProject(newProject, userId);
-            return insertedProject;
+            var insertedProject = _projectData.AddProject(newProject, userId);
+            return insertedProject == null ? BadRequest() : insertedProject;
         }
 
         [HttpPut]
-        public void Put(ProjectModel updatedProject)
+        public IActionResult Put(ProjectModel updatedProject)
         {
-            _projectData.UpdateProjectData(updatedProject);
+            string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return _projectData.UpdateProjectData(updatedProject, userId) switch
+            {
+                ResourceUpdateResult.Updated => Ok(),
+                ResourceUpdateResult.InvalidParent => BadRequest(),
+                _ => NotFound()
+            };
         }
 
         [HttpDelete]
-        public void Delete(ProjectModel projectToDelete)
+        public IActionResult Delete(ProjectModel projectToDelete)
         {
             string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            _projectData.DeleteProject(projectToDelete);
+            _projectData.DeleteProject(projectToDelete.Id, userId);
+            return Ok();
         }
     }
 }

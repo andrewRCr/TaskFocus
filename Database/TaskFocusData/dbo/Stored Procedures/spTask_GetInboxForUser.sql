@@ -20,8 +20,8 @@ BEGIN
 		   Task.ContextIndex,
 		   Task.CleanedUp
 	FROM dbo.Task
-	LEFT JOIN dbo.Project ON dbo.Task.ProjectId = dbo.Project.Id
-	LEFT JOIN dbo.Context ON dbo.Task.ContextId = dbo.Context.Id
+	LEFT JOIN dbo.Project ON dbo.Task.ProjectId = dbo.Project.Id AND Project.UserId = Task.UserId
+	LEFT JOIN dbo.Context ON dbo.Task.ContextId = dbo.Context.Id AND Context.UserId = Task.UserId
 	WHERE Task.UserId = @Id AND (Task.ProjectId IS NULL OR Task.ContextId IS NULL)
 	ORDER BY InboxIndex
 END
