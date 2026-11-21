@@ -8,7 +8,7 @@ namespace TaskFocusAPI.Library.DataAccess
         void CreateUser(UserModel user);
         List<UserModel> GetUserById(string id);
         UserSettingsModel GetUserSettingsById(string id);
-        void UpdateSettingsData(UserSettingsModel frontEndSettings);
+        bool UpdateSettingsData(UserSettingsModel frontEndSettings, string userId);
         void UpdateUser(UserModel user);
     }
 }

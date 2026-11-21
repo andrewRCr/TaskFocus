@@ -19,9 +19,11 @@ namespace TaskFocusAPI.Controllers
         }
 
         [HttpGet("{contextId}")]
-        public ContextModel GetContextById(int contextId)
+        public ActionResult<ContextModel> GetContextById(int contextId)
         {
-            return _contextData.GetContextById(contextId);
+            string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var context = _contextData.GetContextById(contextId, userId);
+            return context == null ? NoContent() : context;
         }
 
         [HttpGet]
@@ -39,16 +41,18 @@ namespace TaskFocusAPI.Controllers
         }
 
         [HttpPut]
-        public void Put(ContextModel updatedContext)
+        public IActionResult Put(ContextModel updatedContext)
         {
-            _contextData.UpdateContextData(updatedContext);
+            string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return _contextData.UpdateContextData(updatedContext, userId) ? Ok() : NotFound();
         }
 
         [HttpDelete]
-        public void Delete(ContextModel contextToDelete)
+        public IActionResult Delete(ContextModel contextToDelete)
         {
             string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            _contextData.DeleteContext(contextToDelete);
+            _contextData.DeleteContext(contextToDelete.Id, userId);
+            return Ok();
         }
     }
 }

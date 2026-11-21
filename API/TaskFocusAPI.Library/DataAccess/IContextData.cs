@@ -5,10 +5,10 @@ namespace TaskFocusAPI.Library.DataAccess
 {
     public interface IContextData
     {
-        ContextModel GetContextById(int contextId);
+        ContextModel GetContextById(int contextId, string userId);
         List<ContextModel> GetAllContextsForUser(string userId);
         ContextModel AddContext(ContextModel newContext, string userId);
-        void DeleteContext(ContextModel contextToDelete);
-        void UpdateContextData(ContextModel frontEndContext);
+        bool DeleteContext(int? contextId, string userId);
+        bool UpdateContextData(ContextModel frontEndContext, string userId);
     }
 }

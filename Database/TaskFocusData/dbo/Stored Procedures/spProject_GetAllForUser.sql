@@ -6,6 +6,6 @@ BEGIN
 
 	SELECT Project.Id, ProjectName, ContextId, DueDate, ContextName, Project.OrderIndex, Project.ClientLastUpdated, Project.ServerLastUpdated
 	FROM dbo.Project
-	LEFT JOIN dbo.Context ON dbo.Project.ContextId = dbo.Context.Id
+	LEFT JOIN dbo.Context ON dbo.Project.ContextId = dbo.Context.Id AND Context.UserId = Project.UserId
 	WHERE Project.UserId = @Id
 END

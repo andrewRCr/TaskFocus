@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using TaskFocusAPI.Library.Models;
 
@@ -14,10 +13,10 @@ namespace TaskFocusAPI.Library.DataAccess
             _sqlDataAccess = sqlDataAccess;
         }
 
-        public ContextModel GetContextById(int contextId)
+        public ContextModel GetContextById(int contextId, string userId)
         {
-            var p = new { Id = contextId };
-            var context = _sqlDataAccess.LoadData<ContextModel, dynamic>("dbo.spContext_GetById", p, "TaskFocusData").FirstOrDefault();
+            var p = new { Id = contextId, UserId = userId };
+            var context = _sqlDataAccess.LoadData<ContextModel, dynamic>("dbo.spContext_GetByIdForUser", p, "TaskFocusData").FirstOrDefault();
 
             return context;
         }
@@ -38,18 +37,18 @@ namespace TaskFocusAPI.Library.DataAccess
             return insertedRow.FirstOrDefault();
         }
 
-        public void UpdateContextData(ContextModel frontEndContext)
+        public bool UpdateContextData(ContextModel frontEndContext, string userId)
         {
             if (frontEndContext.Id == null)
             {
-                throw new Exception($"The provided context's Id was a null value.");
+                return false;
             }
 
-            var dbContext = GetContextById((int)frontEndContext.Id);
+            var dbContext = GetContextById(frontEndContext.Id.Value, userId);
 
             if (dbContext == null)
             {
-                throw new Exception($"The context Id of {frontEndContext.Id} could not be found in the database.");
+                return false;
             }
 
             dbContext.ContextName = frontEndContext.ContextName.Trim();
@@ -59,20 +58,14 @@ namespace TaskFocusAPI.Library.DataAccess
             dbContext.ClientLastUpdated = frontEndContext.ClientLastUpdated;
             dbContext.ServerLastUpdated = frontEndContext.ServerLastUpdated;
 
-            try
-            {
-                _sqlDataAccess.SaveData("dbo.spContext_Update", dbContext, "TaskFocusData");
-            }
-            catch (System.Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
+            dbContext.UserId = userId;
+            return _sqlDataAccess.LoadData<int, ContextModel>("dbo.spContext_UpdateForUser", dbContext, "TaskFocusData").Single() != 0;
         }
 
-        public void DeleteContext(ContextModel contextToDelete)
+        public bool DeleteContext(int? contextId, string userId)
         {
-            var p = new { Id = contextToDelete.Id };
-            _sqlDataAccess.SaveData("dbo.spContext_Delete", p, "TaskFocusData");
+            var p = new { Id = contextId, UserId = userId };
+            return _sqlDataAccess.LoadData<int, dynamic>("dbo.spContext_DeleteForUser", p, "TaskFocusData").Single() != 0;
         }
     }
 }

@@ -8,6 +8,6 @@ BEGIN
 		   Task.InboxIndex, Task.ProjectIndex, Task.ContextIndex, Task.Starred, Task.TodayIndex, Task.CleanedUp,
 		   Task.ClientLastUpdated, Task.ServerLastUpdated
 	FROM dbo.Task
-	LEFT JOIN dbo.Project ON dbo.Task.ProjectId = dbo.Project.Id
+	LEFT JOIN dbo.Project ON dbo.Task.ProjectId = dbo.Project.Id AND Project.UserId = Task.UserId
 	WHERE Task.Id = @Id
 END

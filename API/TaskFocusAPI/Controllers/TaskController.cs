@@ -19,9 +19,11 @@ namespace TaskFocusAPI.Controllers
         }
 
         [HttpGet("{taskId}")]
-        public TaskModel GetTaskById(int taskId)
+        public ActionResult<TaskModel> GetTaskById(int taskId)
         {
-            return _taskData.GetTaskById(taskId);
+            string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var task = _taskData.GetTaskById(taskId, userId);
+            return task == null ? NoContent() : task;
         }
 
         [HttpGet]
@@ -41,34 +43,43 @@ namespace TaskFocusAPI.Controllers
         [HttpGet("{projectId}")]
         public List<TaskModel> GetAllProjectTasksById(int projectId)
         {
-            return _taskData.GetAllProjectTasksById(projectId);
+            string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return _taskData.GetAllProjectTasksById(projectId, userId);
         }
 
         [HttpGet("{contextId}")]
         public List<TaskModel> GetAllContextTasksById(int contextId)
         {
-            return _taskData.GetAllContextTasksById(contextId);
+            string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return _taskData.GetAllContextTasksById(contextId, userId);
         }
 
         [HttpPost]
-        public TaskModel Post(TaskModel newTask)
+        public ActionResult<TaskModel> Post(TaskModel newTask)
         {
             string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            TaskModel insertedTask = _taskData.AddTask(newTask, userId);
-            return insertedTask;
+            var insertedTask = _taskData.AddTask(newTask, userId);
+            return insertedTask == null ? BadRequest() : insertedTask;
         }
 
         [HttpPut]
-        public void Put(TaskModel updatedTask)
+        public IActionResult Put(TaskModel updatedTask)
         {
-            _taskData.UpdateTaskData(updatedTask);
+            string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return _taskData.UpdateTaskData(updatedTask, userId) switch
+            {
+                ResourceUpdateResult.Updated => Ok(),
+                ResourceUpdateResult.InvalidParent => BadRequest(),
+                _ => NotFound()
+            };
         }
 
         [HttpDelete]
-        public void Delete(TaskModel taskToDelete) 
+        public IActionResult Delete(TaskModel taskToDelete)
         {
             string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            _taskData.DeleteTask(taskToDelete);
+            _taskData.DeleteTask(taskToDelete.Id, userId);
+            return Ok();
         }
     }
 }

@@ -95,6 +95,19 @@
     <Build Include="dbo\Stored Procedures\spUser_Update.sql" />
     <Build Include="dbo\Stored Procedures\spTask_GetAllForProjectId.sql" />
     <Build Include="dbo\Stored Procedures\spTask_GetAllForContextId.sql" />
+    <Build Include="dbo\Stored Procedures\spContext_DeleteForUser.sql" />
+    <Build Include="dbo\Stored Procedures\spContext_GetByIdForUser.sql" />
+    <Build Include="dbo\Stored Procedures\spContext_UpdateForUser.sql" />
+    <Build Include="dbo\Stored Procedures\spProject_DeleteForUser.sql" />
+    <Build Include="dbo\Stored Procedures\spProject_GetByIdForUser.sql" />
+    <Build Include="dbo\Stored Procedures\spProject_InsertForUser.sql" />
+    <Build Include="dbo\Stored Procedures\spProject_UpdateForUser.sql" />
+    <Build Include="dbo\Stored Procedures\spTask_DeleteForUser.sql" />
+    <Build Include="dbo\Stored Procedures\spTask_GetAllForContextIdForUser.sql" />
+    <Build Include="dbo\Stored Procedures\spTask_GetAllForProjectIdForUser.sql" />
+    <Build Include="dbo\Stored Procedures\spTask_GetByIdForUser.sql" />
+    <Build Include="dbo\Stored Procedures\spTask_InsertForUser.sql" />
+    <Build Include="dbo\Stored Procedures\spTask_UpdateForUser.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="TaskFocusData.refactorlog" />
