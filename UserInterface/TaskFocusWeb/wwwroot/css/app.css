@@ -75,7 +75,7 @@ a, .btn-link {
     transition: opacity 180ms ease-out, visibility 180ms;
 }
 
-#app:has(.app-ready):not(:has(.app-loading)) + #app-loading {
+#app:has(.app-ready):not(:has(.app-loading)) + #app-loading.app-booted {
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
@@ -111,15 +111,15 @@ a, .btn-link {
 }
 
     .loading-progress-text:after {
-        content: var(--blazor-load-percentage-text, "Loading");
+        content: var(--blazor-load-percentage-text, "0%");
     }
 
-#app:has(.app-loading) + #app-loading .loading-progress circle:last-child {
+#app:has(.app-loading) + #app-loading.app-booted .loading-progress circle:last-child {
     stroke-dasharray: 65%, 500%;
     animation: loading-spin 1s linear infinite;
 }
 
-#app:has(.app-loading) + #app-loading .loading-progress-text:after {
+#app:has(.app-loading) + #app-loading.app-booted .loading-progress-text:after {
     content: "Loading";
 }
 
@@ -130,7 +130,7 @@ a, .btn-link {
 @media (prefers-reduced-motion: reduce) {
     #app-loading,
     .loading-progress circle:last-child,
-    #app:has(.app-loading) + #app-loading .loading-progress circle:last-child {
+    #app:has(.app-loading) + #app-loading.app-booted .loading-progress circle:last-child {
         transition: none;
         animation: none;
     }

@@ -35,8 +35,64 @@
         <a href="" class="reload">Reload</a>
         <a class="dismiss">🗙</a>
     </div>
-    <script src="_framework/blazor.webassembly.js"></script>
+    <script src="_framework/blazor.webassembly.js" autostart="false"></script>
     <script>
+        const app = document.getElementById('app');
+        const overlay = document.getElementById('app-loading');
+        const ring = overlay.querySelector('circle:last-child');
+        let fullRingPainted = false;
+
+        function finishFirstLoad() {
+            if (fullRingPainted && app.matches(':has(.app-ready):not(:has(.app-loading))')) {
+                overlay.classList.add('app-booted');
+                firstReady.disconnect();
+            }
+        }
+        const firstReady = new MutationObserver(finishFirstLoad);
+        firstReady.observe(app, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+
+        function paintFullRing() {
+            if (ring.getAnimations().some(animation => animation.transitionProperty === 'stroke-dasharray')) {
+                requestAnimationFrame(paintFullRing);
+                return;
+            }
+            // Leave this frame opaque so the completed ring can paint before the fade.
+            requestAnimationFrame(() => {
+                fullRingPainted = true;
+                finishFirstLoad();
+            });
+        }
+
+        let progress = 0;
+        function showProgress(percentage) {
+            const next = Math.min(100, percentage);
+            if (next <= progress) {
+                return;
+            }
+            progress = next;
+            overlay.style.setProperty('--blazor-load-percentage', `${progress}%`);
+            overlay.style.setProperty('--blazor-load-percentage-text', `"${Math.floor(progress)}%"`);
+            if (progress === 100) {
+                requestAnimationFrame(paintFullRing);
+            }
+        }
+
+        Blazor.start({
+            configureRuntime: dotnet => dotnet.withModuleConfig({
+                onDownloadResourceProgress: (loaded, total) => {
+                    // The native runtime can report before the remaining boot assets are queued.
+                    if (total > 1) {
+                        showProgress(loaded / total * 100);
+                    }
+                },
+                // Finish here even if the loader missed its final progress report.
+                onRuntimeInitialized: () => showProgress(100)
+            })
+        }).catch(error => {
+            const reportError = Blazor.runtime?.Module?.err ?? console.error;
+            reportError(error);
+        });
+
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('service-worker.js', { updateViaCache: 'none' })
                 .catch(error => console.warn('Service worker registration failed', error));
