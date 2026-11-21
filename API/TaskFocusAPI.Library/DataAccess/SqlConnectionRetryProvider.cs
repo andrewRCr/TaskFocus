@@ -8,10 +8,11 @@ namespace TaskFocusAPI.Library.DataAccess
     internal sealed class SqlConnectionRetryProvider : SqlRetryLogicBaseProvider
     {
         internal static readonly SqlConnectionRetryProvider Instance = new(TimeProvider.System);
-        // A serverless Azure SQL database typically resumes in about a minute. With the per-attempt cap below, one open
-        // ends within about 75 seconds, inside the 100-second HTTP timeout released clients use.
+        // No new attempt starts after 30 seconds, and the per-attempt cap below ends one open within about 45 seconds,
+        // so a request that opens both databases (sign-up) still answers inside the 100-second HTTP timeout released
+        // clients use. That covers brief outages such as reconfiguration, not a paused serverless database's resume.
         // A property, not a field: Instance above is initialized first and must not see an unset budget.
-        internal static TimeSpan DefaultRetryBudget => TimeSpan.FromSeconds(60);
+        internal static TimeSpan DefaultRetryBudget => TimeSpan.FromSeconds(30);
         private const int MaxConnectTimeout = 15;
         private readonly TimeProvider _clock;
         private readonly Predicate<Exception> _isTransient;

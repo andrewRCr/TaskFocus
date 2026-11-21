@@ -90,26 +90,10 @@ namespace TaskFocusAPI.IntegrationTests
         private static readonly TimeSpan ThirtySeconds = TimeSpan.FromSeconds(30);
 
         [Fact]
-        public void DefaultBudgetCoversAServerlessResume()
+        public void SharedProviderUsesTheThirtySecondBudget()
         {
-            Assert.Equal(TimeSpan.FromSeconds(60), SqlConnectionRetryProvider.DefaultRetryBudget);
-            Assert.Equal(TimeSpan.FromSeconds(60), SqlConnectionRetryProvider.Instance.RetryBudget);
-
-            // A first attempt that stalls for 40 seconds still leaves room for a retry under the default budget.
-            var clock = new RetryClock();
-            var failure = new TimeoutException();
-            var provider = new SqlConnectionRetryProvider(clock, ex => ex == failure);
-            int attempts = 0;
-
-            Assert.Same(failure, Assert.Throws<TimeoutException>(() => provider.Execute<int>(this, () =>
-            {
-                attempts++;
-                clock.Advance(TimeSpan.FromSeconds(40));
-                throw failure;
-            })));
-
-            Assert.Equal(2, attempts);
-            Assert.Single(clock.Waits);
+            Assert.Equal(ThirtySeconds, SqlConnectionRetryProvider.DefaultRetryBudget);
+            Assert.Equal(ThirtySeconds, SqlConnectionRetryProvider.Instance.RetryBudget);
         }
 
         private sealed class RetryClock : TimeProvider
