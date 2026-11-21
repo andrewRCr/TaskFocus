@@ -6,7 +6,7 @@
 <MudDialogProvider @ref="AppState.DialogProvider" />
 <MudSnackbarProvider />
 
-<MudLayout>
+<MudLayout Class="@(AuthState.IsCompletedSuccessfully ? "app-ready" : "app-loading")">
 
     <!-- top app bar; logo + menu drawer toggle (if authenticated); login or auth widget -->
     <MudAppBar Elevation="0" >
