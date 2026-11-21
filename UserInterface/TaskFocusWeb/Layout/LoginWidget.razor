@@ -2,6 +2,12 @@
 @inject IAuthenticationService AuthService
 @inject IDataService DataService
 @inject NavigationManager NavManager
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+
+@if (_working)
+{
+    <span class="app-loading" hidden></span>
+}
 
 <MudForm Model="userModel" 
 @ref="_loginForm" 
@@ -86,58 +92,80 @@
 
     private async Task ValidateAndExecute()
     {
+        if (_working)
+        {
+            return;
+        }
+
+        var (returnUrl, confirmationEmail) = SignInRedirect.GetLoginReturnUrl(NavManager);
+        var loginUrl = SignInRedirect.LoginUrl(returnUrl, confirmationEmail);
         _working = true;
-
-        // display AuthProcessing loading screen
-        NavManager.NavigateTo("/attemptlogin");
-
-        await _loginForm.Validate();
-        if (_loginForm.IsValid) await ExecuteLogin();      
-        else 
-        { 
+        try
+        {
+            await _loginForm.Validate();
+            if (_loginForm.IsValid && userModel.Email is { } email)
+            {
+                await ExecuteLogin(email, returnUrl, confirmationEmail, loginUrl);
+            }
+            else
+            {
+                AppState.ShowGenericLoginError();
+                NavManager.NavigateTo(loginUrl);
+            }
+        }
+        finally
+        {
             _working = false;
-            AppState.ShowGenericLoginError(); 
-            // return to Home view (from AuthProcessing) to see auth error
-            NavManager.NavigateTo("/");
+            StateHasChanged();
         }
     }
 
-    private async Task ExecuteLogin()
+    private async Task ExecuteLogin(string email, string? returnUrl, string? confirmationEmail, string loginUrl)
     {
-        UserModel attemptLoginUserModel = new UserModel { Email = userModel.Email };
+        UserModel attemptLoginUserModel = new UserModel { Email = email };
         bool exists = await DataService.CheckUserExists(attemptLoginUserModel);
         if (!exists)
         {
             AppState.AlertSeverity = MudBlazor.Severity.Warning;
             AppState.AlertMessage = "No matching user found.";
-            // return to Home view (from AuthProcessing) to see auth error 
-            NavManager.NavigateTo("/");
+            NavManager.NavigateTo(loginUrl);
         }
         else
         {
             bool confirmed = await DataService.CheckUserEmailConfirmed(attemptLoginUserModel);
             if (!confirmed)
             {
-                NavManager.NavigateTo($"/unconfirmedemail?email={userModel.Email}");
+                var confirmationUrl = QueryHelpers.AddQueryString("/unconfirmedemail", "email", email);
+                if (returnUrl is not null && CanUseReturnUrl(email))
+                {
+                    var confirmationKey = SignInRedirect.ConfirmationStorageKey(email);
+                    await LocalStorage.SetItemAsStringAsync(confirmationKey, returnUrl);
+                    confirmationUrl = QueryHelpers.AddQueryString(confirmationUrl, "returnUrl", returnUrl);
+                }
+                NavManager.NavigateTo(confirmationUrl);
             }
             else
             {
                 var result = await AuthService.LoginAsync(userModel);
                 if (result != null)
                 {
+                    var confirmationKey = SignInRedirect.ConfirmationStorageKey(result.UserName ?? email);
+                    await LocalStorage.RemoveItemAsync(confirmationKey);
                     DataService.InvokeSyncRequest($"{this.ToString()}: {nameof(ExecuteLogin)}");
                     AppState.ClearAlertMessage();
-                    NavManager.NavigateTo("/inbox");
+                    var destination = CanUseReturnUrl(result.UserName) ? returnUrl : null;
+                    NavManager.NavigateTo(destination ?? "/inbox");
                 }
                 else
                 {
-                    // return to Home view (from AuthProcessing) to see auth error
                     AppState.ShowGenericLoginError();
-                    NavManager.NavigateTo("/");
+                    NavManager.NavigateTo(loginUrl);
                 }
             }
         }
-        _working = false;
+
+        bool CanUseReturnUrl(string? accountEmail) =>
+            confirmationEmail is null || string.Equals(accountEmail?.Trim(), confirmationEmail.Trim(), StringComparison.OrdinalIgnoreCase);
     }
 
     public async Task EnterKeyPressed(KeyboardEventArgs e)

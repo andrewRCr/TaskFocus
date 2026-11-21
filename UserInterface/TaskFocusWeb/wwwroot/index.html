@@ -10,7 +10,7 @@
           rel="stylesheet"
           integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
           crossorigin="anonymous">
-    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Barlow:700&display=swap" rel="stylesheet" />
     <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
     <link href="_content/CodeBeam.MudBlazor.Extensions/MudExtensions.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="css/app.css" />
@@ -21,14 +21,13 @@
 </head>
 
 <body>
-    <div id="app">
-        <div style="background-color: #27272f; position: fixed; width: 100%; height: 100%">
-            <svg class="loading-progress">
-                <circle r="40%" cx="50%" cy="50%" />
-                <circle r="40%" cx="50%" cy="50%" />
-            </svg>
-            <div class="loading-progress-text" style="color:white"></div>
-        </div>
+    <div id="app"></div>
+    <div id="app-loading" role="status" aria-label="Loading TaskFocus">
+        <svg class="loading-progress" aria-hidden="true">
+            <circle r="40%" cx="50%" cy="50%" />
+            <circle r="40%" cx="50%" cy="50%" />
+        </svg>
+        <div class="loading-progress-text" aria-hidden="true"></div>
     </div>
 
     <div id="blazor-error-ui">
@@ -36,8 +35,69 @@
         <a href="" class="reload">Reload</a>
         <a class="dismiss">🗙</a>
     </div>
-    <script src="_framework/blazor.webassembly.js"></script>
-    <script>navigator.serviceWorker.register('service-worker.js');</script>
+    <script src="_framework/blazor.webassembly.js" autostart="false"></script>
+    <script>
+        const app = document.getElementById('app');
+        const overlay = document.getElementById('app-loading');
+        const ring = overlay.querySelector('circle:last-child');
+        let fullRingPainted = false;
+
+        function finishFirstLoad() {
+            if (fullRingPainted && app.matches(':has(.app-ready):not(:has(.app-loading))')) {
+                overlay.classList.add('app-booted');
+                firstReady.disconnect();
+            }
+        }
+        const firstReady = new MutationObserver(finishFirstLoad);
+        firstReady.observe(app, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+
+        function paintFullRing() {
+            if (ring.getAnimations().some(animation => animation.transitionProperty === 'stroke-dasharray')) {
+                requestAnimationFrame(paintFullRing);
+                return;
+            }
+            // Leave this frame opaque so the completed ring can paint before the fade.
+            requestAnimationFrame(() => {
+                fullRingPainted = true;
+                finishFirstLoad();
+            });
+        }
+
+        let progress = 0;
+        function showProgress(percentage) {
+            const next = Math.min(100, percentage);
+            if (next <= progress) {
+                return;
+            }
+            progress = next;
+            overlay.style.setProperty('--blazor-load-percentage', `${progress}%`);
+            overlay.style.setProperty('--blazor-load-percentage-text', `"${Math.floor(progress)}%"`);
+            if (progress === 100) {
+                requestAnimationFrame(paintFullRing);
+            }
+        }
+
+        Blazor.start({
+            configureRuntime: dotnet => dotnet.withModuleConfig({
+                onDownloadResourceProgress: (loaded, total) => {
+                    // The native runtime can report before the remaining boot assets are queued.
+                    if (total > 1) {
+                        showProgress(loaded / total * 100);
+                    }
+                },
+                // Finish here even if the loader missed its final progress report.
+                onRuntimeInitialized: () => showProgress(100)
+            })
+        }).catch(error => {
+            const reportError = Blazor.runtime?.Module?.err ?? console.error;
+            reportError(error);
+        });
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js', { updateViaCache: 'none' })
+                .catch(error => console.warn('Service worker registration failed', error));
+        }
+    </script>
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
     <script src="_content/CodeBeam.MudBlazor.Extensions/MudExtensions.min.js"></script>
 </body>

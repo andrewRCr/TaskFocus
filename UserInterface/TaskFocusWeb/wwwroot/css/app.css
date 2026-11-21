@@ -1,5 +1,6 @@
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background-color: #27272f;
 }
 
 h1:focus {
@@ -45,7 +46,7 @@ a, .btn-link {
     padding: 0.6rem 1.25rem 0.7rem 1.25rem;
     position: fixed;
     width: 100%;
-    z-index: 1000;
+    z-index: 1600;
 }
 
     #blazor-error-ui .dismiss {
@@ -64,6 +65,21 @@ a, .btn-link {
     .blazor-error-boundary::after {
         content: "An error has occurred."
     }
+
+#app-loading {
+    position: fixed;
+    inset: 0;
+    z-index: 1500;
+    background-color: #27272f;
+    color: white;
+    transition: opacity 180ms ease-out, visibility 180ms;
+}
+
+#app:has(.app-ready):not(:has(.app-loading)) + #app-loading.app-booted {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
 
 .loading-progress {
     position: relative;
@@ -84,7 +100,7 @@ a, .btn-link {
         .loading-progress circle:last-child {
             stroke: #1b6ec2;
             stroke-dasharray: calc(3.141 * var(--blazor-load-percentage, 0%) * 0.8), 500%;
-            transition: stroke-dasharray 0.05s ease-in-out;
+            transition: stroke-dasharray 220ms ease-out;
         }
 
 .loading-progress-text {
@@ -95,8 +111,30 @@ a, .btn-link {
 }
 
     .loading-progress-text:after {
-        content: var(--blazor-load-percentage-text, "Loading");
+        content: var(--blazor-load-percentage-text, "0%");
     }
+
+#app:has(.app-loading) + #app-loading.app-booted .loading-progress circle:last-child {
+    stroke-dasharray: 65%, 500%;
+    animation: loading-spin 1s linear infinite;
+}
+
+#app:has(.app-loading) + #app-loading.app-booted .loading-progress-text:after {
+    content: "Loading";
+}
+
+@keyframes loading-spin {
+    to { transform: rotate(270deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #app-loading,
+    .loading-progress circle:last-child,
+    #app:has(.app-loading) + #app-loading.app-booted .loading-progress circle:last-child {
+        transition: none;
+        animation: none;
+    }
+}
 
 code {
     color: #c02d76;

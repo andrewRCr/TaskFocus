@@ -4,6 +4,7 @@
 @inject NavigationManager NavManager
 @inject IAuthenticationService AuthService
 @inject IDataService DataService
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 
 <PageTitle>TaskFocus</PageTitle>
 
@@ -97,6 +98,17 @@
         await CheckConfirmedStatus();
         LoadAlertMessage();
 
+        var (returnUrl, _) = SignInRedirect.GetLoginReturnUrl(NavManager);
+        if (returnUrl is null && !string.IsNullOrWhiteSpace(_confirmEmailModel.Email))
+        {
+            var confirmationKey = SignInRedirect.ConfirmationStorageKey(_confirmEmailModel.Email);
+            var storedReturnUrl = await LocalStorage.GetItemAsStringAsync(confirmationKey);
+            returnUrl = SignInRedirect.ValidateReturnUrl(NavManager, storedReturnUrl);
+        }
+        var loginUrl = string.IsNullOrWhiteSpace(_confirmEmailModel.Email)
+            ? "/"
+            : SignInRedirect.LoginUrl(returnUrl, _confirmEmailModel.Email);
+
         if (!_isConfirmed)
         {
             if (!string.IsNullOrWhiteSpace(_confirmEmailModel.Token) && !string.IsNullOrWhiteSpace(_confirmEmailModel.Email))
@@ -111,7 +123,7 @@
                         // set Alert notification for home page
                         AppState.AlertSeverity = Severity.Success;
                         AppState.AlertMessage = "Email confirmed. Please log in to continue.";
-                        NavManager.NavigateTo("/");
+                        NavManager.NavigateTo(loginUrl);
                     }
                     else
                     {
@@ -126,7 +138,7 @@
         }
         else
         {
-            NavManager.NavigateTo("/");
+            NavManager.NavigateTo(loginUrl);
         }
     }
 

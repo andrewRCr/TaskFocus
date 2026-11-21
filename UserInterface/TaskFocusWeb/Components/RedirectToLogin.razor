@@ -1,0 +1,12 @@
+@inject NavigationManager Navigation
+
+<span class="app-loading" hidden></span>
+
+@code {
+    protected override void OnInitialized()
+    {
+        var currentUri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        var returnUrl = SignInRedirect.ValidateReturnUrl(Navigation, currentUri.PathAndQuery + currentUri.Fragment);
+        Navigation.NavigateTo(SignInRedirect.LoginUrl(returnUrl), replace: true);
+    }
+}
