@@ -118,7 +118,20 @@
             bool confirmed = await DataService.CheckUserEmailConfirmed(attemptLoginUserModel);
             if (!confirmed)
             {
-                NavManager.NavigateTo($"/unconfirmedemail?email={userModel.Email}");
+                bool passwordValid = await DataService.CheckPasswordValid(new CheckPasswordModel
+                {
+                    Email = userModel.Email,
+                    Password = userModel.Password
+                });
+                if (passwordValid)
+                {
+                    NavManager.NavigateTo(QueryHelpers.AddQueryString("/unconfirmedemail", "email", userModel.Email));
+                }
+                else
+                {
+                    AppState.ShowGenericLoginError();
+                    NavManager.NavigateTo("/");
+                }
             }
             else
             {

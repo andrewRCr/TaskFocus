@@ -7,6 +7,7 @@ namespace TaskFocusAPI.IntegrationTests
     internal sealed class CapturingEmailSender : IEmailSender
     {
         internal ConcurrentDictionary<string, string> ConfirmationLinks { get; } = new();
+        internal ConcurrentDictionary<string, string> PasswordResetLinks { get; } = new();
 
         public Task SendConfirmationLinkAsync(UserModel recipientUser, string confirmationLink)
         {
@@ -16,7 +17,8 @@ namespace TaskFocusAPI.IntegrationTests
 
         public Task SendPasswordResetLinkAsync(UserModel recipientUser, string resetLink)
         {
-            return SendEmailAsync(recipientUser, "Password reset", resetLink);
+            PasswordResetLinks[recipientUser.Email] = resetLink;
+            return Task.CompletedTask;
         }
 
         public Task Execute(string emailAuthKey, UserModel recipientUser, string subject, string message)

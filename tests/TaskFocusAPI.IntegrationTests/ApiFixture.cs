@@ -25,6 +25,7 @@ namespace TaskFocusAPI.IntegrationTests
         private MsSqlContainer? _sql;
         private TaskFocusApiFactory? _factory;
 
+        internal TaskFocusApiFactory Factory => _factory!;
         internal CapturingEmailSender Emails => _factory!.Emails;
 
         public async ValueTask InitializeAsync()
@@ -108,12 +109,17 @@ namespace TaskFocusAPI.IntegrationTests
             return new SqlConnection(DatabaseConnection(_sql!.GetConnectionString(), "TaskFocusData"));
         }
 
-        internal async Task<IdentityUser> CreateUserAsync(bool confirmed = true)
+        internal async Task<IdentityUser> CreateUserAsync(bool confirmed = true, bool twoFactorEnabled = false)
         {
             await using var scope = _factory!.Services.CreateAsyncScope();
             var users = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
             string email = NewEmail();
-            var user = new IdentityUser(email) { Email = email, EmailConfirmed = confirmed };
+            var user = new IdentityUser(email)
+            {
+                Email = email,
+                EmailConfirmed = confirmed,
+                TwoFactorEnabled = twoFactorEnabled
+            };
 
             EnsureIdentitySuccess(await users.CreateAsync(user, Password));
             scope.ServiceProvider.GetRequiredService<IUserData>().CreateUser(new UserModel

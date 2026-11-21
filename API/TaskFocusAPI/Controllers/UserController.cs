@@ -7,6 +7,7 @@ using TaskFocusAPI.Library.DataAccess;
 using TaskFocusAPI.Library.Models;
 using TaskFocusAPI.Library.Utilities;
 using TaskFocusAPI.Models;
+using TaskFocusAPI.Services;
 
 namespace TaskFocusAPI.Controllers
 {
@@ -17,18 +18,21 @@ namespace TaskFocusAPI.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly SignInManager<IdentityUser> _signInManager;
         private readonly IUserData _userData;
         private readonly IEmailSender _emailSender;
         private readonly IConfiguration _config;
 
         public UserController(ApplicationDbContext context,
                               UserManager<IdentityUser> userManager,
+                              SignInManager<IdentityUser> signInManager,
                               IUserData userData,
                               IEmailSender emailSender,
                               IConfiguration config)
         {
             _context = context;
             _userManager = userManager;
+            _signInManager = signInManager;
             _userData = userData;
             _emailSender = emailSender;
             _config = config;
@@ -67,13 +71,19 @@ namespace TaskFocusAPI.Controllers
         [AllowAnonymous]
         public async Task<bool> CheckPasswordValid(CheckPasswordModel checkPasswordModel)
         {
-            IdentityUser? identityUser = await _userManager.FindByEmailAsync(checkPasswordModel.Email);
-            if (identityUser != null) 
+            var user = await _userManager.FindByEmailAsync(checkPasswordModel.Email);
+            if (user == null) { return false; }
+
+            var result = await _signInManager.CheckPasswordSignInAsync(user, checkPasswordModel.Password, lockoutOnFailure: true);
+            if (result.IsNotAllowed && !user.EmailConfirmed)
             {
-                return await _userManager.CheckPasswordAsync(identityUser, checkPasswordModel.Password);
+                // The web client needs a password verdict to open the confirmation page.
+                return await UnconfirmedPasswordCheck.CheckAsync(_userManager, user, checkPasswordModel.Password) &&
+                    !await _userManager.GetTwoFactorEnabledAsync(user) &&
+                    (await _userManager.ResetAccessFailedCountAsync(user)).Succeeded;
             }
 
-            return false;
+            return result.Succeeded && !await _userManager.GetTwoFactorEnabledAsync(user);
         }
 
         [HttpPost]
@@ -129,7 +139,7 @@ namespace TaskFocusAPI.Controllers
             {
                 string decodedToken = model.Token.Replace(" ", "+");
 
-                var result = await _userManager.ResetPasswordAsync(existingUser, decodedToken, model.Password);
+                var result = await ResetPasswordAndClearLockoutAsync(existingUser, decodedToken, model.Password);
                 if (!result.Succeeded) 
                 {
                     foreach (var error in result.Errors)
@@ -265,19 +275,16 @@ namespace TaskFocusAPI.Controllers
                     IdentityResult result = await _userManager.CreateAsync(newIdentityUser, user.Password);
                     if (result.Succeeded)
                     {
-                        existingUser = await _userManager.FindByEmailAsync(user.Email);
-                        if (existingUser == null) { return BadRequest(); }
-
                         UserModel newUserModel = new UserModel() { Email = user.Email };
-                        newUserModel.Id = existingUser.Id;
+                        newUserModel.Id = newIdentityUser.Id;
                         newUserModel.FirstName = user.FirstName;
                         newUserModel.LastName = user.LastName;
 
                         _userData.CreateUser(newUserModel);
-                        await _userManager.AddToRoleAsync(existingUser, "User");
+                        await _userManager.AddToRoleAsync(newIdentityUser, "User");
 
                         // send email confirmation link
-                        var token = await _userManager.GenerateEmailConfirmationTokenAsync(existingUser);
+                        var token = await _userManager.GenerateEmailConfirmationTokenAsync(newIdentityUser);
                         string? confirmLink = $"{_config["AppUrl"]}/unconfirmedemail?email={newUserModel.Email}&token={token}";
 
                         if (confirmLink != null)
@@ -409,7 +416,7 @@ namespace TaskFocusAPI.Controllers
                     if (!string.IsNullOrEmpty(existingUser.UserName))
                     {
                         var token = await _userManager.GeneratePasswordResetTokenAsync(existingUser);
-                        await _userManager.ResetPasswordAsync(existingUser, token, updatedUserModel.Password);
+                        await ResetPasswordAndClearLockoutAsync(existingUser, token, updatedUserModel.Password);
                     }
                 }
             }
@@ -417,6 +424,14 @@ namespace TaskFocusAPI.Controllers
             {
                 throw new Exception(ex.Message);
             }
+        }
+
+        private Task<IdentityResult> ResetPasswordAndClearLockoutAsync(IdentityUser user, string token, string password)
+        {
+            // Identity saves these fields with the password after validating the token and password.
+            user.LockoutEnd = null;
+            user.AccessFailedCount = 0;
+            return _userManager.ResetPasswordAsync(user, token, password);
         }
     }
 }
