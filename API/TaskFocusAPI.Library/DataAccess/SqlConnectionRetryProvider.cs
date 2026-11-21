@@ -8,14 +8,21 @@ namespace TaskFocusAPI.Library.DataAccess
     internal sealed class SqlConnectionRetryProvider : SqlRetryLogicBaseProvider
     {
         internal static readonly SqlConnectionRetryProvider Instance = new(TimeProvider.System);
-        private static readonly TimeSpan RetryBudget = TimeSpan.FromSeconds(30);
+        // A serverless Azure SQL database typically resumes in about a minute. With the per-attempt cap below, one open
+        // ends within about 75 seconds, inside the 100-second HTTP timeout released clients use.
+        // A property, not a field: Instance above is initialized first and must not see an unset budget.
+        internal static TimeSpan DefaultRetryBudget => TimeSpan.FromSeconds(60);
         private const int MaxConnectTimeout = 15;
         private readonly TimeProvider _clock;
         private readonly Predicate<Exception> _isTransient;
+        private readonly TimeSpan _retryBudget;
 
-        internal SqlConnectionRetryProvider(TimeProvider clock, Predicate<Exception> isTransient = null)
+        internal TimeSpan RetryBudget => _retryBudget;
+
+        internal SqlConnectionRetryProvider(TimeProvider clock, Predicate<Exception> isTransient = null, TimeSpan? retryBudget = null)
         {
             _clock = clock;
+            _retryBudget = retryBudget ?? DefaultRetryBudget;
             RetryLogic = SqlConfigurableRetryFactory.CreateExponentialRetryProvider(new SqlRetryLogicOption
             {
                 NumberOfTries = 7,
@@ -75,13 +82,13 @@ namespace TaskFocusAPI.Library.DataAccess
                             throw;
                         }
                     }
-                    if (_clock.GetElapsedTime(start) + delay >= RetryBudget)
+                    if (_clock.GetElapsedTime(start) + delay >= _retryBudget)
                     {
                         throw;
                     }
 
                     await Task.Delay(delay, _clock, cancellationToken).ConfigureAwait(false);
-                    if (_clock.GetElapsedTime(start) >= RetryBudget)
+                    if (_clock.GetElapsedTime(start) >= _retryBudget)
                     {
                         throw;
                     }

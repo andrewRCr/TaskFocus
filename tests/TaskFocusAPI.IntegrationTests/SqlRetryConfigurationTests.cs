@@ -42,7 +42,7 @@ namespace TaskFocusAPI.IntegrationTests
         {
             var clock = new RetryClock();
             var failure = new TimeoutException();
-            var provider = new SqlConnectionRetryProvider(clock, ex => ex == failure);
+            var provider = new SqlConnectionRetryProvider(clock, ex => ex == failure, ThirtySeconds);
             var attempts = new List<TimeSpan>();
 
             var actual = await Assert.ThrowsAsync<TimeoutException>(() => provider.ExecuteAsync(this, () =>
@@ -73,7 +73,7 @@ namespace TaskFocusAPI.IntegrationTests
         {
             var clock = new RetryClock { TimerOverrun = TimeSpan.FromSeconds(timerOverrunSeconds) };
             var failure = new TimeoutException();
-            var provider = new SqlConnectionRetryProvider(clock, ex => ex == failure);
+            var provider = new SqlConnectionRetryProvider(clock, ex => ex == failure, ThirtySeconds);
             int attempts = 0;
 
             Assert.Same(failure, Assert.Throws<TimeoutException>(() => provider.Execute<int>(this, () =>
@@ -85,6 +85,31 @@ namespace TaskFocusAPI.IntegrationTests
 
             Assert.Equal(1, attempts);
             Assert.Equal(expectedWaits, clock.Waits.Count);
+        }
+
+        private static readonly TimeSpan ThirtySeconds = TimeSpan.FromSeconds(30);
+
+        [Fact]
+        public void DefaultBudgetCoversAServerlessResume()
+        {
+            Assert.Equal(TimeSpan.FromSeconds(60), SqlConnectionRetryProvider.DefaultRetryBudget);
+            Assert.Equal(TimeSpan.FromSeconds(60), SqlConnectionRetryProvider.Instance.RetryBudget);
+
+            // A first attempt that stalls for 40 seconds still leaves room for a retry under the default budget.
+            var clock = new RetryClock();
+            var failure = new TimeoutException();
+            var provider = new SqlConnectionRetryProvider(clock, ex => ex == failure);
+            int attempts = 0;
+
+            Assert.Same(failure, Assert.Throws<TimeoutException>(() => provider.Execute<int>(this, () =>
+            {
+                attempts++;
+                clock.Advance(TimeSpan.FromSeconds(40));
+                throw failure;
+            })));
+
+            Assert.Equal(2, attempts);
+            Assert.Single(clock.Waits);
         }
 
         private sealed class RetryClock : TimeProvider
