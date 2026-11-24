@@ -12,7 +12,7 @@ Elevation="0" >
 
             <MudItem xs="1" Class="mt-2">
 
-            @if (DataService.IsDataStateLoaded())
+            @if (!InitialLoadFailed && DataService.IsDataStateLoaded())
             {
                 <MudIconButton Class="rounded-circle"
                 Icon="@Icons.Material.Filled.Add"
@@ -31,7 +31,7 @@ Elevation="0" >
 
             <MudItem xs="1" Class="mt-2">
                 <MudStack Row="true" Justify="Justify.FlexEnd">
-                    <MudText Align="Align.Right">Status: <MudText Inline="true" Color="@GetSyncStatusColor()">@GetSyncStatusString()</MudText></MudText>
+                    <MudText Align="Align.Right">Status: <MudText Inline="true" Color="@GetSyncStatusColor()">@SyncStatus</MudText></MudText>
                 </MudStack>
             </MudItem>
 
@@ -197,9 +197,14 @@ Style="background-color: #27272f" >
             CloseOnEscapeKey = true
     };
 
+    [Parameter]
+    public bool InitialLoadFailed { get; set; }
+
+    private string SyncStatus => InitialLoadFailed ? "Initialization failed" : GetSyncStatusString();
+
     private MudBlazor.Color GetSyncStatusColor()
     {
-        return GetSyncStatusString() == "Synchronized" ? Color.Primary : Color.Default;
+        return SyncStatus == "Synchronized" ? Color.Primary : Color.Default;
     }
 
     protected override async Task OnInitializedAsync()

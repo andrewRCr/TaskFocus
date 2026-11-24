@@ -37,6 +37,14 @@ a, .btn-link {
     color: red;
 }
 
+.sign-in-warning {
+    position: sticky;
+    top: var(--mud-appbar-height);
+    pointer-events: none;
+    z-index: 1;
+    background-color: var(--mud-palette-background);
+}
+
 #blazor-error-ui {
     background: lightyellow;
     bottom: 0;

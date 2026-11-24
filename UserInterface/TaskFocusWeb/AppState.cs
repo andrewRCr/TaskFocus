@@ -106,13 +106,12 @@ namespace TaskFocusWeb
         public void ClearAlertMessage()
         {
             _alertSeverity = MudBlazor.Severity.Info;
-            _alertMessage = string.Empty;
+            AlertMessage = string.Empty;
         }
 
-        public void ShowGenericLoginError()
+        public void DismissSignInWarning()
         {
-            _alertSeverity = MudBlazor.Severity.Error;
-            AlertMessage = "There was an error when attempting to log in. Please try again.";
+            AppStateChanged?.Invoke(nameof(DismissSignInWarning), this);
         }
 
         public void RequestManualRefresh()
