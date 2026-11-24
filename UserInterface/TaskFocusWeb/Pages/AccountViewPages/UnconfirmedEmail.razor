@@ -139,13 +139,26 @@
     {
         UserModel userModel = new UserModel { Email = _confirmEmailModel.Email };
 
+        _errorMessage = null;
+        AppState.ClearAlertMessage();
+        _alertMessage = string.Empty;
         _loading = true; // indicate request processing
-        await DataService.SendEmailConfirmationLink(userModel);
-        _loading = false;
+        try
+        {
+            await DataService.SendEmailConfirmationLink(userModel);
 
-        AppState.AlertSeverity = Severity.Success;
-        AppState.AlertMessage = "Email sent.";
-        LoadAlertMessage();
+            AppState.AlertSeverity = Severity.Success;
+            AppState.AlertMessage = "Email sent.";
+            LoadAlertMessage();
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
     }
 
     private async Task CheckConfirmedStatus()

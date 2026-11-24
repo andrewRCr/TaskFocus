@@ -155,6 +155,19 @@
                 NavManager.NavigateTo(loginUrl);
             }
         }
+        catch (HttpRequestException ex) when (AuthStateProvider.CredentialsRejected(ex))
+        {
+            AppState.AlertSeverity = Severity.Warning;
+            AppState.AlertMessage = "Your sign-in session was rejected. Please log in again.";
+            NavManager.NavigateTo(loginUrl);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            AppState.AlertSeverity = Severity.Error;
+            AppState.AlertMessage = "Could not complete sign-in. Please try again.";
+            NavManager.NavigateTo(loginUrl);
+        }
         finally
         {
             _working = false;

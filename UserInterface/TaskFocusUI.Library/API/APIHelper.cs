@@ -67,24 +67,24 @@ namespace TaskFocusUI.Library.API
 
         public async Task GetLoggedInUserInfoAsync(string token)
         {
-            _apiClient.DefaultRequestHeaders.Clear();
-            _apiClient.DefaultRequestHeaders.Accept.Clear();
-            _apiClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            _apiClient.DefaultRequestHeaders.Add("Authorization", $"Bearer { token }");
+            using var request = new HttpRequestMessage(HttpMethod.Get, "/api/user/getcurrentuser");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-            using (HttpResponseMessage response = await _apiClient.GetAsync("/api/user/getcurrentuser"))
+            using (HttpResponseMessage response = await _apiClient.SendAsync(request))
             {
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = await response.Content.ReadAsAsync<LoggedInUserModel>();
-                    _loggedInUser.Token = token;
-                    _loggedInUser.Id = result.Id;
-                    _loggedInUser.Email = result.Email;
-                    _loggedInUser.FirstName = result.FirstName;
-                    _loggedInUser.LastName = result.LastName;
-                    _loggedInUser.CreatedDate = result.CreatedDate;
-                }
-                else { throw new Exception(response.ReasonPhrase);}
+                response.EnsureSuccessStatusCode();
+                var result = await response.Content.ReadAsAsync<LoggedInUserModel>();
+                _loggedInUser.Id = result.Id;
+                _loggedInUser.Email = result.Email;
+                _loggedInUser.FirstName = result.FirstName;
+                _loggedInUser.LastName = result.LastName;
+                _loggedInUser.CreatedDate = result.CreatedDate;
+                _loggedInUser.Token = token;
+
+                _apiClient.DefaultRequestHeaders.Authorization = request.Headers.Authorization;
+                _apiClient.DefaultRequestHeaders.Accept.Clear();
+                _apiClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             }
         }
 

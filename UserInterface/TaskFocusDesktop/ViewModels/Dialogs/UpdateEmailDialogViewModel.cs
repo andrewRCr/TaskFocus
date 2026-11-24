@@ -1,6 +1,6 @@
 ﻿using Caliburn.Micro;
-using MaterialDesignThemes.Wpf;
 using System;
+using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using TaskFocusDesktop.EventModels;
 using TaskFocusDesktop.ViewModels.Base;
@@ -17,6 +17,7 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
         private IAPIHelper _apiHelper;
         private ILoggedInUserModel _loggedInUser;
         private UserModel _userModel = new();
+        private bool _submitting;
 
         public UpdateEmailDialogViewModel(IEventAggregator events,
                                   IAppState appState,
@@ -52,68 +53,70 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
 
         protected override async Task ProcessSubmitAction()
         {
+            if (_submitting)
+            {
+                return;
+            }
+
             if (string.IsNullOrWhiteSpace(UpdatedEmailAddress))
             {
                 IsFeedbackError = true;
                 FeedbackMessage = "Email address cannot be empty; please try again.";
+                return;
             }
 
-            _userModel.Email = UpdatedEmailAddress!;
-            bool emailTaken = await _dataService.CheckUserExists(_userModel);
-            if (emailTaken)
+            if (!new EmailAddressAttribute().IsValid(UpdatedEmailAddress))
             {
                 IsFeedbackError = true;
-                FeedbackMessage = "Email address already associated with an existing account.";
+                FeedbackMessage = "Please enter a valid email address.";
+                return;
             }
-            else
+
+            _submitting = true;
+            try
             {
-                try
+                _userModel.Email = UpdatedEmailAddress;
+                if (await _dataService.CheckUserExists(_userModel))
                 {
-                    _userModel.Id = _loggedInUser.Id;
-                    _userModel.FirstName = _loggedInUser.FirstName;
-                    _userModel.LastName = _loggedInUser.LastName;
-
-                    bool success = await _dataService.RequestUpdateEmail(_userModel);
-
-                    if (success)
-                    {
-                        // update auth state: log user out
-                        _apiHelper.LogOutUser();
-                        _loggedInUser!.ResetUserModel();
-
-                        // raise logout event for LoginWidget to handle 
-                        await _events.PublishOnUIThreadAsync(new LogoutNotifyEvent());
-                        // raise auth status changed event for ShellView to handle
-                        await _events.PublishOnUIThreadAsync(new AuthStatusChangedEvent(false));
-
-                        IsFeedbackError = false;
-                        FeedbackMessage = "Email address change requested.";
-                        await Task.Delay(TimeSpan.FromSeconds(_successMsgDisplaySec));
-
-                        // set Alert notification on home page + navigate to home
-                        _appState.AlertMessage = "Check your email for a link to confirm your updated address.";
-                        await RequestMainContentViewSwitch(Utilities.ViewCatalog.MainContentView.Home);
-                        await _events.PublishOnUIThreadAsync(new UnconfirmedUpdatedEmailNotifyEvent(_userModel.Email));
-
-                        // close dialog
-                        DialogHost.Close(_dialogIdentifier);
-                        FeedbackMessage = null;
-                        UpdatedEmailAddress = null;
-                    }
+                    IsFeedbackError = true;
+                    FeedbackMessage = "Email address already associated with an existing account.";
+                    return;
                 }
-                catch (Exception ex)
+                _userModel.Id = _loggedInUser.Id;
+                _userModel.FirstName = _loggedInUser.FirstName;
+                _userModel.LastName = _loggedInUser.LastName;
+                if (!await _dataService.RequestUpdateEmail(_userModel))
                 {
-                    FeedbackMessage = ex.Message;
+                    IsFeedbackError = true;
+                    FeedbackMessage = "Could not request an email address change. Please try again.";
+                    return;
                 }
 
-                if (DialogHost.IsDialogOpen(_dialogIdentifier))
-                {
-                    // close dialog
-                    DialogHost.Close(_dialogIdentifier);
-                    FeedbackMessage = null;
-                    IsFeedbackError = false;
-                    UpdatedEmailAddress = null;
-                }
+                // update auth state: log user out
+                _apiHelper.LogOutUser();
+                _loggedInUser!.ResetUserModel();
+
+                await _events.PublishOnUIThreadAsync(new LogoutNotifyEvent());
+                await _events.PublishOnUIThreadAsync(new AuthStatusChangedEvent(false));
+
+                IsFeedbackError = false;
+                FeedbackMessage = "Email address change requested.";
+                await Task.Delay(TimeSpan.FromSeconds(_successMsgDisplaySec));
+
+                _appState.AlertMessage = "Check your email for a link to confirm your updated address.";
+                await RequestMainContentViewSwitch(Utilities.ViewCatalog.MainContentView.Home);
+                await _events.PublishOnUIThreadAsync(new UnconfirmedUpdatedEmailNotifyEvent(_userModel.Email));
+
+                CloseDialog();
+            }
+            catch (Exception ex)
+            {
+                IsFeedbackError = true;
+                FeedbackMessage = ex.Message;
+            }
+            finally
+            {
+                _submitting = false;
             }
         }
     }

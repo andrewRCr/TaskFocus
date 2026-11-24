@@ -126,7 +126,7 @@ namespace TaskFocusDesktop.ViewModels.TopPanel
                     Username = loginCredential.UserName;
                     Password = loginCredential.Password;
                 }
-                if (_appState.ShouldAutoLogin) { await LogIn(); }
+                if (_appState.ShouldAutoLogin && loginCredential != null && CanLogIn) { await LogIn(); }
                 else { EnableLoginFormControls = true; }
             }
             catch (Exception ex)
@@ -158,7 +158,6 @@ namespace TaskFocusDesktop.ViewModels.TopPanel
                 if (!exists)
                 {
                     _appState.AlertMessage = "No matching user found.";
-                    EnableLoginFormControls = true;
                     await _events.PublishOnUIThreadAsync(new AuthErrorNotifyEvent());
                 }
                 else
@@ -176,7 +175,6 @@ namespace TaskFocusDesktop.ViewModels.TopPanel
                         if (result == null)
                         {
                             _appState.AlertMessage = "There was an error when attempting to log in. Please try again.";
-                            EnableLoginFormControls = true;
                             await _events.PublishOnUIThreadAsync(new AuthErrorNotifyEvent());
                         }
                         else
@@ -213,10 +211,13 @@ namespace TaskFocusDesktop.ViewModels.TopPanel
             catch (Exception ex)
             {
                 ErrorMessage = ex.Message;
-                EnableLoginFormControls = true;
-
                 Console.WriteLine(ex.Message.ToString());
                 _appState.AlertMessage = ex.Message;
+                await _events.PublishOnUIThreadAsync(new AuthErrorNotifyEvent());
+            }
+            finally
+            {
+                EnableLoginFormControls = true;
             }
         }
     }

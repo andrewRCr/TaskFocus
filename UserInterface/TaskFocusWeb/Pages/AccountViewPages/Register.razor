@@ -161,24 +161,17 @@
             _loading = true;
             await DataService.CreateUser(userModel);
 
-            UserModel createdUserModel = new() { Email = userModel.Email };
-            bool success = await DataService.CheckUserExists(createdUserModel);
-            if (success)
-            {
-                // set Alert notification + navigate to unconfirmed email page
-                AppState.AlertMessage = "Account created but email not yet confirmed. Please check your email for a confirmation link.";
-                AppState.AlertSeverity = Severity.Success;
-                NavManager.NavigateTo(QueryHelpers.AddQueryString("/unconfirmedemail", "email", userModel.Email));
-            }
-            else
-            {
-                _loading = false;
-                errorMessage = "There was an error when attempting to register.";
-            }
+            AppState.AlertMessage = "Account created but email not yet confirmed. Please check your email for a confirmation link.";
+            AppState.AlertSeverity = Severity.Success;
+            NavManager.NavigateTo(QueryHelpers.AddQueryString("/unconfirmedemail", "email", userModel.Email));
         }
         catch (Exception ex)
         {
             errorMessage = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
         }
     }
 
