@@ -168,7 +168,7 @@
                 // set Alert notification + navigate to unconfirmed email page
                 AppState.AlertMessage = "Account created but email not yet confirmed. Please check your email for a confirmation link.";
                 AppState.AlertSeverity = Severity.Success;
-                NavManager.NavigateTo($"/unconfirmedemail?email={userModel.Email}");
+                NavManager.NavigateTo(QueryHelpers.AddQueryString("/unconfirmedemail", "email", userModel.Email));
             }
             else
             {
