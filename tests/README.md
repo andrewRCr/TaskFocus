@@ -29,6 +29,6 @@ removes test containers a cancelled run left behind more than 30 minutes earlier
 The API fixture uses a disposable SQL Server, applies the Identity migrations, and reads the TaskFocusData scripts
 directly from the checkout. Email stays in memory.
 
-Pull requests into `main` also run both test projects and build checks on GitHub Actions. Azure Pipelines builds,
+Pull requests into `main` run both test projects and build checks on GitHub Actions. Azure Pipelines builds,
 tests and deploys `main`. Its Ubuntu `Test` job runs both test projects through the script alongside the Windows
 build and publishes TRX and Cobertura results. Deployment requires the whole `Build` stage to succeed.

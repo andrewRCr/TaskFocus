@@ -6,9 +6,8 @@ improvements.
 ## Workflow
 
 - Branch from `main` and keep each pull request to one concern.
-- `main` is protected. Changes land through a pull request whose CI check, `Standard CI-CD Pipeline`, has passed, and
+- `main` is protected. Changes land through a pull request whose check, `PR checks` (GitHub Actions), has passed, and
   pull requests are squash-merged.
-- Pull requests into `main` also run build and test checks on GitHub Actions.
 - Azure Pipelines builds and tests `main` and deploys its API and web app to production, so `main` must always be
   releasable. Desktop releases are published separately on GitHub Releases.
 
