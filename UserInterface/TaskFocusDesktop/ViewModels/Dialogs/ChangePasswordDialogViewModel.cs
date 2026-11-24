@@ -142,10 +142,6 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
                         IsFeedbackError = false;
                         NewPassword = string.Empty;
                         ConfirmNewPassword = string.Empty;
-
-                        // send email confirmation 
-                        UserModel user = new UserModel { Email = _authUserModel.Email };
-                        await _dataService.SendPasswordChangeSuccessEmail(user);
                     }
                 }
                 catch (Exception ex)

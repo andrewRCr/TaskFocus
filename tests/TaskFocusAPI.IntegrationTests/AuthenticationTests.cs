@@ -226,6 +226,29 @@ namespace TaskFocusAPI.IntegrationTests
             await AssertPasswordChangeAllowsSignInAsync(client, user, newPassword);
         }
 
+        [Theory]
+        [InlineData("/api/User/UpdatePassword", 5)]
+        [InlineData("/api/User/UpdatePassword?reportRejection=true", 1)]
+        public async Task ExistingPasswordClearsFailedSignInStateWithoutSendingNotice(string path, int attempts)
+        {
+            var user = await fixture.CreateUserAsync();
+            using var session = await fixture.CreateAuthenticatedClientAsync(user);
+            using var client = fixture.CreateClient();
+            for (var i = 0; i < attempts; i++)
+            {
+                Assert.False(await CheckPasswordAsync(client, user.Email!, "incorrect-password"));
+            }
+
+            int previousMessageCount = fixture.Emails.Messages.Count;
+            using var update = await HttpClientJsonExtensions.PutAsJsonAsync(session, path,
+                new UserRegistrationModel("Test", "User", user.Email!, ApiFixture.Password), CancellationToken);
+
+            Assert.Equal(HttpStatusCode.OK, update.StatusCode);
+            Assert.Empty(await update.Content.ReadAsStringAsync(CancellationToken));
+            await AssertPasswordChangeAllowsSignInAsync(client, user, ApiFixture.Password);
+            Assert.Equal(previousMessageCount, fixture.Emails.Messages.Count);
+        }
+
         [Fact]
         public async Task StockIdentityRegistrationPagesAreNotServed()
         {

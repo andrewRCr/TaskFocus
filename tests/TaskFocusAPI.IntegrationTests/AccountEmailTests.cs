@@ -80,19 +80,56 @@ namespace TaskFocusAPI.IntegrationTests
         public async Task PasswordChangeNoticeGoesOnlyToIdentityAddress()
         {
             string email = NewPlusEmail();
-            await fixture.CreateUserAsync(email: email, profileEmail: ApiFixture.NewEmail());
+            string profileEmail = ApiFixture.NewEmail();
+            var user = await fixture.CreateUserAsync(email: email, profileEmail: profileEmail);
+            using var client = await fixture.CreateAuthenticatedClientAsync(user);
+            int previousMessageCount = fixture.Emails.Messages.Count;
+
+            using var update = await HttpClientJsonExtensions.PutAsJsonAsync(client, "/api/User/UpdatePassword?reportRejection=true",
+                new UserRegistrationModel("Test", "User", profileEmail, "New-fixture-password!123"), CancellationToken);
+            Assert.Equal(HttpStatusCode.OK, update.StatusCode);
+            Assert.Empty(await update.Content.ReadAsStringAsync(CancellationToken));
+
+            var message = Assert.Single(fixture.Emails.Messages.Skip(previousMessageCount));
+            AssertPasswordChangeNotice(message, email);
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task LegacyPasswordChangeNoticeRequestSucceedsWithoutSendingMail(bool accountExists)
+        {
+            string email = NewPlusEmail();
+            if (accountExists)
+            {
+                await fixture.CreateUserAsync(email: email);
+            }
             using var client = fixture.CreateClient();
             int previousMessageCount = fixture.Emails.Messages.Count;
 
             using var notice = await HttpClientJsonExtensions.PostAsJsonAsync(client, "/api/User/SendPasswordChangeSuccessEmail",
-                new UserModel { Email = email }, CancellationToken);
+                new UserModel { Email = email.ToUpperInvariant() }, CancellationToken);
             Assert.Equal(HttpStatusCode.OK, notice.StatusCode);
+            var body = await notice.Content.ReadFromJsonAsync<Response>(CancellationToken);
+            Assert.Equal("Success", body?.Status);
+            Assert.Equal($"Password changed successfully email sent to {(accountExists ? email : email.ToUpperInvariant())}.", body?.Message);
+            Assert.Equal(previousMessageCount, fixture.Emails.Messages.Count);
+        }
 
-            var message = Assert.Single(fixture.Emails.Messages.Skip(previousMessageCount));
-            Assert.Equal(email, Assert.Single(message.To.Mailboxes).Address);
-            Assert.Empty(message.Cc);
-            Assert.Empty(message.Bcc);
-            Assert.Equal("Password changed", message.Subject);
+        [Fact]
+        public async Task LegacyPasswordChangeNoticeRequestSucceedsWithoutAnAddress()
+        {
+            using var client = fixture.CreateClient();
+            int previousMessageCount = fixture.Emails.Messages.Count;
+
+            using var notice = await HttpClientJsonExtensions.PostAsJsonAsync(client, "/api/User/SendPasswordChangeSuccessEmail",
+                new { }, CancellationToken);
+
+            Assert.Equal(HttpStatusCode.OK, notice.StatusCode);
+            var body = await notice.Content.ReadFromJsonAsync<Response>(CancellationToken);
+            Assert.Equal("Success", body?.Status);
+            Assert.Equal("Password changed successfully email sent to .", body?.Message);
+            Assert.Equal(previousMessageCount, fixture.Emails.Messages.Count);
         }
 
         [Fact]
@@ -112,12 +149,8 @@ namespace TaskFocusAPI.IntegrationTests
             Assert.StartsWith("Hello,", Assert.IsType<string>(resetMessage.HtmlBody));
             await ResetPasswordAndSignInAsync(client, link);
 
-            using var notice = await HttpClientJsonExtensions.PostAsJsonAsync(client, "/api/User/SendPasswordChangeSuccessEmail",
-                new UserModel { Email = email }, CancellationToken);
-            Assert.Equal(HttpStatusCode.OK, notice.StatusCode);
-
             var noticeMessage = Assert.Single(fixture.Emails.Messages.Skip(previousMessageCount + 1));
-            Assert.Equal(email, Assert.Single(noticeMessage.To.Mailboxes).Address);
+            AssertPasswordChangeNotice(noticeMessage, email);
             Assert.StartsWith("Hello,", Assert.IsType<string>(noticeMessage.HtmlBody));
         }
 
@@ -165,6 +198,14 @@ namespace TaskFocusAPI.IntegrationTests
 
             using var signIn = await ApiFixture.RequestTokenAsync(client, link.Email, newPassword);
             Assert.Equal(HttpStatusCode.OK, signIn.StatusCode);
+        }
+
+        private static void AssertPasswordChangeNotice(MimeMessage message, string email)
+        {
+            Assert.Equal(email, Assert.Single(message.To.Mailboxes).Address);
+            Assert.Empty(message.Cc);
+            Assert.Empty(message.Bcc);
+            Assert.Equal("Password changed", message.Subject);
         }
 
         [Fact]

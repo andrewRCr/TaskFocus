@@ -157,7 +157,7 @@ namespace TaskFocusUI.Library.API
 
         public async Task UpdatePassword(CreateUserModel updatedUserModel)
         {
-            using (HttpResponseMessage response = await _apiHelper.APIClient.PutAsJsonAsync("/api/User/UpdatePassword", updatedUserModel))
+            using (HttpResponseMessage response = await _apiHelper.APIClient.PutAsJsonAsync("/api/User/UpdatePassword?reportRejection=true", updatedUserModel))
             {
                 if (response.IsSuccessStatusCode)
                 {
