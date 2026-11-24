@@ -1,5 +1,7 @@
 using Microsoft.Data.SqlClient;
 using System;
+using System.IO;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -8,9 +10,8 @@ namespace TaskFocusAPI.Library.DataAccess
     internal sealed class SqlConnectionRetryProvider : SqlRetryLogicBaseProvider
     {
         internal static readonly SqlConnectionRetryProvider Instance = new(TimeProvider.System);
-        // No new attempt starts after 30 seconds, and the per-attempt cap below ends one open within about 45 seconds,
-        // so a request that opens both databases (sign-up) still answers inside the 100-second HTTP timeout released
-        // clients use. That covers brief outages such as reconfiguration, not a paused serverless database's resume.
+        // Each connection open has 30 seconds to start another attempt. An attempt can finish after the deadline,
+        // and requests with multiple opens can exceed the client's 100-second HTTP timeout.
         // A property, not a field: Instance above is initialized first and must not see an unset budget.
         internal static TimeSpan DefaultRetryBudget => TimeSpan.FromSeconds(30);
         private const int MaxConnectTimeout = 15;
@@ -31,13 +32,34 @@ namespace TaskFocusAPI.Library.DataAccess
                 MaxTimeInterval = TimeSpan.FromSeconds(14)
             }).RetryLogic;
             var standard = RetryLogic.TransientPredicate;
-            _isTransient = isTransient ?? (ex => standard(ex) || IsConnectTimeout(ex));
+            _isTransient = isTransient ?? (ex => standard(ex) || IsConnectTimeout(ex) || IsLoginTransportFailure(ex));
         }
 
         // A database resuming from pause can stall the login until the connection timeout (error -2) instead of
         // refusing it with 40613. SqlClient's default list leaves -2 out because a command may have run; this
         // provider only retries opening a connection, so it is safe here.
         internal static bool IsConnectTimeout(Exception ex) => ex is SqlException { Number: -2 };
+
+        private static bool IsLoginTransportFailure(Exception ex)
+        {
+            // Retrying a connection open cannot replay a command, even when SqlClient reconnects an idle session.
+            if (ex is not SqlException { Number: 0, Class: 20, Errors.Count: 1 } sql)
+            {
+                return false;
+            }
+
+            for (var cause = sql.InnerException; cause != null; cause = cause.InnerException)
+            {
+                // SqlClient can report a refused TCP connect as SocketError.Success on Linux.
+                if (cause is not (IOException or SocketException) ||
+                    cause is SocketException { SocketErrorCode: SocketError.Success or SocketError.ConnectionRefused })
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
 
         internal void Configure(SqlConnection connection)
         {

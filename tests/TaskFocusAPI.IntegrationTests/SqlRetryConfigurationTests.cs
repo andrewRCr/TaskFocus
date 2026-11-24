@@ -1,3 +1,7 @@
+using System.Data;
+using System.Globalization;
+using System.Net;
+using System.Net.Sockets;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -35,6 +39,144 @@ namespace TaskFocusAPI.IntegrationTests
                 using var command = connection.CreateCommand();
                 Assert.Equal(1, command.RetryLogicProvider.RetryLogic.NumberOfTries);
             }
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task SqlClientReportsAnInterruptedLoginAsFatalTransportError(bool reset)
+        {
+            using var server = new LoopbackSqlServer();
+            using var connection = server.CreateConnection();
+            using var timeout = LoginTestTimeout();
+            var exchange = server.InterruptLoginAsync(reset, timeout.Token);
+
+            var error = await Assert.ThrowsAsync<SqlException>(() => connection.OpenAsync(timeout.Token));
+            await exchange;
+
+            Assert.Equal(0, error.Number);
+            Assert.Equal(20, error.Class);
+            Assert.Single(error.Errors);
+            if (reset)
+            {
+                var io = Assert.IsType<IOException>(error.InnerException);
+                Assert.Equal(SocketError.ConnectionReset, Assert.IsType<SocketException>(io.InnerException).SocketErrorCode);
+            }
+            else
+            {
+                Assert.Null(error.InnerException);
+            }
+        }
+
+        [Theory]
+        [InlineData(false, false)]
+        [InlineData(true, false)]
+        [InlineData(true, true)]
+        public async Task InterruptedLoginIsRetriedAndTheNextOpenSucceeds(bool reset, bool beforeLogin)
+        {
+            CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("fr-FR");
+            using var server = new LoopbackSqlServer();
+            using var connection = server.CreateConnection();
+            using var timeout = LoginTestTimeout();
+            var clock = new RetryClock();
+            new SqlConnectionRetryProvider(clock).Configure(connection);
+
+            var interrupted = server.InterruptLoginAsync(reset, timeout.Token, beforeLogin);
+            var open = connection.OpenAsync(timeout.Token);
+            await interrupted;
+
+            // Surface a first-attempt failure while the server is waiting for a second connection.
+            var accepted = server.AcceptLoginAsync(timeout.Token);
+            if (await Task.WhenAny(open, accepted) == open)
+            {
+                await open;
+            }
+            await accepted;
+            await open;
+
+            Assert.Equal(ConnectionState.Open, connection.State);
+            Assert.Single(clock.Waits);
+        }
+
+        [Fact]
+        public async Task LoginResetCannotStartAnotherAttemptAfterTheDeadline()
+        {
+            using var server = new LoopbackSqlServer();
+            using var connection = server.CreateConnection();
+            using var timeout = LoginTestTimeout();
+            var clock = new RetryClock { TimerOverrun = ThirtySeconds };
+            new SqlConnectionRetryProvider(clock).Configure(connection);
+            var exchange = server.InterruptLoginAsync(true, timeout.Token);
+
+            var error = await Assert.ThrowsAsync<SqlException>(() => connection.OpenAsync(timeout.Token));
+            await exchange;
+
+            Assert.Equal(0, error.Number);
+            Assert.Single(clock.Waits);
+        }
+
+        [Fact]
+        public async Task UnsupportedEncryptionIsNotRetried()
+        {
+            using var server = new LoopbackSqlServer();
+            using var connection = server.CreateConnection(requireEncryption: true);
+            using var timeout = LoginTestTimeout();
+            var clock = new RetryClock();
+            new SqlConnectionRetryProvider(clock).Configure(connection);
+            var exchange = server.RejectPreLoginAsync(timeout.Token);
+
+            var error = await Assert.ThrowsAsync<SqlException>(() => connection.OpenAsync(timeout.Token));
+            await exchange;
+
+            Assert.Equal(20, error.Number);
+            Assert.Equal(20, error.Class);
+            Assert.Empty(clock.Waits);
+        }
+
+        [Fact]
+        public async Task TcpConnectionRefusalIsNotRetried()
+        {
+            using var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            socket.Bind(new IPEndPoint(IPAddress.Loopback, 0));
+            using var connection = LoopbackSqlServer.CreateConnection((IPEndPoint)socket.LocalEndPoint!);
+            using var timeout = LoginTestTimeout();
+            var clock = new RetryClock();
+            new SqlConnectionRetryProvider(clock).Configure(connection);
+
+            await Assert.ThrowsAsync<SqlException>(() => connection.OpenAsync(timeout.Token));
+
+            Assert.Empty(clock.Waits);
+        }
+
+        [Fact]
+        public async Task UnresolvableHostIsNotRetried()
+        {
+            using var connection = new SqlConnection("Server=tcp:taskfocus.invalid,1433;Connect Timeout=5");
+            using var timeout = LoginTestTimeout();
+            var clock = new RetryClock();
+            new SqlConnectionRetryProvider(clock).Configure(connection);
+
+            var error = await Assert.ThrowsAsync<SqlException>(() => connection.OpenAsync(timeout.Token));
+
+            Assert.Equal(11001, error.Number);
+            Assert.Empty(clock.Waits);
+        }
+
+        [Fact]
+        public async Task SqlFirewallRefusalIsNotRetried()
+        {
+            using var server = new LoopbackSqlServer();
+            using var connection = server.CreateConnection();
+            using var timeout = LoginTestTimeout();
+            var clock = new RetryClock();
+            new SqlConnectionRetryProvider(clock).Configure(connection);
+            var exchange = server.RefuseLoginByFirewallAsync(timeout.Token);
+
+            var error = await Assert.ThrowsAsync<SqlException>(() => connection.OpenAsync(timeout.Token));
+            await exchange;
+
+            Assert.Equal(40615, error.Number);
+            Assert.Empty(clock.Waits);
         }
 
         [Fact]
@@ -89,6 +231,13 @@ namespace TaskFocusAPI.IntegrationTests
 
         private static readonly TimeSpan ThirtySeconds = TimeSpan.FromSeconds(30);
 
+        private static CancellationTokenSource LoginTestTimeout()
+        {
+            var timeout = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
+            timeout.CancelAfter(TimeSpan.FromSeconds(20));
+            return timeout;
+        }
+
         [Fact]
         public void SharedProviderUsesTheThirtySecondBudget()
         {
@@ -96,7 +245,7 @@ namespace TaskFocusAPI.IntegrationTests
             Assert.Equal(ThirtySeconds, SqlConnectionRetryProvider.Instance.RetryBudget);
         }
 
-        private sealed class RetryClock : TimeProvider
+        internal sealed class RetryClock : TimeProvider
         {
             public TimeSpan Elapsed { get; private set; }
             public TimeSpan TimerOverrun { get; init; }
