@@ -50,20 +50,24 @@ jobs:
       - run: scripts/check.sh publish-web
 
   api:
-    name: API build and auth migrations
+    name: API publish and auth migrations
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - *checkout
       - *dotnet
       - *nuget-cache
-      - run: scripts/check.sh build-api
+      - name: Publish API for Linux
+        shell: bash
+        run: |
+          dotnet publish API/TaskFocusAPI/TaskFocusAPI.csproj --configuration Release --runtime linux-x64 \
+            --output "$RUNNER_TEMP/publish-api" --disable-build-servers
       - name: Generate idempotent auth migration script
         shell: bash
         run: |
           dotnet tool install --tool-path "$RUNNER_TEMP/dotnet-tools" dotnet-ef --version 10.0.15
           export PATH="$RUNNER_TEMP/dotnet-tools:$PATH"
-          dotnet ef migrations script -i --configuration Release --no-build \
+          dotnet ef migrations script -i --configuration Release --runtime linux-x64 --no-build \
             -p API/TaskFocusAPI/TaskFocusAPI.csproj -o "$RUNNER_TEMP/migrate.sql"
           test -s "$RUNNER_TEMP/migrate.sql"
 
@@ -92,11 +96,8 @@ jobs:
     steps:
       - name: Require every job to succeed
         env:
-          RESULTS: ${{ join(needs.*.result, ' ') }}
+          RESULTS: ${{ toJSON(needs) }}
+        # The count makes a job added to or dropped from "needs" fail here until it's updated.
         run: |
-          for result in $RESULTS; do
-            if [ "$result" != success ]; then
-              echo "At least one check did not succeed. Job results: $RESULTS"
-              exit 1
-            fi
-          done
+          jq -r 'to_entries[] | "\(.key): \(.value.result)"' <<< "$RESULTS"
+          jq -e 'length == 4 and all(.[]; .result == "success")' <<< "$RESULTS" > /dev/null
