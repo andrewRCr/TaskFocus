@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using System.Security.Claims;
 using TaskFocusAPI.Library.DataAccess;
 using TaskFocusAPI.Library.Models;
@@ -11,6 +12,7 @@ namespace TaskFocusAPI.Controllers
     [Authorize]
     public class ProjectController : ControllerBase
     {
+        private const int MaxProjectNameLength = 128;
         private readonly IProjectData _projectData;
 
         public ProjectController(IProjectData projectData)
@@ -36,6 +38,12 @@ namespace TaskFocusAPI.Controllers
         [HttpPost]
         public ActionResult<ProjectModel> Post(ProjectModel newProject)
         {
+            // SQL Server allows excess trailing spaces on insert.
+            if (newProject.ProjectName == null || newProject.ProjectName.TrimEnd(' ').Length > MaxProjectNameLength)
+            {
+                return BadRequest();
+            }
+
             string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var insertedProject = _projectData.AddProject(newProject, userId);
             return insertedProject == null ? BadRequest() : insertedProject;
@@ -44,6 +52,12 @@ namespace TaskFocusAPI.Controllers
         [HttpPut]
         public IActionResult Put(ProjectModel updatedProject)
         {
+            if (updatedProject.Id is null or <= 0 || updatedProject.ProjectName == null ||
+                updatedProject.ProjectName.Trim().Length > MaxProjectNameLength)
+            {
+                return BadRequest();
+            }
+
             string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             return _projectData.UpdateProjectData(updatedProject, userId) switch
             {
@@ -56,9 +70,19 @@ namespace TaskFocusAPI.Controllers
         [HttpDelete]
         public IActionResult Delete(ProjectModel projectToDelete)
         {
+            if (projectToDelete.Id is null or <= 0) { return BadRequest(); }
+
+            const int foreignKeyViolation = 547;
             string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            _projectData.DeleteProject(projectToDelete.Id, userId);
-            return Ok();
+            try
+            {
+                _projectData.DeleteProject(projectToDelete.Id, userId);
+                return Ok();
+            }
+            catch (SqlException ex) when (ex.Number == foreignKeyViolation)
+            {
+                return Conflict();
+            }
         }
     }
 }

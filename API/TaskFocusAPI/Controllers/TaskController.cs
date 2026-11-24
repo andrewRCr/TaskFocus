@@ -57,6 +57,8 @@ namespace TaskFocusAPI.Controllers
         [HttpPost]
         public ActionResult<TaskModel> Post(TaskModel newTask)
         {
+            if (newTask.TaskName == null) { return BadRequest(); }
+
             string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var insertedTask = _taskData.AddTask(newTask, userId);
             return insertedTask == null ? BadRequest() : insertedTask;
@@ -65,6 +67,8 @@ namespace TaskFocusAPI.Controllers
         [HttpPut]
         public IActionResult Put(TaskModel updatedTask)
         {
+            if (updatedTask.Id is null or <= 0 || updatedTask.TaskName == null) { return BadRequest(); }
+
             string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             return _taskData.UpdateTaskData(updatedTask, userId) switch
             {
@@ -77,6 +81,8 @@ namespace TaskFocusAPI.Controllers
         [HttpDelete]
         public IActionResult Delete(TaskModel taskToDelete)
         {
+            if (taskToDelete.Id is null or <= 0) { return BadRequest(); }
+
             string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             _taskData.DeleteTask(taskToDelete.Id, userId);
             return Ok();
