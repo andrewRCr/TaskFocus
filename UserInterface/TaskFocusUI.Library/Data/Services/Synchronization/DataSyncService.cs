@@ -71,7 +71,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
         }
 
         // attempts to Sync(), and re-attempts if an exception is raised
-        public async Task<bool> TrySync(bool notifyOnCompletion = false)
+        public async Task<bool> TrySync(bool notifyOnCompletion = false, Action<Exception>? onFailure = null)
         {
             var numRetryAttempts = 3;
             var retryDelay = 1000;
@@ -91,7 +91,11 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                 {
                     // the operation throws an error - log and reattempt
                     LogError($"Sync retry attempt {i + 1}: Exception : {ex.Message}");
-                    if (i == numRetryAttempts - 1) return false;
+                    if (i == numRetryAttempts - 1)
+                    {
+                        onFailure?.Invoke(ex);
+                        return false;
+                    }
                     await Task.Delay(retryDelay);
                 }
             }
@@ -112,9 +116,9 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                 _dataState.SetCurrentSyncStatus(ESyncStatus.Synchronized);
                 LogInformation("InitSync complete; DataState populated.");
 
-                // initialize periodic sync
-                TimeSpan interval = TimeSpan.FromSeconds(_dataState.GetSyncIntervalSeconds());
-                await PeriodicSync(interval);
+                // The initial load completes here. Periodic sync continues in the background.
+                var timer = new PeriodicTimer(TimeSpan.FromSeconds(_dataState.GetSyncIntervalSeconds()));
+                _ = PeriodicSync(timer);
             }
             catch (Exception ex)
             {
@@ -124,17 +128,19 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
         }
 
         // calls TrySync() on passed interval
-        private async Task PeriodicSync(TimeSpan interval, CancellationToken cancellationToken = default)
+        private async Task PeriodicSync(PeriodicTimer timer)
         {
-            using PeriodicTimer timer = new(interval);
-            while (true)
+            using (timer)
             {
-                try
+                while (true)
                 {
-                    await timer.WaitForNextTickAsync(cancellationToken);
-                    await TrySync();
+                    try
+                    {
+                        await timer.WaitForNextTickAsync();
+                        await TrySync();
+                    }
+                    catch (Exception ex) { LogError(ex.Message); }
                 }
-                catch (Exception ex) { LogError(ex.Message); }
             }
         }
 

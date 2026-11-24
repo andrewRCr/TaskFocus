@@ -1,6 +1,9 @@
 ﻿@inherits LayoutComponentBase
+@using Microsoft.AspNetCore.Components.Sections
 @inject IDataService DataService
 @inject IDataSyncService DataSyncService
+@inject AuthenticationStateProvider AuthenticationProvider
+@inject IBrowserViewportService BrowserViewport
 
 <MudThemeProvider @bind-IsDarkMode="@_isDarkMode" Theme="_customTheme" />
 <MudDialogProvider @ref="AppState.DialogProvider" />
@@ -18,14 +21,16 @@
                 OnClick="@((e) => DrawerToggle())" />
             </Authorized>
             <NotAuthorized>
-                <MudIcon Icon="@Icons.Material.Filled.OfflinePin" 
-                Color="Color.Primary" 
-                Class="mr-4 ml-n3" 
-                Size="Size.Large" />
-                <MudText Color="Color.Primary" 
-                Typo="Typo.h5" 
-                Class="mt-1" 
-                Style="font-family:Bahnschrift, 'DIN Alternate', Barlow, sans-serif; font-weight:700; font-size:x-large;">TaskFocus</MudText>
+                <a href="/" class="taskfocus-title ml-n3">
+                    <MudIcon Icon="@Icons.Material.Filled.OfflinePin"
+                             Color="Color.Primary"
+                             Class="mr-4"
+                             Size="Size.Large" />
+                    <MudText Color="Color.Primary"
+                             Typo="Typo.h5"
+                             Class="mt-1"
+                             Style="font-family:Bahnschrift, 'DIN Alternate', Barlow, sans-serif; font-weight:700; font-size:x-large;">TaskFocus</MudText>
+                </a>
             </NotAuthorized>
         </AuthorizeView>
 
@@ -36,7 +41,10 @@
                 <AuthWidget />
             </Authorized>
             <NotAuthorized>
-                <LoginWidget />
+                @if (!AuthProvider.SessionRestoreFailed)
+                {
+                    <LoginWidget />
+                }
             </NotAuthorized>
         </AuthorizeView>
 
@@ -64,14 +72,16 @@
                 PreserveOpenState="true">
 
                     <MudDrawerHeader Class="d-flex align-center">
-                        <MudIcon Icon="@Icons.Material.Filled.OfflinePin" 
-                        Color="Color.Primary" 
-                        Class="mr-4 ml-n3" 
-                        Size="Size.Large" />
-                        <MudText Color="Color.Primary" 
-                        Typo="Typo.h5" 
-                        Class="mt-1" 
-                        Style="font-family:Bahnschrift, 'DIN Alternate', Barlow, sans-serif; font-weight:700; font-size:x-large;">TaskFocus</MudText>
+                        <a href="/" class="taskfocus-title ml-n3" @onclick="CloseDrawerForHomeAsync">
+                            <MudIcon Icon="@Icons.Material.Filled.OfflinePin"
+                                     Color="Color.Primary"
+                                     Class="mr-4"
+                                     Size="Size.Large" />
+                            <MudText Color="Color.Primary"
+                                     Typo="Typo.h5"
+                                     Class="mt-1"
+                                     Style="font-family:Bahnschrift, 'DIN Alternate', Barlow, sans-serif; font-weight:700; font-size:x-large;">TaskFocus</MudText>
+                        </a>
                     </MudDrawerHeader>
 
                     <!-- nav menu  -->
@@ -84,6 +94,15 @@
 
         <!-- body positioning; different if drawer visible (offset) -->
         <MudMainContent>
+            <SectionOutlet SectionName="SignInWarning" />
+            @if (AuthProvider.SessionRestoreFailed || _initialLoadError is not null)
+            {
+                <MudAlert Class="mx-3 mt-3" Severity="Severity.Warning">
+                    @(AuthProvider.SessionRestoreFailed ? ApiRequest.ServiceUnavailableMessage : _initialLoadError)
+                    <MudButton Class="ml-2" Disabled="@_retrying" OnClick="RetryAsync">Retry</MudButton>
+                </MudAlert>
+            }
+
             <AuthorizeView>
                 <Authorized>
                     <div class="col-12  col-xxl-10" style="margin-left: 8px;">
@@ -92,9 +111,12 @@
                 </Authorized>
 
                 <NotAuthorized>
-                    <div class="col-12">
-                        @Body
-                    </div>
+                    @if (!AuthProvider.SessionRestoreFailed)
+                    {
+                        <div class="col-12">
+                            @Body
+                        </div>
+                    }
                 </NotAuthorized>
             </AuthorizeView>
         </MudMainContent>
@@ -102,7 +124,7 @@
         <!-- global add new task component (+ button) / sync status bar -->
         <AuthorizeView>
             <Authorized>
-                <AppBarComponent />              
+                <AppBarComponent InitialLoadFailed="@(_initialLoadError is not null)" />
             </Authorized>
             <NotAuthorized />
         </AuthorizeView>
@@ -118,11 +140,12 @@
     [Inject]
     protected AppState AppState { get; private set; } = default!;
 
-    [Inject]
-    protected IDataState DataState { get; private set; } = default!;
-
     protected bool _drawerOpen = true;
     private bool _isDarkMode = true;
+    private bool _loadingData;
+    private bool _retrying;
+    private string? _initialLoadError;
+    private AuthStateProvider AuthProvider => (AuthStateProvider)AuthenticationProvider;
 
     private MudTheme _customTheme = new MudTheme()
         {
@@ -137,17 +160,82 @@
         _drawerOpen = !_drawerOpen;
     }
 
-    protected override async Task OnInitializedAsync()
+    private async Task CloseDrawerForHomeAsync(MouseEventArgs click)
+    {
+        if (click.Button == 0 && !click.CtrlKey && !click.MetaKey && !click.ShiftKey && !click.AltKey
+            && await BrowserViewport.IsBreakpointWithinWindowSizeAsync(Breakpoint.SmAndDown))
+        {
+            _drawerOpen = false;
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
     {
         var authState = await AuthState;
-
-        if (authState.User.Identity!.IsAuthenticated)
+        if (authState.User.Identity?.IsAuthenticated != true)
         {
-            // if DataState has no remote data loaded, load it
-            if (!DataService.IsDataStateLoaded())
+            _initialLoadError = null;
+        }
+        else if (!DataService.IsDataStateLoaded() && _initialLoadError is null)
+        {
+            await LoadInitialDataAsync();
+        }
+    }
+
+    private async Task LoadInitialDataAsync()
+    {
+        if (_loadingData)
+        {
+            return;
+        }
+
+        _loadingData = true;
+        try
+        {
+            var success = await DataSyncService.TrySync(onFailure: error =>
             {
-                DataService.InvokeSyncRequest($"{this.ToString()}: {nameof(OnInitializedAsync)}");
+                _initialLoadError = error switch
+                {
+                    HttpRequestException requestError when ApiRequest.IsServiceFailure(requestError) =>
+                        ApiRequest.ServiceUnavailableMessage,
+                    HttpRequestException { StatusCode: System.Net.HttpStatusCode.TooManyRequests } =>
+                        ApiRequest.TooManyRequestsMessage,
+                    _ => ApiRequest.RequestFailedMessage
+                };
+            });
+            if (success)
+            {
+                _initialLoadError = null;
             }
+        }
+        finally
+        {
+            _loadingData = false;
+        }
+    }
+
+    private async Task RetryAsync()
+    {
+        if (_retrying)
+        {
+            return;
+        }
+
+        _retrying = true;
+        try
+        {
+            if (AuthProvider.SessionRestoreFailed)
+            {
+                await AuthProvider.RetrySessionRestoreAsync();
+            }
+            else
+            {
+                await LoadInitialDataAsync();
+            }
+        }
+        finally
+        {
+            _retrying = false;
         }
     }
 }

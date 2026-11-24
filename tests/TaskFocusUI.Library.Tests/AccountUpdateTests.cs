@@ -24,11 +24,11 @@ namespace TaskFocusUI.Library.Tests
 
             if (failEmailRequest)
             {
-                await Assert.ThrowsAsync<Exception>(() => service.RequestUpdateEmail(emailUpdate));
+                await Assert.ThrowsAsync<HttpRequestException>(() => service.RequestUpdateEmail(emailUpdate));
             }
             else
             {
-                await Assert.ThrowsAsync<Exception>(() => service.UpdatePassword(passwordUpdate));
+                await Assert.ThrowsAsync<HttpRequestException>(() => service.UpdatePassword(passwordUpdate));
             }
 
             await service.UpdatePassword(passwordUpdate);
@@ -64,7 +64,7 @@ namespace TaskFocusUI.Library.Tests
             using var client = new HttpClient(handler) { BaseAddress = new Uri("https://example.invalid") };
             var endpoint = new UserEndpoint(new ApiHelper(client));
 
-            var error = await Assert.ThrowsAsync<Exception>(() => endpoint.ResetPassword(new ResetPasswordModel()));
+            var error = await Assert.ThrowsAsync<HttpRequestException>(() => endpoint.ResetPassword(new ResetPasswordModel()));
 
             Assert.Equal(expected, error.Message);
             Assert.Equal(new[] { "/api/User/ResetPassword" }, handler.Paths);
@@ -82,7 +82,7 @@ namespace TaskFocusUI.Library.Tests
             using var client = new HttpClient(handler) { BaseAddress = new Uri("https://example.invalid") };
             var endpoint = new UserEndpoint(new ApiHelper(client));
 
-            var error = await Assert.ThrowsAsync<Exception>(() => endpoint.ResetPassword(new ResetPasswordModel()));
+            var error = await Assert.ThrowsAsync<HttpRequestException>(() => endpoint.ResetPassword(new ResetPasswordModel()));
 
             Assert.Equal("The account request was rejected. Check your details and try again.", error.Message);
         }
@@ -94,7 +94,7 @@ namespace TaskFocusUI.Library.Tests
             using var client = new HttpClient(handler) { BaseAddress = new Uri("https://example.invalid") };
             var endpoint = new UserEndpoint(new ApiHelper(client));
 
-            var error = await Assert.ThrowsAsync<Exception>(() => endpoint.ConfirmEmail(new ConfirmEmailModel()));
+            var error = await Assert.ThrowsAsync<HttpRequestException>(() => endpoint.ConfirmEmail(new ConfirmEmailModel()));
 
             Assert.Equal("Could not connect to the account service. Check your connection and try again.", error.Message);
             Assert.Equal(new[] { "/api/User/ConfirmEmail" }, handler.Paths);

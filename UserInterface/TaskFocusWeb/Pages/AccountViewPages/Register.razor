@@ -144,6 +144,7 @@
 
     private async Task SubmitRegisterForm()
     {
+        AppState.DismissSignInWarning();
         await _registerForm.Validate();
         if (_registerForm.IsValid)
         {

@@ -75,3 +75,19 @@ main {
         padding-right: 1.5rem !important;
     }
 }
+
+.taskfocus-title {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.taskfocus-title:hover,
+.taskfocus-title:focus {
+    text-decoration: none;
+}
+
+.taskfocus-title:focus-visible {
+    outline: 2px solid var(--mud-palette-text-primary);
+    outline-offset: 1px;
+}

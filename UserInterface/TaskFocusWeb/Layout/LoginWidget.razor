@@ -1,4 +1,5 @@
 ﻿@inherits _ComponentStateAwareBase
+@using Microsoft.AspNetCore.Components.Sections
 @inject IAuthenticationService AuthService
 @inject IDataService DataService
 @inject NavigationManager NavManager
@@ -73,12 +74,23 @@
 
 </MudForm>
 
+@if (!string.IsNullOrEmpty(_authenticationError))
+{
+    <SectionContent SectionName="SignInWarning">
+        <div class="sign-in-warning mx-3 mt-3">
+            <MudAlert Severity="_authenticationErrorSeverity">@_authenticationError</MudAlert>
+        </div>
+    </SectionContent>
+}
+
 @code {
     [SupplyParameterFromQuery(Name = "prefillEmail")]
     private string? PrefillEmail { get; set; }
 
     private AuthenticationUserModel userModel = new();
-    private string authenticationErrorText = string.Empty;
+    private string _authenticationError = string.Empty;
+    private Severity _authenticationErrorSeverity;
+    private bool _attemptCanShowError;
 
     private MudForm _loginForm = default!;
     private MudTextField<string> _passwordField = default!;
@@ -94,6 +106,40 @@
     private MudBlazor.Adornment _passwordAdornment = Adornment.None;
 
     private bool _working = false;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        NavManager.LocationChanged += OnLocationChanged;
+    }
+
+    public override void Dispose()
+    {
+        NavManager.LocationChanged -= OnLocationChanged;
+        base.Dispose();
+    }
+
+    protected override bool HandleAppStateChanged(string propertyName, AppState appState)
+    {
+        return propertyName is nameof(AppState.AlertMessage) or nameof(AppState.DismissSignInWarning)
+            && ClearLoginError();
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs args)
+    {
+        if (ClearLoginError())
+        {
+            _ = InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private bool ClearLoginError()
+    {
+        _attemptCanShowError = false;
+        var hadError = _authenticationError.Length != 0;
+        _authenticationError = string.Empty;
+        return hadError;
+    }
 
     protected override void OnParametersSet()
     {
@@ -140,33 +186,36 @@
         }
 
         var (returnUrl, confirmationEmail) = SignInRedirect.GetLoginReturnUrl(NavManager);
-        var loginUrl = SignInRedirect.LoginUrl(returnUrl, confirmationEmail, PrefillEmail);
+        _authenticationError = string.Empty;
+        _attemptCanShowError = true;
         _working = true;
         try
         {
             await _loginForm.Validate();
             if (_loginForm.IsValid && userModel.Email is { } email)
             {
-                await ExecuteLogin(email, returnUrl, confirmationEmail, loginUrl);
+                await ExecuteLogin(email, returnUrl, confirmationEmail);
             }
             else
             {
-                AppState.ShowGenericLoginError();
-                NavManager.NavigateTo(loginUrl);
+                ShowLoginError();
             }
         }
         catch (HttpRequestException ex) when (AuthStateProvider.CredentialsRejected(ex))
         {
-            AppState.AlertSeverity = Severity.Warning;
-            AppState.AlertMessage = "Your sign-in session was rejected. Please log in again.";
-            NavManager.NavigateTo(loginUrl);
+            ShowLoginError("Your sign-in session was rejected. Please log in again.", Severity.Warning);
+        }
+        catch (HttpRequestException ex) when (ApiRequest.IsServiceFailure(ex)
+            || ex.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+        {
+            ShowLoginError(ApiRequest.IsServiceFailure(ex)
+                ? ApiRequest.ServiceUnavailableMessage
+                : ApiRequest.TooManyRequestsMessage, Severity.Warning);
         }
         catch (Exception ex)
         {
             Console.WriteLine(ex.Message);
-            AppState.AlertSeverity = Severity.Error;
-            AppState.AlertMessage = "Could not complete sign-in. Please try again.";
-            NavManager.NavigateTo(loginUrl);
+            ShowLoginError("Could not complete sign-in. Please try again.");
         }
         finally
         {
@@ -175,15 +224,23 @@
         }
     }
 
-    private async Task ExecuteLogin(string email, string? returnUrl, string? confirmationEmail, string loginUrl)
+    private void ShowLoginError(string message = "There was an error when attempting to log in. Please try again.",
+                                Severity severity = Severity.Error)
+    {
+        if (_attemptCanShowError)
+        {
+            _authenticationErrorSeverity = severity;
+            _authenticationError = message;
+        }
+    }
+
+    private async Task ExecuteLogin(string email, string? returnUrl, string? confirmationEmail)
     {
         UserModel attemptLoginUserModel = new UserModel { Email = email };
         bool exists = await DataService.CheckUserExists(attemptLoginUserModel);
         if (!exists)
         {
-            AppState.AlertSeverity = MudBlazor.Severity.Warning;
-            AppState.AlertMessage = "No matching user found.";
-            NavManager.NavigateTo(loginUrl);
+            ShowLoginError("No matching user found.", Severity.Warning);
         }
         else
         {
@@ -208,8 +265,7 @@
                 }
                 else
                 {
-                    AppState.ShowGenericLoginError();
-                    NavManager.NavigateTo(loginUrl);
+                    ShowLoginError();
                 }
             }
             else
@@ -219,15 +275,13 @@
                 {
                     var confirmationKey = SignInRedirect.ConfirmationStorageKey(result.UserName ?? email);
                     await LocalStorage.RemoveItemAsync(confirmationKey);
-                    DataService.InvokeSyncRequest($"{this.ToString()}: {nameof(ExecuteLogin)}");
                     AppState.ClearAlertMessage();
                     var destination = CanUseReturnUrl(result.UserName) ? returnUrl : null;
                     NavManager.NavigateTo(destination ?? "/inbox");
                 }
                 else
                 {
-                    AppState.ShowGenericLoginError();
-                    NavManager.NavigateTo(loginUrl);
+                    ShowLoginError();
                 }
             }
         }

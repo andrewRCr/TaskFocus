@@ -8,23 +8,17 @@
     <MudButton OnClick="ResetToAllItemsView" Color="Color.Inherit" Class="ml-2">@CollectionName</MudButton>
     <MudDivider DividerType="DividerType.Middle" />
 
-    @if (IsProjectsSubMenu)
+    @if (CanEditCollection && IsProjectsSubMenu && LocalProjects != null)
     {
-        @if (LocalProjects != null)
-        {
-            <SubNavMenuItemContainer IsProjectsSubMenu="true" 
-            ContainerProjectsParam="@LocalProjects" 
+        <SubNavMenuItemContainer IsProjectsSubMenu="true"
+            ContainerProjectsParam="@LocalProjects"
             ContainerIdentifierParam="ProjectsSubNavMenu" />
-        }
     }
-    else
+    else if (CanEditCollection && !IsProjectsSubMenu && LocalContexts != null)
     {
-        @if (LocalContexts != null)
-        {
-            <SubNavMenuItemContainer IsProjectsSubMenu="false" 
-            ContainerContextsParam="@LocalContexts" 
+        <SubNavMenuItemContainer IsProjectsSubMenu="false"
+            ContainerContextsParam="@LocalContexts"
             ContainerIdentifierParam="ContextsSubNavMenu" />
-        }
     }
 
     <div class="flex-grow-1" 
@@ -33,6 +27,7 @@
     @onmouseleave="()=>SetAddNewCollectionButtonActive(false)">
 
         <MudIconButton OnClick="()=>_newCollectionDialogVisible = true"
+        Disabled="@(!CanEditCollection)"
         Color="@_addNewCollectionButtonColor"
         Class="ml-1 mr-2"
         Icon="@Icons.Material.Filled.Add" />
@@ -67,7 +62,7 @@ Style="background-color: #27272f" >
 
     <DialogActions>
         <MudButton OnClick="CancelAddNewCollectionDialog" Class="px-0">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="TrySubmitNewCollection" Class="px-0">Add</MudButton>
+        <MudButton Color="Color.Primary" OnClick="TrySubmitNewCollection" Disabled="@(!CanEditCollection)" Class="px-0">Add</MudButton>
     </DialogActions>
 
 </MudDialog>
@@ -110,6 +105,8 @@ Style="background-color: #27272f" >
     private MudBlazor.Color _addNewCollectionButtonColor = Color.Inherit;
     private string _newCollectionName = string.Empty;
     private DialogOptions dialogOptions = new() { FullWidth = true };
+
+    private bool CanEditCollection => DataService.IsDataStateLoaded();
 
     private void ShowHideItemEditMenu(bool newShow)
     {
@@ -219,6 +216,7 @@ Style="background-color: #27272f" >
     private async Task TrySubmitNewCollection()
     {
         await VerifyAuthAndRedirectIfExpired();
+        if (!_isAuthenticated || !CanEditCollection) return;
         
         if (string.IsNullOrWhiteSpace(_newCollectionName))
         {
@@ -229,8 +227,6 @@ Style="background-color: #27272f" >
 
     private void SubmitNewCollection()
     {
-        _newCollectionDialogVisible = false;
-
         if (IsProjectsSubMenu)
         {
             ProjectModel newProject = new();
@@ -244,6 +240,7 @@ Style="background-color: #27272f" >
             DataService.AddContext(newContext);
         }
 
+        _newCollectionDialogVisible = false;
         _newCollectionName = string.Empty;
     }
 

@@ -24,27 +24,19 @@ namespace TaskFocusUI.Library.API
         {
             string contextIdStr = contextId.ToString();
             string requestUri = "/api/context/GetContextById/" + contextIdStr;
-            using (HttpResponseMessage response = await _apiHelper.APIClient.GetAsync(requestUri))
+            using (HttpResponseMessage response = await ApiRequest.SendAsync(_apiHelper.APIClient.GetAsync(requestUri)))
             {
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = await response.Content.ReadAsAsync<ContextModel>();
-                    return result;
-                }
-                else { throw new Exception(response.ReasonPhrase); }
+                var result = await response.Content.ReadAsAsync<ContextModel>();
+                return result;
             }
         }
 
         public async Task<List<ContextModel>> GetAllContextsForUser()
         {
-            using (HttpResponseMessage response = await _apiHelper.APIClient.GetAsync("/api/context/GetAllContextsForUser"))
+            using (HttpResponseMessage response = await ApiRequest.SendAsync(_apiHelper.APIClient.GetAsync("/api/context/GetAllContextsForUser")))
             {
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = await response.Content.ReadAsAsync<List<ContextModel>>();
-                    return result;
-                }
-                else { throw new Exception(response.ReasonPhrase); }
+                var result = await response.Content.ReadAsAsync<List<ContextModel>>();
+                return result;
             }
         }
 
@@ -52,27 +44,19 @@ namespace TaskFocusUI.Library.API
         {
             newContext.UserId = userId;
 
-            using (HttpResponseMessage response = await _apiHelper.APIClient.PostAsJsonAsync("/api/context/post", newContext))
+            using (HttpResponseMessage response = await ApiRequest.SendAsync(_apiHelper.APIClient.PostAsJsonAsync("/api/context/post", newContext)))
             {
-                if (response.IsSuccessStatusCode)
-                {
-                    _logger?.LogInformation("API: AddContext request processed successfully.");
-                    var result = await response.Content.ReadAsAsync<ContextModel>();
-                    return result;
-                }
-                else { throw new Exception(response.ReasonPhrase); }
+                _logger?.LogInformation("API: AddContext request processed successfully.");
+                var result = await response.Content.ReadAsAsync<ContextModel>();
+                return result;
             }
         }
 
         public async Task UpdateContext(ContextModel updatedContext)
         {
-            using (HttpResponseMessage response = await _apiHelper.APIClient.PutAsJsonAsync("/api/context/put", updatedContext))
+            using (HttpResponseMessage response = await ApiRequest.SendAsync(_apiHelper.APIClient.PutAsJsonAsync("/api/context/put", updatedContext)))
             {
-                if (response.IsSuccessStatusCode)
-                {
-                    _logger?.LogInformation("API: UpdateContext request processed successfully.");
-                }
-                else { throw new Exception(response.ReasonPhrase); }
+                _logger?.LogInformation("API: UpdateContext request processed successfully.");
             }
         }
 
@@ -86,13 +70,9 @@ namespace TaskFocusUI.Library.API
                 Content = new StringContent(JsonConvert.SerializeObject(p), Encoding.UTF8, "application/json")
             };
 
-            using (HttpResponseMessage response = await _apiHelper.APIClient.SendAsync(request))
+            using (HttpResponseMessage response = await ApiRequest.SendAsync(_apiHelper.APIClient.SendAsync(request)))
             {
-                if (response.IsSuccessStatusCode)
-                {
-                    _logger?.LogInformation("API: DeleteContext request processed successfully.");
-                }
-                else { throw new Exception(response.ReasonPhrase); }
+                _logger?.LogInformation("API: DeleteContext request processed successfully.");
             }
         }
     }

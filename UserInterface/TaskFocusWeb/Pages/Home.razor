@@ -130,6 +130,10 @@
     {
         _forgotPassword = !_forgotPassword;
         _alertMessage = string.Empty;
+        if (_forgotPassword)
+        {
+            AppState.DismissSignInWarning();
+        }
     }
 
     private async Task SubmitForgotPasswordForm()
@@ -139,6 +143,7 @@
             return;
         }
 
+        AppState.DismissSignInWarning();
         _errorMessage = string.Empty;
         _loading = true;
         try

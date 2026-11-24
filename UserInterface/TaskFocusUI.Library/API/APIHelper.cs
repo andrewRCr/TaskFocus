@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
@@ -47,14 +48,15 @@ namespace TaskFocusUI.Library.API
                 new KeyValuePair<string, string>("password", password)
             });
 
-            using (HttpResponseMessage response = await _apiClient.PostAsync("/token", data))
+            try
             {
-                if (!response.IsSuccessStatusCode) { return null; }
-                else
-                {
-                    var result = await response.Content.ReadAsAsync<AuthenticatedUser>();
-                    return result;
-                }
+                using var response = await ApiRequest.SendAsync(_apiClient.PostAsync("/token", data));
+                return await response.Content.ReadAsAsync<AuthenticatedUser>();
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode.HasValue &&
+                !ApiRequest.IsServiceFailure(ex) && ex.StatusCode != HttpStatusCode.TooManyRequests)
+            {
+                return null;
             }
         }
 
@@ -71,9 +73,8 @@ namespace TaskFocusUI.Library.API
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-            using (HttpResponseMessage response = await _apiClient.SendAsync(request))
+            using (HttpResponseMessage response = await ApiRequest.SendAsync(_apiClient.SendAsync(request)))
             {
-                response.EnsureSuccessStatusCode();
                 var result = await response.Content.ReadAsAsync<LoggedInUserModel>();
                 _loggedInUser.Id = result.Id;
                 _loggedInUser.Email = result.Email;

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components.Authorization;
 using System.Net;
 using System.Text.Json;
+using TaskFocusUI.Library.API;
 using TaskFocusWeb.Models;
 
 namespace TaskFocusWeb.Authentication
@@ -30,13 +31,18 @@ namespace TaskFocusWeb.Authentication
             });
 
             string apiAuthUri = _config["api"] + _config["tokenEndpoint"];
-            using var authResult = await _httpClient.PostAsync(apiAuthUri, data);
-            if (authResult.StatusCode is HttpStatusCode.BadRequest or HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+            HttpResponseMessage response;
+            try
+            {
+                response = await ApiRequest.SendAsync(_httpClient.PostAsync(apiAuthUri, data));
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode is
+                HttpStatusCode.BadRequest or HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
             {
                 return null;
             }
 
-            authResult.EnsureSuccessStatusCode();
+            using var authResult = response;
             var authContent = await authResult.Content.ReadAsStringAsync();
             var result = JsonSerializer.Deserialize<AuthenticatedUserModel>(
                 authContent,
