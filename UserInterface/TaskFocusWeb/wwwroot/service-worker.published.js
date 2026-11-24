@@ -28,11 +28,18 @@ async function onInstall(event) {
 
     // Install a complete, integrity-checked snapshot before the browser can activate it.
     // Let existing tabs finish with their original cache before activating this worker.
-    const assetsRequests = self.assetsManifest.assets
+    const assets = self.assetsManifest.assets
         .filter(asset => offlineAssetsInclude.some(pattern => pattern.test(asset.url)))
-        .filter(asset => !offlineAssetsExclude.some(pattern => pattern.test(asset.url)))
-        .map(asset => new Request(new URL(asset.url, baseUrl), { integrity: asset.hash, cache: 'reload' }));
-    await caches.open(cacheName).then(cache => cache.addAll(assetsRequests));
+        .filter(asset => !offlineAssetsExclude.some(pattern => pattern.test(asset.url)));
+    const requests = cache => assets.map(asset => new Request(new URL(asset.url, baseUrl), {
+        integrity: asset.hash, cache
+    }));
+    const cache = await caches.open(cacheName);
+    try {
+        await cache.addAll(requests('force-cache'));
+    } catch {
+        await cache.addAll(requests('reload'));
+    }
 }
 
 async function onActivate(event) {

@@ -40,16 +40,28 @@
         const app = document.getElementById('app');
         const overlay = document.getElementById('app-loading');
         const ring = overlay.querySelector('circle:last-child');
+        const errorUi = document.getElementById('blazor-error-ui');
         let fullRingPainted = false;
+        let completeFirstLoad;
+        const firstLoad = new Promise(resolve => { completeFirstLoad = resolve; });
+        let failStartup;
+        const startupFailed = new Promise(resolve => { failStartup = resolve; });
 
         function finishFirstLoad() {
             if (fullRingPainted && app.matches(':has(.app-ready):not(:has(.app-loading))')) {
                 overlay.classList.add('app-booted');
-                firstReady.disconnect();
+                completeFirstLoad();
+            } else if (errorUi.style.display === 'block') {
+                failStartup();
+            } else {
+                return;
             }
+            firstReady.disconnect();
         }
         const firstReady = new MutationObserver(finishFirstLoad);
         firstReady.observe(app, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+        // Blazor can report a managed startup error after Blazor.start() resolves.
+        firstReady.observe(errorUi, { attributes: true, attributeFilter: ['style'] });
 
         function paintFullRing() {
             if (ring.getAnimations().some(animation => animation.transitionProperty === 'stroke-dasharray')) {
@@ -77,26 +89,57 @@
             }
         }
 
-        Blazor.start({
-            configureRuntime: dotnet => dotnet.withModuleConfig({
-                onDownloadResourceProgress: (loaded, total) => {
-                    // The native runtime can report before the remaining boot assets are queued.
-                    if (total > 1) {
-                        showProgress(loaded / total * 100);
-                    }
-                },
-                // Finish here even if the loader missed its final progress report.
-                onRuntimeInitialized: () => showProgress(100)
-            })
-        }).catch(error => {
-            const reportError = Blazor.runtime?.Module?.err ?? console.error;
-            reportError(error);
-        });
+        function handleStartupRejection({ reason }) {
+            // Blazor 8 can report a platform failure without settling Blazor.start().
+            if (reason instanceof Error && reason.message.startsWith('Failed to start platform.')) {
+                failStartup();
+            }
+        }
 
-        if ('serviceWorker' in navigator) {
+        let registrationStarted = false;
+        let registrationTimeout;
+        function registerWorker() {
+            if (registrationStarted) {
+                return;
+            }
+            registrationStarted = true;
+            clearTimeout(registrationTimeout);
             navigator.serviceWorker.register('service-worker.js', { updateViaCache: 'none' })
                 .catch(error => console.warn('Service worker registration failed', error));
         }
+
+        async function startApp() {
+            window.addEventListener('unhandledrejection', handleStartupRejection);
+            try {
+                const appStarted = Blazor.start({
+                    configureRuntime: dotnet => dotnet.withModuleConfig({
+                        onDownloadResourceProgress: (loaded, total) => {
+                            // The native runtime can report before the remaining boot assets are queued.
+                            if (total > 1) {
+                                showProgress(loaded / total * 100);
+                            }
+                        },
+                        // Finish here even if the loader missed its final progress report.
+                        onRuntimeInitialized: () => showProgress(100)
+                    })
+                });
+                await Promise.race([Promise.all([appStarted, firstLoad]), startupFailed]);
+            } catch (error) {
+                const reportError = window.Blazor?.runtime?.Module?.err ?? console.error;
+                reportError(error);
+            } finally {
+                firstReady.disconnect();
+                window.removeEventListener('unhandledrejection', handleStartupRejection);
+                if ('serviceWorker' in navigator) {
+                    registerWorker();
+                }
+            }
+        }
+        if ('serviceWorker' in navigator) {
+            // Readiness and window load can both stall while a script or boot asset is pending.
+            registrationTimeout = setTimeout(registerWorker, 30_000);
+        }
+        startApp();
     </script>
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
     <script src="_content/CodeBeam.MudBlazor.Extensions/MudExtensions.min.js"></script>
