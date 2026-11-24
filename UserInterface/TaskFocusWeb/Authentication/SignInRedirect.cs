@@ -51,15 +51,19 @@ internal static class SignInRedirect
             or "unconfirmedemail" or "unconfirmedupdatedemail" or "resetpw" ? null : returnUrl;
     }
 
-    public static string LoginUrl(string? returnUrl, string? confirmationEmail = null)
+    public static string LoginUrl(string? returnUrl, string? confirmationEmail = null, string? prefillEmail = null)
     {
-        if (returnUrl is null)
+        var loginUrl = "/";
+        if (returnUrl is not null)
         {
-            return "/";
+            loginUrl = QueryHelpers.AddQueryString(loginUrl, "returnUrl", returnUrl);
+            if (confirmationEmail is not null)
+            {
+                loginUrl = QueryHelpers.AddQueryString(loginUrl, "confirmationEmail", confirmationEmail);
+            }
         }
 
-        var loginUrl = QueryHelpers.AddQueryString("/", "returnUrl", returnUrl);
-        return confirmationEmail is null ? loginUrl : QueryHelpers.AddQueryString(loginUrl, "confirmationEmail", confirmationEmail);
+        return prefillEmail is null ? loginUrl : QueryHelpers.AddQueryString(loginUrl, "prefillEmail", prefillEmail);
     }
 
     // Email links can open in a new tab without the return URL in their query.

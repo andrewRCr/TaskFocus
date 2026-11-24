@@ -484,9 +484,10 @@
         await _updateEmailForm.Validate();
         if (_updateEmailForm.IsValid)
         {
+            UserModel updatedUser = _userModel.Clone();
             _updateEmailDialogVisible = false;
             _loading = true; // indicate request processing
-            bool emailTaken = await DataService.CheckUserExists(_userModel);
+            bool emailTaken = await DataService.CheckUserExists(updatedUser);
             if (emailTaken)
             {
                 _loading = false;
@@ -494,19 +495,19 @@
                 AppState.AlertMessage = "Email address already associated with an existing account.";
 
             }
-            else { await OnValidEmailSubmit(); }
+            else { await OnValidEmailSubmit(updatedUser); }
         }
     }
 
-    private async Task OnValidEmailSubmit()
+    private async Task OnValidEmailSubmit(UserModel updatedUser)
     {
         errorMessage = string.Empty;
         AppState.ClearAlertMessage();
 
         try
         {
-            await DataService.RequestUpdateEmail(_userModel);
-            NavManager.NavigateTo($"/unconfirmedupdatedemail?email={_userModel.Email}");
+            await DataService.RequestUpdateEmail(updatedUser);
+            NavManager.NavigateTo(QueryHelpers.AddQueryString("/unconfirmedupdatedemail", "email", updatedUser.Email ?? string.Empty));
         }
         catch (Exception ex)
         {

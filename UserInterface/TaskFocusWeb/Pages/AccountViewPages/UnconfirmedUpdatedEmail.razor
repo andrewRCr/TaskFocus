@@ -150,7 +150,7 @@
 
                 AppState.AlertSeverity = Severity.Success;
                 AppState.AlertMessage = "Email sent.";
-                NavManager.NavigateTo($"/unconfirmedupdatedemail?email={updatedUserModel.Email}");
+                NavManager.NavigateTo(QueryHelpers.AddQueryString("/unconfirmedupdatedemail", "email", updatedUserModel.Email ?? string.Empty));
             }
             catch (Exception ex)
             {

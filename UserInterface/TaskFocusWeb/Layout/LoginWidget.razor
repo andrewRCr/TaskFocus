@@ -17,9 +17,11 @@
     <MudGrid>
         <MudStack Row="true" Class="mt-2" AlignItems="AlignItems.Center">
 
-            <MudItem Class="col-auto">
+            <MudItem Class="col-auto" @onpaste="MarkEmailAsEntered">
 
                 <MudTextField @bind-Value="userModel.Email"
+                @bind-Value:after="MarkEmailAsEntered"
+                Immediate="@(!string.IsNullOrWhiteSpace(PrefillEmail))"
                 Variant="Variant.Outlined" 
                 Margin="Margin.Dense"
                 Style="width: 235px"
@@ -35,6 +37,7 @@
             <MudItem Class="col-auto">
 
                 <MudTextField @bind-Value="userModel.Password"
+                @ref="_passwordField"
                 Variant="Variant.Outlined"
                 Margin="Margin.Dense"
                 Placeholder="Password"
@@ -71,10 +74,17 @@
 </MudForm>
 
 @code {
+    [SupplyParameterFromQuery(Name = "prefillEmail")]
+    private string? PrefillEmail { get; set; }
+
     private AuthenticationUserModel userModel = new();
     private string authenticationErrorText = string.Empty;
 
     private MudForm _loginForm = default!;
+    private MudTextField<string> _passwordField = default!;
+    private string? _previousPrefillEmail;
+    private bool _emailWasPrefilled;
+    private bool _focusPassword;
     private bool _success;
     private string[] _errors = { };
 
@@ -84,6 +94,38 @@
     private MudBlazor.Adornment _passwordAdornment = Adornment.None;
 
     private bool _working = false;
+
+    protected override void OnParametersSet()
+    {
+        if (_previousPrefillEmail == PrefillEmail)
+        {
+            return;
+        }
+
+        _previousPrefillEmail = PrefillEmail;
+        _focusPassword = !string.IsNullOrWhiteSpace(PrefillEmail);
+        if (_focusPassword)
+        {
+            userModel.Email = PrefillEmail;
+            _emailWasPrefilled = true;
+        }
+        else if (_emailWasPrefilled)
+        {
+            userModel.Email = null;
+            _emailWasPrefilled = false;
+        }
+    }
+
+    private void MarkEmailAsEntered() => _emailWasPrefilled = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_focusPassword)
+        {
+            _focusPassword = false;
+            await _passwordField.FocusAsync();
+        }
+    }
 
     private void RegisterUser()
     {
@@ -98,7 +140,7 @@
         }
 
         var (returnUrl, confirmationEmail) = SignInRedirect.GetLoginReturnUrl(NavManager);
-        var loginUrl = SignInRedirect.LoginUrl(returnUrl, confirmationEmail);
+        var loginUrl = SignInRedirect.LoginUrl(returnUrl, confirmationEmail, PrefillEmail);
         _working = true;
         try
         {

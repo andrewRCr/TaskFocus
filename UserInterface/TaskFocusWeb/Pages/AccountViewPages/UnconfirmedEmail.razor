@@ -107,37 +107,30 @@
         }
         var loginUrl = string.IsNullOrWhiteSpace(_confirmEmailModel.Email)
             ? "/"
-            : SignInRedirect.LoginUrl(returnUrl, _confirmEmailModel.Email);
+            : SignInRedirect.LoginUrl(returnUrl, confirmationEmail: _confirmEmailModel.Email, prefillEmail: _confirmEmailModel.Email);
 
-        if (!_isConfirmed)
+        if (!_isConfirmed &&
+            !string.IsNullOrWhiteSpace(_confirmEmailModel.Token) && !string.IsNullOrWhiteSpace(_confirmEmailModel.Email))
         {
-            if (!string.IsNullOrWhiteSpace(_confirmEmailModel.Token) && !string.IsNullOrWhiteSpace(_confirmEmailModel.Email))
+            try
             {
-                try
+                await DataService.ConfirmEmail(_confirmEmailModel);
+                await CheckConfirmedStatus();
+                if (!_isConfirmed)
                 {
-                    await DataService.ConfirmEmail(_confirmEmailModel);
-
-                    await CheckConfirmedStatus();
-                    if (_isConfirmed)
-                    {
-                        // set Alert notification for home page
-                        AppState.AlertSeverity = Severity.Success;
-                        AppState.AlertMessage = "Email confirmed. Please log in to continue.";
-                        NavManager.NavigateTo(loginUrl);
-                    }
-                    else
-                    {
-                        _errorMessage = "There was an error when attempting to confirm your email. Please send a new link.";
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _errorMessage = ex.Message;
+                    _errorMessage = "There was an error when attempting to confirm your email. Please send a new link.";
                 }
             }
+            catch (Exception ex)
+            {
+                _errorMessage = ex.Message;
+            }
         }
-        else
+
+        if (_isConfirmed)
         {
+            AppState.AlertSeverity = Severity.Success;
+            AppState.AlertMessage = "Email confirmed. Please log in to continue.";
             NavManager.NavigateTo(loginUrl);
         }
     }
