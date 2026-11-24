@@ -11,6 +11,7 @@ using System.Windows.Media;
 using TaskFocusDesktop.Commands;
 using TaskFocusDesktop.EventModels;
 using TaskFocusDesktop.Utilities;
+using TaskFocusDesktop.ViewModels.Base;
 using TaskFocusDesktop.ViewModels.Dialogs;
 using TaskFocusDesktop.ViewModels.MainContent;
 using TaskFocusDesktop.ViewModels.SidePanel;
@@ -34,9 +35,7 @@ namespace TaskFocusDesktop.ViewModels
     {
         private ILog _logger = LogManager.GetLog(typeof(ShellViewModel));
         private const string _dialogIdentifier = "ShellDialogHost";
-        private string? _focusedProjectName;
         private int? _focusedProjectId;
-        private string? _focusedContextName;
         private int? _focusedContextId;
 
         private IAPIHelper _apiHelper;
@@ -201,6 +200,12 @@ namespace TaskFocusDesktop.ViewModels
             get => _mainContentPanel;
             set
             {
+                if (_mainContentPanel is TaskViewModelBase focusedView &&
+                    (focusedView is ProjectsViewModel or ContextsViewModel) &&
+                    !ReferenceEquals(_mainContentPanel, value))
+                {
+                    focusedView.StopWatchingTaskData();
+                }
                 _mainContentPanel = value;
                 NotifyOfPropertyChange(() => MainContentPanel);
             }
@@ -359,6 +364,17 @@ namespace TaskFocusDesktop.ViewModels
         // on state refresh, check for a requested post-sync action and fire event to fulfill if needed
         protected bool HandleDataStateChanged(string propertyName, IDataState dataState)
         {
+            if (propertyName == nameof(EDataRefreshType.Projects) && _focusedProjectId is int projectId &&
+                _dataService.GetDataStateProjects()?.Exists(x => x.Id == projectId) == false)
+            {
+                _focusedProjectId = null;
+            }
+            if (propertyName == nameof(EDataRefreshType.Contexts) && _focusedContextId is int contextId &&
+                _dataService.GetDataStateContexts()?.Exists(x => x.Id == contextId) == false)
+            {
+                _focusedContextId = null;
+            }
+
             if (!dataRefreshTriggers.Contains(propertyName)) return false;
             else if (_appState.PendingPostSyncAction != EPostSyncAction.None)
             {
@@ -533,8 +549,8 @@ namespace TaskFocusDesktop.ViewModels
         public async Task SwitchSidePanelView(ViewCatalog.SidePanelView requestedSidePanelView)
         {
             // clear UI collection focus record, for NewTask dialogs
-            _focusedProjectName = null;
-            _focusedContextName = null;
+            _focusedProjectId = null;
+            _focusedContextId = null;
 
             switch (requestedSidePanelView)
             {
@@ -572,6 +588,13 @@ namespace TaskFocusDesktop.ViewModels
             IWindowManager dummyWindow = new WindowManager();
             object? extendedDialogVM = null;
 
+            var focusedProject = _focusedProjectId is int focusedProjectId
+                ? _dataService.GetDataStateProjects()?.Find(x => x.Id == focusedProjectId)
+                : null;
+            var focusedContext = _focusedContextId is int focusedContextId
+                ? _dataService.GetDataStateContexts()?.Find(x => x.Id == focusedContextId)
+                : null;
+
             switch (requestedDialogView)
             {
                 case ViewCatalog.DialogView.AddNewProjectDialog:
@@ -584,38 +607,38 @@ namespace TaskFocusDesktop.ViewModels
 
                 case ViewCatalog.DialogView.AddNewTaskDialog:
                     extendedDialogVM = new NewTaskDialogViewModel(
-                        _events, _appState, dummyWindow, _dataState, _dataService, _dataHelper, _focusedProjectName, _focusedContextName);
+                        _events, _appState, dummyWindow, _dataState, _dataService, _dataHelper, focusedProject?.ProjectName, focusedContext?.ContextName);
                     break;
 
                 case ViewCatalog.DialogView.RenameProjectDialog:
-                    if (_focusedProjectId != null && _focusedProjectName != null)
+                    if (focusedProject?.Id is int projectId)
                     {
                         extendedDialogVM = new RenameCollectionDialogViewModel(_events, _appState, dummyWindow, _dataState, _dataService, 
-                            _dataHelper, true, (int)_focusedProjectId, _focusedProjectName);
+                            _dataHelper, true, projectId, focusedProject.ProjectName);
                     }
                     break;
 
                 case ViewCatalog.DialogView.RenameContextDialog:
-                    if (_focusedContextId != null && _focusedContextName != null)
+                    if (focusedContext?.Id is int contextId)
                     {
                         extendedDialogVM = new RenameCollectionDialogViewModel(_events, _appState, dummyWindow, _dataState, _dataService, 
-                            _dataHelper, false, (int)_focusedContextId, _focusedContextName);
+                            _dataHelper, false, contextId, focusedContext.ContextName);
                     }
                     break;
 
                 case ViewCatalog.DialogView.DeleteProjectDialog:
-                    if (_focusedProjectId != null && _focusedProjectName != null)
+                    if (focusedProject?.Id is int deletedProjectId)
                     {
                         extendedDialogVM = new DeleteCollectionDialogViewModel( _events, _appState, dummyWindow, _dataState, _dataService, 
-                            _dataHelper, true, (int)_focusedProjectId, _focusedProjectName);
+                            _dataHelper, true, deletedProjectId, focusedProject.ProjectName);
                     }
                     break;
 
                 case ViewCatalog.DialogView.DeleteContextDialog:
-                    if (_focusedContextId != null && _focusedContextName != null)
+                    if (focusedContext?.Id is int deletedContextId)
                     {
                         extendedDialogVM = new DeleteCollectionDialogViewModel( _events, _appState, dummyWindow, _dataState, _dataService, 
-                            _dataHelper, false, (int)_focusedContextId, _focusedContextName);
+                            _dataHelper, false, deletedContextId, focusedContext.ContextName);
                     }
                     break;
 
@@ -645,7 +668,6 @@ namespace TaskFocusDesktop.ViewModels
         // FocusedProjectChangedEvent handler
         public Task HandleAsync(FocusedProjectChangedEvent message, CancellationToken cancellationToken)
         {
-            _focusedProjectName = message.NewFocusedProjectName;
             _focusedProjectId = message.NewFocusedProjectId;
             return Task.CompletedTask;
         }
@@ -653,7 +675,6 @@ namespace TaskFocusDesktop.ViewModels
         // FocusedContextChangedEvent handler
         public Task HandleAsync(FocusedContextChangedEvent message, CancellationToken cancellationToken)
         {
-            _focusedContextName = message.NewFocusedContextName;
             _focusedContextId = message.NewFocusedContextId;
             return Task.CompletedTask;
         }

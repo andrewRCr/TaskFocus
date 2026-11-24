@@ -185,10 +185,9 @@ namespace TaskFocusUI.Library.Data.Services
                 dataStateContext.Deleted = DateTimeOffset.Now;
                 dataStateContext.ClientLastUpdated = DateTimeOffset.Now;
 
-                // if had an update pending push, don't add a duplicate to changedContextData
-                var alreadyQueued = _dataState.GetChangedContextData().Where(
-                    x => x.Id == dataStateContext.Id);
-                if (!alreadyQueued.Any()) _dataState.GetChangedContextData().Add(dataStateContext.Clone());
+                var queuedContext = _dataState.GetChangedContextData().Find(x => x.Id == dataStateContext.Id);
+                if (queuedContext == null) _dataState.GetChangedContextData().Add(dataStateContext.Clone());
+                else queuedContext.ValueAssign(dataStateContext);
 
                 // local delete
                 if (dataStateContext != null) _dataState.GetContexts()!.Remove(dataStateContext);

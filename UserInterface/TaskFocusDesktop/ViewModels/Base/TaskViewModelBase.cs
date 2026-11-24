@@ -395,12 +395,18 @@ namespace TaskFocusDesktop.ViewModels.Base
             return Task.CompletedTask;
         }
 
+        internal void StopWatchingTaskData()
+        {
+            UnsubscribeFromTaskPropertyChangedEvents(LocalTasks);
+            _dataState.DataStateChanged -= DataStateChanged;
+            _events.Unsubscribe(this);
+        }
+
         // ViewSwitchedEvent handler
         public override async Task HandleAsync(ViewSwitchedEvent message, CancellationToken cancellationToken)
         {
             if (message.SwitchedContentPanel == ViewCatalog.ContentPanel.MainContent)
             {
-                _dataState.DataStateChanged += DataStateChanged;
                 UnsubscribeFromTaskPropertyChangedEvents(LocalTasks);
             }
 

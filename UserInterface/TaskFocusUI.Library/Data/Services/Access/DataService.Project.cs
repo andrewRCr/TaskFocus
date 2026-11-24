@@ -184,10 +184,9 @@ namespace TaskFocusUI.Library.Data.Services
                 dataStateProject.Deleted = DateTimeOffset.Now;
                 dataStateProject.ClientLastUpdated = DateTimeOffset.Now;
 
-                // if had an update pending push, don't add a duplicate to changedProjectData
-                var alreadyQueued = _dataState.GetChangedContextData().Where(
-                    x => x.Id == dataStateProject.Id);
-                if (alreadyQueued.Count() == 0) { _dataState.GetChangedProjectData().Add(dataStateProject.Clone()); }
+                var queuedProject = _dataState.GetChangedProjectData().Find(x => x.Id == dataStateProject.Id);
+                if (queuedProject == null) _dataState.GetChangedProjectData().Add(dataStateProject.Clone());
+                else queuedProject.ValueAssign(dataStateProject);
 
                 // local delete
                 if (dataStateProject != null) _dataState.GetProjects()!.Remove(dataStateProject);

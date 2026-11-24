@@ -51,7 +51,8 @@
 </MudStack>
 
 <!-- rename dialog -->
-<MudDialog @bind-IsVisible="_renameDialogVisible" 
+<MudDialog @ref="_renameDialog"
+            @bind-IsVisible="_renameDialogVisible"
             Options="dialogOptions" 
             Style="background-color: #27272f">
 
@@ -71,6 +72,7 @@
                   Elevation="3">
 
             <MudTextField @bind-Value="_itemName" 
+                         Immediate="true"
                          Variant="Variant.Text" 
                          Margin="Margin.Dense" 
                          OnKeyUp="RenameEnterKeyPressed" />
@@ -79,13 +81,14 @@
     </DialogContent>
 
     <DialogActions>
-        <MudButton OnClick="()=>_renameDialogVisible = false" Class="px-0">Cancel</MudButton>
+        <MudButton OnClick="()=>_renameDialog.Close(DialogResult.Cancel())" Class="px-0">Cancel</MudButton>
         <MudButton Color="Color.Primary" OnClick="SubmitRename" Class="px-0">Save</MudButton>
     </DialogActions>
 </MudDialog>
 
 <!-- delete dialog -->
-<MudDialog @bind-IsVisible="_deleteDialogVisible" 
+<MudDialog @ref="_deleteDialog"
+@bind-IsVisible="_deleteDialogVisible"
 Options="dialogOptions" 
 Style="background-color: #27272f">
 
@@ -108,7 +111,7 @@ Style="background-color: #27272f">
     </DialogContent>
 
     <DialogActions>
-        <MudButton OnClick="()=>_deleteDialogVisible= false" Class="px-0">Cancel</MudButton>
+        <MudButton OnClick="()=>_deleteDialog.Close(DialogResult.Cancel())" Class="px-0">Cancel</MudButton>
         <MudButton Color="Color.Error" OnClick="SubmitDelete" Class="px-0">Delete</MudButton>
     </DialogActions>
 </MudDialog>
@@ -123,9 +126,12 @@ Style="background-color: #27272f">
     [Parameter]
     public ContextDisplayModel ContextParam { get; set; } = default!;
 
+    private ISyncableData? _dialogTarget;
     private string _itemName = string.Empty;
     private string _collectionTypeName = string.Empty;
     private MudMenu _itemEditMenu = default!;
+    private MudDialog _renameDialog = default!;
+    private MudDialog _deleteDialog = default!;
     private string _editMenuClassStr = "invisible";
     private string _stackClass = string.Empty;
     private MudBlazor.Color _linkColor = Color.Inherit;
@@ -136,31 +142,78 @@ Style="background-color: #27272f">
     private bool _deleteDialogVisible = false;
     private DialogOptions dialogOptions = new() { FullWidth = true };
 
-    private void OpenRenameDialog() => _renameDialogVisible = true;
-    private void OpenDeleteDialog() => _deleteDialogVisible = true;
+    private void OpenRenameDialog()
+    {
+        SetDialogTarget();
+        _renameDialogVisible = true;
+    }
+
+    private void OpenDeleteDialog()
+    {
+        SetDialogTarget();
+        _deleteDialogVisible = true;
+    }
+
+    private void SetDialogTarget()
+    {
+        _dialogTarget = IsProjectsSubMenu ? ProjectParam : ContextParam;
+        _itemName = IsProjectsSubMenu ? ProjectParam.ProjectName : ContextParam.ContextName;
+    }
+
+    private ISyncableData? ResolveDialogTarget() => _dialogTarget switch
+    {
+        ProjectDisplayModel project => FindWorkingItem(DataService.GetDataStateProjects(), project),
+        ContextDisplayModel context => FindWorkingItem(DataService.GetDataStateContexts(), context),
+        _ => null
+    };
+
+    private static T? FindWorkingItem<T>(List<T>? items, T target) where T : class, ISyncableData
+    {
+        if (target.Id is int id) return items?.Find(item => item.Id == id);
+        if (items == null || target.TempLocalId is not int tempId) return null;
+
+        // Pending IDs can collide, and the data service also uses them to find the queued copy.
+        var pending = items.Find(item => ReferenceEquals(item, target));
+        return items.Exists(item => !ReferenceEquals(item, target) && item.Id == null && item.TempLocalId == tempId)
+            ? null
+            : pending;
+    }
+
+    private void DismissUnavailableTarget()
+    {
+        AppState.DialogProvider.DismissAll();
+        Snackbar.Add($"{_collectionTypeName} is no longer available.", Severity.Warning);
+    }
 
     protected override void CustomAuthenticatedOnInit()
     {
         SetLinkColor();
     }
 
-    private async void TrySubmitRename()
+    private async Task SubmitRename()
     {
         await VerifyAuthAndRedirectIfExpired();
+        if (!_isAuthenticated) return;
 
         if (string.IsNullOrWhiteSpace(_itemName))
         {
             Snackbar.Add($"{_collectionTypeName} name is required.", Severity.Error);
+            return;
         }
-        else { SubmitRename(); }
-    }
-
-    private void SubmitRename()
-    {
-        if (IsProjectsSubMenu) { ProjectParam.ProjectName = _itemName; }
-        else { ContextParam.ContextName = _itemName; }
 
         _renameDialogVisible = false;
+        switch (ResolveDialogTarget())
+        {
+            case ProjectDisplayModel project:
+                project.ProjectName = _itemName;
+                break;
+            case ContextDisplayModel context:
+                context.ContextName = _itemName;
+                break;
+            default:
+                DismissUnavailableTarget();
+                return;
+        }
 
         AppState.DialogProvider.DismissAll();
         Snackbar.Add($"{_collectionTypeName} renamed.", Severity.Success);
@@ -169,10 +222,21 @@ Style="background-color: #27272f">
     private async Task SubmitDelete()
     {
         await VerifyAuthAndRedirectIfExpired();
+        if (!_isAuthenticated) return;
         _deleteDialogVisible = false;
 
-        if (IsProjectsSubMenu) DataService.DeleteProject(ProjectParam);
-        else DataService.DeleteContext(ContextParam);
+        switch (ResolveDialogTarget())
+        {
+            case ProjectDisplayModel project:
+                DataService.DeleteProject(project);
+                break;
+            case ContextDisplayModel context:
+                DataService.DeleteContext(context);
+                break;
+            default:
+                DismissUnavailableTarget();
+                return;
+        }
 
         AppState.DialogProvider.DismissAll();
         Snackbar.Add($"{_collectionTypeName} deleted.", Severity.Success);
@@ -181,9 +245,6 @@ Style="background-color: #27272f">
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
-
-        _itemName = IsProjectsSubMenu ? 
-            ProjectParam.ProjectName : ContextParam.ContextName;
 
         _collectionTypeName = IsProjectsSubMenu ?
             "Project" : "Context";
@@ -235,13 +296,8 @@ Style="background-color: #27272f">
         { AppState.FocusedContextIdStr = ContextParam.Id.ToString(); }
     }
 
-    public void RenameEnterKeyPressed(KeyboardEventArgs e)
-    {
-        if (e.Code == "Enter" || e.Code == "NumpadEnter")
-        {
-            TrySubmitRename();
-        }
-    }
+    private Task RenameEnterKeyPressed(KeyboardEventArgs e) =>
+        e.Code is "Enter" or "NumpadEnter" ? SubmitRename() : Task.CompletedTask;
 
     private void RenameItem(MouseEventArgs args) => OpenRenameDialog();
     private void RenameItemTouch(TouchEventArgs args) => OpenRenameDialog();

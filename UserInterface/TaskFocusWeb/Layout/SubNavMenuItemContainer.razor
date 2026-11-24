@@ -60,6 +60,7 @@ else
 
     private MudDropContainer<ProjectDisplayModel> _projectContainer = default!;
     private MudDropContainer<ContextDisplayModel> _contextContainer = default!;
+    private bool _refreshItems;
 
     private void OnProjectItemDropped(MudItemDropInfo<ProjectDisplayModel> dropItem)
     {
@@ -75,20 +76,14 @@ else
         AppState.RequestManualRefresh(); // refresh ContextsTaskViewPage
     }
 
-    private void RefreshContainer()
+    protected override void OnAfterRender(bool firstRender)
     {
-        if (IsProjectsSubMenu)
-        {
-            ContainerProjectsParam = ContainerProjectsParam.OrderBy(x => x.OrderIndex).ToList();
-            _projectContainer.Refresh(); // container refreshes internal state
-            StateHasChanged(); // update the binding to the container
-        }
-        else
-        {
-            ContainerContextsParam = ContainerContextsParam.OrderBy(x => x.OrderIndex).ToList();
-            _contextContainer.Refresh();
-            StateHasChanged();
-        }
+        if (!_refreshItems) return;
+
+        // Refresh the drop zone after the container has received its latest Items parameter.
+        _refreshItems = false;
+        if (IsProjectsSubMenu) _projectContainer.Refresh();
+        else _contextContainer.Refresh();
     }
 
     private void UpdateLocalOrder<T>(MudItemDropInfo<T> reorderedDropItem, List<T> ContainerCollectionParam) where T: ICollectionDisplayModel
@@ -132,8 +127,15 @@ else
 
         if (AppState.CanRefresh)
         {
-            RefreshContainer();
-            //Console.WriteLine($"SubNavMenuItemContainer: returned true on HandleDataStateChanged. changed property causing True return: {propertyName}");
+            if (IsProjectsSubMenu)
+            {
+                ContainerProjectsParam = ContainerProjectsParam.OrderBy(x => x.OrderIndex).ToList();
+            }
+            else
+            {
+                ContainerContextsParam = ContainerContextsParam.OrderBy(x => x.OrderIndex).ToList();
+            }
+            _refreshItems = true;
         }
 
         return AppState.CanRefresh;

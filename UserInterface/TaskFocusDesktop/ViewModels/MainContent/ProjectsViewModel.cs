@@ -70,48 +70,39 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             }
         }
 
-        private async Task SetFocusedProjectProperties()
+        protected override void LoadLocalTaskData()
         {
-            if (FocusedProjectId != null)
-            { await _dataService.FetchRemoteProjectAndTasksById((int)FocusedProjectId); }
+            var selectedId = FocusedProjectId;
+            var project = selectedId.HasValue
+                ? _dataService.GetDataStateProjects()?.Find(x => x.Id == selectedId)
+                : null;
 
-            if (_dataHelper.FocusedProject != null)
+            UnsubscribeFromTaskPropertyChangedEvents(FocusedProjectTasks);
+            if (project?.Id is int id)
             {
-                ShowNoFocusedProjectTutorialText = false;
-                FocusedProjectName = _dataHelper.FocusedProject.ProjectName.ToUpper();
-                var projectTasks = _dataHelper.FocusedProjectTasks;
-
-                FocusedProjectTasks = new ObservableCollection<TaskDisplayModel>(projectTasks!);
+                var tasks = _dataService.GetDataStateTasks();
+                FocusedProjectName = project.ProjectName.ToUpper();
+                FocusedProjectTasks = new ObservableCollection<TaskDisplayModel>(tasks?.GetProjectTasks(id) ?? []);
                 SubscribeToTaskPropertyChangedEvents(FocusedProjectTasks);
-                LocalTasks = FocusedProjectTasks;
-
-                TaskCount = FocusedProjectTasks.Count;
-                UpdateScrollHeight(AppWindowHeight);
             }
             else
             {
-                FocusedProjectId = null; // may have been deleted
+                FocusedProjectId = null;
                 FocusedProjectName = null;
                 FocusedProjectTasks = null;
             }
+
+            ShowNoFocusedProjectTutorialText = project == null;
+            LocalTasks = FocusedProjectTasks;
+            TaskCount = LocalTasks?.Count ?? 0;
+            UpdateScrollHeight(AppWindowHeight);
         }
 
-        protected override void OnViewLoaded(object view)
-        {
-            base.OnViewLoaded(view);
-            ShowNoFocusedProjectTutorialText = FocusedProjectId == null;
-        }
-
-        protected override async void LoadLocalTaskData()
-        {
-            // do not invoke base method; only load relevant project tasks
-            await SetFocusedProjectProperties();
-        }
-
-        public async Task HandleAsync(FocusedProjectChangedEvent message, CancellationToken cancellationToken)
+        public Task HandleAsync(FocusedProjectChangedEvent message, CancellationToken cancellationToken)
         {
             FocusedProjectId = message.NewFocusedProjectId;
-            await SetFocusedProjectProperties();
+            LoadLocalTaskData();
+            return Task.CompletedTask;
         }
 
         protected override bool HandleDataStateChanged(string propertyName, IDataState dataState)
@@ -129,13 +120,13 @@ namespace TaskFocusDesktop.ViewModels.MainContent
         // ViewSwitchedEvent handler
         public override async Task HandleAsync(ViewSwitchedEvent message, CancellationToken cancellationToken)
         {
+            await base.HandleAsync(message, cancellationToken);
+
             if (message.SwitchedContentPanel == ViewCatalog.ContentPanel.MainContent &&
                 ActiveMainContentView == ViewCatalog.MainContentView.Projects)
             {
-                UnsubscribeFromTaskPropertyChangedEvents(FocusedProjectTasks);
+                LoadLocalTaskData();
             }
-
-            await base.HandleAsync(message, cancellationToken);
         }
     }
 }

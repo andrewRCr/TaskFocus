@@ -1,27 +1,25 @@
 ﻿@page "/projects"
 @inherits _TaskViewPageBase
-@inject IDataService DataService
 
 <PageTitle>TaskFocus: Projects</PageTitle>
 
 <MudStack Row="true">
     @if (IsLocalDataLoaded())
     {
-        @if (_focusedProjectIdStr != null && ProjectParam != null)
+        @if (_focusedProject is { Id: int focusedId } focusedProject)
         {
-            <MudTreeView T="TaskContainerComponent" Width="100%">
+            <MudTreeView @key="focusedId" T="TaskContainerComponent" Width="100%">
 
                 <MudTreeViewItem T="TaskContainerComponent" 
                 Expanded="true" 
                 Icon="@Icons.Material.Filled.Assignment" 
-                Text="@ProjectParam.ProjectName" TextTypo="Typo.button">
+                Text="@focusedProject.ProjectName" TextTypo="Typo.button">
 
                     <TaskContainerComponent 
-                    ContainerTaskItemsParam="@DataService.GetDataStateTasks()!.Where(
-                        x => (x.ProjectId != null) && (x.ProjectId == ProjectParam.Id) && !x.CleanedUp).ToList()"
-                    ContainerIdentifierParam="@ProjectParam.ProjectName"
+                    ContainerTaskItemsParam="@LocalTasks!.GetProjectTasks(focusedId)"
+                    ContainerIdentifierParam="@focusedId.ToString()"
                     ContainerOrderingTypeParam="Project"
-                    ContainerItemsSelectorParam="@((item, dropzone) => item.ProjectName == dropzone)"
+                    ContainerItemsSelectorParam="@((item, _) => item.ProjectId == focusedId)"
                     ContainerProjectsParam="@LocalProjects"
                     ContainerContextsParam="@LocalContexts" />
                 </MudTreeViewItem>
@@ -39,11 +37,10 @@
                     TextTypo="Typo.button">
 
                         <TaskContainerComponent 
-                        ContainerTaskItemsParam="@DataService.GetDataStateTasks()!.Where(
-                            x => (x.ProjectId != null) && (x.ProjectId == project.Id) && !x.CleanedUp).ToList()"
-                        ContainerIdentifierParam="@project.ProjectName"
+                        ContainerTaskItemsParam="@(project.Id is int id ? LocalTasks!.GetProjectTasks(id) : [])"
+                        ContainerIdentifierParam="@(project.Id?.ToString() ?? $"pending-{project.TempLocalId}")"
                         ContainerOrderingTypeParam="Project"
-                        ContainerItemsSelectorParam="@((item, dropzone) => item.ProjectName == dropzone)"
+                        ContainerItemsSelectorParam="@((item, _) => item.ProjectId == project.Id)"
                         ContainerProjectsParam="@LocalProjects"
                         ContainerContextsParam="@LocalContexts" />
                     </MudTreeViewItem>  
@@ -84,10 +81,7 @@
 </MudContainer>
 
 @code {
-    private string? _focusedProjectIdStr = null;
-    public ProjectDisplayModel ProjectParam { get; set; } = default!;
-    bool isValid = false;
-    int integerProjectId;
+    private ProjectDisplayModel? _focusedProject;
 
     protected override void OnInitialized()
     {
@@ -98,65 +92,48 @@
     protected override void CustomAuthenticatedOnInit()
     {
         LoadAllLocalData();
-        _focusedProjectIdStr = AppState.FocusedProjectIdStr;
+        ResolveFocusedProject();
     }
 
     protected override bool IsLocalDataLoaded()
     {
-        return LocalTasks != null && LocalProjects != null & LocalContexts != null;
+        return LocalTasks != null && LocalProjects != null && LocalContexts != null;
     }
 
-    protected void GetProjectFromId()
+    private void ResolveFocusedProject()
     {
-        isValid = int.TryParse(_focusedProjectIdStr, out integerProjectId);
-        if (isValid)
+        var selectedId = AppState.FocusedProjectIdStr;
+        _focusedProject = int.TryParse(selectedId, out var id)
+            ? LocalProjects?.Find(x => x.Id == id)
+            : null;
+
+        if (selectedId != null && LocalProjects != null && _focusedProject == null)
         {
-            ProjectParam = DataService.GetDataStateProjects()!.Find(x => x.Id == integerProjectId)!;
+            AppState.FocusedProjectIdStr = null;
         }
-    }
-
-    public bool ProjectItemsSelector(ProjectDisplayModel item, string dropzone)
-    {
-        return true;
     }
 
     protected override bool HandleAppStateChanged(string propertyName, AppState appState)
     {
-        if (propertyName == nameof(AppState.RequestManualRefresh))
+        if (propertyName == nameof(AppState.FocusedProjectIdStr) ||
+            propertyName == nameof(AppState.RequestManualRefresh) ||
+            propertyName == nameof(AppState.CanRefresh))
         {
-            if (AppState.CanRefresh)
-            {
-                StateHasChanged();
-                return true;
-            }
-        }
-        else if (propertyName != nameof(AppState.FocusedProjectIdStr) && !appRefreshTriggers.Contains(propertyName))
-        {
-            return false;     
-        }
-        else if (AppState.CanRefresh)
-        {
-            _focusedProjectIdStr = AppState.FocusedProjectIdStr;
-            LoadAlertMessage();
+            if (!AppState.CanRefresh) return false;
+            if (propertyName != nameof(AppState.FocusedProjectIdStr)) LoadAllLocalData();
 
-            if (_focusedProjectIdStr != null)
-            {
-                GetProjectFromId();
-            }
+            ResolveFocusedProject();
+            return true;
         }
 
-        return AppState.CanRefresh;
+        return base.HandleAppStateChanged(propertyName, appState);
     }
 
-    protected override bool HandleDataStateChanged(String propertyName, IDataState dataState)
+    protected override bool HandleDataStateChanged(string propertyName, IDataState dataState)
     {
-        if (!dataRefreshTriggers.Contains(propertyName)) return false;
-        else if (AppState.CanRefresh)
-        {
-            LoadAllLocalData();
-            //Console.WriteLine($"ProjectsTaskViewPage: returned true on HandleDataStateChanged. changed property causing True return: {propertyName}");
-        }
+        if (!base.HandleDataStateChanged(propertyName, dataState)) return false;
 
-        return AppState.CanRefresh;
+        ResolveFocusedProject();
+        return true;
     }
 }

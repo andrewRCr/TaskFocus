@@ -57,10 +57,13 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
         {
             if (_isProjectCollection)
             {
-                await _dataService.FetchRemoteProjectAndTasksById(_focusedCollectionId);
-                SelectedProject = _dataHelper.FocusedProject;
-
-                if (SelectedProject == null) { return; }
+                SelectedProject = _dataService.GetDataStateProjects()?.Find(x => x.Id == _focusedCollectionId);
+                if (SelectedProject == null)
+                {
+                    IsFeedbackError = true;
+                    FeedbackMessage = "This project is no longer available.";
+                    return;
+                }
 
                 IsFeedbackError = false;
                 FeedbackMessage = null;
@@ -76,10 +79,13 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
             }
             else
             {
-                await _dataService.FetchRemoteContextAndTasksById(_focusedCollectionId);
-                SelectedContext = _dataHelper.FocusedContext;
-
-                if (SelectedContext == null) { return; }
+                SelectedContext = _dataService.GetDataStateContexts()?.Find(x => x.Id == _focusedCollectionId);
+                if (SelectedContext == null)
+                {
+                    IsFeedbackError = true;
+                    FeedbackMessage = "This context is no longer available.";
+                    return;
+                }
 
                 IsFeedbackError = false;
                 FeedbackMessage = null;
