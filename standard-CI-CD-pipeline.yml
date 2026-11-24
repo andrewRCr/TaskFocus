@@ -2,10 +2,10 @@
 trigger:
   branches:
     include:
-    - '*'
+    - main
 
-# Branch builds are the pull request check (GitHub status "Standard CI-CD Pipeline").
-# Separate pull-request merge builds would only repeat them.
+# Pull requests are checked by GitHub Actions (.github/workflows/checks.yml). This pipeline builds, tests and
+# deploys main; queue it by hand on another branch for a build to deploy to staging.
 pr: none
 
 pool:
@@ -97,8 +97,11 @@ stages:
         SourceFolder: '$(build.artifactStagingDirectory)'
         Contents: '**'
 
+    # Only releases use the desktop package and only deployments use the auth database script, so runs on other
+    # branches skip both. GitHub Actions compiles the desktop app for every pull request.
     - task: DotNetCoreCLI@2
       displayName: 'Build DesktopUI project'
+      condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
       inputs:
         command: 'publish'
         publishWebProjects: false
@@ -108,6 +111,7 @@ stages:
 
     - task: PublishBuildArtifacts@1
       displayName: 'Publish DesktopUI'
+      condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
       inputs:
         PathtoPublish: '$(Build.ArtifactStagingDirectory)'
         ArtifactName: 'DesktopUI_drop'
@@ -121,6 +125,7 @@ stages:
         
     - task: CmdLine@2
       displayName: 'Build EF ApiAuth DB'
+      condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
       inputs:
         script: |
           dotnet tool install --global dotnet-ef --version 10.0.15
@@ -128,6 +133,7 @@ stages:
 
     - task: PublishBuildArtifacts@1
       displayName: 'Publish EF ApiAuth DB'
+      condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
       inputs:
         PathtoPublish: '$(Build.ArtifactStagingDirectory)'
         ArtifactName: 'AuthDB_drop'
