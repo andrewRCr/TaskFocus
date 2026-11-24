@@ -41,6 +41,7 @@ namespace TaskFocusUI.Library.Data.Services
         {
             UpdateWorkingTasksFromDataState();
             UpdateWorkingProjectsFromDataState();
+            UpdateWorkingContextsFromDataState();
         }
 
         // for use when removing a project/context

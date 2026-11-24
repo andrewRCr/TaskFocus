@@ -315,7 +315,7 @@ namespace TaskFocusDesktop.Views.Components
                     }
 
                     // will trigger a PropertyChanged -> UpdateTaskData call
-                    bool changed = (int)item[OrderingIndex] != vm.FocusedProjectTasks.IndexOf(item);
+                    bool changed = (int?)item[OrderingIndex] != vm.FocusedProjectTasks.IndexOf(item);
                     if (changed) item[OrderingIndex] = vm.FocusedProjectTasks.IndexOf(item);
                     //Debug.WriteLine($"{item.TaskName} OrderingIndex({OrderingIndex}): {item[OrderingIndex]}");
 
@@ -338,7 +338,7 @@ namespace TaskFocusDesktop.Views.Components
                     }
 
                     // will trigger a PropertyChanged -> UpdateTaskData call
-                    bool changed = (int)item[OrderingIndex] != vm.FocusedContextTasks.IndexOf(item);
+                    bool changed = (int?)item[OrderingIndex] != vm.FocusedContextTasks.IndexOf(item);
                     if (changed) item[OrderingIndex] = vm.FocusedContextTasks.IndexOf(item);
                     //Debug.WriteLine($"{item.TaskName} OrderingIndex({OrderingIndex}): {item[OrderingIndex]}");
                 }

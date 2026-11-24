@@ -1,25 +1,24 @@
 ﻿@page "/contexts"
 @inherits _TaskViewPageBase
-@inject IDataService DataService
 
 <PageTitle>TaskFocus: Contexts</PageTitle>
 
 <MudStack Row="true">
     @if (IsLocalDataLoaded())
     {
-        @if (_focusedContextIdStr != null && ContextParam != null)
+        @if (_focusedContext is { Id: int focusedId } focusedContext)
         {
-            <MudTreeView T="TaskContainerComponent" Width="100%">
+            <MudTreeView @key="focusedId" T="TaskContainerComponent" Width="100%">
 
                 <MudTreeViewItem T="TaskContainerComponent" 
                                  Expanded="true" 
                                  Icon="@Icons.Material.Filled.AutoAwesomeMotion" 
-                                 Text="@ContextParam.ContextName" TextTypo="Typo.button">
+                                 Text="@focusedContext.ContextName" TextTypo="Typo.button">
 
-                    <TaskContainerComponent ContainerTaskItemsParam="@LocalTasks!.Where(x=>(x.ContextId == ContextParam.Id) && !x.CleanedUp).ToList()"
-                                            ContainerIdentifierParam="@ContextParam.ContextName"
+                    <TaskContainerComponent ContainerTaskItemsParam="@LocalTasks!.GetContextTasks(focusedId)"
+                                            ContainerIdentifierParam="@focusedId.ToString()"
                                             ContainerOrderingTypeParam="Context"
-                                            ContainerItemsSelectorParam="@((item, dropzone) => item.ContextName == dropzone)"
+                                            ContainerItemsSelectorParam="@((item, _) => item.ContextId == focusedId)"
                                             ContainerProjectsParam="@LocalProjects"
                                             ContainerContextsParam="@LocalContexts" />
                 </MudTreeViewItem>
@@ -37,10 +36,12 @@
                                      Text="@context.ContextName" 
                                      TextTypo="Typo.button">
 
-                        <TaskContainerComponent ContainerTaskItemsParam="@LocalTasks!.Where(x=>(x.ContextId == context.Id) && !x.CleanedUp).ToList()"
-                                                ContainerIdentifierParam="@context.ContextName"
+                        <TaskContainerComponent ContainerTaskItemsParam="@(context.Id is int id
+                                                    ? LocalTasks!.GetContextTasks(id)
+                                                    : LocalTasks!.Where(x => x.ContextId == null && x.ContextName == context.ContextName && !x.CleanedUp).ToList())"
+                                                ContainerIdentifierParam="@(context.Id?.ToString() ?? $"pending-{context.TempLocalId}")"
                                                 ContainerOrderingTypeParam="Context"
-                                                ContainerItemsSelectorParam="@((item, dropzone) => item.ContextName == dropzone)"
+                                                ContainerItemsSelectorParam="@((item, _) => item.ContextId == context.Id)"
                                                 ContainerProjectsParam="@LocalProjects"
                                                 ContainerContextsParam="@LocalContexts" />
                     </MudTreeViewItem>              
@@ -81,10 +82,7 @@
 </MudContainer>
 
 @code {
-    private string? _focusedContextIdStr = null;
-    public ContextDisplayModel ContextParam { get; set; } = default!;
-    bool isValid = false;
-    int integerContextId;
+    private ContextDisplayModel? _focusedContext;
 
     protected override void OnInitialized()
     {
@@ -95,61 +93,48 @@
     protected override void CustomAuthenticatedOnInit()
     {
         LoadAllLocalData();
-        _focusedContextIdStr = AppState.FocusedContextIdStr;
+        ResolveFocusedContext();
     }
 
     protected override bool IsLocalDataLoaded()
     {
-        return LocalTasks != null && LocalProjects != null & LocalContexts != null;
+        return LocalTasks != null && LocalProjects != null && LocalContexts != null;
     }
 
-    protected void GetContextFromId()
+    private void ResolveFocusedContext()
     {
-        isValid = int.TryParse(_focusedContextIdStr, out integerContextId);
-        if (isValid)
+        var selectedId = AppState.FocusedContextIdStr;
+        _focusedContext = int.TryParse(selectedId, out var id)
+            ? LocalContexts?.Find(x => x.Id == id)
+            : null;
+
+        if (selectedId != null && LocalContexts != null && _focusedContext == null)
         {
-            ContextParam = DataService.GetDataStateContexts()!.Find(x => x.Id == integerContextId)!;
+            AppState.FocusedContextIdStr = null;
         }
     }
 
-    public bool ContextItemsSelector(ContextDisplayModel item, string dropzone)
+    protected override bool HandleAppStateChanged(string propertyName, AppState appState)
     {
+        if (propertyName == nameof(AppState.FocusedContextIdStr) ||
+            propertyName == nameof(AppState.RequestManualRefresh) ||
+            propertyName == nameof(AppState.CanRefresh))
+        {
+            if (!AppState.CanRefresh) return false;
+            if (propertyName != nameof(AppState.FocusedContextIdStr)) LoadAllLocalData();
+
+            ResolveFocusedContext();
+            return true;
+        }
+
+        return base.HandleAppStateChanged(propertyName, appState);
+    }
+
+    protected override bool HandleDataStateChanged(string propertyName, IDataState dataState)
+    {
+        if (!base.HandleDataStateChanged(propertyName, dataState)) return false;
+
+        ResolveFocusedContext();
         return true;
-    }
-
-    protected override bool HandleAppStateChanged(String propertyName, AppState appState)
-    {
-        if (propertyName == nameof(AppState.RequestManualRefresh))
-        {
-            if (AppState.CanRefresh)
-            {
-                StateHasChanged();
-                return true;
-            }
-        }
-        else if (propertyName != nameof(AppState.FocusedContextIdStr) && !appRefreshTriggers.Contains(propertyName))
-        {
-            return false;
-        }
-        else if (AppState.CanRefresh)
-        {
-            _focusedContextIdStr = appState.FocusedContextIdStr;
-            LoadAlertMessage();
-
-            if (_focusedContextIdStr != null)
-            {
-                GetContextFromId();
-            }
-        }
-
-        return AppState.CanRefresh;
-    }
-
-    protected override bool HandleDataStateChanged(String propertyName, IDataState dataState)
-    {
-        if (!dataRefreshTriggers.Contains(propertyName)) return false;
-        else if (AppState.CanRefresh) LoadAllLocalData();
-
-        return AppState.CanRefresh;
     }
 }

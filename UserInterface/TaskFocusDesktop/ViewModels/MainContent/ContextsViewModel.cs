@@ -70,48 +70,39 @@ namespace TaskFocusDesktop.ViewModels.MainContent
             _events.SubscribeOnPublishedThread(this);
         }
 
-        private async Task SetFocusedContextProperties()
+        protected override void LoadLocalTaskData()
         {
-            if (FocusedContextId != null)
-            { await _dataService.FetchRemoteContextAndTasksById((int)FocusedContextId); }
+            var selectedId = FocusedContextId;
+            var context = selectedId.HasValue
+                ? _dataService.GetDataStateContexts()?.Find(x => x.Id == selectedId)
+                : null;
 
-            if (_dataHelper.FocusedContext != null)
+            UnsubscribeFromTaskPropertyChangedEvents(FocusedContextTasks);
+            if (context?.Id is int id)
             {
-                ShowNoFocusedContextTutorialText = false;
-                FocusedContextName = _dataHelper.FocusedContext.ContextName.ToUpper();
-                var contextTasks = _dataHelper.FocusedContextTasks;
-
-                FocusedContextTasks = new ObservableCollection<TaskDisplayModel>(contextTasks!);
+                var tasks = _dataService.GetDataStateTasks();
+                FocusedContextName = context.ContextName.ToUpper();
+                FocusedContextTasks = new ObservableCollection<TaskDisplayModel>(tasks?.GetContextTasks(id) ?? []);
                 SubscribeToTaskPropertyChangedEvents(FocusedContextTasks);
-                LocalTasks = FocusedContextTasks;
-
-                TaskCount = FocusedContextTasks.Count;
-                UpdateScrollHeight(AppWindowHeight);
             }
             else
             {
-                FocusedContextId = null; // may have been deleted
+                FocusedContextId = null;
                 FocusedContextName = null;
                 FocusedContextTasks = null;
             }
+
+            ShowNoFocusedContextTutorialText = context == null;
+            LocalTasks = FocusedContextTasks;
+            TaskCount = LocalTasks?.Count ?? 0;
+            UpdateScrollHeight(AppWindowHeight);
         }
 
-        public async Task HandleAsync(FocusedContextChangedEvent message, CancellationToken cancellationToken)
+        public Task HandleAsync(FocusedContextChangedEvent message, CancellationToken cancellationToken)
         {
             FocusedContextId = message.NewFocusedContextId;
-            await SetFocusedContextProperties();
-        }
-
-        protected override void OnViewLoaded(object view)
-        {
-            base.OnViewLoaded(view);
-            ShowNoFocusedContextTutorialText = FocusedContextId == null;
-        }
-
-        protected override async void LoadLocalTaskData()
-        {
-            // do not invoke base method; only load relevant context tasks
-            await SetFocusedContextProperties();
+            LoadLocalTaskData();
+            return Task.CompletedTask;
         }
 
         protected override bool HandleDataStateChanged(string propertyName, IDataState dataState)
@@ -129,13 +120,13 @@ namespace TaskFocusDesktop.ViewModels.MainContent
         // ViewSwitchedEvent handler
         public override async Task HandleAsync(ViewSwitchedEvent message, CancellationToken cancellationToken)
         {
+            await base.HandleAsync(message, cancellationToken);
+
             if (message.SwitchedContentPanel == ViewCatalog.ContentPanel.MainContent &&
                 ActiveMainContentView == ViewCatalog.MainContentView.Contexts)
             {
-                UnsubscribeFromTaskPropertyChangedEvents(FocusedContextTasks);
+                LoadLocalTaskData();
             }
-
-            await base.HandleAsync(message, cancellationToken);
         }
     }
 }
