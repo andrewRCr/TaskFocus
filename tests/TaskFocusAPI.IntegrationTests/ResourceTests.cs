@@ -33,6 +33,11 @@ namespace TaskFocusAPI.IntegrationTests
             Assert.Equal(task.TaskName, saved.TaskName);
             Assert.True(saved.Starred);
 
+            task.TaskName = string.Empty;
+            await UpdateAsync(client, "Task", task);
+            saved = await GetAsync<TaskModel>(client, $"/api/Task/GetTaskById/{task.Id}");
+            Assert.Empty(saved.TaskName);
+
             await DeleteAsync(client, "Task", new { task.Id });
             Assert.Empty(await GetAsync<List<TaskModel>>(client, Tasks));
         }
@@ -75,6 +80,114 @@ namespace TaskFocusAPI.IntegrationTests
 
             await DeleteAsync(client, "Context", new { context.Id });
             Assert.Empty(await GetAsync<List<ContextModel>>(client, Contexts));
+        }
+
+        [Fact]
+        public async Task ContextCreatePersistsPaddedNameWithSuffixBeyondProcedureLimit()
+        {
+            using var client = await fixture.CreateAuthenticatedClientAsync();
+            const string name = "Field notes";
+            var saved = await CreateContextAsync(client, name.PadRight(128) + " revision");
+
+            Assert.Equal(name.PadRight(50), saved.ContextName);
+        }
+
+        [Fact]
+        public async Task ContextUpdatePersistsPaddedNameWithSuffixBeyondProcedureLimit()
+        {
+            using var client = await fixture.CreateAuthenticatedClientAsync();
+            var context = await CreateContextAsync(client, "Original context");
+            const string name = "Field notes";
+            context.ContextName = name.PadRight(128) + " revision";
+            await UpdateAsync(client, "Context", context);
+
+            var saved = await GetAsync<ContextModel>(client, $"/api/Context/GetContextById/{context.Id}");
+            Assert.Equal(name.PadRight(50), saved.ContextName);
+        }
+
+        [Theory]
+        [InlineData("Task")]
+        [InlineData("Project")]
+        [InlineData("Context")]
+        public async Task CreateAndUpdateRequireAName(string resource)
+        {
+            using var client = await fixture.CreateAuthenticatedClientAsync();
+            await AssertStatusAsync(client, HttpMethod.Post, resource, new { }, HttpStatusCode.BadRequest);
+
+            int id = await CreateResourceAsync(client, resource, "Original name");
+            await AssertStatusAsync(client, HttpMethod.Put, resource, new { Id = id }, HttpStatusCode.BadRequest);
+        }
+
+        [Theory]
+        [InlineData("Task")]
+        [InlineData("Project")]
+        [InlineData("Context")]
+        public async Task UpdateAndDeleteRequireAPositiveId(string resource)
+        {
+            using var client = await fixture.CreateAuthenticatedClientAsync();
+            string nameProperty = $"{resource}Name";
+            var update = new JsonObject { [nameProperty] = "Updated name" };
+            var delete = new JsonObject();
+            await AssertStatusAsync(client, HttpMethod.Put, resource, update, HttpStatusCode.BadRequest);
+            await AssertStatusAsync(client, HttpMethod.Delete, resource, delete, HttpStatusCode.BadRequest);
+
+            foreach (int? invalidId in new int?[] { null, 0, -1 })
+            {
+                update["Id"] = invalidId;
+                delete["Id"] = invalidId;
+                await AssertStatusAsync(client, HttpMethod.Put, resource, update, HttpStatusCode.BadRequest);
+                await AssertStatusAsync(client, HttpMethod.Delete, resource, delete, HttpStatusCode.BadRequest);
+            }
+        }
+
+        [Theory]
+        [InlineData("Project", 128)]
+        [InlineData("Context", 50)]
+        public async Task CollectionWritesEnforceNameLength(string resource, int maxLength)
+        {
+            using var client = await fixture.CreateAuthenticatedClientAsync();
+            string nameProperty = $"{resource.ToLowerInvariant()}Name";
+            string oversizedName = new('x', maxLength + 1);
+            var write = new JsonObject { [nameProperty] = oversizedName };
+            await AssertStatusAsync(client, HttpMethod.Post, resource, write, HttpStatusCode.BadRequest);
+
+            string originalName = new('a', maxLength);
+            int id = await CreateResourceAsync(client, resource, $"{originalName} ");
+            string readRoute = $"/api/{resource}/Get{resource}ById/{id}";
+            write["Id"] = id;
+            await AssertStatusAsync(client, HttpMethod.Put, resource, write, HttpStatusCode.BadRequest);
+            Assert.Equal(originalName, (await GetAsync<JsonElement>(client, readRoute)).GetProperty(nameProperty).GetString());
+
+            string updatedName = new('b', maxLength);
+            write[nameProperty] = $" {updatedName} ";
+            await UpdateAsync(client, resource, write);
+            Assert.Equal(updatedName, (await GetAsync<JsonElement>(client, readRoute)).GetProperty(nameProperty).GetString());
+        }
+
+        [Theory]
+        [InlineData("Project")]
+        [InlineData("Context")]
+        public async Task ReferencedCollectionDeleteReturnsConflictAndPreservesChildren(string resource)
+        {
+            using var client = await fixture.CreateAuthenticatedClientAsync();
+            var context = await CreateContextAsync(client, "Parent context");
+            var project = await CreateProjectAsync(client, "Project in context");
+            project.ContextId = context.Id;
+            await UpdateAsync(client, "Project", project);
+            var task = await CreateTaskAsync(client, "Task in project");
+            task.ProjectId = project.Id;
+            await UpdateAsync(client, "Task", task);
+
+            var originalContext = await GetAsync<JsonElement>(client, $"/api/Context/GetContextById/{context.Id}");
+            var originalProject = await GetAsync<JsonElement>(client, $"/api/Project/GetProjectById/{project.Id}");
+            var originalTask = await GetAsync<JsonElement>(client, $"/api/Task/GetTaskById/{task.Id}");
+
+            await AssertStatusAsync(client, HttpMethod.Delete, resource,
+                new { Id = resource == "Project" ? project.Id : context.Id }, HttpStatusCode.Conflict);
+
+            Assert.True(JsonElement.DeepEquals(originalContext, await GetAsync<JsonElement>(client, $"/api/Context/GetContextById/{context.Id}")));
+            Assert.True(JsonElement.DeepEquals(originalProject, await GetAsync<JsonElement>(client, $"/api/Project/GetProjectById/{project.Id}")));
+            Assert.True(JsonElement.DeepEquals(originalTask, await GetAsync<JsonElement>(client, $"/api/Task/GetTaskById/{task.Id}")));
         }
 
         [Theory]
@@ -156,18 +269,11 @@ namespace TaskFocusAPI.IntegrationTests
             var callerUser = await fixture.CreateUserAsync();
             using var caller = await fixture.CreateAuthenticatedClientAsync(callerUser);
             const string originalName = "Owner's item";
-            int? id = resource switch
-            {
-                "Task" => (await CreateTaskAsync(owner, originalName)).Id,
-                "Project" => (await CreateProjectAsync(owner, originalName)).Id,
-                "Context" => (await CreateContextAsync(owner, originalName)).Id,
-                _ => throw new ArgumentOutOfRangeException(nameof(resource))
-            };
-            Assert.NotNull(id);
+            int id = await CreateResourceAsync(owner, resource, originalName);
             string readRoute = $"/api/{resource}/Get{resource}ById/{id}";
             var original = await GetAsync<JsonElement>(owner, readRoute);
 
-            using var foreignRequest = CreateRequest(id.Value);
+            using var foreignRequest = CreateRequest(id);
             using var foreignResponse = await caller.SendAsync(foreignRequest, CancellationToken);
             var expectedStatus = method switch
             {
@@ -179,7 +285,7 @@ namespace TaskFocusAPI.IntegrationTests
             Assert.Equal(expectedStatus, foreignResponse.StatusCode);
             Assert.True(JsonElement.DeepEquals(original, await GetAsync<JsonElement>(owner, readRoute)));
 
-            using var missingRequest = CreateRequest(-1);
+            using var missingRequest = CreateRequest(int.MaxValue);
             using var missingResponse = await caller.SendAsync(missingRequest, CancellationToken);
             Assert.Equal(foreignResponse.StatusCode, missingResponse.StatusCode);
             Assert.Equal(foreignResponse.Content.Headers.ContentType, missingResponse.Content.Headers.ContentType);
@@ -457,6 +563,19 @@ namespace TaskFocusAPI.IntegrationTests
             Assert.Null(taskById.ProjectName);
         }
 
+        private static async Task<int> CreateResourceAsync(HttpClient client, string resource, string name)
+        {
+            int? id = resource switch
+            {
+                "Task" => (await CreateTaskAsync(client, name)).Id,
+                "Project" => (await CreateProjectAsync(client, name)).Id,
+                "Context" => (await CreateContextAsync(client, name)).Id,
+                _ => throw new ArgumentOutOfRangeException(nameof(resource))
+            };
+            Assert.NotNull(id);
+            return id.Value;
+        }
+
         private static async Task<TaskModel> CreateTaskAsync(HttpClient client, string name)
         {
             using var response = await HttpClientJsonExtensions.PostAsJsonAsync(client, "/api/Task/Post", new TaskModel { TaskName = name }, CancellationToken);
@@ -472,7 +591,8 @@ namespace TaskFocusAPI.IntegrationTests
         private static async Task<ContextModel> CreateContextAsync(HttpClient client, string name)
         {
             using var response = await HttpClientJsonExtensions.PostAsJsonAsync(client, "/api/Context/Post", new ContextModel { ContextName = name }, CancellationToken);
-            response.EnsureSuccessStatusCode();
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Empty(await response.Content.ReadAsStringAsync(CancellationToken));
             return Assert.Single(await GetAsync<List<ContextModel>>(client, Contexts));
         }
 
@@ -496,6 +616,13 @@ namespace TaskFocusAPI.IntegrationTests
             using var response = await HttpClientJsonExtensions.PutAsJsonAsync(client, $"/api/{resource}/Put", item, CancellationToken);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Empty(await response.Content.ReadAsStringAsync(CancellationToken));
+        }
+
+        private static async Task AssertStatusAsync(HttpClient client, HttpMethod method, string resource, object item, HttpStatusCode expected)
+        {
+            using var request = new HttpRequestMessage(method, $"/api/{resource}/{method}") { Content = JsonContent.Create(item) };
+            using var response = await client.SendAsync(request, CancellationToken);
+            Assert.Equal(expected, response.StatusCode);
         }
 
         private static async Task DeleteAsync<T>(HttpClient client, string resource, T item)
