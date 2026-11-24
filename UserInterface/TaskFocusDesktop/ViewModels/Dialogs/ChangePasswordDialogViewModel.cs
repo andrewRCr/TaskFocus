@@ -1,5 +1,4 @@
 ﻿using Caliburn.Micro;
-using MaterialDesignThemes.Wpf;
 using System;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -18,6 +17,7 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
         private IAPIHelper _apiHelper;
         private ILoggedInUserModel _loggedInUser;
         private CreateUserModel _authUserModel = new();
+        private bool _submitting;
 
         public ChangePasswordDialogViewModel(IEventAggregator events,
                                              IAppState appState,
@@ -87,78 +87,58 @@ namespace TaskFocusDesktop.ViewModels.Dialogs
         protected override void CloseDialog()
         {
             NewPassword = string.Empty;
+            ConfirmNewPassword = string.Empty;
             base.CloseDialog();
         }
 
         protected override async Task ProcessSubmitAction()
         {
-            // validate
-            if (PasswordStrength(NewPassword) != null)
+            if (_submitting)
+            {
+                return;
+            }
+
+            var validationError = PasswordStrength(NewPassword) ?? PasswordMatch(ConfirmNewPassword);
+            if (validationError != null)
             {
                 IsFeedbackError = true;
-                FeedbackMessage = PasswordStrength(NewPassword);
+                FeedbackMessage = validationError;
+                return;
             }
-            else if (PasswordMatch(ConfirmNewPassword) != null)
+
+            _submitting = true;
+            try
+            {
+                _authUserModel.FirstName = _loggedInUser.FirstName;
+                _authUserModel.LastName = _loggedInUser.LastName;
+                _authUserModel.Email = _loggedInUser.Email;
+                _authUserModel.Password = NewPassword;
+                _authUserModel.ConfirmPassword = ConfirmNewPassword;
+                await _dataService.UpdatePassword(_authUserModel);
+
+                // update auth state: log user out
+                _apiHelper.LogOutUser();
+                _loggedInUser!.ResetUserModel();
+
+                await _events.PublishOnUIThreadAsync(new LogoutNotifyEvent());
+                await _events.PublishOnUIThreadAsync(new AuthStatusChangedEvent(false));
+
+                IsFeedbackError = false;
+                FeedbackMessage = "Password updated!";
+                await Task.Delay(TimeSpan.FromSeconds(_successMsgDisplaySec));
+
+                await RequestMainContentViewSwitch(Utilities.ViewCatalog.MainContentView.Home);
+                await _events.PublishOnUIThreadAsync(new PasswordUpdatedNotifyEvent());
+                CloseDialog();
+            }
+            catch (Exception ex)
             {
                 IsFeedbackError = true;
-                FeedbackMessage = PasswordMatch(ConfirmNewPassword);
+                FeedbackMessage = ex.Message;
             }
-            else
+            finally
             {
-                try
-                {
-                    _authUserModel.FirstName = _loggedInUser.FirstName;
-                    _authUserModel.LastName = _loggedInUser.LastName;
-                    _authUserModel.Email = _loggedInUser.Email;
-
-                    // add new pw to model for update
-                    _authUserModel.Password = NewPassword;
-                    _authUserModel.ConfirmPassword = ConfirmNewPassword;
-                    await _dataService.UpdatePassword(_authUserModel);
-
-                    CheckPasswordModel checkPasswordModel = new() { Email = _authUserModel.Email, Password = _authUserModel.Password };
-                    bool success = await _dataService.CheckPasswordValid(checkPasswordModel);
-                    if (success)
-                    {
-                        // update auth state: log user out
-                        _apiHelper.LogOutUser();
-                        _loggedInUser!.ResetUserModel();
-
-                        // raise logout event for LoginWidget to handle 
-                        await _events.PublishOnUIThreadAsync(new LogoutNotifyEvent());
-                        // raise auth status changed event for ShellView to handle
-                        await _events.PublishOnUIThreadAsync(new AuthStatusChangedEvent(false));
-
-                        FeedbackMessage = "Password updated!";
-                        await Task.Delay(TimeSpan.FromSeconds(_successMsgDisplaySec));
-
-                        // set Alert notification on home page + navigate to home
-                        await RequestMainContentViewSwitch(Utilities.ViewCatalog.MainContentView.Home);
-                        await _events.PublishOnUIThreadAsync(new PasswordUpdatedNotifyEvent());
-
-                        // close dialog
-                        DialogHost.Close(_dialogIdentifier);
-                        FeedbackMessage = null;
-                        IsFeedbackError = false;
-                        NewPassword = string.Empty;
-                        ConfirmNewPassword = string.Empty;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    FeedbackMessage = ex.Message;
-                }
-
-                if (DialogHost.IsDialogOpen(_dialogIdentifier))
-                { 
-                    await Task.Delay(TimeSpan.FromSeconds(_successMsgDisplaySec));
-                    // close dialog
-                    DialogHost.Close(_dialogIdentifier);
-                    FeedbackMessage = null;
-                    IsFeedbackError = false;
-                    NewPassword = string.Empty;
-                    ConfirmNewPassword = string.Empty;
-                }
+                _submitting = false;
             }
         }
     }

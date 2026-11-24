@@ -212,56 +212,53 @@ namespace TaskFocusDesktop.ViewModels.MainContent
 
         private async Task SubmitForgotPasswordForm()
         {
+            if (_loading)
+            {
+                return;
+            }
+
             IsFeedbackError = false;
+            ShowFeedbackMessage = true;
 
             if (string.IsNullOrWhiteSpace(ForgotPasswordEmailAddress))
             {
                 IsFeedbackError = true;
                 FeedbackMessage = "Email address cannot be empty; please try again.";
+                return;
             }
-            else if (!IsValidEmailAddress(ForgotPasswordEmailAddress!))
+
+            if (!IsValidEmailAddress(ForgotPasswordEmailAddress!))
             {
                 IsFeedbackError = true;
                 FeedbackMessage = "Please enter a valid email address.";
+                return;
             }
-            else
+
+            _loading = true;
+            try
             {
                 UserModel userModel = new() { Email = ForgotPasswordEmailAddress! };
-                bool validUser = await _userEndpoint.CheckUserExists(userModel);
-                if (!validUser)
+                FeedbackMessage = "Processing...";
+                if (!await _userEndpoint.CheckUserExists(userModel))
                 {
                     IsFeedbackError = true;
                     FeedbackMessage = "No matching user found.";
-                    await Task.Delay(TimeSpan.FromSeconds(_alertMsgDisplaySec));
-                    FeedbackMessage = string.Empty;
+                    return;
                 }
-                else
-                {
-                    FeedbackMessage = "Matching user found. Processing...";
-                    await Task.Delay(TimeSpan.FromSeconds(_alertMsgDisplaySec));
-                    FeedbackMessage = string.Empty;
-                    await SendPasswordResetEmail();
-                }
-            }
-        }
 
-        private async Task SendPasswordResetEmail()
-        {
-            try
-            {
-                _loading = true; // indicate request processing
-                UserModel userModel = new() { Email = ForgotPasswordEmailAddress! };
                 await _userEndpoint.SendPasswordResetEmail(userModel);
-                _loading = false;
-
-                IsFeedbackError = false;
                 FeedbackMessage = "Password reset email sent.";
                 await Task.Delay(TimeSpan.FromSeconds(_alertMsgDisplaySec));
                 FeedbackMessage = string.Empty;
             }
             catch (Exception ex)
             {
+                IsFeedbackError = true;
                 FeedbackMessage = ex.Message;
+            }
+            finally
+            {
+                _loading = false;
             }
         }
 

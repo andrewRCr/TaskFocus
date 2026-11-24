@@ -134,33 +134,30 @@
 
     private async Task SubmitForgotPasswordForm()
     {
-        _loading = true; // indicate request processing
-        UserModel userModel = new() { Email = _userModel.Email };
-        bool validUser = await DataService.CheckUserExists(userModel);
-        if (!validUser)
+        if (_loading)
         {
-            _loading = false;
-            AppState.AlertSeverity = Severity.Warning;
-            AppState.AlertMessage = "No matching user found.";
+            return;
         }
-        else
-        {
-            await _forgotPasswordForm.Validate();
-            if (_forgotPasswordForm.IsValid)
-            {
-                await SendPasswordResetEmail();
-            }
-        }
-    }
 
-    private async Task SendPasswordResetEmail()
-    {
+        _errorMessage = string.Empty;
+        _loading = true;
         try
         {
-            //_loading = true; // indicate request processing
+            await _forgotPasswordForm.Validate();
+            if (!_forgotPasswordForm.IsValid)
+            {
+                return;
+            }
+
             UserModel userModel = new() { Email = _userModel.Email };
+            if (!await DataService.CheckUserExists(userModel))
+            {
+                AppState.AlertSeverity = Severity.Warning;
+                AppState.AlertMessage = "No matching user found.";
+                return;
+            }
+
             await DataService.SendPasswordResetEmail(userModel);
-            _loading = false;
 
             AppState.AlertSeverity = Severity.Success;
             AppState.AlertMessage = "Password reset email sent.";
@@ -169,6 +166,10 @@
         catch (Exception ex)
         {
             _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
         }
     }
 

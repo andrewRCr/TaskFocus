@@ -1,6 +1,5 @@
-﻿using Blazored.LocalStorage;
-using Microsoft.AspNetCore.Components.Authorization;
-using System.Net.Http.Headers;
+﻿using Microsoft.AspNetCore.Components.Authorization;
+using System.Net;
 using System.Text.Json;
 using TaskFocusWeb.Models;
 
@@ -10,25 +9,20 @@ namespace TaskFocusWeb.Authentication
     {
         private readonly HttpClient _httpClient;
         private readonly AuthenticationStateProvider _authStateProvider;
-        private readonly ILocalStorageService _localStorage;
         private readonly IConfiguration _config;
-        private readonly string? authTokenStorageKey;
 
         public AuthenticationService(HttpClient httpClient,
                                      AuthenticationStateProvider authStateProvider,
-                                     ILocalStorageService localStorage,
                                      IConfiguration config)
         {
             _httpClient = httpClient;
             _authStateProvider = authStateProvider;
-            _localStorage = localStorage;
             _config = config;
-            authTokenStorageKey = _config["authTokenStorageKey"];
         }
 
         public async Task<AuthenticatedUserModel?> LoginAsync(AuthenticationUserModel userToAuthenticate)
         {
-            var data = new FormUrlEncodedContent(new[]
+            using var data = new FormUrlEncodedContent(new[]
             {
                 new KeyValuePair<string, string>("grant_type", "password"),
                 new KeyValuePair<string, string>("username", userToAuthenticate.Email),
@@ -36,20 +30,25 @@ namespace TaskFocusWeb.Authentication
             });
 
             string apiAuthUri = _config["api"] + _config["tokenEndpoint"];
-            var authResult = await _httpClient.PostAsync(apiAuthUri, data);
+            using var authResult = await _httpClient.PostAsync(apiAuthUri, data);
+            if (authResult.StatusCode is HttpStatusCode.BadRequest or HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+            {
+                return null;
+            }
+
+            authResult.EnsureSuccessStatusCode();
             var authContent = await authResult.Content.ReadAsStringAsync();
-
-            if (!authResult.IsSuccessStatusCode) return null;         
-
             var result = JsonSerializer.Deserialize<AuthenticatedUserModel>(
                 authContent,
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-            if (result != null && authTokenStorageKey != null)
+            if (result != null)
             {
-                await _localStorage.SetItemAsync(authTokenStorageKey, result.AccessToken);
+                if (string.IsNullOrWhiteSpace(result.AccessToken))
+                {
+                    throw new JsonException("Missing access token.");
+                }
                 await ((AuthStateProvider)_authStateProvider).NotifyUserAuthenticationAsync(result.AccessToken);
-                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", result.AccessToken);
             }
 
             return result;

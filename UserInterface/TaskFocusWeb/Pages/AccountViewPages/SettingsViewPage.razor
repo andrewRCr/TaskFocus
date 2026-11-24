@@ -234,18 +234,23 @@
                     Label="Email Address" ShrinkLabel="true"
                     Margin="Margin.Dense"
                     @bind-Value="_userModel.Email"
+                    Disabled="@_loading"
                     Style="width: 350px;"
                     Validation="@(new EmailAddressAttribute() {ErrorMessage = "Please provide a valid email address."})" />
                 </MudForm>
             </MudPaper>
             <MudText Typo="Typo.caption">You will need to confirm your new email address after updating.</MudText>
+            @if (!string.IsNullOrWhiteSpace(errorMessage))
+            {
+                <div class="alert alert-danger" role="alert">@errorMessage</div>
+            }
         </DialogContent>
 
         <DialogActions>
-            <MudButton OnClick="()=> _updateEmailDialogVisible = false" 
+            <MudButton OnClick="()=> _updateEmailDialogVisible = false" Disabled="@_loading"
             Class="px-0">Cancel</MudButton>
             <MudButton Color="Color.Primary"
-            Disabled="@(!_emailFormIsValid)"
+            Disabled="@(_loading || !_emailFormIsValid)"
             Class="px-0"
             OnClick="SubmitUpdatedEmail">
                 Submit
@@ -283,6 +288,7 @@
                     ShrinkLabel="true"
                     @bind-Value="_authUserModel.Password"
                     @ref="_pwField1"
+                    Disabled="@_loading"
                     Style="width: 350px;"
                     Margin="Margin.Dense"
                     InputType="@_passwordInput"
@@ -299,6 +305,7 @@
                     Label="Confirm new password" 
                     ShrinkLabel="true"
                     @bind-Value="_authUserModel.ConfirmPassword"
+                    Disabled="@_loading"
                     InputType="@_passwordInput"
                     Style="width: 350px;"
                     Margin="Margin.Dense"
@@ -311,14 +318,18 @@
                 </MudForm>
             </MudPaper>
             <MudText Typo="Typo.caption">You will need to re-authenticate after updating.</MudText>
+            @if (!string.IsNullOrWhiteSpace(errorMessage))
+            {
+                <div class="alert alert-danger" role="alert">@errorMessage</div>
+            }
         </DialogContent>
 
         <DialogActions>
-            <MudButton OnClick="()=> _updatePasswordDialogVisible = false" 
+            <MudButton OnClick="()=> _updatePasswordDialogVisible = false" Disabled="@_loading"
             Class="px-0">Cancel</MudButton>
 
             <MudButton Color="Color.Primary"
-            Disabled="@(!_passwordFormIsValid)"
+            Disabled="@(_loading || !_passwordFormIsValid)"
             Class="px-0"
             OnClick="SubmitUpdatedPassword">
                 Submit
@@ -327,12 +338,6 @@
 
     </MudDialog>
 
-    @if (!string.IsNullOrWhiteSpace(errorMessage))
-    {
-        <div class="alert alert-danger" role="alert">
-            @errorMessage
-        </div>
-    }
 }
 
 @code {
@@ -472,46 +477,52 @@
         await VerifyAuthAndRedirectIfExpired();
 
         if (DataService.IsDataStateLoaded()) { _userModel.Email = LocalCurrentUser.Email; }
+        errorMessage = string.Empty;
         _updateEmailDialogVisible = true;
     }
 
     private async Task SubmitUpdatedEmail()
     {
-        await VerifyAuthAndRedirectIfExpired();
-
-        AppState.ClearAlertMessage();
-
-        await _updateEmailForm.Validate();
-        if (_updateEmailForm.IsValid)
+        if (_loading)
         {
-            UserModel updatedUser = _userModel.Clone();
-            _updateEmailDialogVisible = false;
-            _loading = true; // indicate request processing
-            bool emailTaken = await DataService.CheckUserExists(updatedUser);
-            if (emailTaken)
-            {
-                _loading = false;
-                AppState.AlertSeverity = Severity.Warning;
-                AppState.AlertMessage = "Email address already associated with an existing account.";
-
-            }
-            else { await OnValidEmailSubmit(updatedUser); }
+            return;
         }
-    }
 
-    private async Task OnValidEmailSubmit(UserModel updatedUser)
-    {
         errorMessage = string.Empty;
+        _loading = true;
         AppState.ClearAlertMessage();
-
         try
         {
-            await DataService.RequestUpdateEmail(updatedUser);
+            await VerifyAuthAndRedirectIfExpired();
+            await _updateEmailForm.Validate();
+            if (!_isAuthenticated || !_updateEmailForm.IsValid)
+            {
+                return;
+            }
+
+            UserModel updatedUser = _userModel.Clone();
+            if (await DataService.CheckUserExists(updatedUser))
+            {
+                errorMessage = "Email address already associated with an existing account.";
+                return;
+            }
+
+            if (!await DataService.RequestUpdateEmail(updatedUser))
+            {
+                errorMessage = "Could not request an email address change. Please try again.";
+                return;
+            }
+
+            _updateEmailDialogVisible = false;
             NavManager.NavigateTo(QueryHelpers.AddQueryString("/unconfirmedupdatedemail", "email", updatedUser.Email ?? string.Empty));
         }
         catch (Exception ex)
         {
             errorMessage = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
         }
     }
 
@@ -521,54 +532,47 @@
 
         _authUserModel.Password = string.Empty;
         _authUserModel.ConfirmPassword = string.Empty;
+        errorMessage = string.Empty;
         _updatePasswordDialogVisible = true;
     }
 
     private async Task SubmitUpdatedPassword()
     {
-        await VerifyAuthAndRedirectIfExpired();
-
-        await _updatePasswordForm.Validate();
-        if (_updatePasswordForm.IsValid)
+        if (_loading)
         {
-            _updatePasswordDialogVisible = false;
-            await OnValidPasswordSubmit();
+            return;
         }
-    }
 
-    private async Task OnValidPasswordSubmit()
-    {
         errorMessage = string.Empty;
-
+        _loading = true;
         try
         {
-            _loading = true; // indicate request processing
+            await VerifyAuthAndRedirectIfExpired();
+            await _updatePasswordForm.Validate();
+            if (!_isAuthenticated || !_updatePasswordForm.IsValid)
+            {
+                return;
+            }
+
             await DataService.UpdatePassword(_authUserModel);
 
-            CheckPasswordModel checkPasswordModel = new() { Email = _authUserModel.Email, Password = _authUserModel.Password };
-            bool success = await DataService.CheckPasswordValid(checkPasswordModel);
-            _loading = false;
+            _updatePasswordDialogVisible = false;
+            // update auth state: log user out
+            await AuthService.LogoutAsync();
 
-            if (success)
-            {
-                // update auth state: log user out
-                await AuthService.LogoutAsync();
-
-                // set Alert notification on home page
-                AppState.AlertSeverity = Severity.Success;
-                AppState.AlertMessage = "Password successfully updated. Please log in again.";
-                NavManager.NavigateTo("/");
-            }
-            else
-            {
-                AppState.AlertSeverity = Severity.Error;
-                AppState.AlertMessage = "There was an error when attempting to change your password. Please try again.";
-            }
+            // set Alert notification on home page
+            AppState.AlertSeverity = Severity.Success;
+            AppState.AlertMessage = "Password successfully updated. Please log in again.";
+            NavManager.NavigateTo("/");
         }
         catch (Exception ex)
         {
             _loading = false;
             errorMessage = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
         }
     }
 
@@ -647,7 +651,10 @@
             _userModel.Id = LocalCurrentUser.Id;
             _userModel.FirstName = LocalCurrentUser.FirstName;
             _userModel.LastName = LocalCurrentUser.LastName;
-            _userModel.Email = LocalCurrentUser.Email;
+            if (!_updateEmailDialogVisible)
+            {
+                _userModel.Email = LocalCurrentUser.Email;
+            }
             _authUserModel.FirstName = LocalCurrentUser.FirstName;
             _authUserModel.LastName = LocalCurrentUser.LastName;
             _authUserModel.Email = LocalCurrentUser.Email;

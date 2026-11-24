@@ -101,7 +101,10 @@ namespace TaskFocusUI.Library.Data.Services
         public async Task UpdatePassword(CreateUserModel updatedUserModel)
         {
             // lock
-            if (Interlocked.CompareExchange(ref _userUpdateEntered, 1, 0) != 0) { return; }
+            if (Interlocked.CompareExchange(ref _userUpdateEntered, 1, 0) != 0)
+            {
+                throw new InvalidOperationException("An account update is already in progress. Please try again.");
+            }
 
             try
             {

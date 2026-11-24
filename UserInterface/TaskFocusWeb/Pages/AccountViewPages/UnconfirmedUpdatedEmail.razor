@@ -136,31 +136,41 @@
 
     private async Task ResendConfirmLink()
     {
-        if (DataService.GetDataStateCurrentUser != null)
+        if (_isAuthenticated)
         {
-            UserModel currentUserData = await DataService.GetRawCurrentUserData();
-            UserModel updatedUserModel = currentUserData;
-            updatedUserModel.Email = _confirmUpdatedEmailModel.NewEmail;
-
+            _errorMessage = null;
+            AppState.ClearAlertMessage();
+            _alertMessage = string.Empty;
+            _loading = true;
             try
             {
-                _loading = true; // indicate request processing
-                await DataService.RequestUpdateEmail(updatedUserModel);
-                _loading = false;
+                UserModel updatedUserModel = await DataService.GetRawCurrentUserData();
+                updatedUserModel.Email = _confirmUpdatedEmailModel.NewEmail;
+                if (!await DataService.RequestUpdateEmail(updatedUserModel))
+                {
+                    _errorMessage = "Could not resend the email confirmation link. Please try again.";
+                    return;
+                }
 
                 AppState.AlertSeverity = Severity.Success;
                 AppState.AlertMessage = "Email sent.";
+                LoadAlertMessage();
                 NavManager.NavigateTo(QueryHelpers.AddQueryString("/unconfirmedupdatedemail", "email", updatedUserModel.Email ?? string.Empty));
             }
             catch (Exception ex)
             {
                 _errorMessage = ex.Message;
             }
+            finally
+            {
+                _loading = false;
+            }
         }
         else
         {
             AppState.AlertSeverity = Severity.Warning;
             AppState.AlertMessage = "Unable to process, please log in and re-request through Settings.";
+            LoadAlertMessage();
         }
     }
 
