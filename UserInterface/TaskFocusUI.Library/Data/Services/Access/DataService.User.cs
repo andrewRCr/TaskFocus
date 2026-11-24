@@ -59,19 +59,23 @@ namespace TaskFocusUI.Library.Data.Services
                 if (_dataHelper.HasUserDataChanged(workingCurrentUser))
                 {
                     // lock
-                    if (Interlocked.Increment(ref _userUpdateEntered) != 1) { return; }
+                    if (Interlocked.CompareExchange(ref _userUpdateEntered, 1, 0) != 0) { return; }
 
-                    // update local data state
-                    workingCurrentUser.ClientLastUpdated = DateTimeOffset.Now; // flag for sync
-                    _dataState.GetCurrentUser()!.ValueAssign(workingCurrentUser);
+                    try
+                    {
+                        // update local data state
+                        workingCurrentUser.ClientLastUpdated = DateTimeOffset.Now; // flag for sync
+                        _dataState.GetCurrentUser()!.ValueAssign(workingCurrentUser);
 
-                    // add to changedUserData
-                    // don't duplicate if already had another update prior to push; update values instead
-                    if (_dataState.GetChangedUserData() == null) _dataState.SetChangedUserData(workingCurrentUser.Clone());
-                    else _dataState.GetChangedUserData()!.ValueAssign(workingCurrentUser);
-
-                        // unlock; UI update will be triggered by PropertyChanged call on property set
+                        // add to changedUserData
+                        // don't duplicate if already had another update prior to push; update values instead
+                        if (_dataState.GetChangedUserData() == null) _dataState.SetChangedUserData(workingCurrentUser.Clone());
+                        else _dataState.GetChangedUserData()!.ValueAssign(workingCurrentUser);
+                    }
+                    finally
+                    {
                         Interlocked.Exchange(ref _userUpdateEntered, 0);
+                    }
                 }
             }
         }
@@ -79,26 +83,34 @@ namespace TaskFocusUI.Library.Data.Services
         public async Task<bool> RequestUpdateEmail(UserModel user)
         {
             // lock
-            if (Interlocked.Increment(ref _userUpdateEntered) != 1) { return false; }
+            if (Interlocked.CompareExchange(ref _userUpdateEntered, 1, 0) != 0) { return false; }
 
-            bool result = await _userEndpoint.RequestUpdateEmail(user);
-            // ensure local data state updated, as this property is user-editable and visible
-            InvokeSyncRequest(nameof(RequestUpdateEmail)); 
-
-            // unlock
-            Interlocked.Exchange(ref _userUpdateEntered, 0);
-            return result;
+            try
+            {
+                bool result = await _userEndpoint.RequestUpdateEmail(user);
+                // ensure local data state updated, as this property is user-editable and visible
+                InvokeSyncRequest(nameof(RequestUpdateEmail));
+                return result;
+            }
+            finally
+            {
+                Interlocked.Exchange(ref _userUpdateEntered, 0);
+            }
         }
 
         public async Task UpdatePassword(CreateUserModel updatedUserModel)
         {
             // lock
-            if (Interlocked.Increment(ref _userUpdateEntered) != 1) { return; }
+            if (Interlocked.CompareExchange(ref _userUpdateEntered, 1, 0) != 0) { return; }
 
-            await _userEndpoint.UpdatePassword(updatedUserModel);
-
-            // unlock
-            Interlocked.Exchange(ref _userUpdateEntered, 0);
+            try
+            {
+                await _userEndpoint.UpdatePassword(updatedUserModel);
+            }
+            finally
+            {
+                Interlocked.Exchange(ref _userUpdateEntered, 0);
+            }
         }
 
         public async Task ResetPassword(ResetPasswordModel resetPasswordModel) => await _userEndpoint.ResetPassword(resetPasswordModel);

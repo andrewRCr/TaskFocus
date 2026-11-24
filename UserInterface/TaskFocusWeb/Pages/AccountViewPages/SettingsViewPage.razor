@@ -558,10 +558,6 @@
                 AppState.AlertSeverity = Severity.Success;
                 AppState.AlertMessage = "Password successfully updated. Please log in again.";
                 NavManager.NavigateTo("/");
-
-                // send email confirmation
-                UserModel user = new UserModel { Email = _authUserModel.Email };
-                await DataService.SendPasswordChangeSuccessEmail(user);
             }
             else
             {
@@ -571,6 +567,7 @@
         }
         catch (Exception ex)
         {
+            _loading = false;
             errorMessage = ex.Message;
         }
     }

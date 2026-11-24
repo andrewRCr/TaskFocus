@@ -22,6 +22,7 @@ namespace TaskFocusAPI.Controllers
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly IUserData _userData;
         private readonly IEmailSender _emailSender;
+        private readonly ILogger<UserController> _logger;
         private readonly string _appUrl;
 
         public UserController(ApplicationDbContext context,
@@ -29,6 +30,7 @@ namespace TaskFocusAPI.Controllers
                               SignInManager<IdentityUser> signInManager,
                               IUserData userData,
                               IEmailSender emailSender,
+                              ILogger<UserController> logger,
                               [FromKeyedServices("AppUrl")] string appUrl)
         {
             _context = context;
@@ -36,6 +38,7 @@ namespace TaskFocusAPI.Controllers
             _signInManager = signInManager;
             _userData = userData;
             _emailSender = emailSender;
+            _logger = logger;
             _appUrl = appUrl;
         }
 
@@ -122,11 +125,11 @@ namespace TaskFocusAPI.Controllers
                         new Response { Status = "Success", Message = "Email confirmed successfully." });
                 }
 
-                return StatusCode(StatusCodes.Status500InternalServerError,
+                return BadRequest(
                 new Response { Status = "Error", Message = "Could not confirm email address - tokens do not match." });
             }
 
-            return StatusCode(StatusCodes.Status500InternalServerError,
+            return BadRequest(
                 new Response { Status = "Error", Message = "Could not confirm email address - user does not exist." });
         }
 
@@ -140,19 +143,13 @@ namespace TaskFocusAPI.Controllers
                 string decodedToken = model.Token.Replace(" ", "+");
 
                 var result = await ResetPasswordAndClearLockoutAsync(existingUser, decodedToken, model.Password);
-                if (!result.Succeeded) 
+                if (!result.Succeeded)
                 {
-                    foreach (var error in result.Errors)
-                    {
-                        ModelState.AddModelError(error.Code, error.Description);
-                    }
-                    return Ok(ModelState);
+                    return PasswordRejected(result);
                 }
-                else
-                {
-                    return StatusCode(StatusCodes.Status200OK,
-                        new Response { Status = "Success", Message = "Password changed successfully." });
-                }
+
+                await SendPasswordChangedNoticeAsync(existingUser);
+                return Ok(new Response { Status = "Success", Message = "Password changed successfully." });
             }
 
             return StatusCode(StatusCodes.Status400BadRequest,
@@ -163,19 +160,12 @@ namespace TaskFocusAPI.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> SendPasswordChangeSuccessEmail(UserModel userModel)
         {
-            IdentityUser? identityUser = await _userManager.FindByEmailAsync(userModel.Email);
-            if (identityUser?.Email is string email)
-            {
-                UserModel recipient = GetRecoveryRecipient(identityUser.Id, email);
-                await _emailSender.SendEmailAsync(recipient, "Password changed", "Hello,<br><br>Your TaskFocus password has been successfully updated.");
-                return StatusCode(StatusCodes.Status200OK,
-                new Response { Status = "Success", Message = $"Password changed successfully email sent to {identityUser.Email}." });
-            }
-            else
-            {
-                return StatusCode(StatusCodes.Status400BadRequest,
-                new Response { Status = "Error", Message = "Could not send password changed success email, please try again." });
-            }
+            IdentityUser? identityUser = string.IsNullOrWhiteSpace(userModel.Email)
+                ? null
+                : await _userManager.FindByEmailAsync(userModel.Email);
+            string? email = identityUser?.Email ?? userModel.Email;
+            // Released clients still call this after the password request.
+            return Ok(new Response { Status = "Success", Message = $"Password changed successfully email sent to {email}." });
         }
 
         [HttpGet]
@@ -325,7 +315,7 @@ namespace TaskFocusAPI.Controllers
         [HttpPut]
         public async Task<IActionResult> RequestUpdateEmail(ApplicationUserModel updatedUser)
         {
-            if (ModelState.IsValid)
+            if (ModelState.IsValid && !string.IsNullOrWhiteSpace(updatedUser.Email))
             {
                 string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 UserModel currentUser = _userData.GetUserById(userId).First();
@@ -340,7 +330,7 @@ namespace TaskFocusAPI.Controllers
                     else { return BadRequest(); }
 
                     // send email confirmation link
-                    var token = await _userManager.GenerateChangeEmailTokenAsync(existingIdentityUser, updatedUser.Email!);
+                    var token = await _userManager.GenerateChangeEmailTokenAsync(existingIdentityUser, updatedUser.Email);
                     string confirmLink = BuildAccountLink("/unconfirmedupdatedemail", updatedUser.Email, token);
 
                     UserModel updatedUserModel = currentUser;
@@ -370,46 +360,83 @@ namespace TaskFocusAPI.Controllers
                     identityUser.UserName = confirmUpdatedEmailModel.NewEmail;
                     IdentityResult nextResult = await _userManager.UpdateAsync(identityUser);
 
-                    if (nextResult.Succeeded)
+                    if (!nextResult.Succeeded)
                     {
-                        // update TaskFocusData - email
-                        UserModel userModel = _userData.GetUserById(identityUser.Id).First();
-                        userModel.Email = confirmUpdatedEmailModel.NewEmail;
-                        _userData.UpdateUser(userModel);
+                        return BadRequest(new Response { Status = "Error", Message = "Could not update the sign-in name." });
                     }
+
+                    // update TaskFocusData - email
+                    UserModel userModel = _userData.GetUserById(identityUser.Id).First();
+                    userModel.Email = confirmUpdatedEmailModel.NewEmail;
+                    _userData.UpdateUser(userModel);
 
                     return StatusCode(StatusCodes.Status200OK,
                         new Response { Status = "Success", Message = "Update email confirmed successfully." });
                 }
 
-                return StatusCode(StatusCodes.Status500InternalServerError,
+                return BadRequest(
                 new Response { Status = "Error", Message = "Could not confirm updated email address - tokens do not match." });
             }
 
-            return StatusCode(StatusCodes.Status500InternalServerError,
+            return BadRequest(
                 new Response { Status = "Error", Message = "Could not confirm updated email address - user does not exist." });
         }
 
         [HttpPut]
-        public async Task UpdatePassword(UserRegistrationModel updatedUserModel)
+        public async Task<IActionResult> UpdatePassword(UserRegistrationModel updatedUserModel, [FromQuery] bool reportRejection = false)
         {
+            // Released desktops need the empty response to release their update guard and check the password.
+            string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            IdentityUser? existingUser = userId == null ? null : await _userManager.FindByIdAsync(userId);
+            if (existingUser == null || string.IsNullOrEmpty(existingUser.UserName))
+            {
+                return reportRejection
+                    ? BadRequest(new Response { Status = "Error", Message = "Could not change password, please try again." })
+                    : Ok();
+            }
+
+            bool passwordMatches = await _userManager.CheckPasswordAsync(existingUser, updatedUserModel.Password);
+            if (passwordMatches && existingUser.AccessFailedCount == 0 && !await _userManager.IsLockedOutAsync(existingUser))
+            {
+                return Ok();
+            }
+
+            var token = await _userManager.GeneratePasswordResetTokenAsync(existingUser);
+            var result = await ResetPasswordAndClearLockoutAsync(existingUser, token, updatedUserModel.Password);
+            if (!result.Succeeded)
+            {
+                return reportRejection ? PasswordRejected(result) : Ok();
+            }
+
+            if (!passwordMatches)
+            {
+                await SendPasswordChangedNoticeAsync(existingUser);
+            }
+            return Ok();
+        }
+
+        private IActionResult PasswordRejected(IdentityResult result)
+        {
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(error.Code, error.Description);
+            }
+            return BadRequest(ModelState);
+        }
+
+        private async Task SendPasswordChangedNoticeAsync(IdentityUser user)
+        {
+            if (user.Email is not string email) { return; }
+
             try
             {
-                string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                IdentityUser? existingUser = await _userManager.FindByIdAsync(userId!);
-
-                if (existingUser != null)
-                {
-                    if (!string.IsNullOrEmpty(existingUser.UserName))
-                    {
-                        var token = await _userManager.GeneratePasswordResetTokenAsync(existingUser);
-                        await ResetPasswordAndClearLockoutAsync(existingUser, token, updatedUserModel.Password);
-                    }
-                }
+                UserModel recipient = GetRecoveryRecipient(user.Id, email);
+                await _emailSender.SendEmailAsync(recipient, "Password changed", "Hello,<br><br>Your TaskFocus password has been successfully updated.");
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                // The password is already saved. A mail failure must preserve the password response.
+                _logger.LogError(ex, "Could not send password change notice for user {UserId}.", user.Id);
             }
         }
 
