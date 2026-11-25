@@ -22,7 +22,6 @@ namespace TaskFocusUI.Library.Data.Services
             // if has both project and context, task is no longer in inbox
             if (task.InboxIndex != null && ((task.ProjectId != null && task.ContextId != null) || (task.CleanedUp)))
             {
-                ShiftTaskCollectionSourceIndices(task, "InboxIndex");
                 task.InboxIndex = null;
             }
 
@@ -32,19 +31,16 @@ namespace TaskFocusUI.Library.Data.Services
                 (task.Completed && task.DateCompleted != DateTime.Now.Date) || // completed earlier than today
                 (task.CleanedUp))
             {
-                ShiftTaskCollectionSourceIndices(task, "TodayIndex");
                 task.TodayIndex = null;
             }
 
             if (task.ProjectIndex != null && task.CleanedUp)
             {
-                ShiftTaskCollectionSourceIndices(task, "ProjectIndex");
                 task.ProjectIndex = null;
             }
 
             if (task.ContextIndex != null && task.CleanedUp)
             {
-                ShiftTaskCollectionSourceIndices(task, "ContextIndex");
                 task.ContextIndex = null;
             }
 
@@ -52,29 +48,12 @@ namespace TaskFocusUI.Library.Data.Services
             if (task.TodayIndex == null && (task.Starred || _dataHelper.IsTaskDueOrOverDue(task)) &&
                 !(task.Completed && task.DateCompleted != DateTime.Now.Date))
             {
-                List<TaskDisplayModel> starredTasks = _dataState.GetTasks()!
-                    .Where(x => x.Starred).ToList();
-
-                List<TaskDisplayModel> dueTasks = _dataState.GetTasks()!
-                    .Where(x => x.DueDate <= DateTime.Now.Date).ToList();
-
-                List<TaskDisplayModel> todayTasks = dueTasks.Concat(starredTasks).ToList();
-                var pushedTodayTasks = todayTasks.Where(x => x.Id != null).ToList();
-                pushedTodayTasks = pushedTodayTasks.DistinctBy(x => x.Id).ToList();
-
-                var unpushedTodayTasks = todayTasks.Where(x => x.Id == null).ToList();
-                unpushedTodayTasks = unpushedTodayTasks.DistinctBy(x => x.TempLocalId).ToList();
-
-                todayTasks = pushedTodayTasks.Concat(unpushedTodayTasks).ToList();
-
-                task.TodayIndex = todayTasks.Count;
+                task.TodayIndex = NextIndex(_dataState.GetTasks()!, x => x.TodayIndex);
             }
         }
 
         private void HandleTaskProjectChanged(TaskDisplayModel task)
         {
-            ShiftTaskCollectionSourceIndices(task, "ProjectIndex");
-
             if (task.ProjectName == null) // project was unassigned
             {
                 task.ProjectId = null;
@@ -83,10 +62,7 @@ namespace TaskFocusUI.Library.Data.Services
                 // if not already in inbox, will need InboxIndex assigned
                 if (task.InboxIndex == null)
                 {
-                    List<TaskDisplayModel> inboxTasks = _dataState.GetTasks()!
-                        .Where(x => x.ProjectId == null || x.ContextId == null).ToList();
-
-                    task.InboxIndex = inboxTasks.Count;
+                    task.InboxIndex = NextIndex(_dataState.GetTasks()!, x => x.InboxIndex);
                     //LogInformation($"{task.TaskName}: new InboxIndex is {task.InboxIndex}");
                 }
             }
@@ -129,7 +105,7 @@ namespace TaskFocusUI.Library.Data.Services
                     //    task.ProjectId = assignedProject!.TempLocalId;
                     //}
 
-                    task.ProjectIndex = projectTasks.Count;
+                    task.ProjectIndex = NextIndex(projectTasks, x => x.ProjectIndex);
                    // LogInformation($"{task.TaskName}: new ProjectId is {task.ProjectId}, projectName {task.ProjectName}");
                 }           
             }
@@ -137,8 +113,6 @@ namespace TaskFocusUI.Library.Data.Services
 
         private void HandleTaskContextChanged(TaskDisplayModel task)
         {
-            ShiftTaskCollectionSourceIndices(task, "ContextIndex");
-
             if (task.ContextName == null)  // context was unassigned
             {
                 task.ContextId = null;
@@ -147,10 +121,7 @@ namespace TaskFocusUI.Library.Data.Services
                 // if not already in inbox, will need InboxIndex assigned
                 if (task.InboxIndex == null)
                 {
-                    List<TaskDisplayModel> inboxTasks = _dataState.GetTasks()!
-                        .Where(x => x.ProjectId == null || x.ContextId == null).ToList();
-
-                    task.InboxIndex = inboxTasks.Count;
+                    task.InboxIndex = NextIndex(_dataState.GetTasks()!, x => x.InboxIndex);
                     //LogInformation($"{task.TaskName}: new InboxIndex is {task.InboxIndex}");
                 }
             }
@@ -187,98 +158,15 @@ namespace TaskFocusUI.Library.Data.Services
                         task.ContextId = assignedContext!.Id;
                     }
 
-                    task.ContextIndex = contextTasks.Count;
+                    task.ContextIndex = NextIndex(contextTasks, x => x.ContextIndex);
                     LogInformation($"{task.TaskName}: new ContextId is {task.ContextId}, contextName {task.ContextName}");
                     //LogInformation($"{task.TaskName}: new ContextIndex is {task.ContextIndex}")
                 }
             }
         }
 
-        // for use when removing a task *from* the inbox or a project/context
-        private void ShiftTaskCollectionSourceIndices(TaskDisplayModel task, string indexType)
-        {
-            int? previouslyAssignedCollectionIndex = null;
-            int? previouslyAssignedCollectionId = null;
-            List<TaskDisplayModel>? previousCollectionTasks = null;
-
-            switch (indexType)
-            {
-                case "InboxIndex": // task is being moved out of the inbox
-                    previouslyAssignedCollectionIndex = task.InboxIndex;
-                    previousCollectionTasks = _dataState.GetTasks()!
-                        .Where(x => x.ProjectId == null || x.ContextId == null).ToList();
-                    foreach (TaskDisplayModel previousCollectionTask in previousCollectionTasks)
-                    {
-                        bool shiftNeeded = previousCollectionTask.InboxIndex > previouslyAssignedCollectionIndex;
-                        if (shiftNeeded) { previousCollectionTask.InboxIndex--; }
-                    }
-
-                    break;
-
-                case "ProjectIndex": // task is being moved out of an existing project
-                    if (task.ProjectId != null || task.ContextId != null)
-                    {
-                        previouslyAssignedCollectionIndex = task.ProjectIndex;
-                        previouslyAssignedCollectionId = task.ProjectId;
-                        previousCollectionTasks = _dataState.GetTasks()!
-                            .Where(x => x.ProjectId == previouslyAssignedCollectionId).ToList();
-                        foreach (TaskDisplayModel previousCollectionTask in previousCollectionTasks)
-                        {
-                            bool shiftNeeded = previousCollectionTask.ProjectIndex > previouslyAssignedCollectionIndex;
-                            if (shiftNeeded) { previousCollectionTask.ProjectIndex--; }
-                        }
-                    }
-                    break;
-
-                case "ContextIndex": // task is being moved out of an existing context
-                    if (task.ContextId != null || task.ProjectId != null)
-                    {
-                        previouslyAssignedCollectionIndex = task.ContextIndex;
-                        previouslyAssignedCollectionId = task.ContextId;
-                        previousCollectionTasks = _dataState.GetTasks()!
-                            .Where(x => x.ContextId == previouslyAssignedCollectionId).ToList();
-                        foreach (TaskDisplayModel previousCollectionTask in previousCollectionTasks)
-                        {
-                            bool shiftNeeded = previousCollectionTask.ContextIndex > previouslyAssignedCollectionIndex;
-                            if (shiftNeeded) { previousCollectionTask.ContextIndex--; }
-                        }
-                    }
-                    break;
-
-                case "TodayIndex": // task is having its Starred prop set to False / due date changed to no longer due/overdue
-                    if (!task.Starred || !_dataHelper.IsTaskDueOrOverDue(task))
-                    {
-                        previouslyAssignedCollectionIndex = task.TodayIndex;
-                        List<TaskDisplayModel> dueTasks = _dataState.GetTasks()!
-                            .Where(x => x.DueDate <= DateTime.Now.Date).ToList();
-                        List<TaskDisplayModel> starredTasks = _dataState.GetTasks()!
-                            .Where(x => x.Starred).ToList();
-                        previousCollectionTasks = dueTasks.Concat(starredTasks).ToList();
-
-                        var pushedPreviousCollectionTasks = previousCollectionTasks.Where
-                            (x => x.Id != null).ToList();
-                        var unpushedPreviousCollectionTasks = previousCollectionTasks.Where
-                            (x => x.Id == null).ToList();
-
-                        pushedPreviousCollectionTasks = pushedPreviousCollectionTasks.DistinctBy(x => x.Id).ToList();
-                        //Console.WriteLine($"pushedPrevCollectionTasks count: {pushedPreviousCollectionTasks.Count}");
-                        unpushedPreviousCollectionTasks = unpushedPreviousCollectionTasks.DistinctBy(x => x.TempLocalId).ToList();
-                        //Console.WriteLine($"UNpushedPrevCollectionTasks count: {unpushedPreviousCollectionTasks.Count}");
-                        previousCollectionTasks = pushedPreviousCollectionTasks.Concat(unpushedPreviousCollectionTasks).ToList();
-                        //Console.WriteLine($"total final concat prevCollectionTasks count: {previousCollectionTasks.Count}");
-
-                        foreach (TaskDisplayModel previousCollectionTask in previousCollectionTasks)
-                        {
-                            bool shiftNeeded = previousCollectionTask.TodayIndex > previouslyAssignedCollectionIndex;
-                            if (shiftNeeded) { previousCollectionTask.TodayIndex--; }
-                        }
-                    }
-                    break;
-
-                default:
-                    break;
-            }
-        }
+        // Removing a task leaves a gap in the positions, so they only order a list: a new task goes after the highest.
+        private static int NextIndex(IEnumerable<TaskDisplayModel> tasks, Func<TaskDisplayModel, int?> index) => (tasks.Max(index) ?? -1) + 1;
 
         // processes updated task data locally + flags for sync
         private void ProcessLocalTaskUpdate(TaskDataCompareResult compareResult, TaskDisplayModel workingTask)
@@ -368,35 +256,15 @@ namespace TaskFocusUI.Library.Data.Services
             var combinedTodayTasks = GetTodayTasks();
 
             // ensure any newly due/overdue tasks have a TodayIndex
-            int todayTasksWithTodayIndexCount = combinedTodayTasks.Where(x => x.TodayIndex != null).ToList().Count();
+            int nextTodayIndex = NextIndex(combinedTodayTasks, x => x.TodayIndex);
             foreach (TaskDisplayModel task in combinedTodayTasks)
             {
                 if (task.DueDate <= DateTime.Now.Date && task.TodayIndex == null)
                 {
-                    task.TodayIndex = todayTasksWithTodayIndexCount;
+                    task.TodayIndex = nextTodayIndex;
                     UpdateTaskData(task, true);
-                    todayTasksWithTodayIndexCount++;
+                    nextTodayIndex++;
                 }
-            }
-        }
-
-        void IDataServiceInternal.HandleIndexShiftsOnTaskDeletion(TaskDisplayModel task)
-        {
-            if (task.ProjectId == null || task.ContextId == null)
-            {
-                ShiftTaskCollectionSourceIndices(task, "InboxIndex");
-            }
-            if (task.ProjectId != null)
-            {
-                ShiftTaskCollectionSourceIndices(task, "ProjectIndex");
-            }
-            if (task.ContextId != null)
-            {
-                ShiftTaskCollectionSourceIndices(task, "ContextIndex");
-            }
-            if (task.Starred)
-            {
-                ShiftTaskCollectionSourceIndices(task, "TodayIndex");
             }
         }
 
@@ -440,14 +308,16 @@ namespace TaskFocusUI.Library.Data.Services
 
             if (workingTask.ProjectName == null || workingTask.ContextName == null)
             {
-                List<TaskDisplayModel> inboxTasks = _dataState.GetTasks()!
-                    .Where(x => x.ProjectId == null || x.ContextId == null).ToList();
-
-                workingTask.InboxIndex = inboxTasks.Count;
+                workingTask.InboxIndex = NextIndex(_dataState.GetTasks()!, x => x.InboxIndex);
             }
 
             if (workingTask.ProjectName != null) HandleTaskProjectChanged(workingTask);
             if (workingTask.ContextName != null) HandleTaskContextChanged(workingTask);
+
+            if (workingTask.Starred || _dataHelper.IsTaskDueOrOverDue(workingTask))
+            {
+                workingTask.TodayIndex = NextIndex(_dataState.GetTasks()!, x => x.TodayIndex);
+            }
 
             // give temp local tracking id
             var currentTempId = _dataState.GetTempTaskId();
@@ -468,8 +338,6 @@ namespace TaskFocusUI.Library.Data.Services
         // validates request, processes local delete, flags for sync, refreshes UI
         public void DeleteTask(TaskDisplayModel workingTask)
         {
-            this.HandleIndexShiftsOnTaskDeletion(workingTask);
-
             // update local data state
             if (workingTask.Id == null) // never existed on server; insert was pending push
             {
