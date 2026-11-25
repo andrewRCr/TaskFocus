@@ -63,6 +63,60 @@ namespace TaskFocusAPI.IntegrationTests
         }
 
         [Fact]
+        public async Task ContextPostWithResultReturnsTheOnlyInsertedRow()
+        {
+            var user = await fixture.CreateUserAsync();
+            using var client = await fixture.CreateAuthenticatedClientAsync(user);
+            var requested = new ContextModel { ContextName = "Acknowledged context", OrderIndex = 2, UserId = "another-user" };
+
+            using var response = await HttpClientJsonExtensions.PostAsJsonAsync(client, "/api/Context/PostWithResult", requested, CancellationToken);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var inserted = await ReadCreatedAsync<ContextModel>(response);
+            Assert.True(inserted.Id > 0);
+            Assert.Equal(requested.ContextName, inserted.ContextName);
+            Assert.Equal(requested.OrderIndex, inserted.OrderIndex);
+            Assert.Equal(user.Id, inserted.UserId);
+
+            await using var connection = fixture.CreateDataConnection();
+            await connection.OpenAsync(CancellationToken);
+            var read = new CommandDefinition("SELECT * FROM dbo.Context WHERE UserId = @UserId",
+                new { UserId = user.Id }, cancellationToken: CancellationToken);
+            var saved = await connection.QuerySingleAsync<ContextModel>(read);
+            Assert.Equivalent(saved, inserted, strict: true);
+        }
+
+        [Fact]
+        public async Task LegacyContextPostCreatesOneContextAndReturnsEmptySuccess()
+        {
+            using var client = await fixture.CreateAuthenticatedClientAsync();
+            var requested = new ContextModel { ContextName = "Legacy context" };
+
+            using var response = await HttpClientJsonExtensions.PostAsJsonAsync(client, "/api/Context/Post", requested, CancellationToken);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Null(response.Content.Headers.ContentType);
+            Assert.Empty(await response.Content.ReadAsStringAsync(CancellationToken));
+
+            var saved = Assert.Single(await GetAsync<List<ContextModel>>(client, Contexts));
+            Assert.Equal(requested.ContextName, saved.ContextName);
+        }
+
+        [Theory]
+        [InlineData("Post", false)]
+        [InlineData("Post", true)]
+        [InlineData("PostWithResult", false)]
+        [InlineData("PostWithResult", true)]
+        public async Task ContextCreateRejectsInvalidNameWithoutInserting(string action, bool tooLong)
+        {
+            using var client = await fixture.CreateAuthenticatedClientAsync();
+            var requested = new JsonObject();
+            if (tooLong) requested["contextName"] = new string('x', 51);
+
+            using var response = await HttpClientJsonExtensions.PostAsJsonAsync(client, $"/api/Context/{action}", requested, CancellationToken);
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Empty(await GetAsync<List<ContextModel>>(client, Contexts));
+        }
+
+        [Fact]
         public async Task ContextRoundTripsThroughCreateReadUpdateAndDelete()
         {
             using var client = await fixture.CreateAuthenticatedClientAsync();

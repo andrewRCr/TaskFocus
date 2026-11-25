@@ -132,7 +132,7 @@ namespace TaskFocusUI.Library.Data.Services
             newDisplayContext.OrderIndex = _dataState.GetContexts()!.Count;
             // give temp local tracking id
             var currentTempId = _dataState.GetTempContextId();
-            newDisplayContext.TempLocalId = _dataState.SetTempProjectId(++currentTempId);
+            newDisplayContext.TempLocalId = _dataState.SetTempContextId(++currentTempId);
 
             // flag for sync
             newDisplayContext.ClientLastUpdated = DateTimeOffset.Now;
@@ -175,7 +175,13 @@ namespace TaskFocusUI.Library.Data.Services
                 var dataStateContext = _dataState.GetContexts()!.Find(x => x.TempLocalId == workingContext.TempLocalId);
                 if (dataStateContext != null) _dataState.GetContexts()!.Remove(dataStateContext);
                 var changedContext = _dataState.GetChangedContextData().Find(x => x.TempLocalId == workingContext.TempLocalId);
-                if (changedContext != null) _dataState.GetChangedContextData().Remove(changedContext);
+                if (changedContext != null)
+                {
+                    // Keep the entry for any active push and release its pending name and temporary ID.
+                    changedContext.Deleted = DateTimeOffset.Now;
+                    changedContext.ClientLastUpdated = changedContext.Deleted.Value;
+                    changedContext.TempLocalId = null;
+                }
                 _dataState.GetWorkingContexts()!.Remove(workingContext);
             }
             else

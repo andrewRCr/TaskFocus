@@ -37,15 +37,20 @@ namespace TaskFocusAPI.Controllers
         }
 
         [HttpPost]
-        public IActionResult Post(ContextModel newContext)
+        public IActionResult Post(ContextModel newContext) => CreateContext(newContext, includeResult: false);
+
+        [HttpPost]
+        public IActionResult PostWithResult(ContextModel newContext) => CreateContext(newContext, includeResult: true);
+
+        private IActionResult CreateContext(ContextModel newContext, bool includeResult)
         {
             if (newContext.ContextName == null) { return BadRequest(); }
 
             string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             try
             {
-                _contextData.AddContext(newContext, userId);
-                return new EmptyResult();
+                var insertedContext = _contextData.AddContext(newContext, userId);
+                return includeResult ? Ok(insertedContext) : new EmptyResult();
             }
             catch (SqlException ex) when (ex.Number is DataTruncation or VerboseDataTruncation)
             {
