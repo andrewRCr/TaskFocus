@@ -50,6 +50,7 @@ namespace TaskFocusUI.Library.Tests
             await SignInAsync();
 
             SetCompleted(1, true);
+            Assert.True(IsRecent(Working(1).DateCompleted));
             Rename(2, "Renamed");
             await SyncAsync();
 
@@ -80,6 +81,26 @@ namespace TaskFocusUI.Library.Tests
 
             Assert.Equal(["POST New"], _api.Writes);
             Assert.True(_api.Tasks.Single(x => x.TaskName == "New").Completed);
+        }
+
+        [Theory]
+        [InlineData(5)]
+        [InlineData(null)]
+        public async Task EditingACompletedTaskKeepsItsCompletionDate(int? daysAgo)
+        {
+            DateTime? completed = daysAgo is int d ? DateTime.Now.Date.AddDays(-d) : null;
+            _api.Settings.CleanUpImmediately = true;
+            _api.Add(1, completed: true, dateCompleted: completed, starred: true, todayIndex: 0);
+            await SignInAsync();
+
+            var task = Working(1);
+            task.Starred = false;
+            _data.UpdateTaskData(task);
+            foreach (var copy in Copies(1)) Assert.Equal(completed, copy.DateCompleted);
+            await SyncAsync();
+
+            Assert.Equal(completed, _api.Task(1).DateCompleted);
+            Assert.Equal(daysAgo != null, _api.Task(1).CleanedUp);
         }
 
         [Fact]
@@ -171,7 +192,7 @@ namespace TaskFocusUI.Library.Tests
 
         private static void Rethrow(Exception exception) => Assert.Fail($"The sync failed: {exception.Message}");
 
-        private static bool IsRecent(DateTime? date) => DateTime.Now - date < TimeSpan.FromDays(2);
+        private static bool IsRecent(DateTime? date) => date is DateTime d && Math.Abs((DateTime.Now - d).TotalMinutes) < 5;
 
         private TaskDisplayModel Working(int id) => _data.GetDataStateTasks()!.Single(x => x.Id == id);
 

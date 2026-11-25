@@ -57,7 +57,8 @@ namespace TaskFocusUI.Library.Data.Services
         {
             if (task.Completed)
             {
-                task.DateCompleted ??= DateTime.Now;
+                // only when it is checked off here, so an older completion keeps the date it has (or lacks)
+                if (task.DateCompleted == null && !WasCompleted(task)) task.DateCompleted = DateTime.Now;
                 return;
             }
 
@@ -79,6 +80,10 @@ namespace TaskFocusUI.Library.Data.Services
                 task.ContextIndex = NextIndex(_dataState.GetTasks()!.Where(x => x.ContextId == task.ContextId), x => x.ContextIndex);
             }
         }
+
+        private bool WasCompleted(TaskDisplayModel task) => task.Id == null
+            ? _dataState.GetChangedTaskData().Find(x => x.TempLocalId == task.TempLocalId)?.Completed == true
+            : _dataState.GetTasks()!.Find(x => x.Id == task.Id)?.Completed == true;
 
         private void HandleTaskProjectChanged(TaskDisplayModel task)
         {
