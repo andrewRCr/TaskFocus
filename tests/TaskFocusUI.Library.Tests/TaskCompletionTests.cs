@@ -76,7 +76,7 @@ namespace TaskFocusUI.Library.Tests
             var added = _data.GetDataStateTasks()!.Single(x => x.TaskName == "New");
             added.Completed = true;
             _data.UpdateTaskData(added);
-            Assert.NotNull(added.DateCompleted);
+            Assert.True(IsRecent(added.DateCompleted));
             await SyncAsync();
 
             Assert.Equal(["POST New"], _api.Writes);
