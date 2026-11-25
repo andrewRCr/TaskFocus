@@ -488,9 +488,10 @@ namespace TaskFocusUI.Library.Data.Services
                 dataStateTask.ClientLastUpdated = DateTimeOffset.Now;
 
                 // if had an update pending push, turn it into the delete instead of adding a duplicate to changedTaskData
+                // only mark it: a push may already be sending its values
                 var queuedTask = _dataState.GetChangedTaskData().Find(x => x.Id == dataStateTask.Id);
                 if (queuedTask == null) _dataState.GetChangedTaskData().Add(dataStateTask.Clone());
-                else queuedTask.ValueAssign(dataStateTask);
+                else queuedTask.Deleted = dataStateTask.Deleted;
 
                 // local delete
                 if (dataStateTask != null) _dataState.GetTasks()!.Remove(dataStateTask);

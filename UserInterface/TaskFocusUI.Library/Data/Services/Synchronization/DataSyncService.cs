@@ -359,8 +359,8 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                 {
                     case ESyncableDataType.Task:
 
-                        TaskModel serverTask = await _taskEndpoint.GetTaskById((int)data.Id);
-                        await _taskEndpoint.DeleteTask(serverTask);
+                        // needs only the ID; the server accepts a task that is already gone
+                        await _taskEndpoint.DeleteTask(_mapper.Map<TaskModel>((TaskDisplayModel)data));
 
                         break;
 
@@ -403,7 +403,11 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
 
                             _pushedTaskData.Add(_mapper.Map<TaskModel>((TaskDisplayModel)data));
                             int index = _dataState.GetTasks()!.FindIndex(x => x.Id == data.Id);
-                            if (index != -1) { _dataState.GetTasks()![index] = (TaskDisplayModel)data; }
+                            if (index != -1)
+                            {
+                                data.Deleted = null; // deleted while sending, then restored by signing back in
+                                _dataState.GetTasks()![index] = (TaskDisplayModel)data;
+                            }
 
                             result. NumRowsUpdated++;
                         }
