@@ -748,7 +748,6 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                         TaskModel? serverTask = serverTasks.Find(x => x.Id == clientDisplayTask.Id);
                         if (serverTask == null) // not found on server? delete locally
                         {
-                            _dataService.HandleIndexShiftsOnTaskDeletion(clientDisplayTask);
                             _dataState.GetTasks()!.Remove(clientDisplayTask);
                             pullDeletionsResult.NumRowsDeleted++;
                         }

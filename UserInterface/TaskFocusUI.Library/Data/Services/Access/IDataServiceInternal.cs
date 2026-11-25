@@ -6,7 +6,6 @@ namespace TaskFocusUI.Library.Data.Services.Access
 {
     internal interface IDataServiceInternal
     {
-        void HandleIndexShiftsOnTaskDeletion(TaskDisplayModel task);
         void ShiftCollectionOrderIndices<T>(T collectionDisplayModel, List<T> collectionSource) where T : ICollectionDisplayModel;
         void UpdateAllWorkingDataAfterPull();
         void PerformCompletedTaskCleanup();

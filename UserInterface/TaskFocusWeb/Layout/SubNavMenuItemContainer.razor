@@ -88,7 +88,7 @@ else
 
     private void UpdateLocalOrder<T>(MudItemDropInfo<T> reorderedDropItem, List<T> ContainerCollectionParam) where T: ICollectionDisplayModel
     {
-        int oldIndex = (int)reorderedDropItem.Item!.OrderIndex!;
+        int oldIndex = ContainerCollectionParam.IndexOf(reorderedDropItem.Item!);
         var newIndex = reorderedDropItem.IndexInZone;
 
         if (oldIndex > -1)
@@ -107,11 +107,12 @@ else
     {
         AppState.CanRefresh = false;
 
-        foreach (var item in ContainerCollectionParam.ToList())
+        // a saved position can make the live list re-sort, so number the items in the order they were dropped
+        var items = ContainerCollectionParam.ToList();
+        for (int i = 0; i < items.Count; i++)
         {
             // will trigger a PropertyChanged -> UpdateProjectData/UpdateContextData call
-            bool changed = item.OrderIndex != ContainerCollectionParam.IndexOf(item);
-            if (changed) item.OrderIndex = ContainerCollectionParam.IndexOf(item);
+            if (items[i].OrderIndex != i) items[i].OrderIndex = i;
         }
 
         AppState.CanRefresh = true;
