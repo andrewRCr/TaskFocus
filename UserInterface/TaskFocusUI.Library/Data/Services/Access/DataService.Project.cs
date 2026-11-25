@@ -173,8 +173,8 @@ namespace TaskFocusUI.Library.Data.Services
                 // local delete
                 var dataStateProject = _dataState.GetProjects()!.Find(x => x.TempLocalId == workingProject.TempLocalId);
                 if (dataStateProject != null) _dataState.GetProjects()!.Remove(dataStateProject);
-                var changedProject = _dataState.GetChangedContextData().Find(x => x.TempLocalId == workingProject.TempLocalId);
-                if (changedProject != null) _dataState.GetChangedContextData().Remove(changedProject);
+                var changedProject = _dataState.GetChangedProjectData().Find(x => x.TempLocalId == workingProject.TempLocalId);
+                if (changedProject != null) _dataState.GetChangedProjectData().Remove(changedProject);
                 _dataState.GetWorkingProjects()!.Remove(workingProject);              
             }
             else

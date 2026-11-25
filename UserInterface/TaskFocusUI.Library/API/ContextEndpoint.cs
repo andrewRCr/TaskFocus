@@ -44,7 +44,7 @@ namespace TaskFocusUI.Library.API
         {
             newContext.UserId = userId;
 
-            using (HttpResponseMessage response = await ApiRequest.SendAsync(_apiHelper.APIClient.PostAsJsonAsync("/api/context/post", newContext)))
+            using (HttpResponseMessage response = await ApiRequest.SendAsync(_apiHelper.APIClient.PostAsJsonAsync("/api/context/PostWithResult", newContext)))
             {
                 _logger?.LogInformation("API: AddContext request processed successfully.");
                 var result = await response.Content.ReadAsAsync<ContextModel>();

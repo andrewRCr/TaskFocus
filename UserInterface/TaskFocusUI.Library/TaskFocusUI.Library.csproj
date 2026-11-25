@@ -7,6 +7,9 @@
     <!--<OutputType>Library</OutputType>-->
   </PropertyGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="TaskFocusUI.Library.Tests" />
+  </ItemGroup>
+  <ItemGroup>
     <!-- Pinned to 14.x because 15+ needs a commercial license. The known DoS advisories require attacker-controlled object graphs. TaskFocus maps a fixed set of application and display models. -->
     <PackageReference Include="AutoMapper" Version="14.0.0" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="6.0.0" />

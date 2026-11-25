@@ -22,6 +22,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
         private List<TaskModel> _pushedTaskData = [];
         private List<ProjectModel> _pushedProjectData = [];
         private List<ContextModel> _pushedContextData = [];
+        private readonly HashSet<int> _createdContextIds = [];
 
         public DataSyncService(IMapper mapper,
                                IDataHelper dataHelper,
@@ -223,13 +224,21 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             _dataState.SetTempProjectId(0);
 
             // CONTEXT DATA
-            foreach (var clientContext in _dataState.GetChangedContextData())
+            var changedContexts = _dataState.GetChangedContextData();
+            var sentExistingContexts = new HashSet<ContextDisplayModel>(ReferenceEqualityComparer.Instance);
+            foreach (var clientContext in changedContexts.ToList())
             {
+                bool isCreate = clientContext.Id == null;
+                var clientLastUpdated = clientContext.ClientLastUpdated;
                 DataSyncResult clientContextResult = await PushSyncableData(clientContext);
+                // A create edited while its request was pending stays queued as an update for the next sync.
+                if (!isCreate) sentExistingContexts.Add(clientContext);
+                else if (clientContext.ClientLastUpdated == clientLastUpdated) changedContexts.Remove(clientContext);
                 pushResult = _dataHelper.CombineSyncResults(pushResult, clientContextResult);
             }
-            _dataState.GetChangedContextData().Clear();
-            _dataState.SetTempContextId(0);
+            // Existing contexts leave the queue only once the whole push has succeeded.
+            changedContexts.RemoveAll(sentExistingContexts.Contains);
+            if (changedContexts.Count == 0) _dataState.SetTempContextId(0);
 
             // finalize, return result
             if (!_dataHelper.SyncChangesDetected(pushResult)) LogInformation("No changes detected on push.");
@@ -338,13 +347,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
 
                     case ESyncableDataType.Context:
 
-                        ContextModel insertedContext= await _contextEndpoint.AddContext(_mapper.Map<ContextModel>((ContextDisplayModel)data), _dataState.GetCurrentUser()!.Id);
-                        _pushedContextData.Add(_mapper.Map<ContextModel>((ContextDisplayModel)data));
-
-                        int contextIndex = _dataState.GetContexts()!.FindIndex(x => x.TempLocalId == data.TempLocalId);
-                        _dataState.GetProjects()![contextIndex].Id = insertedContext.Id; // update with new server-granted id
-                        _dataState.GetProjects()![contextIndex].TempLocalId = null; //
-
+                        await PushNewContext((ContextDisplayModel)data);
                         break;
                 }
 
@@ -459,6 +462,31 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             return result;
         }
 
+        private async Task PushNewContext(ContextDisplayModel queued)
+        {
+            ContextModel acknowledged = await _contextEndpoint.AddContext(
+                _mapper.Map<ContextModel>(queued), _dataState.GetCurrentUser()!.Id);
+            var tempId = queued.TempLocalId;
+            if (tempId.HasValue)
+            {
+                AcknowledgeNewContext(_dataState.GetContexts()!.Find(x => x.TempLocalId == tempId), acknowledged);
+                AcknowledgeNewContext(_dataState.GetWorkingContexts()!.Find(x => x.TempLocalId == tempId), acknowledged);
+            }
+            AcknowledgeNewContext(queued, acknowledged);
+            _pushedContextData.Add(acknowledged);
+            if (acknowledged.Id is int createdId) _createdContextIds.Add(createdId);
+        }
+
+        private static void AcknowledgeNewContext(ContextDisplayModel? context, ContextModel acknowledged)
+        {
+            if (context == null) return;
+
+            context.Id = acknowledged.Id;
+            context.TempLocalId = null;
+            context.UserId = acknowledged.UserId;
+            context.ServerLastUpdated = acknowledged.ServerLastUpdated;
+        }
+
         // PULLSYNC(): gets all records that have changed since LastSync
         // updates local client data with any changes (inserts, deletions, updates)
         private async Task<DataSyncResult> PullSync()
@@ -538,8 +566,10 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             // CONTEXT DATA
             DataSyncResult contextsPullResult = new();
             List<ContextModel> serverContexts = await _contextEndpoint.GetAllContextsForUser();
+            // A retried create can carry a timestamp from before the current sign-in.
             var changedRemoteContextRows = serverContexts.Where(
-                x => x.ServerLastUpdated >= _dataState.GetLastSync()).ToList();
+                x => x.ServerLastUpdated >= _dataState.GetLastSync() ||
+                     (x.Id is int id && _createdContextIds.Contains(id))).ToList();
 
             // handle local inserts/updates (originating from another client)
             foreach (var serverContext in changedRemoteContextRows)
@@ -554,6 +584,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
 
             // cleanup temp push history
             _pushedContextData.Clear();
+            _createdContextIds.Clear();
 
             // trigger UI update if needed + add to total pull result
             if (_dataHelper.SyncChangesDetected(contextsPullResult))
@@ -669,18 +700,19 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
 
                 case ESyncableDataType.Context:
 
-                    // do not pull if we just pushed the change
-                    var pushedServerContext = _pushedContextData.Where(x => x.Id == data.Id);
-                    if (pushedServerContext.Any()) return result;
+                    if (_dataState.GetChangedContextData().Any(x => x.Id == data.Id && x.Deleted.HasValue)) return result;
 
                     ContextDisplayModel displayServerContext = (ContextDisplayModel)data;
-                    ContextDisplayModel? clientContext = _dataState.GetContexts()!.Where(
-                        x => x.Id == displayServerContext.Id).FirstOrDefault();
+                    ContextDisplayModel? clientContext = _dataState.GetContexts()!.Find(x => x.Id == data.Id);
+                    ContextModel? pushedServerContext = _pushedContextData.Find(x => x.Id == data.Id);
+                    bool restoreCreated = clientContext == null && data.Id is int id && _createdContextIds.Contains(id);
+                    if (pushedServerContext != null && !restoreCreated) return result;
 
                     if (clientContext == null) // insert
                     {
+                        if (pushedServerContext == null) result.NumRowsInserted++;
+                        else displayServerContext.UserId ??= pushedServerContext.UserId;
                         _dataState.GetContexts()!.Add(displayServerContext.Clone());
-                        result.NumRowsInserted++;
                     }
                     else // update
                     {
@@ -745,7 +777,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                     foreach (var clientDisplayContext in _dataState.GetContexts()!.ToList())
                     {
                         ContextModel? serverContext = serverContexts.Find(x => x.Id == clientDisplayContext.Id);
-                        if (serverContext == null) // not found on server? delete locally
+                        if (clientDisplayContext.Id.HasValue && serverContext == null) // not found on server? delete locally
                         {
                             // ensure other contexts have updated OrderIndex values
                             _dataService.ShiftCollectionOrderIndices(clientDisplayContext, _dataState.GetContexts()!);
