@@ -192,6 +192,33 @@ namespace TaskFocusUI.Library.Tests
             Assert.Equal((1, 2), (_api.Task(2).InboxIndex, _api.Task(3).InboxIndex));
         }
 
+        [Theory]
+        [InlineData("Inbox")]
+        [InlineData("Project")]
+        [InlineData("Context")]
+        [InlineData("Today")]
+        public async Task ReopeningACleanedUpTaskPutsItBackLast(string list)
+        {
+            SeedFour(list);
+            var cleaned = _api.Task(1);
+            (cleaned.Completed, cleaned.CleanedUp, cleaned.DateCompleted) = (true, true, DateTime.Now.AddDays(-9));
+            (cleaned.InboxIndex, cleaned.ProjectIndex, cleaned.ContextIndex, cleaned.TodayIndex) = (null, null, null, null);
+            await SignInAsync();
+
+            Working(1).Completed = false;
+            _data.UpdateTaskData(Working(1));
+            AssertOrder(list, [2, 3, 4, 1], [1, 2, 3, 4]);
+
+            await SyncAsync();
+            AssertOrder(list, [2, 3, 4, 1], [1, 2, 3, 4]);
+            Assert.Equal(["PUT 1"], _api.Writes);
+            Assert.False(_api.Task(1).CleanedUp);
+
+            await SignInAgainAsync();
+            AssertOrder(list, [2, 3, 4, 1], [1, 2, 3, 4]);
+            Assert.DoesNotContain(_data.GetDataStateTasks()!, x => x.Completed);
+        }
+
         [Fact]
         public async Task ANewlyDueTaskEntersTodayAfterTheHighestPosition()
         {
