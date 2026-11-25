@@ -314,6 +314,11 @@ namespace TaskFocusUI.Library.Data.Services
             if (workingTask.ProjectName != null) HandleTaskProjectChanged(workingTask);
             if (workingTask.ContextName != null) HandleTaskContextChanged(workingTask);
 
+            if (workingTask.Starred || _dataHelper.IsTaskDueOrOverDue(workingTask))
+            {
+                workingTask.TodayIndex = NextIndex(_dataState.GetTasks()!, x => x.TodayIndex);
+            }
+
             // give temp local tracking id
             var currentTempId = _dataState.GetTempTaskId();
             workingTask.TempLocalId = _dataState.SetTempTaskId(++currentTempId);

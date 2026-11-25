@@ -62,6 +62,7 @@ else
 
     private MudDropContainer<TaskDisplayModel> _container = default!;
     private string _orderingIndex = string.Empty;
+    private List<TaskDisplayModel> _shownItems = [];
     private bool _refreshItems;
 
     protected override void CustomAuthenticatedOnInit()
@@ -73,7 +74,14 @@ else
         }
     }
 
-    protected override void OnParametersSet() => _refreshItems = true;
+    protected override void OnParametersSet()
+    {
+        // a parent redraw passes the same list again
+        if (ContainerTaskItemsParam.SequenceEqual(_shownItems)) return;
+
+        _shownItems = ContainerTaskItemsParam.ToList();
+        _refreshItems = true;
+    }
 
     protected override void OnAfterRender(bool firstRender)
     {

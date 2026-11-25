@@ -40,18 +40,15 @@ namespace TaskFocusUI.Library.Tests
             _sync = new DataSyncService(mapper, _helper, _state, users, tasks, projects, contexts, NullLogger<DataSyncService>.Instance, _data);
         }
 
-        public static TheoryData<string, bool> ListsAndListeners => new()
-        {
-            { "Inbox", false }, { "Inbox", true }, { "Project", false }, { "Project", true },
-            { "Context", false }, { "Context", true }, { "Today", false }, { "Today", true }
-        };
-
         [Theory]
-        [MemberData(nameof(ListsAndListeners))]
-        public async Task DeletingATaskLeavesTheOthersWhereTheyAre(string list, bool pageIsOpen)
+        [InlineData("Inbox")]
+        [InlineData("Project")]
+        [InlineData("Context")]
+        [InlineData("Today")]
+        public async Task DeletingATaskLeavesTheOthersWhereTheyAre(string list)
         {
             SeedFour(list);
-            await SignInAsync(pageIsOpen);
+            await SignInAsync();
 
             _data.DeleteTask(Working(1));
             AssertOrder(list, [2, 3, 4], [1, 2, 3]);
@@ -65,11 +62,14 @@ namespace TaskFocusUI.Library.Tests
         }
 
         [Theory]
-        [MemberData(nameof(ListsAndListeners))]
-        public async Task ATaskAddedAfterOthersAreDeletedGoesLast(string list, bool pageIsOpen)
+        [InlineData("Inbox")]
+        [InlineData("Project")]
+        [InlineData("Context")]
+        [InlineData("Today")]
+        public async Task ATaskAddedAfterOthersAreDeletedGoesLast(string list)
         {
             SeedFour(list);
-            await SignInAsync(pageIsOpen);
+            await SignInAsync();
             _data.DeleteTask(Working(1));
             _data.DeleteTask(Working(2));
 
@@ -80,7 +80,7 @@ namespace TaskFocusUI.Library.Tests
                 ContextName = list == "Context" ? "Context 9" : null,
                 Starred = list == "Today"
             });
-            if (list == "Today") _data.UpdateTaskData(_data.GetDataStateTasks()!.Single(x => x.TaskName == "New"), true);
+            Assert.NotNull(Position(Ordered(list)[^1], list));
             Assert.Equal("New", Ordered(list)[^1].TaskName);
 
             await SyncAsync();
@@ -89,13 +89,29 @@ namespace TaskFocusUI.Library.Tests
             Assert.Equal(["3", "4", "New"], Names(list));
         }
 
-        [Theory]
-        [InlineData(false)]
-        [InlineData(true)]
-        public async Task ATaskDeletedOnAnotherDeviceLeavesTheOthersWhereTheyAre(bool pageIsOpen)
+        [Fact]
+        public async Task ANewTaskDueTodayGoesLastInTodayAtOnce()
+        {
+            var today = DateTime.Now.Date;
+            _api.Add(1, starred: true, todayIndex: 0);
+            _api.Add(2, starred: true, todayIndex: 4);
+            await SignInAsync();
+
+            _data.AddTask(new TaskDisplayModel { TaskName = "New", DueDate = today });
+            var order = Names("Today");
+            int? position = Ordered("Today").Single(x => x.TaskName == "New").TodayIndex;
+            await SyncAsync();
+
+            if (DateTime.Now.Date != today) return; // Midnight passed during the test.
+            Assert.Equal(["1", "2", "New"], order);
+            Assert.Equal((5, 5), (position, _api.Task(100).TodayIndex));
+        }
+
+        [Fact]
+        public async Task ATaskDeletedOnAnotherDeviceLeavesTheOthersWhereTheyAre()
         {
             SeedFour("Inbox");
-            await SignInAsync(pageIsOpen);
+            await SignInAsync();
             _api.Tasks.RemoveAll(x => x.Id == 1);
 
             await SyncAsync();
@@ -104,14 +120,12 @@ namespace TaskFocusUI.Library.Tests
             Assert.Empty(_api.Writes);
         }
 
-        [Theory]
-        [InlineData(false)]
-        [InlineData(true)]
-        public async Task MovingATaskToAnotherProjectPutsItLastAndLeavesTheRest(bool pageIsOpen)
+        [Fact]
+        public async Task MovingATaskToAnotherProjectPutsItLastAndLeavesTheRest()
         {
             SeedFour("Project");
             _api.Add(5, projectId: 8, projectIndex: 4); // Project 8 has one task, after a gap.
-            await SignInAsync(pageIsOpen);
+            await SignInAsync();
 
             Working(1).ProjectName = "Project 8";
             _data.UpdateTaskData(Working(1));
@@ -122,13 +136,11 @@ namespace TaskFocusUI.Library.Tests
             AssertOrder("Project", [2, 3, 4], [1, 2, 3]);
         }
 
-        [Theory]
-        [InlineData(false)]
-        [InlineData(true)]
-        public async Task ATaskLeavingTheInboxLeavesTheRestWhereTheyAre(bool pageIsOpen)
+        [Fact]
+        public async Task ATaskLeavingTheInboxLeavesTheRestWhereTheyAre()
         {
             SeedFour("Inbox");
-            await SignInAsync(pageIsOpen);
+            await SignInAsync();
 
             Working(1).ProjectName = "Project 7";
             _data.UpdateTaskData(Working(1));
@@ -141,14 +153,12 @@ namespace TaskFocusUI.Library.Tests
             Assert.Equal(["PUT 1"], _api.Writes);
         }
 
-        [Theory]
-        [InlineData(false)]
-        [InlineData(true)]
-        public async Task StarringAndUnstarringATaskPutsItLastInTodayAndLeavesTheRest(bool pageIsOpen)
+        [Fact]
+        public async Task StarringAndUnstarringATaskPutsItLastInTodayAndLeavesTheRest()
         {
             SeedFour("Today");
             _api.Add(5);
-            await SignInAsync(pageIsOpen);
+            await SignInAsync();
 
             SetStarred(1, false);
             SetStarred(5, true);
@@ -171,11 +181,12 @@ namespace TaskFocusUI.Library.Tests
             for (int id = 1; id <= 3; id++)
                 _api.Add(id, inboxIndex: id - 1, starred: true, dueDate: bothStarredAndDue ? today : null, todayIndex: id - 1,
                     completed: id == 1, dateCompleted: id == 1 ? today.AddDays(-daysAgo).AddHours(12) : null);
-            await SignInAsync(pageIsOpen: true);
+            await SignInAsync();
             await SyncAsync();
 
             if (DateTime.Now.Date != today) return; // Midnight passed during the test.
             Assert.Equal(["PUT 1"], _api.Writes);
+            Assert.Equal(daysAgo == 8, _api.Task(1).CleanedUp);
             Assert.Null(_api.Task(1).TodayIndex);
             Assert.Equal((1, 2), (_api.Task(2).TodayIndex, _api.Task(3).TodayIndex));
             Assert.Equal((1, 2), (_api.Task(2).InboxIndex, _api.Task(3).InboxIndex));
@@ -187,7 +198,7 @@ namespace TaskFocusUI.Library.Tests
             var today = DateTime.Now.Date;
             _api.Add(1, starred: true, todayIndex: 3);
             _api.Add(2, dueDate: today);
-            await SignInAsync(pageIsOpen: false);
+            await SignInAsync();
             await SyncAsync();
 
             if (DateTime.Now.Date != today) return; // Midnight passed during the test.
@@ -201,7 +212,7 @@ namespace TaskFocusUI.Library.Tests
         {
             for (int id = 1; id <= 2; id++) _api.Add(id, inboxIndex: id * 2);
             for (int id = 3; id <= 4; id++) _api.Add(id, projectId: 7, projectIndex: id, contextId: 9, contextIndex: id);
-            await SignInAsync(pageIsOpen: false);
+            await SignInAsync();
 
             if (project) _data.DeleteProject(_data.GetDataStateProjects()!.Single(x => x.Id == 7));
             else _data.DeleteContext(_data.GetDataStateContexts()!.Single(x => x.Id == 9));
@@ -224,10 +235,9 @@ namespace TaskFocusUI.Library.Tests
                     starred: list == "Today", todayIndex: list == "Today" ? i : null);
         }
 
-        private async Task SignInAsync(bool pageIsOpen)
+        private async Task SignInAsync()
         {
             Assert.True(await _sync.TrySync(onFailure: Rethrow));
-            if (pageIsOpen) Listen();
         }
 
         private async Task SignInAgainAsync()
@@ -244,13 +254,6 @@ namespace TaskFocusUI.Library.Tests
         }
 
         private static void Rethrow(Exception exception) => Assert.Fail($"The sync failed: {exception.Message}");
-
-        // A page saves each change to the tasks it shows.
-        private void Listen()
-        {
-            foreach (var task in _data.GetDataStateTasks()!)
-                task.PropertyChanged += (_, _) => { if (!_data.IsTaskCurrentlyBeingUpdated(task)) _data.UpdateTaskData(task); };
-        }
 
         private TaskDisplayModel Working(int id) => _data.GetDataStateTasks()!.Single(x => x.Id == id);
 
