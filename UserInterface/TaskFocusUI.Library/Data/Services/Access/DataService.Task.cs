@@ -52,6 +52,39 @@ namespace TaskFocusUI.Library.Data.Services
             }
         }
 
+        // the server records its own completion date once it receives the change
+        private void HandleTaskCompletedChanged(TaskDisplayModel task)
+        {
+            if (task.Completed)
+            {
+                // only when it is checked off here, so an older completion keeps the date it has (or lacks)
+                if (task.DateCompleted == null && !WasCompleted(task)) task.DateCompleted = DateTime.Now;
+                return;
+            }
+
+            task.DateCompleted = null;
+            if (!task.CleanedUp) return;
+
+            // cleaning up removed the task from its lists; return it to the end of each
+            task.CleanedUp = false;
+            if (task.ProjectId == null || task.ContextId == null)
+            {
+                task.InboxIndex = NextIndex(_dataState.GetTasks()!, x => x.InboxIndex);
+            }
+            if (task.ProjectId != null)
+            {
+                task.ProjectIndex = NextIndex(_dataState.GetTasks()!.Where(x => x.ProjectId == task.ProjectId), x => x.ProjectIndex);
+            }
+            if (task.ContextId != null)
+            {
+                task.ContextIndex = NextIndex(_dataState.GetTasks()!.Where(x => x.ContextId == task.ContextId), x => x.ContextIndex);
+            }
+        }
+
+        private bool WasCompleted(TaskDisplayModel task) => task.Id == null
+            ? _dataState.GetChangedTaskData().Find(x => x.TempLocalId == task.TempLocalId)?.Completed == true
+            : _dataState.GetTasks()!.Find(x => x.Id == task.Id)?.Completed == true;
+
         private void HandleTaskProjectChanged(TaskDisplayModel task)
         {
             if (task.ProjectName == null) // project was unassigned
@@ -173,6 +206,7 @@ namespace TaskFocusUI.Library.Data.Services
         {
             if (!compareResult.IndicesOnly)
             {
+                HandleTaskCompletedChanged(workingTask);
                 // handle change of collection task belongs to
                 if (compareResult.ProjectNameChanged) { HandleTaskProjectChanged(workingTask); }
                 if (compareResult.ContextNameChanged) { HandleTaskContextChanged(workingTask); }
@@ -219,7 +253,7 @@ namespace TaskFocusUI.Library.Data.Services
         void IDataServiceInternal.PerformCompletedTaskCleanup()
         {
             var userSettings = _dataState.GetWorkingUserSettings()!;
-            var completedTasks = _dataState.GetWorkingTasks()!.Where(x => x.Completed);
+            var completedTasks = _dataState.GetWorkingTasks()!.Where(x => x.Completed && x.DateCompleted != null);
             foreach (var workingTask in completedTasks)
             {
                 TimeSpan interval = (DateTime.Now - (DateTime)workingTask.DateCompleted!);
