@@ -274,10 +274,13 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                 case ESyncableUserDataType.User:
 
                     UserDisplayModel changedClientUser = (UserDisplayModel)changedClientData;
-                    UserDisplayModel serverUser = (UserDisplayModel)serverData;
-                    if (serverWon) await _userEndpoint.UpdateName(_mapper.Map<UserModel>(serverUser));                   
+                    if (serverWon) await _userEndpoint.UpdateName((UserModel)serverData);
                     else
                     {
+                        await _userEndpoint.UpdateName(_mapper.Map<UserModel>(changedClientUser));
+                        // a later edit starts from this save, so it isn't taken for older than it
+                        _dataState.GetCurrentUser()!.ServerLastUpdated = changedClientUser.ServerLastUpdated;
+                        if (_dataState.GetWorkingCurrentUser() is UserDisplayModel workingUser) workingUser.ServerLastUpdated = changedClientUser.ServerLastUpdated;
                         _pushedUserData = changedClientUser;
                         result.NumRowsUpdated++;
                     }
@@ -287,10 +290,13 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                 case ESyncableUserDataType.Settings:
 
                     UserSettingsDisplayModel changedClientSettings = (UserSettingsDisplayModel)changedClientData;
-                    UserSettingsDisplayModel serverSettings = (UserSettingsDisplayModel)serverData;
-                    if (serverWon) await _userEndpoint.UpdateUserSettings(_mapper.Map<UserSettingsModel>(serverSettings));                   
+                    if (serverWon) await _userEndpoint.UpdateUserSettings((UserSettingsModel)serverData);
                     else
                     {
+                        await _userEndpoint.UpdateUserSettings(_mapper.Map<UserSettingsModel>(changedClientSettings));
+                        // a later edit starts from this save, so it isn't taken for older than it
+                        _dataState.GetUserSettings()!.ServerLastUpdated = changedClientSettings.ServerLastUpdated;
+                        if (_dataState.GetWorkingUserSettings() is UserSettingsDisplayModel workingSettings) workingSettings.ServerLastUpdated = changedClientSettings.ServerLastUpdated;
                         _pushedUserSettingsData = changedClientSettings;
                         result.NumRowsUpdated++;
                     }
