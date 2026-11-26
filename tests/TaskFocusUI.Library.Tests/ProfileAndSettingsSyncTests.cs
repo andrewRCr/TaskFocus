@@ -272,6 +272,39 @@ namespace TaskFocusUI.Library.Tests
             Assert.Equal(ESyncStatus.Synchronized, _client.Data.GetCurrentSyncStatus());
         }
 
+        // An emptied desktop delay field gives 0; the settings changed after it still save, with the delay as it was.
+        [Fact]
+        public async Task AnEmptiedDelayFieldDoesNotStopOtherSettingsChangesFromSaving()
+        {
+            await _client.Sync(); // Signing in.
+
+            _client.ChangeSettings(x => x.CleanUpDelayDays = 0);
+            _client.ChangeSettings(x => x.CleanUpImmediately = true);
+            await _client.Sync();
+
+            Assert.Equal(["PUT settings"], _api.Writes);
+            Assert.Equal((true, 7, 30), (_api.Settings.CleanUpImmediately, _api.Settings.CleanUpDelayDays, _api.Settings.DeleteDelayDays));
+        }
+
+        // The row was stamped ahead of this device's clock before it was loaded; the change made here against it, which
+        // failed to save, is still this device's latest and is shown after signing in again.
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task AChangeWaitingSinceSigningOutIsShownWhenTheRowsTimestampsAreAhead(bool name)
+        {
+            _api.SaveElsewhere(deleteDelayDays: 90, firstName: "Old", minutesAhead: 5);
+            await _client.Sync(); // Signing in.
+            Change(name, 1);
+            _api.FailNextSave = Failure.Unreachable;
+            await _client.SyncFails();
+
+            await _client.SignOutAndIn();
+            Assert.Equal(1, Shown(name));
+            await _client.Sync();
+            Assert.Equal(1, Saved(name));
+        }
+
         public void Dispose() => _api.Dispose();
 
         private static readonly string[] Names = ["Old", "First", "Second"];

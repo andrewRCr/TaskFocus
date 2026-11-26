@@ -39,22 +39,26 @@ namespace TaskFocusUI.Library.Data.Services
         // validates request, performs additional processing, flags for sync, refreshes UI
         public void UpdateSettingsData(UserSettingsDisplayModel workingSettings)
         {
-            // the server takes 1 to 90 days; a value outside that (an emptied desktop field gives 0) is not saved
-            if (workingSettings.CleanUpDelayDays is < 1 or > 90 || workingSettings.DeleteDelayDays is < 1 or > 90) return;
+            // the server takes 1 to 90 days; a delay outside that (an emptied desktop field gives 0) keeps its current
+            // value, so the other settings still save and cleanup never reads it
+            var settings = workingSettings.Clone();
+            var current = _dataState.GetUserSettings()!;
+            if (settings.CleanUpDelayDays is < 1 or > 90) settings.CleanUpDelayDays = current.CleanUpDelayDays;
+            if (settings.DeleteDelayDays is < 1 or > 90) settings.DeleteDelayDays = current.DeleteDelayDays;
 
-            if (_dataHelper.HasSettingsDataChanged(workingSettings))
+            if (_dataHelper.HasSettingsDataChanged(settings))
             {
                 // lock
                 if (Interlocked.Increment(ref _settingsUpdateEntered) != 1) { return; }
 
                 // update data state Settings object from WorkingSettings copy
-                workingSettings.ClientLastUpdated = DateTimeOffset.Now; // flag for sync
-                _dataState.GetUserSettings()!.ValueAssign(workingSettings);
+                settings.ClientLastUpdated = workingSettings.ClientLastUpdated = DateTimeOffset.Now; // flag for sync
+                current.ValueAssign(settings);
 
                 // add copy to ChangedSettingsData
                 // don't duplicate if already had another update prior to push; update values instead
-                if (_dataState.GetChangedSettingsData() == null) _dataState.SetChangedSettingsData(workingSettings.Clone());
-                else _dataState.GetChangedSettingsData()!.ValueAssign(workingSettings);
+                if (_dataState.GetChangedSettingsData() == null) _dataState.SetChangedSettingsData(settings.Clone());
+                else _dataState.GetChangedSettingsData()!.ValueAssign(settings);
 
                     // unlock; UI update will be triggered by PropertyChanged call on property set
                     Interlocked.Exchange(ref _settingsUpdateEntered, 0);
