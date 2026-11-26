@@ -39,6 +39,9 @@ namespace TaskFocusUI.Library.Data.Services
         // validates request, performs additional processing, flags for sync, refreshes UI
         public void UpdateSettingsData(UserSettingsDisplayModel workingSettings)
         {
+            // the server takes 1 to 90 days; a value outside that (an emptied desktop field gives 0) is not saved
+            if (workingSettings.CleanUpDelayDays is < 1 or > 90 || workingSettings.DeleteDelayDays is < 1 or > 90) return;
+
             if (_dataHelper.HasSettingsDataChanged(workingSettings))
             {
                 // lock

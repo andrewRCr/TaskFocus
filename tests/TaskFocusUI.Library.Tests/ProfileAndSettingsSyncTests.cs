@@ -175,6 +175,103 @@ namespace TaskFocusUI.Library.Tests
             Assert.Equal(2, Shown(name));
         }
 
+        // Signing out after a failed save keeps the change queued; an edit made before the next sync builds on it.
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task AnEditMadeRightAfterSigningInAgainKeepsAChangeWhoseSaveFailed(bool name)
+        {
+            await _client.Sync(); // Signing in.
+            Change(name, 1);
+            _api.FailNextSave = Failure.Unreachable;
+            await _client.SyncFails();
+
+            await _client.SignOutAndIn();
+            Assert.Equal(1, Shown(name));
+            ChangeSibling(name);
+            await _client.Sync();
+
+            Assert.Equal(1, Saved(name));
+            Assert.True(name ? _api.User.LastName == "Sibling" : _api.Settings.CleanUpDelayDays == 3);
+        }
+
+        // Another device saved a change after the one whose save failed here, so that one is shown, and kept.
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task AChangeReplacedOnAnotherDeviceWhileItWaitedIsDroppedOnSigningInAgain(bool name)
+        {
+            await _client.Sync(); // Signing in.
+            Change(name, 1);
+            _api.FailNextSave = Failure.Unreachable;
+            await _client.SyncFails();
+            _api.SaveElsewhere(deleteDelayDays: 90, firstName: "Elsewhere");
+
+            await _client.SignOutAndIn();
+            Assert.Equal((90, "Elsewhere"), (_client.Data.GetDataStateUserSettings()!.DeleteDelayDays, _client.Data.GetDataStateCurrentUser()!.FirstName));
+            ChangeSibling(name);
+            await _client.Sync();
+
+            Assert.Equal((90, "Elsewhere"), (_api.Settings.DeleteDelayDays, _api.User.FirstName));
+            Assert.True(name ? _api.User.LastName == "Sibling" : _api.Settings.CleanUpDelayDays == 3);
+        }
+
+        // The server's row carries timestamps ahead of this device's clock, from registration or a faster device.
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task AnEditIsSavedWhenTheRowsTimestampsAreAheadOfThisDevicesClock(bool pulled)
+        {
+            if (!pulled) _api.SaveElsewhere(deleteDelayDays: 90, firstName: "Elsewhere", minutesAhead: 5);
+            await _client.Sync(); // Signing in.
+            if (pulled)
+            {
+                _api.SaveElsewhere(deleteDelayDays: 90, firstName: "Elsewhere", minutesAhead: 5);
+                await _client.Sync();
+                Assert.Equal(90, _client.Data.GetDataStateUserSettings()!.DeleteDelayDays);
+            }
+
+            _client.ChangeSettings(x => x.DeleteDelayDays = 60);
+            _client.ChangeName("Here", "Name");
+            await _client.Sync();
+
+            Assert.Equal((60, "Here"), (_api.Settings.DeleteDelayDays, _api.User.FirstName));
+        }
+
+        // The pages keep their bound copy when a save changes nothing they show, so typing in a field isn't reset.
+        [Fact]
+        public async Task SavingKeepsTheCopiesThePagesAreBoundTo()
+        {
+            await _client.Sync(); // Signing in.
+            var settings = _client.Data.GetDataStateUserSettings();
+            var user = _client.Data.GetDataStateCurrentUser();
+
+            _client.ChangeSettings(x => x.DeleteDelayDays = 60);
+            _client.ChangeName("New", "Name");
+            await _client.Sync();
+
+            Assert.Equal((60, "New"), (_api.Settings.DeleteDelayDays, _api.User.FirstName));
+            Assert.Same(settings, _client.Data.GetDataStateUserSettings());
+            Assert.Same(user, _client.Data.GetDataStateCurrentUser());
+        }
+
+        [Theory]
+        [InlineData(0, 7)]
+        [InlineData(30, 0)]
+        [InlineData(91, 7)]
+        public async Task ADelayOutsideOneTo90DaysIsNotSentAndSyncKeepsRunning(int deleteDelayDays, int cleanUpDelayDays)
+        {
+            await _client.Sync(); // Signing in.
+
+            _client.ChangeSettings(x => { x.DeleteDelayDays = deleteDelayDays; x.CleanUpDelayDays = cleanUpDelayDays; });
+            _client.RenameTask(1, "Renamed");
+            await _client.Sync();
+
+            Assert.Equal(["PUT task 1"], _api.Writes);
+            Assert.Equal((30, 7), (_api.Settings.DeleteDelayDays, _api.Settings.CleanUpDelayDays));
+            Assert.Equal(ESyncStatus.Synchronized, _client.Data.GetCurrentSyncStatus());
+        }
+
         public void Dispose() => _api.Dispose();
 
         private static readonly string[] Names = ["Old", "First", "Second"];
@@ -276,10 +373,10 @@ namespace TaskFocusUI.Library.Tests
             public UserSettingsModel Settings { get; } = new() { Id = UserId, ServerLastUpdated = Registered, ClientLastUpdated = Registered };
             public TaskModel StoredTask { get; private set; } = new() { Id = 1, UserId = UserId, TaskName = "Task", InboxIndex = 0, ServerLastUpdated = Registered, ClientLastUpdated = Registered };
 
-            // Another device saves a change a moment after this one's.
-            public void SaveElsewhere(int deleteDelayDays, string firstName)
+            // Another device saves a change a moment after this one's (stamped by its clock, which may be ahead).
+            public void SaveElsewhere(int deleteDelayDays, string firstName, int minutesAhead = 0)
             {
-                var at = DateTimeOffset.Now.AddSeconds(1);
+                var at = DateTimeOffset.Now.AddSeconds(1).AddMinutes(minutesAhead);
                 (Settings.DeleteDelayDays, Settings.ClientLastUpdated, Settings.ServerLastUpdated) = (deleteDelayDays, at, at);
                 (User.FirstName, User.ClientLastUpdated, User.ServerLastUpdated) = (firstName, at, at);
             }
