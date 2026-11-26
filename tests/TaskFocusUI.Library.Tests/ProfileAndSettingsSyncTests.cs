@@ -31,6 +31,7 @@ namespace TaskFocusUI.Library.Tests
             Assert.Equal((60, 3, true), (_api.Settings.DeleteDelayDays, _api.Settings.CleanUpDelayDays, _api.Settings.CleanUpImmediately));
             Assert.Equal("Renamed", _api.StoredTask.TaskName);
             Assert.Equal(ESyncStatus.Synchronized, _client.Data.GetCurrentSyncStatus());
+            Assert.Equal(2, _client.Data.GetDataStateLastSyncResult().NumRowsUpdated); // The Settings page reports both.
 
             await _client.Sync();
             Assert.Equal(2, _api.Writes.Count); // Nothing is sent again.
@@ -69,7 +70,7 @@ namespace TaskFocusUI.Library.Tests
         }
 
         [Fact]
-        public async Task SigningInAgainLoadsTheSavedNameAndSettings()
+        public async Task SigningInAgainLoadsTheSavedNameAndSettingsAndTheNextChangeIsSaved()
         {
             await _client.Sync(); // Signing in.
             _client.ChangeSettings(x => x.DeleteDelayDays = 60);
@@ -81,30 +82,123 @@ namespace TaskFocusUI.Library.Tests
 
             Assert.Equal(60, later.Data.GetDataStateUserSettings()!.DeleteDelayDays);
             Assert.Equal(("New", "Name"), (later.Data.GetDataStateCurrentUser()!.FirstName, later.Data.GetDataStateCurrentUser()!.LastName));
+
+            later.ChangeSettings(x => x.DeleteDelayDays = 30);
+            later.ChangeName("Newer", "Name");
+            await later.Sync();
+            Assert.Equal((30, "Newer"), (_api.Settings.DeleteDelayDays, _api.User.FirstName));
         }
 
-        // Another device saved its change after this one last loaded the settings, so the server keeps it.
         [Fact]
-        public async Task AChangeSavedOnAnotherDeviceSinceTheLastLoadIsKeptAndSyncKeepsRunning()
+        public async Task ChangesSavedOnAnotherDeviceAreShownHereAfterTheNextSyncAndKeptByLaterChanges()
+        {
+            var other = new Client(_api);
+            await _client.Sync(); // Signing in on both.
+            await other.Sync();
+
+            other.ChangeSettings(x => x.DeleteDelayDays = 90);
+            other.ChangeName("Elsewhere", "Name");
+            await other.Sync();
+            await _client.Sync();
+
+            Assert.Equal(90, _client.Data.GetDataStateUserSettings()!.DeleteDelayDays);
+            Assert.Equal("Elsewhere", _client.Data.GetDataStateCurrentUser()!.FirstName);
+
+            _client.ChangeSettings(x => x.CleanUpDelayDays = 3);
+            _client.ChangeName("Elsewhere", "Changed");
+            await _client.Sync();
+
+            Assert.Equal((90, 3), (_api.Settings.DeleteDelayDays, _api.Settings.CleanUpDelayDays));
+            Assert.Equal(("Elsewhere", "Changed"), (_api.User.FirstName, _api.User.LastName));
+        }
+
+        // The later edit wins: another device saved its change after the one made here.
+        [Fact]
+        public async Task AChangeSavedOnAnotherDeviceAfterOneMadeHereIsKeptAndShownHere()
         {
             await _client.Sync(); // Signing in.
-            _api.Settings.DeleteDelayDays = 90;
-            _api.Settings.ClientLastUpdated = _api.Settings.ServerLastUpdated = DateTimeOffset.Now;
-            _api.User.FirstName = "Elsewhere";
-            _api.User.ClientLastUpdated = _api.User.ServerLastUpdated = DateTimeOffset.Now;
 
             _client.ChangeSettings(x => x.DeleteDelayDays = 60);
             _client.ChangeName("Here", "Name");
             _client.RenameTask(1, "Renamed");
+            _api.SaveElsewhere(deleteDelayDays: 90, firstName: "Elsewhere");
             await _client.Sync();
 
-            Assert.Equal(90, _api.Settings.DeleteDelayDays);
-            Assert.Equal("Elsewhere", _api.User.FirstName);
+            Assert.Equal(["PUT task 1"], _api.Writes);
+            Assert.Equal((90, "Elsewhere"), (_api.Settings.DeleteDelayDays, _api.User.FirstName));
+            Assert.Equal(90, _client.Data.GetDataStateUserSettings()!.DeleteDelayDays);
+            Assert.Equal("Elsewhere", _client.Data.GetDataStateCurrentUser()!.FirstName);
             Assert.Equal("Renamed", _api.StoredTask.TaskName);
             Assert.Equal(ESyncStatus.Synchronized, _client.Data.GetCurrentSyncStatus());
         }
 
+        // The request never reaches the server; signing out and back in sends the change again.
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task AChangeWhoseSaveFailsIsSavedAfterSigningInAgainAndKeptByTheNextChange(bool name)
+        {
+            await _client.Sync(); // Signing in.
+            Change(name, 1);
+            _api.FailNextSave = Failure.Unreachable;
+            await _client.SyncFails();
+
+            await _client.SignOutAndIn();
+            await _client.Sync();
+
+            Assert.Equal(1, Saved(name));
+            Assert.Equal(1, Shown(name));
+
+            ChangeSibling(name);
+            await _client.Sync();
+            Assert.Equal(1, Saved(name));
+            Assert.True(name ? _api.User.LastName == "Sibling" : _api.Settings.CleanUpDelayDays == 3);
+        }
+
+        // The server saves the change but its reply is lost, and another change follows it.
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task AChangeMadeAfterASaveWhoseReplyIsLostIsSaved(bool name)
+        {
+            await _client.Sync(); // Signing in.
+            Change(name, 1);
+            _api.FailNextSave = Failure.ReplyLost;
+            await _client.SyncFails();
+            Assert.Equal(1, Saved(name));
+
+            Change(name, 2);
+            await _client.SignOutAndIn();
+            await _client.Sync();
+
+            Assert.Equal(2, Saved(name));
+            Assert.Equal(2, Shown(name));
+        }
+
         public void Dispose() => _api.Dispose();
+
+        private static readonly string[] Names = ["Old", "First", "Second"];
+        private static readonly int[] Delays = [30, 60, 45];
+
+        private void Change(bool name, int n)
+        {
+            if (name) _client.ChangeName(Names[n], "Name");
+            else _client.ChangeSettings(x => x.DeleteDelayDays = Delays[n]);
+        }
+
+        private void ChangeSibling(bool name)
+        {
+            if (name) _client.ChangeName(_client.Data.GetDataStateCurrentUser()!.FirstName!, "Sibling");
+            else _client.ChangeSettings(x => x.CleanUpDelayDays = 3);
+        }
+
+        private int Saved(bool name) => name ? Array.IndexOf(Names, _api.User.FirstName) : Array.IndexOf(Delays, _api.Settings.DeleteDelayDays);
+
+        private int Shown(bool name) => name
+            ? Array.IndexOf(Names, _client.Data.GetDataStateCurrentUser()!.FirstName)
+            : Array.IndexOf(Delays, _client.Data.GetDataStateUserSettings()!.DeleteDelayDays);
+
+        private enum Failure { None, Unreachable, ReplyLost }
 
         private sealed class Client
         {
@@ -134,6 +228,15 @@ namespace TaskFocusUI.Library.Tests
             public DataService Data { get; }
 
             public async Task Sync() => Assert.True(await _sync.TrySync(onFailure: e => Assert.Fail(e.ToString())));
+
+            public async Task SyncFails() => Assert.False(await _sync.TrySync());
+
+            // As the Logout page does once its sync has run (or failed), then signing in again.
+            public async Task SignOutAndIn()
+            {
+                Data.ResetDataStateOnLogout();
+                await Sync();
+            }
 
             // As the settings page does: it edits the working copy, and each change saves it.
             public void ChangeSettings(Action<UserSettingsDisplayModel> change)
@@ -168,9 +271,18 @@ namespace TaskFocusUI.Library.Tests
 
             public HttpClient APIClient { get; }
             public List<string> Writes { get; } = [];
+            public Failure FailNextSave { get; set; }
             public UserModel User { get; } = new() { Id = UserId, Email = "user@example.invalid", FirstName = "Old", LastName = "Name", ServerLastUpdated = Registered, ClientLastUpdated = Registered };
             public UserSettingsModel Settings { get; } = new() { Id = UserId, ServerLastUpdated = Registered, ClientLastUpdated = Registered };
             public TaskModel StoredTask { get; private set; } = new() { Id = 1, UserId = UserId, TaskName = "Task", InboxIndex = 0, ServerLastUpdated = Registered, ClientLastUpdated = Registered };
+
+            // Another device saves a change a moment after this one's.
+            public void SaveElsewhere(int deleteDelayDays, string firstName)
+            {
+                var at = DateTimeOffset.Now.AddSeconds(1);
+                (Settings.DeleteDelayDays, Settings.ClientLastUpdated, Settings.ServerLastUpdated) = (deleteDelayDays, at, at);
+                (User.FirstName, User.ClientLastUpdated, User.ServerLastUpdated) = (firstName, at, at);
+            }
 
             protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
             {
@@ -197,10 +309,12 @@ namespace TaskFocusUI.Library.Tests
 
                     case ("PUT", "/api/user/updatename"):
                         var name = (await request.Content!.ReadFromJsonAsync<UserModel>(cancellationToken))!;
-                        (User.FirstName, User.LastName) = (name.FirstName, name.LastName);
-                        (User.ServerLastUpdated, User.ClientLastUpdated) = (name.ServerLastUpdated, name.ClientLastUpdated);
-                        Writes.Add("PUT name");
-                        return new HttpResponseMessage(HttpStatusCode.OK);
+                        return Save(() =>
+                        {
+                            (User.FirstName, User.LastName) = (name.FirstName, name.LastName);
+                            (User.ServerLastUpdated, User.ClientLastUpdated) = (name.ServerLastUpdated, name.ClientLastUpdated);
+                            Writes.Add("PUT name");
+                        });
 
                     case ("PUT", "/api/user/put/settings"):
                         var settings = (await request.Content!.ReadFromJsonAsync<UserSettingsModel>(cancellationToken))!;
@@ -208,11 +322,13 @@ namespace TaskFocusUI.Library.Tests
                         {
                             return new HttpResponseMessage(HttpStatusCode.BadRequest);
                         }
-                        (Settings.CleanUpImmediately, Settings.CleanUpDelayDays, Settings.DeleteDelayDays) =
-                            (settings.CleanUpImmediately, settings.CleanUpDelayDays, settings.DeleteDelayDays);
-                        (Settings.ServerLastUpdated, Settings.ClientLastUpdated) = (settings.ServerLastUpdated, settings.ClientLastUpdated);
-                        Writes.Add("PUT settings");
-                        return new HttpResponseMessage(HttpStatusCode.OK);
+                        return Save(() =>
+                        {
+                            (Settings.CleanUpImmediately, Settings.CleanUpDelayDays, Settings.DeleteDelayDays) =
+                                (settings.CleanUpImmediately, settings.CleanUpDelayDays, settings.DeleteDelayDays);
+                            (Settings.ServerLastUpdated, Settings.ClientLastUpdated) = (settings.ServerLastUpdated, settings.ClientLastUpdated);
+                            Writes.Add("PUT settings");
+                        });
 
                     case ("PUT", "/api/task/put"):
                         StoredTask = (await request.Content!.ReadFromJsonAsync<TaskModel>(cancellationToken))!;
@@ -222,6 +338,16 @@ namespace TaskFocusUI.Library.Tests
                     default:
                         throw new InvalidOperationException($"Unexpected request {request.Method} {path}");
                 }
+            }
+
+            private HttpResponseMessage Save(Action store)
+            {
+                var failure = FailNextSave;
+                FailNextSave = Failure.None;
+                if (failure == Failure.Unreachable) throw new HttpRequestException("unreachable");
+                store();
+                if (failure == Failure.ReplyLost) throw new HttpRequestException("reply lost");
+                return new HttpResponseMessage(HttpStatusCode.OK);
             }
 
             private static HttpResponseMessage JsonResponse<T>(T value) =>

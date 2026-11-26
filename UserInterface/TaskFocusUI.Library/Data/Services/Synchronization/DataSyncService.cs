@@ -193,7 +193,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             var changedClientUser = _dataState.GetChangedUserData();
             if (changedClientUser != null) // local changes have occurred
             {
-                await PushSyncableUserData(changedClientUser);
+                pushResult = _dataHelper.CombineSyncResults(pushResult, await PushSyncableUserData(changedClientUser));
                 _dataState.SetChangedUserData(null);
             }
 
@@ -201,7 +201,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             var changedClientSettings = _dataState.GetChangedSettingsData();
             if (changedClientSettings != null) // local changes have occurred
             {
-                await PushSyncableUserData(changedClientSettings);
+                pushResult = _dataHelper.CombineSyncResults(pushResult, await PushSyncableUserData(changedClientSettings));
                 _dataState.SetChangedSettingsData(null);       
             }
 
@@ -250,63 +250,68 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
         private async Task<DataSyncResult> PushSyncableUserData(ISyncableUserData userData)
         {
             DataSyncResult result = new();
-            ESyncableUserDataType changedDataType = userData.DataType;
-            ISyncableUserData changedClientData = userData;
-            ISyncableUserData serverData = changedDataType == ESyncableUserDataType.User ?
+            ISyncableUserData serverData = userData.DataType == ESyncableUserDataType.User ?
                 await _userEndpoint.GetCurrentUserData() : await _userEndpoint.GetCurrentUserSettings();
 
-            bool serverWon = false;
-            if (serverData.ClientLastUpdated > changedClientData!.ServerLastUpdated)
+            // the later edit wins: a change saved elsewhere after this one was made is kept (this sync's pull shows it here)
+            if (serverData.ClientLastUpdated > userData.ClientLastUpdated) return result;
+
+            // only the request is stamped, so a failed attempt leaves the queued change as it was
+            DateTimeOffset savedAt = DateTimeOffset.Now;
+            switch (userData)
             {
-                // conflict - server data is newer than client
-                // server wins; ignore changes and just update time
-                serverData.ServerLastUpdated = DateTimeOffset.Now;
-                serverData.ClientLastUpdated = changedClientData.ServerLastUpdated;
-                serverWon = true;
+                case UserDisplayModel changedClientUser:
+
+                    UserModel sentUser = _mapper.Map<UserModel>(changedClientUser);
+                    sentUser.ServerLastUpdated = savedAt;
+                    await _userEndpoint.UpdateName(sentUser);
+
+                    UserDisplayModel savedUser = _dataState.GetCurrentUser()!.Clone();
+                    (savedUser.FirstName, savedUser.LastName) = (changedClientUser.FirstName, changedClientUser.LastName);
+                    (savedUser.ClientLastUpdated, savedUser.ServerLastUpdated) = (changedClientUser.ClientLastUpdated, savedAt);
+                    UseServerUser(savedUser);
+                    _pushedUserData = changedClientUser;
+                    result.NumRowsUpdated++;
+
+                    break;
+
+                case UserSettingsDisplayModel changedClientSettings:
+
+                    UserSettingsModel sentSettings = _mapper.Map<UserSettingsModel>(changedClientSettings);
+                    sentSettings.ServerLastUpdated = savedAt;
+                    await _userEndpoint.UpdateUserSettings(sentSettings);
+
+                    UserSettingsDisplayModel savedSettings = changedClientSettings.Clone();
+                    savedSettings.ServerLastUpdated = savedAt;
+                    UseServerSettings(savedSettings);
+                    _pushedUserSettingsData = changedClientSettings;
+                    result.NumRowsUpdated++;
+
+                    break;
             }
-            else // client data is newer than server
-            {
-                changedClientData.ServerLastUpdated = DateTimeOffset.Now;
-            }
 
-            switch (changedDataType)
-            {
-                case ESyncableUserDataType.User:
-
-                    UserDisplayModel changedClientUser = (UserDisplayModel)changedClientData;
-                    if (serverWon) await _userEndpoint.UpdateName((UserModel)serverData);
-                    else
-                    {
-                        await _userEndpoint.UpdateName(_mapper.Map<UserModel>(changedClientUser));
-                        // a later edit starts from this save, so it isn't taken for older than it
-                        _dataState.GetCurrentUser()!.ServerLastUpdated = changedClientUser.ServerLastUpdated;
-                        if (_dataState.GetWorkingCurrentUser() is UserDisplayModel workingUser) workingUser.ServerLastUpdated = changedClientUser.ServerLastUpdated;
-                        _pushedUserData = changedClientUser;
-                        result.NumRowsUpdated++;
-                    }
-
-                    break;
-
-                case ESyncableUserDataType.Settings:
-
-                    UserSettingsDisplayModel changedClientSettings = (UserSettingsDisplayModel)changedClientData;
-                    if (serverWon) await _userEndpoint.UpdateUserSettings((UserSettingsModel)serverData);
-                    else
-                    {
-                        await _userEndpoint.UpdateUserSettings(_mapper.Map<UserSettingsModel>(changedClientSettings));
-                        // a later edit starts from this save, so it isn't taken for older than it
-                        _dataState.GetUserSettings()!.ServerLastUpdated = changedClientSettings.ServerLastUpdated;
-                        if (_dataState.GetWorkingUserSettings() is UserSettingsDisplayModel workingSettings) workingSettings.ServerLastUpdated = changedClientSettings.ServerLastUpdated;
-                        _pushedUserSettingsData = changedClientSettings;
-                        result.NumRowsUpdated++;
-                    }
-
-                    break;
-                default:
-                    break;
-            }              
-           
             return result;
+        }
+
+        // Puts the server's name (or what was just saved there) in both local copies. The working copy, which the
+        // Settings pages edit, is replaced only when it differs, so a field being typed in isn't reset for nothing.
+        private void UseServerUser(UserDisplayModel serverUser)
+        {
+            _dataState.SetCurrentUser(serverUser);
+            if (_dataState.GetWorkingCurrentUser() is UserDisplayModel workingUser && _dataHelper.HasUserDataChanged(workingUser))
+            {
+                _dataState.SetWorkingCurrentUser(serverUser.Clone());
+            }
+        }
+
+        // as UseServerUser, for settings; cleanup reads these, so it follows the saved delays
+        private void UseServerSettings(UserSettingsDisplayModel serverSettings)
+        {
+            _dataState.SetUserSettings(serverSettings);
+            if (_dataState.GetWorkingUserSettings() is UserSettingsDisplayModel workingSettings && _dataHelper.HasSettingsDataChanged(workingSettings))
+            {
+                _dataState.SetWorkingUserSettings(serverSettings.Clone());
+            }
         }
 
         // process push at row level - task/project/context data
@@ -631,7 +636,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
 
                             UserModel serverUser = (UserModel)userData;
                             var displayServerUser = _mapper.Map<UserDisplayModel>(serverUser);
-                            _dataState.SetCurrentUser(displayServerUser);
+                            UseServerUser(displayServerUser);
 
                             break;
 
@@ -639,7 +644,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
 
                             UserSettingsModel serverSettings = (UserSettingsModel)serverData;
                             var displayServerSettings = _mapper.Map<UserSettingsDisplayModel>(serverData); 
-                            _dataState.SetUserSettings(displayServerSettings);
+                            UseServerSettings(displayServerSettings);
 
                             break;
 
