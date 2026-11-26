@@ -166,6 +166,8 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             // pull all records that have changed since last sync...
             // and update the local client data with any changes (inserts, deletions, updates)
             DataSyncResult pullResult = await PullSync();
+            // then delete expired completed tasks, with the saved delay and the latest rows
+            pushResult = _dataHelper.CombineSyncResults(pushResult, await _dataService.DeleteExpiredTasks());
 
             // update "working" copies of local data from newly synced data state + log completion
             _dataService.UpdateAllWorkingDataAfterPull();
