@@ -310,6 +310,25 @@ namespace TaskFocusUI.Library.Tests
         private static readonly string[] Names = ["Old", "First", "Second"];
         private static readonly int[] Delays = [30, 60, 45];
 
+        // A second change, made while the first is being saved, is saved by the next sync.
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task AChangeMadeWhileTheLastOneIsBeingSavedIsSavedByTheNextSync(bool name)
+        {
+            await _client.Sync(); // Signing in.
+
+            Change(name, 1);
+            _api.WhileSaving = () => Change(name, 2);
+            await _client.Sync();
+            Assert.Equal((1, 2), (Saved(name), Shown(name)));
+
+            await _client.Sync();
+            Assert.Equal((2, 2), (Saved(name), Shown(name)));
+            await _client.SignOutAndIn();
+            Assert.Equal(2, Shown(name));
+        }
+
         private void Change(bool name, int n)
         {
             if (name) _client.ChangeName(Names[n], "Name");
@@ -402,6 +421,7 @@ namespace TaskFocusUI.Library.Tests
             public HttpClient APIClient { get; }
             public List<string> Writes { get; } = [];
             public Failure FailNextSave { get; set; }
+            public Action? WhileSaving { get; set; } // runs once a save is stored, before its reply arrives
             public UserModel User { get; } = new() { Id = UserId, Email = "user@example.invalid", FirstName = "Old", LastName = "Name", ServerLastUpdated = Registered, ClientLastUpdated = Registered };
             public UserSettingsModel Settings { get; } = new() { Id = UserId, ServerLastUpdated = Registered, ClientLastUpdated = Registered };
             public TaskModel StoredTask { get; private set; } = new() { Id = 1, UserId = UserId, TaskName = "Task", InboxIndex = 0, ServerLastUpdated = Registered, ClientLastUpdated = Registered };
@@ -476,6 +496,9 @@ namespace TaskFocusUI.Library.Tests
                 FailNextSave = Failure.None;
                 if (failure == Failure.Unreachable) throw new HttpRequestException("unreachable");
                 store();
+                var whileSaving = WhileSaving;
+                WhileSaving = null;
+                whileSaving?.Invoke();
                 if (failure == Failure.ReplyLost) throw new HttpRequestException("reply lost");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             }

@@ -200,7 +200,6 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             if (changedClientUser != null) // local changes have occurred
             {
                 pushResult = _dataHelper.CombineSyncResults(pushResult, await PushSyncableUserData(changedClientUser));
-                _dataState.SetChangedUserData(null);
             }
 
             // SETTINGS DATA
@@ -208,7 +207,6 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             if (changedClientSettings != null) // local changes have occurred
             {
                 pushResult = _dataHelper.CombineSyncResults(pushResult, await PushSyncableUserData(changedClientSettings));
-                _dataState.SetChangedSettingsData(null);       
             }
 
             // TASK DATA
@@ -259,8 +257,15 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             ISyncableUserData serverData = userData.DataType == ESyncableUserDataType.User ?
                 await _userEndpoint.GetCurrentUserData() : await _userEndpoint.GetCurrentUserSettings();
 
+            // this push sends or drops the change as it is now; one made after this, while the request is out, stays queued
+            DateTimeOffset madeAt = userData.ClientLastUpdated;
+
             // a change saved elsewhere after this one was made is kept (this sync's pull shows it here)
-            if (QueuedChangeLoses(serverData, userData)) return result;
+            if (QueuedChangeLoses(serverData, userData))
+            {
+                Dequeue(userData, madeAt);
+                return result;
+            }
 
             // only the request is stamped, so a failed attempt leaves the queued change as it was
             DateTimeOffset savedAt = DateTimeOffset.Now;
@@ -296,7 +301,18 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                     break;
             }
 
+            // a change made while the request was out is sent by the next sync, against the row as saved here
+            userData.ServerLastUpdated = savedAt;
+            Dequeue(userData, madeAt);
             return result;
+        }
+
+        // takes a sent or dropped change off the queue, unless it was changed again after it was sent
+        private void Dequeue(ISyncableUserData queued, DateTimeOffset madeAt)
+        {
+            if (queued.ClientLastUpdated != madeAt) return;
+            if (queued.DataType == ESyncableUserDataType.User) _dataState.SetChangedUserData(null);
+            else _dataState.SetChangedSettingsData(null);
         }
 
         // A queued name or settings change loses only to a change saved elsewhere since this device last loaded or saved
