@@ -305,26 +305,23 @@ namespace TaskFocusUI.Library.Data.Services
 
             int deleteDelayDays = _dataState.GetUserSettings()!.DeleteDelayDays;
             var expiredTasks = _dataState.GetTasks()!.Where(x => x.Id != null && IsExpired(x, deleteDelayDays) && QueuedChange(x) == null).ToList();
-            try
+            foreach (var task in expiredTasks)
             {
-                foreach (var task in expiredTasks)
-                {
-                    TaskModel? serverTask = await _taskEndpoint.GetTaskById(task.Id!.Value);
-                    // a delay changed, or this task edited (such as reopened), while the earlier ones were deleted is sent first
-                    if (_dataState.GetChangedSettingsData() != null) break;
-                    if (QueuedChange(task) != null) continue;
-                    if (serverTask == null || !IsExpired(_mapper.Map<TaskDisplayModel>(serverTask), deleteDelayDays)) continue;
+                TaskModel? serverTask = await _taskEndpoint.GetTaskById(task.Id!.Value);
+                // a delay changed, or this task edited (such as reopened), while the earlier ones were deleted is sent first
+                if (_dataState.GetChangedSettingsData() != null) break;
+                if (QueuedChange(task) != null) continue;
+                if (serverTask == null || !IsExpired(_mapper.Map<TaskDisplayModel>(serverTask), deleteDelayDays)) continue;
 
-                    await _taskEndpoint.DeleteTask(serverTask);
-                    _dataState.GetTasks()!.Remove(task);
-                    // the page's list too, which a failed request later in this sync would otherwise leave holding the task
-                    _dataState.GetWorkingTasks()?.RemoveAll(x => x.Id == task.Id);
-                    result.NumRowsDeleted++;
-                }
-            }
-            finally
-            {
-                if (result.NumRowsDeleted > 0) _dataState.InvokeDataStateChanged(nameof(EDataRefreshType.Tasks));
+                // Taken off this device, and the page, before the delete is sent, so it can't be edited while or after it
+                // goes. If the delete fails (or its reply is lost), the task may still be on the server; the next sign-in
+                // loads it and its first sync deletes it.
+                _dataState.GetTasks()!.Remove(task);
+                _dataState.GetWorkingTasks()?.RemoveAll(x => x.Id == task.Id);
+                _dataState.InvokeDataStateChanged(nameof(EDataRefreshType.Tasks));
+
+                await _taskEndpoint.DeleteTask(serverTask);
+                result.NumRowsDeleted++;
             }
 
             return result;

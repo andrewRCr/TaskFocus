@@ -389,19 +389,69 @@ namespace TaskFocusUI.Library.Tests
             Assert.Equal([2], _api.Tasks.Select(x => x.Id!.Value));
         }
 
+        // The server deleted the task but the reply was lost, or the request failed and it didn't: either way the task
+        // leaves the page at once, so it can't be edited, other changes are saved, and one still on the server is deleted
+        // after the next sign-in.
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task AFailedDeleteLeavesNothingToEditAndOtherChangesAreSaved(bool replyLost)
+        {
+            _api.Add(1, daysSinceCompleted: 40);
+            _api.Add(2, daysSinceCompleted: null);
+            await Sync(); // Signing in.
+
+            if (replyLost) _api.LoseNextReply = "DELETE 1";
+            else _api.FailNext = "DELETE 1";
+            await SyncFails();
+            Assert.Equal([2], _data.GetDataStateTasks()!.Select(x => x.Id!.Value));
+            Assert.Equal([2], _state.GetTasks()!.Select(x => x.Id!.Value));
+
+            Edit(2, x => x.TaskName = "Renamed");
+            await SignOutAndIn();
+            await Sync();
+
+            Assert.Equal(["Renamed"], _api.Tasks.Select(x => x.TaskName));
+            Assert.Equal(["Renamed"], _data.GetDataStateTasks()!.Select(x => x.TaskName));
+        }
+
+        // A page keeps the list from its last refresh; it is refreshed before each delete is sent.
         [Fact]
-        public async Task AFailedDeleteLeavesNoDeletedTaskOnThePage()
+        public async Task ThePageIsRefreshedBeforeEachExpiredTaskIsDeleted()
         {
             _api.Add(1, daysSinceCompleted: 40);
             _api.Add(2, daysSinceCompleted: 40);
             _api.Add(3, daysSinceCompleted: null);
             await Sync(); // Signing in.
 
-            _api.FailNext = "DELETE 2";
-            await SyncFails();
+            int[] page = [];
+            _state.DataStateChanged += (name, _) =>
+            {
+                if (name == nameof(EDataRefreshType.Tasks)) page = [.. _data.GetDataStateTasks()!.Select(x => x.Id!.Value)];
+            };
+            List<int[]> pageAtEachDelete = [];
+            _api.OnEveryDelete = () => pageAtEachDelete.Add(page);
+            await Sync();
 
-            Assert.Equal([2, 3], _data.GetDataStateTasks()!.Select(x => x.Id!.Value));
-            Assert.Equal([2, 3], _state.GetTasks()!.Select(x => x.Id!.Value));
+            Assert.Equal([[2, 3], [3]], pageAtEachDelete);
+        }
+
+        [Fact]
+        public async Task ADelayRaisedWhileAShorterOneIsBeingSavedKeepsTheTask()
+        {
+            _api.Add(1, daysSinceCompleted: 5);
+            await Sync(); // Signing in.
+
+            ChangeSettings(x => x.DeleteDelayDays = 1);
+            _api.OnSaveSettings = () => ChangeSettings(x => x.DeleteDelayDays = 90);
+            await Sync();
+            await Sync();
+            await SignOutAndIn();
+            await Sync();
+
+            Assert.Empty(Deletes);
+            Assert.Equal(90, _api.Settings.DeleteDelayDays);
+            Assert.Single(_api.Tasks);
         }
 
         // A task due tomorrow is checked off, the save fails, and the next sign-in is on the day it is due.
@@ -456,6 +506,9 @@ namespace TaskFocusUI.Library.Tests
             public UserSettingsModel Settings { get; } = new() { DeleteDelayDays = 30, CleanUpDelayDays = 7 };
             public string? FailNext { get; set; } // e.g. "PUT 1": that request fails once, before reaching the server
             public Action? OnDelete { get; set; } // runs while a delete is awaiting its reply
+            public Action? OnEveryDelete { get; set; } // runs as each delete reaches the server
+            public Action? OnSaveSettings { get; set; } // runs once a settings save is stored, before its reply arrives
+            public string? LoseNextReply { get; set; } // e.g. "DELETE 1": the server acts on it, but the reply is lost
             public Action? OnPull { get; set; } // runs while a sync is pulling the tasks
             private int _nextId = 100;
 
@@ -495,6 +548,9 @@ namespace TaskFocusUI.Library.Tests
                         (Settings.DeleteDelayDays, Settings.CleanUpDelayDays, Settings.CleanUpImmediately) = (changed.DeleteDelayDays, changed.CleanUpDelayDays, changed.CleanUpImmediately);
                         (Settings.ClientLastUpdated, Settings.ServerLastUpdated) = (changed.ClientLastUpdated, changed.ServerLastUpdated);
                         Writes.Add("PUT settings");
+                        var onSave = OnSaveSettings;
+                        OnSaveSettings = null;
+                        onSave?.Invoke();
                         return new HttpResponseMessage(HttpStatusCode.OK);
 
                     case ("GET", "/api/task/GetAllTasksForUser"):
@@ -538,10 +594,12 @@ namespace TaskFocusUI.Library.Tests
                         }
                         else
                         {
+                            OnEveryDelete?.Invoke();
                             OnDelete?.Invoke();
                             OnDelete = null;
                             if (index >= 0) Tasks.RemoveAt(index); // The API answers OK when the task is already gone.
                         }
+                        if (LoseNextReply == write) { LoseNextReply = null; throw new HttpRequestException("reply lost"); }
                         return new HttpResponseMessage(HttpStatusCode.OK);
 
                     default:
