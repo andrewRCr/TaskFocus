@@ -57,7 +57,8 @@ namespace TaskFocusAPI.Library.DataAccess
         public TaskModel AddTask(TaskModel newTask, string userId)
         {
             newTask.UserId = userId;
-            if (newTask.Completed) { newTask.DateCompleted = DateTime.Now; }
+            // completion dates are UTC, which clients use to count the days a completed task is kept
+            if (newTask.Completed) { newTask.DateCompleted = DateTime.UtcNow; }
 
             var insertedRow = _sqlDataAccess.SaveDataAndLoadInsertedRow("dbo.spTask_InsertForUser", newTask, "TaskFocusData");
             return insertedRow.FirstOrDefault();
@@ -84,7 +85,7 @@ namespace TaskFocusAPI.Library.DataAccess
             }
 
             // handle DateCompleted/unflagging CleanedUp on removing Completed status
-            if (!dbTask.Completed && frontEndTask.Completed) { dbTask.DateCompleted = DateTime.Now; }
+            if (!dbTask.Completed && frontEndTask.Completed) { dbTask.DateCompleted = DateTime.UtcNow; }
             else if (dbTask.Completed && !frontEndTask.Completed) 
             { 
                 dbTask.DateCompleted = null;

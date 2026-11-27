@@ -171,8 +171,8 @@ namespace TaskFocusUI.Library.Tests
         }
 
         [Theory]
-        [InlineData(1, false)]
-        [InlineData(1, true)]
+        [InlineData(2, false)]
+        [InlineData(2, true)]
         [InlineData(8, false)]
         [InlineData(8, true)]
         public async Task ACompletedTaskLeavingTodayLeavesTheRestWhereTheyAre(int daysAgo, bool bothStarredAndDue)
@@ -180,7 +180,7 @@ namespace TaskFocusUI.Library.Tests
             var today = DateTime.Now.Date;
             for (int id = 1; id <= 3; id++)
                 _api.Add(id, inboxIndex: id - 1, starred: true, dueDate: bothStarredAndDue ? today : null, todayIndex: id - 1,
-                    completed: id == 1, dateCompleted: id == 1 ? today.AddDays(-daysAgo) : null);
+                    completed: id == 1, dateCompleted: id == 1 ? DateTime.UtcNow.AddDays(-daysAgo) : null);
             await SignInAsync();
             await SyncAsync();
 

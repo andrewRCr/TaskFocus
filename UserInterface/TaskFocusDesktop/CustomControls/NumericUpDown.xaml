@@ -18,7 +18,8 @@
 
         <TextBox x:Name="txtNum" 
                  x:FieldModifier="private" 
-                 TextChanged="TxtNum_TextChanged" 
+                 LostKeyboardFocus="TxtNum_LostKeyboardFocus"
+                 KeyDown="TxtNum_KeyDown"
                  FontSize="16" 
                  BorderThickness="0" 
                  VerticalAlignment="Center" 

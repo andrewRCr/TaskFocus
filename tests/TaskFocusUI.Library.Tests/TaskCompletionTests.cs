@@ -192,7 +192,7 @@ namespace TaskFocusUI.Library.Tests
 
         private static void Rethrow(Exception exception) => Assert.Fail($"The sync failed: {exception.Message}");
 
-        private static bool IsRecent(DateTime? date) => date is DateTime d && Math.Abs((DateTime.Now - d).TotalMinutes) < 5;
+        private static bool IsRecent(DateTime? date) => date is DateTime d && Math.Abs((DateTime.UtcNow - d).TotalMinutes) < 5;
 
         private TaskDisplayModel Working(int id) => _data.GetDataStateTasks()!.Single(x => x.Id == id);
 
@@ -213,7 +213,7 @@ namespace TaskFocusUI.Library.Tests
             _data.UpdateTaskData(Working(id));
         }
 
-        // Sets and clears DateCompleted as the server does.
+        // Sets and clears DateCompleted, in UTC, as the server does.
         private sealed class TaskApi : HttpMessageHandler, IAPIHelper
         {
             private const string UserId = "test-user";
@@ -251,7 +251,7 @@ namespace TaskFocusUI.Library.Tests
                     case ("POST", "/api/task/post"):
                         var added = (await request.Content!.ReadFromJsonAsync<TaskModel>(cancellationToken))!;
                         added.Id = 100 + Tasks.Count;
-                        added.DateCompleted = added.Completed ? DateTime.Now : null;
+                        added.DateCompleted = added.Completed ? DateTime.UtcNow : null;
                         Tasks.Add(added);
                         Writes.Add($"POST {added.TaskName}");
                         return JsonResponse(added);
@@ -259,7 +259,7 @@ namespace TaskFocusUI.Library.Tests
                     case ("PUT", "/api/task/put"):
                         var sent = (await request.Content!.ReadFromJsonAsync<TaskModel>(cancellationToken))!;
                         var stored = Task(sent.Id!.Value);
-                        sent.DateCompleted = !sent.Completed ? null : stored.Completed ? stored.DateCompleted : DateTime.Now;
+                        sent.DateCompleted = !sent.Completed ? null : stored.Completed ? stored.DateCompleted : DateTime.UtcNow;
                         if (stored.Completed && !sent.Completed) sent.CleanedUp = false;
                         Tasks[Tasks.IndexOf(stored)] = sent;
                         Writes.Add($"PUT {sent.Id}");

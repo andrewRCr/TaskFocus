@@ -52,13 +52,13 @@ namespace TaskFocusUI.Library.Data.Services
             }
         }
 
-        // the server records its own completion date once it receives the change
+        // the server records its own completion date, in UTC, once it receives the change
         private void HandleTaskCompletedChanged(TaskDisplayModel task)
         {
             if (task.Completed)
             {
                 // only when it is checked off here, so an older completion keeps the date it has (or lacks)
-                if (task.DateCompleted == null && !WasCompleted(task)) task.DateCompleted = DateTime.Now;
+                if (task.DateCompleted == null && !WasCompleted(task)) task.DateCompleted = DateTime.UtcNow;
                 return;
             }
 
@@ -249,34 +249,42 @@ namespace TaskFocusUI.Library.Data.Services
             _dataState.SetWorkingTasks(workingDisplayTaskList);
         }
     
-        // manages completed task time-sensitive auto deletion / cleanedUp status; for use prior to each sync
+        // a completed task is deleted once more whole days than the delete delay have passed since its completion;
+        // completion dates are UTC, so the age is the same in every time zone and across daylight saving
+        private static bool IsExpired(TaskDisplayModel task, int deleteDelayDays) =>
+            task.Completed && task.DateCompleted is DateTime completed && (DateTime.UtcNow - completed).Days > deleteDelayDays;
+
+        private TaskDisplayModel? QueuedChange(TaskDisplayModel task) => task.Id == null
+            ? _dataState.GetChangedTaskData().Find(x => x.TempLocalId == task.TempLocalId)
+            : _dataState.GetChangedTaskData().Find(x => x.Id == task.Id);
+
+        // Each local edit gives the task and its queued change the same time. After signing in again, the task is the
+        // server's row while an older change to it may still wait to be sent; an automatic change to the row would
+        // overwrite that change, so it is left until the change is sent.
+        private bool IsBehindQueuedChange(TaskDisplayModel task) => QueuedChange(task) is TaskDisplayModel queued && queued.ClientLastUpdated != task.ClientLastUpdated;
+
+        // manages completed task cleanedUp status; for use prior to each sync (expired tasks are deleted during it)
         void IDataServiceInternal.PerformCompletedTaskCleanup()
         {
-            var userSettings = _dataState.GetWorkingUserSettings()!;
-            var completedTasks = _dataState.GetWorkingTasks()!.Where(x => x.Completed && x.DateCompleted != null);
+            // the settings as saved or waiting to be (the page's copy can hold an emptied field's 0, which is never saved)
+            var userSettings = _dataState.GetUserSettings()!;
+            // a changed delay applies once it is saved, so a change made later on another device isn't undercut by it
+            var completedTasks = _dataState.GetChangedSettingsData() != null ? [] : _dataState.GetWorkingTasks()!.Where(x =>
+                x.Completed && x.DateCompleted != null && !x.CleanedUp && !IsExpired(x, userSettings.DeleteDelayDays) && !IsBehindQueuedChange(x)).ToList();
             foreach (var workingTask in completedTasks)
             {
-                TimeSpan interval = (DateTime.Now - (DateTime)workingTask.DateCompleted!);
-                int daysPassedSinceTaskCompletion = interval.Days;
-
-                // delete if interval passed
-                int deleteIntervalSetting = userSettings.DeleteDelayDays;
-                if (daysPassedSinceTaskCompletion > deleteIntervalSetting) DeleteTask(workingTask);
-      
-                else if (!workingTask.CleanedUp) // handle CleanedUp state
+                int daysPassedSinceTaskCompletion = (DateTime.UtcNow - (DateTime)workingTask.DateCompleted!).Days;
+                int cleanupIntervalSetting = userSettings.CleanUpDelayDays;
+                if (userSettings.CleanUpImmediately || (daysPassedSinceTaskCompletion > cleanupIntervalSetting))
                 {
-                    int cleanupIntervalSetting = userSettings.CleanUpDelayDays;
-                    if (userSettings.CleanUpImmediately || (daysPassedSinceTaskCompletion > cleanupIntervalSetting))
-                    {
-                        workingTask.CleanedUp = true;
-                        UpdateTaskData(workingTask);
-                    }
-                }          
+                    workingTask.CleanedUp = true;
+                    UpdateTaskData(workingTask);
+                }
             }
 
             // remove TodayIndex from any completed (but not CleanedUp) tasks from view if completed > 1 day ago
             var oldCompletedTodayTasks = _dataState.GetWorkingTasks()!.Where(
-                x => x.TodayIndex != null && x.Completed && (x.DateCompleted < DateTime.Now.Date)).ToList();
+                x => x.TodayIndex != null && x.Completed && (x.DateCompleted < DateTime.Now.Date) && !IsBehindQueuedChange(x)).ToList();
             foreach (TaskDisplayModel workingTask in oldCompletedTodayTasks)
             {
                 // force update: will detect and remove TodayIndex, as well as shift other task indices accordingly if needed
@@ -284,16 +292,52 @@ namespace TaskFocusUI.Library.Data.Services
             }
         }
 
+        // Deletes completed tasks kept longer than the delete delay, on the server and here. It runs during a sync, after
+        // this device's changes are sent and other devices' are pulled, so it uses the saved delay. A task with a change
+        // still waiting to be sent is left for a later sync, and each one is checked against the server's row, which a
+        // change this sync just sent (such as reopening it) may have updated. Nothing is queued: if a request fails, the
+        // task is still on the server and the next sync tries again.
+        async Task<DataSyncResult> IDataServiceInternal.DeleteExpiredTasks()
+        {
+            DataSyncResult result = new();
+            // a delay changed during this sync applies once it is saved
+            if (_dataState.GetChangedSettingsData() != null) return result;
+
+            int deleteDelayDays = _dataState.GetUserSettings()!.DeleteDelayDays;
+            var expiredTasks = _dataState.GetTasks()!.Where(x => x.Id != null && IsExpired(x, deleteDelayDays) && QueuedChange(x) == null).ToList();
+            foreach (var task in expiredTasks)
+            {
+                TaskModel? serverTask = await _taskEndpoint.GetTaskById(task.Id!.Value);
+                // a delay changed, or this task edited (such as reopened), while the earlier ones were deleted is sent first
+                if (_dataState.GetChangedSettingsData() != null) break;
+                if (QueuedChange(task) != null) continue;
+                if (serverTask == null || !IsExpired(_mapper.Map<TaskDisplayModel>(serverTask), deleteDelayDays)) continue;
+
+                // Taken off this device, and the page, before the delete is sent, so it can't be edited while or after it
+                // goes. If the delete fails (or its reply is lost), the task may still be on the server; the next sign-in
+                // loads it and its first sync deletes it.
+                _dataState.GetTasks()!.Remove(task);
+                _dataState.GetWorkingTasks()?.RemoveAll(x => x.Id == task.Id);
+                _dataState.InvokeDataStateChanged(nameof(EDataRefreshType.Tasks));
+
+                await _taskEndpoint.DeleteTask(serverTask);
+                result.NumRowsDeleted++;
+            }
+
+            return result;
+        }
+
         // manages today-view task time-sensitive auto deletion / cleanedUp status; for use prior to each sync
         void IDataServiceInternal.PerformTodayTaskCleanup()
         {
             var combinedTodayTasks = GetTodayTasks();
 
-            // ensure any newly due/overdue tasks have a TodayIndex
+            // ensure any newly due/overdue tasks have a TodayIndex (a task whose change from before signing out is still waiting
+            // is left until it is sent, as the change may complete it)
             int nextTodayIndex = NextIndex(combinedTodayTasks, x => x.TodayIndex);
             foreach (TaskDisplayModel task in combinedTodayTasks)
             {
-                if (task.DueDate <= DateTime.Now.Date && task.TodayIndex == null)
+                if (task.DueDate <= DateTime.Now.Date && task.TodayIndex == null && !IsBehindQueuedChange(task))
                 {
                     task.TodayIndex = nextTodayIndex;
                     UpdateTaskData(task, true);

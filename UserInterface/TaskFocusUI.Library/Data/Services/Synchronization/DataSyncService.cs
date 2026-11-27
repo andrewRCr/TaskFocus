@@ -109,6 +109,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             try
             {
                 await _dataService.FetchAllRemoteData();
+                ShowQueuedUserData();
                 // process any time-relevant changes to task state for next sync
                 _dataService.PerformCompletedTaskCleanup();
                 _dataService.PerformTodayTaskCleanup();
@@ -165,9 +166,14 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             // pull all records that have changed since last sync...
             // and update the local client data with any changes (inserts, deletions, updates)
             DataSyncResult pullResult = await PullSync();
+            // then delete expired completed tasks, with the saved delay and the latest rows
+            pushResult = _dataHelper.CombineSyncResults(pushResult, await _dataService.DeleteExpiredTasks());
 
             // update "working" copies of local data from newly synced data state + log completion
             _dataService.UpdateAllWorkingDataAfterPull();
+            // clean up again with the settings this sync saved or pulled, so choosing "Immediately" or a shorter delay shows
+            // at once (the next sync sends the changes)
+            _dataService.PerformCompletedTaskCleanup();
             _dataState.SetLastSync(DateTimeOffset.Now);
 
             LogInformation("Synchronization complete.");
@@ -193,16 +199,14 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             var changedClientUser = _dataState.GetChangedUserData();
             if (changedClientUser != null) // local changes have occurred
             {
-                await PushSyncableUserData(changedClientUser);
-                _dataState.SetChangedUserData(null);
+                pushResult = _dataHelper.CombineSyncResults(pushResult, await PushSyncableUserData(changedClientUser));
             }
 
             // SETTINGS DATA
             var changedClientSettings = _dataState.GetChangedSettingsData();
             if (changedClientSettings != null) // local changes have occurred
             {
-                await PushSyncableUserData(changedClientSettings);
-                _dataState.SetChangedSettingsData(null);       
+                pushResult = _dataHelper.CombineSyncResults(pushResult, await PushSyncableUserData(changedClientSettings));
             }
 
             // TASK DATA
@@ -250,57 +254,126 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
         private async Task<DataSyncResult> PushSyncableUserData(ISyncableUserData userData)
         {
             DataSyncResult result = new();
-            ESyncableUserDataType changedDataType = userData.DataType;
-            ISyncableUserData changedClientData = userData;
-            ISyncableUserData serverData = changedDataType == ESyncableUserDataType.User ?
+            ISyncableUserData serverData = userData.DataType == ESyncableUserDataType.User ?
                 await _userEndpoint.GetCurrentUserData() : await _userEndpoint.GetCurrentUserSettings();
 
-            bool serverWon = false;
-            if (serverData.ClientLastUpdated > changedClientData!.ServerLastUpdated)
+            // this push sends or drops the change as it is now; one made after this, while the request is out, stays queued
+            DateTimeOffset madeAt = userData.ClientLastUpdated;
+
+            // a change saved elsewhere after this one was made is kept (this sync's pull shows it here)
+            if (QueuedChangeLoses(serverData, userData))
             {
-                // conflict - server data is newer than client
-                // server wins; ignore changes and just update time
-                serverData.ServerLastUpdated = DateTimeOffset.Now;
-                serverData.ClientLastUpdated = changedClientData.ServerLastUpdated;
-                serverWon = true;
-            }
-            else // client data is newer than server
-            {
-                changedClientData.ServerLastUpdated = DateTimeOffset.Now;
+                Dequeue(userData, madeAt);
+                return result;
             }
 
-            switch (changedDataType)
+            // only the request is stamped, so a failed attempt leaves the queued change as it was
+            DateTimeOffset savedAt = DateTimeOffset.Now;
+            switch (userData)
             {
-                case ESyncableUserDataType.User:
+                case UserDisplayModel changedClientUser:
 
-                    UserDisplayModel changedClientUser = (UserDisplayModel)changedClientData;
-                    UserDisplayModel serverUser = (UserDisplayModel)serverData;
-                    if (serverWon) await _userEndpoint.UpdateName(_mapper.Map<UserModel>(serverUser));                   
-                    else
-                    {
-                        _pushedUserData = changedClientUser;
-                        result.NumRowsUpdated++;
-                    }
+                    UserModel sentUser = _mapper.Map<UserModel>(changedClientUser);
+                    sentUser.ServerLastUpdated = savedAt;
+                    await _userEndpoint.UpdateName(sentUser);
 
-                    break;
-
-                case ESyncableUserDataType.Settings:
-
-                    UserSettingsDisplayModel changedClientSettings = (UserSettingsDisplayModel)changedClientData;
-                    UserSettingsDisplayModel serverSettings = (UserSettingsDisplayModel)serverData;
-                    if (serverWon) await _userEndpoint.UpdateUserSettings(_mapper.Map<UserSettingsModel>(serverSettings));                   
-                    else
-                    {
-                        _pushedUserSettingsData = changedClientSettings;
-                        result.NumRowsUpdated++;
-                    }
+                    UserDisplayModel savedUser = _dataState.GetCurrentUser()!.Clone();
+                    (savedUser.FirstName, savedUser.LastName) = (changedClientUser.FirstName, changedClientUser.LastName);
+                    (savedUser.ClientLastUpdated, savedUser.ServerLastUpdated) = (changedClientUser.ClientLastUpdated, savedAt);
+                    ShowUser(savedUser);
+                    _pushedUserData = changedClientUser;
+                    result.NumRowsUpdated++;
 
                     break;
-                default:
+
+                case UserSettingsDisplayModel changedClientSettings:
+
+                    UserSettingsModel sentSettings = _mapper.Map<UserSettingsModel>(changedClientSettings);
+                    sentSettings.ServerLastUpdated = savedAt;
+                    await _userEndpoint.UpdateUserSettings(sentSettings);
+
+                    UserSettingsDisplayModel savedSettings = changedClientSettings.Clone();
+                    savedSettings.ServerLastUpdated = savedAt;
+                    ShowSettings(savedSettings);
+                    _pushedUserSettingsData = changedClientSettings;
+                    result.NumRowsUpdated++;
+
                     break;
-            }              
-           
+            }
+
+            // a change made while the request was out is sent by the next sync, against the row as saved here
+            userData.ServerLastUpdated = savedAt;
+            Dequeue(userData, madeAt);
             return result;
+        }
+
+        // takes a sent or dropped change off the queue, unless it was changed again after it was sent
+        private void Dequeue(ISyncableUserData queued, DateTimeOffset madeAt)
+        {
+            if (queued.ClientLastUpdated != madeAt) return;
+            if (queued.DataType == ESyncableUserDataType.User) _dataState.SetChangedUserData(null);
+            else _dataState.SetChangedSettingsData(null);
+        }
+
+        // A queued name or settings change loses only to a change saved elsewhere since this device last loaded or saved
+        // the row, and then only if that change was made later. The first test needs no clock, so a device whose clock
+        // differs from the server's still saves an edit made against the row it holds.
+        private static bool QueuedChangeLoses(ISyncableUserData serverRow, ISyncableUserData queued) =>
+            serverRow.ServerLastUpdated != queued.ServerLastUpdated && serverRow.ClientLastUpdated > queued.ClientLastUpdated;
+
+        // Puts these values (the server's row, or what was just saved or is waiting to be) in both local copies, with the
+        // row's timestamps. The working copy, which the Settings pages edit, is replaced only when its values differ, so
+        // a field being typed in isn't reset for nothing.
+        // (the settings row's id is fixed-width and may come back space-padded)
+        private static bool IsSameRow(ISyncableUserData row, ISyncableUserData change) =>
+            row.Id != null && change.Id != null && row.Id.Trim() == change.Id.Trim();
+
+        private void ShowUser(UserDisplayModel user)
+        {
+            _dataState.SetCurrentUser(user);
+            if (_dataState.GetWorkingCurrentUser() is not UserDisplayModel workingUser) return;
+            if (_dataHelper.HasUserDataChanged(workingUser)) _dataState.SetWorkingCurrentUser(user.Clone());
+            else (workingUser.ServerLastUpdated, workingUser.ClientLastUpdated) = (user.ServerLastUpdated, user.ClientLastUpdated);
+        }
+
+        // as ShowUser, for settings; cleanup reads these, so it follows the saved delays
+        private void ShowSettings(UserSettingsDisplayModel settings)
+        {
+            _dataState.SetUserSettings(settings);
+            if (_dataState.GetWorkingUserSettings() is not UserSettingsDisplayModel workingSettings) return;
+            if (_dataHelper.HasSettingsDataChanged(workingSettings)) _dataState.SetWorkingUserSettings(settings.Clone());
+            else (workingSettings.ServerLastUpdated, workingSettings.ClientLastUpdated) = (settings.ServerLastUpdated, settings.ClientLastUpdated);
+        }
+
+        // On signing in, a change whose save failed before signing out is still queued. Show it, so an edit made before
+        // the next sync builds on it, unless the server already holds a later change, which the queued one would lose to,
+        // or the loaded row is a different one from the row the change was made to.
+        private void ShowQueuedUserData()
+        {
+            if (_dataState.GetChangedUserData() is UserDisplayModel queuedUser)
+            {
+                var loaded = _dataState.GetCurrentUser()!;
+                if (!IsSameRow(loaded, queuedUser) || QueuedChangeLoses(loaded, queuedUser)) _dataState.SetChangedUserData(null);
+                else
+                {
+                    var shown = loaded.Clone();
+                    (shown.FirstName, shown.LastName) = (queuedUser.FirstName, queuedUser.LastName);
+                    ShowUser(shown);
+                }
+            }
+
+            if (_dataState.GetChangedSettingsData() is UserSettingsDisplayModel queuedSettings)
+            {
+                var loaded = _dataState.GetUserSettings()!;
+                if (!IsSameRow(loaded, queuedSettings) || QueuedChangeLoses(loaded, queuedSettings)) _dataState.SetChangedSettingsData(null);
+                else
+                {
+                    var shown = loaded.Clone();
+                    (shown.CleanUpImmediately, shown.CleanUpDelayDays, shown.DeleteDelayDays) =
+                        (queuedSettings.CleanUpImmediately, queuedSettings.CleanUpDelayDays, queuedSettings.DeleteDelayDays);
+                    ShowSettings(shown);
+                }
+            }
         }
 
         // process push at row level - task/project/context data
@@ -617,15 +690,14 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
                 if (userData.DataType == ESyncableUserDataType.User && _pushedUserData == null ||
                     userData.DataType == ESyncableUserDataType.Settings && _pushedUserSettingsData == null)
                 {
-                    serverData.ServerLastUpdated = DateTimeOffset.Now;
-                    // update local data store
+                    // update local data store (with the row's own timestamps, which the next push compares)
                     switch (userData.DataType)
                     {
                         case ESyncableUserDataType.User:
 
                             UserModel serverUser = (UserModel)userData;
                             var displayServerUser = _mapper.Map<UserDisplayModel>(serverUser);
-                            _dataState.SetCurrentUser(displayServerUser);
+                            ShowUser(displayServerUser);
 
                             break;
 
@@ -633,7 +705,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
 
                             UserSettingsModel serverSettings = (UserSettingsModel)serverData;
                             var displayServerSettings = _mapper.Map<UserSettingsDisplayModel>(serverData); 
-                            _dataState.SetUserSettings(displayServerSettings);
+                            ShowSettings(displayServerSettings);
 
                             break;
 
