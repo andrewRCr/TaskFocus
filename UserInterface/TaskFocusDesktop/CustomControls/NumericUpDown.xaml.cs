@@ -1,5 +1,7 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 
 namespace TaskFocusDesktop.CustomControls
@@ -174,19 +176,19 @@ namespace TaskFocusDesktop.CustomControls
             }
         }
 
-        private void TxtNum_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            if (txtNum == null)
-            {
-                return;
-            }
+        // A typed number applies on Enter or on leaving the field, as on the web, so a number part-way through typing is
+        // never saved. One outside the range is brought into it; anything else puts back the current value.
+        private void TxtNum_LostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e) => ApplyTypedValue();
 
-            if (!int.TryParse(txtNum.Text, out var val))
-            {
-                Value = val;
-                txtNum.Text = val.ToString();
-            }
-                
+        private void TxtNum_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter) ApplyTypedValue();
+        }
+
+        private void ApplyTypedValue()
+        {
+            if (int.TryParse(txtNum.Text, out var typed)) Value = Math.Max(Minimum, Math.Min(Maximum, typed));
+            txtNum.Text = Value.ToString();
         }
 
         private void UserControl_IsEnabledChanged(object sender, DependencyPropertyChangedEventArgs e)
