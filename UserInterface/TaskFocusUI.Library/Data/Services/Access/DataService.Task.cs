@@ -305,14 +305,26 @@ namespace TaskFocusUI.Library.Data.Services
 
             int deleteDelayDays = _dataState.GetUserSettings()!.DeleteDelayDays;
             var expiredTasks = _dataState.GetTasks()!.Where(x => x.Id != null && IsExpired(x, deleteDelayDays) && QueuedChange(x) == null).ToList();
-            foreach (var task in expiredTasks)
+            try
             {
-                TaskModel? serverTask = await _taskEndpoint.GetTaskById(task.Id!.Value);
-                if (serverTask == null || !IsExpired(_mapper.Map<TaskDisplayModel>(serverTask), deleteDelayDays)) continue;
+                foreach (var task in expiredTasks)
+                {
+                    TaskModel? serverTask = await _taskEndpoint.GetTaskById(task.Id!.Value);
+                    // a delay changed, or this task edited (such as reopened), while the earlier ones were deleted is sent first
+                    if (_dataState.GetChangedSettingsData() != null) break;
+                    if (QueuedChange(task) != null) continue;
+                    if (serverTask == null || !IsExpired(_mapper.Map<TaskDisplayModel>(serverTask), deleteDelayDays)) continue;
 
-                await _taskEndpoint.DeleteTask(serverTask);
-                _dataState.GetTasks()!.Remove(task);
-                result.NumRowsDeleted++;
+                    await _taskEndpoint.DeleteTask(serverTask);
+                    _dataState.GetTasks()!.Remove(task);
+                    // the page's list too, which a failed request later in this sync would otherwise leave holding the task
+                    _dataState.GetWorkingTasks()?.RemoveAll(x => x.Id == task.Id);
+                    result.NumRowsDeleted++;
+                }
+            }
+            finally
+            {
+                if (result.NumRowsDeleted > 0) _dataState.InvokeDataStateChanged(nameof(EDataRefreshType.Tasks));
             }
 
             return result;
@@ -323,11 +335,12 @@ namespace TaskFocusUI.Library.Data.Services
         {
             var combinedTodayTasks = GetTodayTasks();
 
-            // ensure any newly due/overdue tasks have a TodayIndex
+            // ensure any newly due/overdue tasks have a TodayIndex (a task whose change from before signing out is still waiting
+            // is left until it is sent, as the change may complete it)
             int nextTodayIndex = NextIndex(combinedTodayTasks, x => x.TodayIndex);
             foreach (TaskDisplayModel task in combinedTodayTasks)
             {
-                if (task.DueDate <= DateTime.Now.Date && task.TodayIndex == null)
+                if (task.DueDate <= DateTime.Now.Date && task.TodayIndex == null && !IsBehindQueuedChange(task))
                 {
                     task.TodayIndex = nextTodayIndex;
                     UpdateTaskData(task, true);

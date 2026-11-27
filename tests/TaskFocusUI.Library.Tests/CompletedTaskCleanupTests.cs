@@ -367,6 +367,79 @@ namespace TaskFocusUI.Library.Tests
             Assert.False(saved.CleanedUp);
         }
 
+        // While the first expired task is being deleted, the second is reopened or the delay is raised; that is sent first.
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task AChangeMadeWhileExpiredTasksAreBeingDeletedKeepsTheRest(bool raiseDelay)
+        {
+            _api.Add(1, daysSinceCompleted: 40);
+            _api.Add(2, daysSinceCompleted: 40);
+            await Sync(); // Signing in.
+
+            _api.OnDelete = () =>
+            {
+                if (raiseDelay) ChangeSettings(x => x.DeleteDelayDays = 90);
+                else Edit(2, x => x.Completed = false);
+            };
+            await Sync();
+            await Sync();
+
+            Assert.Equal(["DELETE 1", raiseDelay ? "PUT settings" : "PUT 2"], _api.Writes);
+            Assert.Equal([2], _api.Tasks.Select(x => x.Id!.Value));
+        }
+
+        [Fact]
+        public async Task AFailedDeleteLeavesNoDeletedTaskOnThePage()
+        {
+            _api.Add(1, daysSinceCompleted: 40);
+            _api.Add(2, daysSinceCompleted: 40);
+            _api.Add(3, daysSinceCompleted: null);
+            await Sync(); // Signing in.
+
+            _api.FailNext = "DELETE 2";
+            await SyncFails();
+
+            Assert.Equal([2, 3], _data.GetDataStateTasks()!.Select(x => x.Id!.Value));
+            Assert.Equal([2, 3], _state.GetTasks()!.Select(x => x.Id!.Value));
+        }
+
+        // A task due tomorrow is checked off, the save fails, and the next sign-in is on the day it is due.
+        [Fact]
+        public async Task ACompletionWaitingToBeSentIsKeptWhenItsTaskBecomesDue()
+        {
+            _api.Add(1, daysSinceCompleted: null);
+            _api.Tasks.Single().DueDate = DateTime.Today.AddDays(1);
+            await Sync(); // Signing in.
+
+            Edit(1, x => x.Completed = true);
+            _api.FailNext = "PUT 1";
+            await SyncFails();
+
+            _api.Tasks.Single().DueDate = DateTime.Today; // The day it is due.
+            await SignOutAndIn();
+            await Sync();
+
+            Assert.True(_api.Tasks.Single().Completed);
+            Assert.True(_data.GetDataStateTasks()!.Single().Completed);
+        }
+
+        [Fact]
+        public async Task ChoosingToCleanUpImmediatelyCleansUpWithTheSyncThatSavesIt()
+        {
+            _api.Add(1, daysSinceCompleted: 2);
+            await Sync(); // Signing in.
+
+            ChangeSettings(x => x.CleanUpImmediately = true);
+            await Sync();
+            Assert.Equal(["PUT settings"], _api.Writes);
+            Assert.True(_data.GetDataStateTasks()!.Single().CleanedUp);
+
+            await Sync();
+            Assert.Equal(["PUT settings", "PUT 1"], _api.Writes);
+            Assert.True(_api.Tasks.Single().CleanedUp);
+        }
+
         public void Dispose() => _api.Dispose();
 
         private sealed class TaskApi : HttpMessageHandler, IAPIHelper

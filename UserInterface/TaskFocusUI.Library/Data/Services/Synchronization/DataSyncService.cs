@@ -171,6 +171,9 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
 
             // update "working" copies of local data from newly synced data state + log completion
             _dataService.UpdateAllWorkingDataAfterPull();
+            // clean up again with the settings this sync saved or pulled, so choosing "Immediately" or a shorter delay shows
+            // at once (the next sync sends the changes)
+            _dataService.PerformCompletedTaskCleanup();
             _dataState.SetLastSync(DateTimeOffset.Now);
 
             LogInformation("Synchronization complete.");
