@@ -282,6 +282,26 @@ namespace TaskFocusAPI.IntegrationTests
             Assert.Equal(secondContext.Id, Assert.Single(await GetAsync<List<ContextModel>>(second, Contexts)).Id);
         }
 
+        // Clients count the days a completed task is kept from this date, in UTC, whatever the server's time zone.
+        [Fact]
+        public async Task TaskCompletionIsDatedInUtc()
+        {
+            using var client = await fixture.CreateAuthenticatedClientAsync();
+            var task = await CreateTaskAsync(client, "Completed later");
+            task.Completed = true;
+            await UpdateAsync(client, "Task", task);
+            var completedLater = await GetAsync<TaskModel>(client, $"/api/Task/GetTaskById/{task.Id}");
+
+            using var response = await HttpClientJsonExtensions.PostAsJsonAsync(client, "/api/Task/Post", new TaskModel { TaskName = "Completed at once", Completed = true }, CancellationToken);
+            var completedAtOnce = await ReadCreatedAsync<TaskModel>(response);
+
+            foreach (var completed in new[] { completedLater.DateCompleted, completedAtOnce.DateCompleted })
+            {
+                Assert.NotNull(completed);
+                Assert.InRange((DateTime.UtcNow - completed.Value).TotalMinutes, -2, 2);
+            }
+        }
+
         [Fact]
         public async Task TaskUpdatePersistsServerLastUpdatedForSync()
         {
