@@ -310,6 +310,26 @@ namespace TaskFocusUI.Library.Tests
         private static readonly string[] Names = ["Old", "First", "Second"];
         private static readonly int[] Delays = [30, 60, 45];
 
+        // The row loaded on signing in again is a different one from the row the waiting change was made to.
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task AWaitingChangeIsDroppedWhenTheRowLoadedOnSigningInIsADifferentOne(bool name)
+        {
+            await _client.Sync(); // Signing in.
+            Change(name, 1);
+            _api.FailNextSave = Failure.Unreachable;
+            await _client.SyncFails();
+
+            _api.ServeAnotherRow("another-row", Names[2], Delays[2]);
+            await _client.SignOutAndIn();
+            Assert.Equal(2, Shown(name));
+            await _client.Sync();
+
+            Assert.Equal(2, Saved(name));
+            Assert.DoesNotContain(name ? "PUT name" : "PUT settings", _api.Writes);
+        }
+
         // A second change, made while the first is being saved, is saved by the next sync.
         [Theory]
         [InlineData(true)]
@@ -423,10 +443,16 @@ namespace TaskFocusUI.Library.Tests
             public Failure FailNextSave { get; set; }
             public Action? WhileSaving { get; set; } // runs once a save is stored, before its reply arrives
             public UserModel User { get; } = new() { Id = UserId, Email = "user@example.invalid", FirstName = "Old", LastName = "Name", ServerLastUpdated = Registered, ClientLastUpdated = Registered };
-            public UserSettingsModel Settings { get; } = new() { Id = UserId, ServerLastUpdated = Registered, ClientLastUpdated = Registered };
+            public UserSettingsModel Settings { get; } = new() { Id = UserId.PadRight(128), ServerLastUpdated = Registered, ClientLastUpdated = Registered }; // A fixed-width column.
             public TaskModel StoredTask { get; private set; } = new() { Id = 1, UserId = UserId, TaskName = "Task", InboxIndex = 0, ServerLastUpdated = Registered, ClientLastUpdated = Registered };
 
             // Another device saves a change a moment after this one's (stamped by its clock, which may be ahead).
+            // From now on, the server returns a different row, with its own values.
+            public void ServeAnotherRow(string id, string firstName, int deleteDelayDays)
+            {
+                (User.Id, User.FirstName, Settings.Id, Settings.DeleteDelayDays) = (id, firstName, id.PadRight(128), deleteDelayDays);
+            }
+
             public void SaveElsewhere(int deleteDelayDays, string firstName, int minutesAhead = 0)
             {
                 var at = DateTimeOffset.Now.AddSeconds(1).AddMinutes(minutesAhead);

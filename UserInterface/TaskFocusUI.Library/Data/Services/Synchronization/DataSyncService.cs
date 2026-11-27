@@ -324,6 +324,10 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
         // Puts these values (the server's row, or what was just saved or is waiting to be) in both local copies, with the
         // row's timestamps. The working copy, which the Settings pages edit, is replaced only when its values differ, so
         // a field being typed in isn't reset for nothing.
+        // (the settings row's id is fixed-width and may come back space-padded)
+        private static bool IsSameRow(ISyncableUserData row, ISyncableUserData change) =>
+            row.Id != null && change.Id != null && row.Id.Trim() == change.Id.Trim();
+
         private void ShowUser(UserDisplayModel user)
         {
             _dataState.SetCurrentUser(user);
@@ -342,13 +346,14 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
         }
 
         // On signing in, a change whose save failed before signing out is still queued. Show it, so an edit made before
-        // the next sync builds on it, unless the server already holds a later change, which the queued one would lose to.
+        // the next sync builds on it, unless the server already holds a later change, which the queued one would lose to,
+        // or the loaded row is a different one from the row the change was made to.
         private void ShowQueuedUserData()
         {
             if (_dataState.GetChangedUserData() is UserDisplayModel queuedUser)
             {
                 var loaded = _dataState.GetCurrentUser()!;
-                if (QueuedChangeLoses(loaded, queuedUser)) _dataState.SetChangedUserData(null);
+                if (!IsSameRow(loaded, queuedUser) || QueuedChangeLoses(loaded, queuedUser)) _dataState.SetChangedUserData(null);
                 else
                 {
                     var shown = loaded.Clone();
@@ -360,7 +365,7 @@ namespace TaskFocusUI.Library.Data.Services.Synchronization
             if (_dataState.GetChangedSettingsData() is UserSettingsDisplayModel queuedSettings)
             {
                 var loaded = _dataState.GetUserSettings()!;
-                if (QueuedChangeLoses(loaded, queuedSettings)) _dataState.SetChangedSettingsData(null);
+                if (!IsSameRow(loaded, queuedSettings) || QueuedChangeLoses(loaded, queuedSettings)) _dataState.SetChangedSettingsData(null);
                 else
                 {
                     var shown = loaded.Clone();

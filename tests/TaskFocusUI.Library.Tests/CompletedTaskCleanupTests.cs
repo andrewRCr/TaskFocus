@@ -503,7 +503,7 @@ namespace TaskFocusUI.Library.Tests
             public List<string> Writes { get; } = [];
             public int Loads { get; private set; }
 
-            public UserSettingsModel Settings { get; } = new() { DeleteDelayDays = 30, CleanUpDelayDays = 7 };
+            public UserSettingsModel Settings { get; } = new() { Id = UserId, DeleteDelayDays = 30, CleanUpDelayDays = 7 };
             public string? FailNext { get; set; } // e.g. "PUT 1": that request fails once, before reaching the server
             public Action? OnDelete { get; set; } // runs while a delete is awaiting its reply
             public Action? OnEveryDelete { get; set; } // runs as each delete reaches the server
